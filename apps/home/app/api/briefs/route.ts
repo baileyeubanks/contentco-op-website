@@ -17,14 +17,15 @@ export async function POST(req: Request) {
     );
   }
 
-  // Insert into Supabase — phone/location stored in constraints until migration runs
   const { data, error } = await supabase
     .from("creative_briefs")
     .insert({
       contact_name: body.contact_name,
       contact_email: body.contact_email,
+      phone: body.phone || null,
       company: body.company || null,
       role: body.role || null,
+      location: body.location || null,
       content_type: body.content_type || null,
       deliverables: body.deliverables || null,
       audience: body.audience || null,
@@ -33,11 +34,6 @@ export async function POST(req: Request) {
       objective: body.objective || null,
       key_messages: body.key_messages || null,
       references: body.references || null,
-      // Phone + location packed into constraints until 20260226_add_contact_fields migration runs
-      constraints: [
-        body.phone ? `Phone: ${body.phone}` : null,
-        body.location ? `Location: ${body.location}` : null,
-      ].filter(Boolean).join("\n") || null,
     })
     .select("id, access_token, status, created_at")
     .single();
