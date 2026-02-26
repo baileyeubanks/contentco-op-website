@@ -1,6 +1,7 @@
 [build]
-  command = "cd ../.. && npx turbo run build --filter=@contentco-op/home"
-  publish = ".next"
+  command = "npm ci && npx turbo run build --filter=@contentco-op/home"
+  publish = "apps/home/.next"
+  base = "."
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
