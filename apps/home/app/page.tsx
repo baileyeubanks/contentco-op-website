@@ -124,18 +124,20 @@ export default function HomePage() {
               We deliver on time — from strategy to final cut.
             </blockquote>
             <span className="trust-quote-mark trust-quote-close" aria-hidden="true">&rdquo;</span>
-            <div className="trust-attribution">
-              <span className="trust-name">Bailey Eubanks</span>
-              <span className="trust-role">Content Co-op</span>
+            <div className="trust-byline">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="trust-signature"
+                src="/cc/signature-bailey.png"
+                alt="Bailey Eubanks signature"
+                width={160}
+                height={60}
+              />
+              <div className="trust-attribution">
+                <span className="trust-name">Bailey Eubanks</span>
+                <span className="trust-role">Content Co-op</span>
+              </div>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="trust-signature"
-              src="/cc/signature-bailey.png"
-              alt="Bailey Eubanks signature"
-              width={220}
-              height={82}
-            />
           </div>
           <div className="trust-photo">
             <Image
@@ -144,6 +146,7 @@ export default function HomePage() {
               fill
               sizes="300px"
               quality={85}
+              style={{ pointerEvents: "none" }}
             />
           </div>
         </div>

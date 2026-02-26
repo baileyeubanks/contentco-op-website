@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // Insert into Supabase
+  // Insert into Supabase — phone/location stored in constraints until migration runs
   const { data, error } = await supabase
     .from("creative_briefs")
     .insert({
@@ -33,7 +33,11 @@ export async function POST(req: Request) {
       objective: body.objective || null,
       key_messages: body.key_messages || null,
       references: body.references || null,
-      constraints: body.constraints || null,
+      // Phone + location packed into constraints until 20260226_add_contact_fields migration runs
+      constraints: [
+        body.phone ? `Phone: ${body.phone}` : null,
+        body.location ? `Location: ${body.location}` : null,
+      ].filter(Boolean).join("\n") || null,
     })
     .select("id, access_token, status, created_at")
     .single();
@@ -46,7 +50,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // Insert into events table → netlify_event_bridge routes to cc-worker (non-fatal)
+  // Insert into events table → netlify_event_bridge routes to main + cc-worker (non-fatal)
   try {
     await supabase.from("events").insert({
       type: "brief_submitted",
@@ -54,8 +58,11 @@ export async function POST(req: Request) {
         brief_id: data.id,
         contact_name: body.contact_name,
         contact_email: body.contact_email,
+        phone: body.phone || null,
+        location: body.location || null,
         company: body.company || null,
         content_type: body.content_type || null,
+        deliverables: body.deliverables || null,
         deadline: body.deadline || null,
         objective: body.objective || null,
         portal_url: `/portal/${data.id}?token=${data.access_token}`,

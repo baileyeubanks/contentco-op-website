@@ -197,6 +197,152 @@ select.field {
 }
 select.field option { background: #0d1a2e; }
 
+/* ── Pill selectors ── */
+.formSection {
+  margin-bottom: 1.6rem;
+}
+
+.pillGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .38rem;
+  margin-top: .3rem;
+}
+
+.pill {
+  padding: .42rem .88rem;
+  border: 1px solid #2b4263;
+  border-radius: 999px;
+  background: #0d1a2e;
+  color: #7a9bc4;
+  font-size: .76rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+  font-family: inherit;
+  white-space: nowrap;
+  line-height: 1;
+}
+.pill:hover {
+  border-color: #4a7aaa;
+  color: #c8dcf5;
+}
+.pillActive {
+  border-color: #6b9fd4;
+  background: rgba(107, 159, 212, 0.14);
+  color: #edf3ff;
+}
+
+.labelHint {
+  font-size: .62rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #4a6888;
+  font-weight: 600;
+  margin-left: .4rem;
+}
+
+.fieldHint {
+  font-size: .76rem;
+  color: #4a6888;
+  margin: .15rem 0 .45rem;
+  line-height: 1.5;
+}
+
+.fieldDate {
+  composes: field;
+  width: auto;
+  max-width: 200px;
+}
+
+/* ── Quote estimate card ── */
+.estCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(107, 159, 212, 0.28);
+  border-radius: 14px;
+  background: rgba(107, 159, 212, 0.06);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.estLeft {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.estLabel {
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #6b9fd4;
+  font-weight: 700;
+}
+
+.estNote {
+  font-size: .72rem;
+  color: #4a6888;
+}
+
+.estRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .2rem;
+}
+
+.estRange {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: #edf3ff;
+}
+
+.estWeeks {
+  font-size: .72rem;
+  color: #6b9fd4;
+}
+
+/* ── Success estimate ── */
+.successEst {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgba(107, 159, 212, 0.25);
+  border-radius: 12px;
+  background: rgba(107, 159, 212, 0.07);
+  padding: .8rem 1.2rem;
+  margin: 0 auto 1.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 420px;
+}
+
+.successEstLabel {
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #6b9fd4;
+  font-weight: 700;
+}
+
+.successEstRange {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: #edf3ff;
+}
+
+.successEstMeta {
+  font-size: .72rem;
+  color: #7a9bc4;
+}
+
 /* ── Nav buttons ── */
 .navRow {
   display: flex;
