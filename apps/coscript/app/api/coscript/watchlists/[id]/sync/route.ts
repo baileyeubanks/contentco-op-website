@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireInviteSession } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await requireInviteSession();
-  if (!session) {
+  const user = await requireAuth();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server";
+import { createSupabaseAuth } from "@/lib/supabase-auth";
 
 export async function POST() {
-  const res = NextResponse.json({ success: true });
-  res.cookies.set("cco_session", "", {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0
-  });
-  return res;
+  const supabase = await createSupabaseAuth();
+  await supabase.auth.signOut();
+  return NextResponse.json({ success: true });
 }

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireInviteSession } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 const ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function POST(req: Request) {
-  const session = await requireInviteSession();
-  if (!session) {
+  const user = await requireAuth();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -32,8 +32,8 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const session = await requireInviteSession();
-  if (!session) {
+  const user = await requireAuth();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

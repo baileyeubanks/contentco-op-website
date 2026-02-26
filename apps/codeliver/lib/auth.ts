@@ -1,10 +1,10 @@
-import { cookies } from "next/headers";
+import { createSupabaseAuth } from "./supabase-auth";
 
-export async function requireInviteSession() {
-  const store = await cookies();
-  const session = store.get("cco_session")?.value;
-  if (!session || !session.startsWith("invited:")) {
-    return null;
-  }
-  return session;
+export async function requireAuth() {
+  const supabase = await createSupabaseAuth();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  return user;
 }

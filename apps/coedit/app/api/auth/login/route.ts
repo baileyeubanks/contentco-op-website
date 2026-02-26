@@ -1,27 +1,34 @@
 import { NextResponse } from "next/server";
+import { createSupabaseAuth } from "@/lib/supabase-auth";
 
 export async function POST(req: Request) {
-  const form = await req.formData();
-  const email = String(form.get("email") || "").toLowerCase();
-  const password = String(form.get("password") || "");
-  const inviteCode = String(form.get("invite_code") || "");
-  const expectedInviteCode = process.env.CCO_INVITE_CODE || "";
-
-  if (!email || !password || !inviteCode) {
-    return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
+  let body: Record<string, string>;
+  try {
+    body = await req.json();
+  } catch {
+    // Fallback to form data for non-JSON requests
+    const form = await req.formData().catch(() => null);
+    if (!form) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    body = {
+      email: String(form.get("email") || ""),
+      password: String(form.get("password") || ""),
+    };
   }
 
-  if (!expectedInviteCode || inviteCode !== expectedInviteCode) {
-    return NextResponse.json({ error: "Invalid invite code" }, { status: 401 });
+  const { email, password } = body;
+  if (!email || !password) {
+    return NextResponse.json({ error: "Email and password required" }, { status: 400 });
   }
 
-  const res = NextResponse.redirect(new URL("/", req.url));
-  res.cookies.set("cco_session", `invited:${email}`, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 3
+  const supabase = await createSupabaseAuth();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.toLowerCase(),
+    password,
   });
-  return res;
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 401 });
+  }
+
+  return NextResponse.json({ success: true });
 }
