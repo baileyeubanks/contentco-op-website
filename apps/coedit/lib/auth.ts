@@ -1,5 +1,6 @@
 import { createSupabaseAuth } from "./supabase-auth";
 
+/** Require authenticated Supabase user — returns null if not signed in */
 export async function requireAuth() {
   const supabase = await createSupabaseAuth();
   const {
