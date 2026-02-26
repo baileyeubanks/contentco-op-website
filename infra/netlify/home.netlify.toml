@@ -1,0 +1,22 @@
+[build]
+command = "npm run build -w @contentco-op/home"
+publish = "apps/home/.next"
+
+[build.environment]
+NETLIFY_NEXT_PLUGIN_SKIP = "false"
+
+[[plugins]]
+package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+from = "/coedit/*"
+to = "https://coedit.contentco-op.com/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "/coscript/*"
+to = "https://coscript.contentco-op.com/:splat"
+status = 301
+force = true
+

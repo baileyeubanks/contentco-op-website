@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Content Co-op Monorepo (v2.1 MVP)
 
-## Getting Started
+Three-surface system with one brand and two standalone products.
 
-First, run the development server:
+## Surfaces
+
+1. `contentco-op.com` (`apps/home`) - bright cinematic flagship and brief entry.
+2. `coedit.contentco-op.com` (`apps/coedit`) - dark precision review and approvals.
+3. `coscript.contentco-op.com` (`apps/coscript`) - dark signal-first script generation.
+
+## Repository layout
+
+1. `apps/home`, `apps/coedit`, `apps/coscript`
+2. `packages/ui`, `packages/brand`, `packages/types`, `packages/api-client`
+3. `services/orchestrator` (single orchestrator service)
+4. `services/media-worker` (transcode and thumbnail workflow scripts)
+5. `infra/supabase/migrations` (schema)
+6. `infra/netlify` (site-specific deploy config)
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev:home
+npm run dev:coedit
+npm run dev:coscript
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ports:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Home: `http://localhost:4100`
+2. Co-Edit: `http://localhost:4101`
+3. Co-Script: `http://localhost:4102`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Invite-only access
 
-## Learn More
+Set `CCO_INVITE_CODE` in environment before testing auth forms.
 
-To learn more about Next.js, take a look at the following resources:
+## Hero media
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Current hero source:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`/Users/baileyeubanks/Desktop/CC_PHOTOS/HLSR+bp_30 Sec Spot_FINAL.mp4`
 
-## Deploy on Vercel
+Generated outputs:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. `apps/home/public/media/hero-1080.mp4`
+2. `apps/home/public/media/hero-1080.webm`
+3. `apps/home/public/media/hero-poster.jpg`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Regenerate:
+
+```bash
+npm run hero:transcode -w @contentco-op/media-worker
+```
+
+## API contract status
+
+MVP route stubs implemented for:
+
+1. Auth (`/api/auth/login`)
+2. Co-Edit (`/api/coedit/*`)
+3. Co-Script (`/api/coscript/*`)
+4. Media workflow (`/api/media/*`)
+
+Wire these handlers to Supabase and queue workers in next implementation pass.
+

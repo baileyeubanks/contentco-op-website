@@ -1,26 +1,26 @@
 {
-  "name": "web",
-  "version": "0.1.0",
+  "name": "contentco-op-monorepo",
+  "version": "0.2.0",
   "private": true,
+  "packageManager": "npm@11.9.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "dev": "turbo run dev --parallel",
+    "dev:home": "npm run dev -w @contentco-op/home",
+    "dev:coedit": "npm run dev -w @contentco-op/coedit",
+    "dev:coscript": "npm run dev -w @contentco-op/coscript",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@types/node": "^20.19.16",
+    "eslint": "^9.39.0",
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.3"
   }
 }
