@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireInviteSession } from "@/lib/auth";
-import { watchlists } from "@/lib/mock";
+import { supabase } from "@/lib/supabase";
+
+const ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function POST(req: Request) {
   const session = await requireInviteSession();
@@ -9,16 +11,24 @@ export async function POST(req: Request) {
   }
 
   const payload = await req.json().catch(() => ({}));
-  if (!payload.name || !payload.platform) {
-    return NextResponse.json({ error: "Missing watchlist fields" }, { status: 400 });
+  if (!payload.name) {
+    return NextResponse.json({ error: "Missing watchlist name" }, { status: 400 });
   }
 
-  return NextResponse.json({
-    id: `wl_${Date.now()}`,
-    name: payload.name,
-    platform: payload.platform,
-    status: "active"
-  });
+  const { data, error } = await supabase
+    .from("watchlists")
+    .insert({
+      org_id: ORG_ID,
+      name: payload.name,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to create watchlist" }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
 }
 
 export async function GET() {
@@ -26,6 +36,16 @@ export async function GET() {
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json({ items: watchlists });
-}
 
+  const { data, error } = await supabase
+    .from("watchlists")
+    .select("*, watchlist_sources(count)")
+    .eq("org_id", ORG_ID)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to fetch watchlists" }, { status: 500 });
+  }
+
+  return NextResponse.json({ items: data ?? [] });
+}

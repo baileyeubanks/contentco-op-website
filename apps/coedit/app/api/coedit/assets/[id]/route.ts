@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireInviteSession } from "@/lib/auth";
-import { assets } from "@/lib/mock";
+import { supabase } from "@/lib/supabase";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireInviteSession();
@@ -9,10 +9,16 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   }
 
   const { id } = await params;
-  const asset = assets.find((item) => item.id === id);
-  if (!asset) {
+
+  const { data, error } = await supabase
+    .from("review_assets")
+    .select("*, approval_gates(*), timecoded_comments(count)")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  return NextResponse.json(asset);
-}
 
+  return NextResponse.json(data);
+}

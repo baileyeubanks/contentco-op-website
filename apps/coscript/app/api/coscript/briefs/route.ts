@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireInviteSession } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
+
+const ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function POST(req: Request) {
   const session = await requireInviteSession();
@@ -14,10 +17,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing required brief fields", missing }, { status: 400 });
   }
 
-  return NextResponse.json({
-    id: `brief_${Date.now()}`,
-    ...payload,
-    status: "ready"
-  });
-}
+  const { data, error } = await supabase
+    .from("briefs")
+    .insert({
+      org_id: ORG_ID,
+      script_type: payload.script_type,
+      audience: payload.audience,
+      objective: payload.objective,
+      constraints: payload.constraints,
+      key_points: payload.key_points,
+    })
+    .select()
+    .single();
 
+  if (error) {
+    return NextResponse.json({ error: "Failed to create brief" }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireInviteSession } from "@/lib/auth";
-import { scripts } from "@/lib/mock";
+import { supabase } from "@/lib/supabase";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireInviteSession();
@@ -9,10 +9,25 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   }
 
   const { id } = await params;
-  const script = scripts.find((item) => item.id === id);
-  if (!script) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-  return NextResponse.json({ items: script.revisions });
-}
 
+  const { data: variants, error: varErr } = await supabase
+    .from("script_variants")
+    .select("*")
+    .eq("script_job_id", id)
+    .order("created_at", { ascending: true });
+
+  if (varErr) {
+    return NextResponse.json({ error: "Failed to fetch variants" }, { status: 500 });
+  }
+
+  const { data: fixes } = await supabase
+    .from("script_fixes")
+    .select("*")
+    .eq("script_job_id", id)
+    .order("created_at", { ascending: true });
+
+  return NextResponse.json({
+    variants: variants ?? [],
+    fixes: fixes ?? [],
+  });
+}

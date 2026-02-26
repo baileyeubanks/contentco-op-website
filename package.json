@@ -13,6 +13,7 @@
     "dev:home": "npm run dev -w @contentco-op/home",
     "dev:coedit": "npm run dev -w @contentco-op/coedit",
     "dev:coscript": "npm run dev -w @contentco-op/coscript",
+    "dev:coproof": "npm run dev -w @contentco-op/coproof",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck"

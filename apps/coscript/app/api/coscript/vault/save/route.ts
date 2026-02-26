@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireInviteSession } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
+
+const ORG_ID = "00000000-0000-0000-0000-000000000001";
 
 export async function POST(req: Request) {
   const session = await requireInviteSession();
@@ -8,14 +11,26 @@ export async function POST(req: Request) {
   }
 
   const payload = await req.json().catch(() => ({}));
-  if (!payload.script_id) {
-    return NextResponse.json({ error: "Missing script_id" }, { status: 400 });
+  if (!payload.title) {
+    return NextResponse.json({ error: "Missing title" }, { status: 400 });
   }
 
-  return NextResponse.json({
-    vault_item_id: `vault_${Date.now()}`,
-    script_id: payload.script_id,
-    status: "saved"
-  });
-}
+  const { data, error } = await supabase
+    .from("vault_items")
+    .insert({
+      org_id: ORG_ID,
+      script_job_id: payload.script_job_id || null,
+      source_video_id: payload.source_video_id || null,
+      title: payload.title,
+      tags: payload.tags || [],
+      payload: payload.payload || {},
+    })
+    .select()
+    .single();
 
+  if (error) {
+    return NextResponse.json({ error: "Failed to save to vault" }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
+}

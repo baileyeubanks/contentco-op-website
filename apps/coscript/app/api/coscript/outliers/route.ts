@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import { requireInviteSession } from "@/lib/auth";
-import { outliers } from "@/lib/mock";
+import { supabase } from "@/lib/supabase";
 
 export async function GET() {
   const session = await requireInviteSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json({ items: outliers });
-}
 
+  const { data, error } = await supabase
+    .from("outlier_scores")
+    .select("*, source_videos(*)")
+    .order("score", { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to fetch outliers" }, { status: 500 });
+  }
+
+  return NextResponse.json({ items: data ?? [] });
+}

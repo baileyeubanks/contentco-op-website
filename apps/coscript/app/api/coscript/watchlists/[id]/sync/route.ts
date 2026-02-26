@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireInviteSession } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireInviteSession();
@@ -8,10 +9,23 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
   }
 
   const { id } = await params;
+
+  // Update watchlist status to syncing
+  await supabase
+    .from("watchlists")
+    .update({ status: "syncing" })
+    .eq("id", id);
+
+  // Phase 2: real YouTube/TikTok sync would happen here.
+  // For now, mark as active after "sync".
+  await supabase
+    .from("watchlists")
+    .update({ status: "active" })
+    .eq("id", id);
+
   return NextResponse.json({
     watchlist_id: id,
-    sync_run_id: `sync_${Date.now()}`,
-    status: "queued"
+    status: "synced",
+    sources_found: 0,
   });
 }
-
