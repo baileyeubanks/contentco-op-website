@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Co-Edit | Content Co-op",
-  description: "Precision review and approval system for industrial video workflows."
+  description: "AI-enhanced editing. Analyze raw interview clips and extract sound bites."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

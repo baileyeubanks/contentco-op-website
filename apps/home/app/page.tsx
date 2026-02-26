@@ -102,13 +102,13 @@ export default function HomePage() {
               <p>Rapid sound-bite editing. Waveform-first. Interview-ready cuts.</p>
               <span className="product-cta">Coming Soon</span>
             </a>
-            <a className="product-card" href="https://coproof.contentco-op.com">
+            <a className="product-card" href="https://codeliver.contentco-op.com">
               <div className="product-wordmark">
-                <span className="product-co">Co-</span>Proof
+                <span className="product-co">Co-</span>Deliver
               </div>
               <p className="product-stage">Delivery</p>
               <p>Timecoded review. Version control. Stakeholder sign-off.</p>
-              <span className="product-cta">Open Co-Proof &rarr;</span>
+              <span className="product-cta">Open Co-Deliver &rarr;</span>
             </a>
           </div>
         </div>
@@ -163,7 +163,7 @@ export default function HomePage() {
             <a href="/">Home</a>
             <a href="/portfolio">Portfolio</a>
             <a href="https://coscript.contentco-op.com">Co-Script</a>
-            <a href="https://coproof.contentco-op.com">Co-Proof</a>
+            <a href="https://codeliver.contentco-op.com">Co-Deliver</a>
             <a href="/login">Client Login</a>
           </nav>
         </div>

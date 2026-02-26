@@ -1,0 +1,7 @@
+[build]
+  command = "npm ci && npx turbo run build --filter=@contentco-op/codeliver"
+  publish = "apps/codeliver/.next"
+  base = "."
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

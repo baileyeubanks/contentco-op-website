@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import s from "./page.module.css";
+
+const VoiceBrief = dynamic(() => import("./voice-brief"), { ssr: false });
 
 /* ── Options ── */
 
@@ -156,11 +159,18 @@ const empty: FormState = {
 /* ── Main ── */
 
 export default function OnboardPage() {
+  const [mode, setMode] = useState<"form" | "voice">("form");
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(empty);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [portalUrl, setPortalUrl] = useState("");
+
+  function handleVoiceComplete(voiceForm: FormState) {
+    setForm(voiceForm);
+    setStep(3); // Jump to review
+    setMode("form"); // Switch back to form mode to show review
+  }
 
   // Text/date/select input handler
   const set = (k: TextKey) => (
@@ -221,9 +231,29 @@ export default function OnboardPage() {
           <p className={s.kicker}>Onboarding</p>
           <h1 className={s.title}>Start Your Project</h1>
           <p className={s.subtitle}>Four quick steps. We&apos;ll handle the rest.</p>
+
+          {/* Mode toggle */}
+          <div className={s.modeToggle}>
+            <button
+              type="button"
+              className={`${s.modeBtn} ${mode === "form" ? s.modeBtnActive : ""}`}
+              onClick={() => setMode("form")}
+            >
+              Fill out form
+            </button>
+            <button
+              type="button"
+              className={`${s.modeBtn} ${mode === "voice" ? s.modeBtnActive : ""}`}
+              onClick={() => setMode("voice")}
+            >
+              Talk to AI
+            </button>
+          </div>
         </div>
 
-        {status === "success" ? (
+        {mode === "voice" && status !== "success" ? (
+          <VoiceBrief onComplete={handleVoiceComplete} />
+        ) : status === "success" ? (
           <div className={s.success}>
             <div className={s.successIcon}>&#10003;</div>
             <h2 className={s.successTitle}>Brief received.</h2>
