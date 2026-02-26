@@ -26,13 +26,21 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function RotatingGallery({ images, columns = 3, interval = 5000 }: RotatingGalleryProps) {
-  // Distribute images across slots, shuffled
-  const [pools] = useState(() => {
+  // Deterministic initial distribution for SSR — no shuffle (avoids hydration mismatch)
+  const [pools, setPools] = useState<GalleryImage[][]>(() => {
+    const slots: GalleryImage[][] = Array.from({ length: columns }, () => []);
+    images.forEach((img, i) => slots[i % columns].push(img));
+    return slots;
+  });
+
+  // Reshuffle only on client after hydration
+  useEffect(() => {
     const shuffled = shuffle(images);
     const slots: GalleryImage[][] = Array.from({ length: columns }, () => []);
     shuffled.forEach((img, i) => slots[i % columns].push(img));
-    return slots;
-  });
+    setPools(slots);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <section className="gallery">
