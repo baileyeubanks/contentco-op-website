@@ -1,22 +1,24 @@
 "use client";
 
 interface NavProps {
-  surface: "home" | "portfolio" | "codeliver" | "coscript" | "coedit";
+  surface: "home" | "portfolio" | "coedit" | "coscript" | "codeliver" | "cocreate";
   urls?: {
     home?: string;
     portfolio?: string;
-    codeliver?: string;
-    coscript?: string;
     coedit?: string;
+    coscript?: string;
+    codeliver?: string;
+    cocreate?: string;
   };
 }
 
 const prodUrls = {
   home: "https://contentco-op.com",
   portfolio: "https://contentco-op.com/portfolio",
-  coscript: "https://coscript.contentco-op.com",
   coedit: "https://coedit.contentco-op.com",
+  coscript: "https://coscript.contentco-op.com",
   codeliver: "https://codeliver.contentco-op.com",
+  cocreate: "https://contentco-op.com/cocreate",
 };
 
 export function Nav({ surface, urls }: NavProps) {
@@ -36,14 +38,17 @@ export function Nav({ surface, urls }: NavProps) {
           <a href={u.portfolio} className={`cc-nav-link ${surface === "portfolio" ? "active" : ""}`}>
             Portfolio
           </a>
-          <a href={u.coscript} className={`cc-nav-link ${surface === "coscript" ? "active" : ""}`}>
-            Co-Script
-          </a>
           <a href={u.coedit} className={`cc-nav-link ${surface === "coedit" ? "active" : ""}`}>
             Co-Edit
           </a>
+          <a href={u.coscript} className={`cc-nav-link ${surface === "coscript" ? "active" : ""}`}>
+            Co-Script
+          </a>
           <a href={u.codeliver} className={`cc-nav-link ${surface === "codeliver" ? "active" : ""}`}>
             Co-Deliver
+          </a>
+          <a href={u.cocreate} className={`cc-nav-link ${surface === "cocreate" ? "active" : ""}`}>
+            Co-Create
           </a>
         </nav>
 

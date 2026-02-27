@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Option 6 - Composited Split</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
+
+    :root {
+      --bg: #f2f5ef;
+      --ink: #0f1721;
+      --muted: #435568;
+      --line: #c9d6c8;
+      --accent: #1d3926;
+      --accent-soft: #e4eddc;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Manrope', sans-serif;
+      color: var(--ink);
+      background: radial-gradient(1300px circle at 100% -20%, #deead6, transparent 52%), var(--bg);
+    }
+
+    .shell { width: min(1490px, 95vw); margin: 0 auto; }
+
+    .nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .95rem 0;
+      border-bottom: 1px solid var(--line);
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--bg) 90%, #fff);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand { font-size: .78rem; text-transform: uppercase; letter-spacing: .16em; font-weight: 700; display: flex; align-items: center; gap: .55rem; }
+    .brand::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #2a6a3f; box-shadow: 0 0 0 5px #dcebd9; }
+    .links { display: flex; gap: 2rem; font-size: .77rem; text-transform: uppercase; letter-spacing: .14em; color: #677b87; }
+    .links span:first-child { color: #0f1721; border-bottom: 1px solid #0f1721; }
+
+    .cta {
+      border: 1px solid #304a37;
+      background: #24382a;
+      color: #eef5ee;
+      border-radius: 999px;
+      padding: .6rem .96rem;
+      font-size: .72rem;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero {
+      margin-top: 1rem;
+      min-height: 82vh;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      background:
+        linear-gradient(100deg, #f3f7ef 0 38%, #f3f7efb3 49%, #f3f7ef66 61%, #f3f7ef00 71%),
+        linear-gradient(100deg, rgba(0, 0, 0, .42), rgba(0, 0, 0, .16)),
+        url('../public/cc/photos/hero-380a8023.jpg') center/cover no-repeat;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -14% -25% auto;
+      width: 55vw;
+      max-width: 860px;
+      aspect-ratio: 1;
+      background: radial-gradient(circle, #b9d3ac7d 14%, transparent 68%);
+      pointer-events: none;
+    }
+
+    .left {
+      padding: clamp(1.6rem, 3.2vw, 3rem);
+      display: grid;
+      align-content: end;
+      gap: 1rem;
+      z-index: 2;
+    }
+
+    .kicker { font-size: .72rem; text-transform: uppercase; letter-spacing: .2em; color: #617768; font-weight: 700; }
+    h1 {
+      margin: 0;
+      font-size: clamp(3rem, 8.2vw, 7.4rem);
+      line-height: .9;
+      letter-spacing: -.05em;
+      max-width: 9ch;
+      text-wrap: balance;
+    }
+    h1 em {
+      font-family: 'Fraunces', serif;
+      font-style: normal;
+      font-weight: 600;
+      color: #4e6c57;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 34ch;
+      color: #324653;
+      font-size: clamp(1.05rem, 1.5vw, 1.26rem);
+      line-height: 1.5;
+    }
+
+    .btns { display: flex; gap: .7rem; flex-wrap: wrap; }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid #b7c8b4;
+      padding: .73rem 1.08rem;
+      background: #f4f7f0;
+      color: #1c2833;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .btn.primary { background: var(--accent); color: #ecf4eb; border-color: var(--accent); }
+
+    .tags { display: flex; gap: .45rem; flex-wrap: wrap; }
+    .tag {
+      border: 1px solid #c0cfbd;
+      border-radius: 999px;
+      padding: .33rem .56rem;
+      background: #f0f5ea;
+      color: #55686e;
+      font-size: .74rem;
+    }
+
+    .right {
+      z-index: 2;
+      display: grid;
+      align-content: end;
+      gap: .8rem;
+      padding: 1.2rem 1.3rem 1.2rem 0;
+    }
+
+    .lane {
+      border: 1px solid #b5c6b1;
+      border-radius: 16px;
+      background: color-mix(in srgb, #f7faf4 86%, #fff);
+      padding: .9rem;
+      backdrop-filter: blur(6px);
+    }
+    .lane h3 { margin: .2rem 0 .35rem; font-size: 1.4rem; letter-spacing: -.02em; }
+    .lane p { margin: 0; color: #4f6470; line-height: 1.45; }
+
+    .timeline {
+      margin-top: .45rem;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: .45rem;
+    }
+
+    .clip {
+      border-radius: 10px;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+      border: 1px solid #bbcac0;
+      position: relative;
+    }
+    .clip img { width: 100%; height: 100%; object-fit: cover; }
+    .clip::after {
+      content: attr(data-time);
+      position: absolute;
+      left: .35rem;
+      bottom: .3rem;
+      font-size: .66rem;
+      padding: .17rem .33rem;
+      border-radius: 999px;
+      border: 1px solid #c7d3cb;
+      background: #f7fbf5cc;
+      color: #3f5862;
+    }
+
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; background-position: center; }
+      .left { padding: 1.3rem; }
+      .right { padding: 0 1.3rem 1.3rem; }
+      h1 { max-width: none; }
+      .timeline { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="nav">
+      <div class="brand">Content Co-op</div>
+      <div class="links"><span>Home</span><span>Co-Edit</span><span>Co-Script</span></div>
+      <button class="cta">Start Brief</button>
+    </header>
+
+    <section class="hero">
+      <div class="left">
+        <div class="kicker">Option 6 / Composited Split</div>
+        <h1>High craft, <em>without chaos.</em></h1>
+        <p class="lede">Composited hero treatment with editorial restraint, plus a timeline-like exhibition lane for visual storytelling proof.</p>
+        <div class="btns">
+          <button class="btn primary">Start Creative Brief</button>
+          <button class="btn">Open Co-Script</button>
+        </div>
+        <div class="tags">
+          <span class="tag">Composited visuals</span>
+          <span class="tag">Review + approvals</span>
+          <span class="tag">Outlier script system</span>
+        </div>
+      </div>
+
+      <aside class="right">
+        <article class="lane">
+          <div class="kicker">Co-Edit lane</div>
+          <h3>Review with timeline control</h3>
+          <p>Upload, annotate, compare, and clear approvals across stakeholder rounds.</p>
+          <div class="timeline">
+            <figure class="clip" data-time="00:09"><img src="../public/cc/stills/the-title-promo-x-2_t3.jpg" alt=""></figure>
+            <figure class="clip" data-time="00:24"><img src="../public/cc/stills/tray30-01-v1_t2.jpg" alt=""></figure>
+            <figure class="clip" data-time="00:41"><img src="../public/cc/stills/accurate-meter_t2.jpg" alt=""></figure>
+            <figure class="clip" data-time="01:12"><img src="../public/cc/stills/bpms150-drone-finishline1_t1.jpg" alt=""></figure>
+          </div>
+        </article>
+        <article class="lane">
+          <div class="kicker">Co-Script lane</div>
+          <h3>Generate from proven patterns</h3>
+          <p>Watchlists + outliers become structured briefs, variants, and fix loops with memory.</p>
+        </article>
+      </aside>
+    </section>
+  </div>
+</body>
+</html>

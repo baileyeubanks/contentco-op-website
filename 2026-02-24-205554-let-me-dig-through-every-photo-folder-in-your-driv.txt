@@ -1,0 +1,2681 @@
+
+╭─── Claude Code v2.1.52 ──────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                Welcome back Bailey!                │ started                 │
+│                                                    │ Run /init to create a … │
+│                      ▗ ▗   ▖ ▖                     │ ─────────────────────── │
+│                                                    │ Recent activity         │
+│                        ▘▘ ▝▝                       │ No recent activity      │
+│                                                    │                         │
+│ Opus 4.6 · Claude Max · baileyeubanks@gmail.com's  │                         │
+│ Organization                                       │                         │
+│               ~/Desktop/contentco-op               │                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Let me dig through every photo folder in your Drive first.Alright — Drive 
+   can only index documents, not individual image files, so I can't browse  
+  your photos folder directly. But I know every image currently live on     
+  contentco-op.com. Let me pull those, find the best industrial energy      
+  photography to supplement, and rebuild this thing photography-first.Now   
+  let me build the photography-dominant version. Stripping text way back,   
+  letting images lead.Completely different animal from v2. Here's the       
+  shift:                                                                    
+                                                                            
+  **Photography is now 80% of the page.** The entire middle of the site is  
+  a full-bleed gallery — no cards, no boxes, just edge-to-edge imagery in   
+  an asymmetric mosaic layout:                                              
+                                                                            
+  - **Solo row** (full viewport width) → BPMS150 hero piece                 
+  - **Asymmetric 2-up** (60/40 split) → Accurate Meter / technical detail   
+  - **Reversed 2-up** (35/65 split) → Behind the lens / Schneider EAE event 
+  - **Three-up** → Title Promo / GNO 03 / Safety Culture                    
+  - **Solo row** → HLSR Main Stage                                          
+                                                                            
+  Every image has hover-to-zoom, darkened at rest (brightness 0.6),         
+  brightens on hover. Play buttons fade in on the pieces that are           
+  watchable. Labels are a whisper — tiny tags and titles at the bottom edge 
+   of each frame.                                                           
+                                                                            
+  **Text got murdered on purpose.** The hero has no body copy — just the    
+  headline and two buttons. The positioning section is gone as a standalone 
+   block; it now lives as the Bailey quote overlaid on a full-bleed         
+  industrial image. Process section is gone entirely (it was adding text    
+  weight without adding trust — your images do that job better). Platform   
+  section stayed but got compressed to bare minimum.                        
+                                                                            
+  **One limitation to flag:** I couldn't browse the actual files inside     
+  your CC_PHOTOS or CC_PORTFOLIO Drive folders — Drive search only indexes  
+  documents, not image files. So these are Unsplash placeholders matched to 
+   your project names (BPMS150, Accurate Meter, Schneider, HLSR, GNO). The  
+  single highest-impact thing you can do is drop in your real stills. Those 
+   Unsplash shots are "energy-adjacent" — your actual work will hit ten     
+  times harder.Okay, so, content co-op. There's a lot to be said about      
+  that, and I think I'm just gonna try to paste you a lot of stuff and see  
+  what you come up with. Can you come back at me with a plan first? #       
+  Content Co-op Redesign + Productization Plan (v2.1, Decision-Complete)    
+                                                                            
+  ## Summary                                                                
+  Build a premium **3-surface system** with one brand language and two      
+  standalone products:                                                      
+                                                                            
+  1. `contentco-op.com` = bright, cinematic flagship landing (people-first  
+  hero video).                                                              
+  2. `coedit.contentco-op.com` = dark, precision review/approval product.   
+  3. `coscript.contentco-op.com` = dark, signal-driven script intelligence  
+  product.                                                                  
+                                                                            
+  Locked decisions:                                                         
+  1. Theme split: **Bright Home + Dark Apps**.                              
+  2. Hero media: **autoplay muted loop + pause offscreen**.                 
+  3. Hero framing: **People in action**.                                    
+  4. Thumbnail system: **manual curated set** (no auto-selection on         
+  landing).                                                                 
+  5. Domain model: **3 subdomains**.                                        
+  6. Access: **strict invite-only** for all review/approval actions.        
+  7. Delivery strategy: **phased MVP** first.                               
+  8. AI architecture: **single orchestrator service** (modular agent steps, 
+   queue jobs).                                                             
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Current-State Ground Truth                                             
+  From repo inspection:                                                     
+  1. Existing app has meaningful Co-Edit/Co-Script UI scaffolding           
+  (`/Users/baileyeubanks/Desktop/contentco-op/src/app/(app)/*`) and         
+  marketing page (`/Users/baileyeubanks/Desktop/contentco-op/src/app/(marke 
+  ting)/page.tsx`).                                                         
+  2. Current issue is mostly **interaction hierarchy and visual             
+  philosophy**, not absence of features.                                    
+  3. Best portfolio-grade media is in:                                      
+     - `/Users/baileyeubanks/Desktop/CC_PORTFOLIO/*.mp4|*.mov`              
+     - `/Users/baileyeubanks/Desktop/CC_PHOTOS/*.mp4|*.mov`                 
+  4. Current landing comps are over-framed; visual clutter comes from too   
+  many bordered units competing with hero content.                          
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Product Philosophy (Applied)                                           
+  1. **Landing**: narrative and trust surface, not a dashboard.             
+  2. **Co-Edit**: timecoded decision flow (upload -> version -> comment ->  
+  resolve -> approval -> audit).                                            
+  3. **Co-Script**: signal-first generation flow (watchlist -> outlier ->   
+  brief -> variants -> fix -> vault).                                       
+  4. Every visual element must have one of 3 purposes:                      
+     - persuade,                                                            
+     - orient,                                                              
+     - trigger action.                                                      
+                                                                            
+  No decorative-only blocks above the fold.                                 
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Information Architecture                                               
+                                                                            
+  ## 1) `contentco-op.com` (Flagship)                                       
+  Routes:                                                                   
+  1. `/` (one-page flagship)                                                
+  2. `/login`                                                               
+  3. `/brief` (energy brief wizard)                                         
+                                                                            
+  Above-the-fold structure:                                                 
+  1. Full-viewport hero video (people-focused industrial clip).             
+  2. Left-aligned headline + concise value proposition.                     
+  3. Exactly 3 curated support frames with role tags:                       
+     - Context                                                              
+     - Trust                                                                
+     - Process                                                              
+  4. Primary CTAs:                                                          
+     - Open Co-Edit                                                         
+     - Open Co-Script                                                       
+     - Start Energy Brief                                                   
+                                                                            
+  No Co-Edit/Co-Script product cards on landing hero.                       
+                                                                            
+  ## 2) `coedit.contentco-op.com`                                           
+  Primary routes:                                                           
+  1. `/` (queue overview)                                                   
+  2. `/asset/:id` (review stage)                                            
+  3. `/asset/:id/compare` (version compare)                                 
+  4. `/approvals`                                                           
+  5. `/projects`                                                            
+                                                                            
+  Core layout for `/asset/:id`:                                             
+  1. Center dominant video stage (Wistia-like clarity).                     
+  2. Timeline comments directly tied to frame/time.                         
+  3. Version strip + compare control.                                       
+  4. Approval rail with role-gated decisions.                               
+  5. Immutable audit log panel.                                             
+                                                                            
+  ## 3) `coscript.contentco-op.com`                                         
+  Primary routes:                                                           
+  1. `/` (studio)                                                           
+  2. `/watchlists`                                                          
+  3. `/outliers`                                                            
+  4. `/vault`                                                               
+  5. `/script/:id`                                                          
+                                                                            
+  Core layout:                                                              
+  1. Source context panel (selected outlier + transcript snippets).         
+  2. Structured brief panel (required fields).                              
+  3. Variant output panel (A/B/C + fix loop).                               
+  4. Revision history trail (no overwrite).                                 
+                                                                            
+  ---                                                                       
+                                                                            
+  ## UX Rules (Non-Negotiable)                                              
+  1. Home: mostly borderless compositing; only utility separators.          
+  2. Products: subtle functional separators allowed.                        
+  3. No autoplaying carousel that rotates before reading.                   
+  4. No “wall of videos”; capped curated media blocks.                      
+  5. Text-over-media must pass contrast target (WCAG minimum for body       
+  text).                                                                    
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Media System                                                           
+                                                                            
+  ## Hero video pipeline                                                    
+  Source v1:                                                                
+  `/Users/baileyeubanks/Desktop/CC_PHOTOS/HLSR+bp_30 Sec Spot_FINAL.mp4`    
+                                                                            
+  Derivatives:                                                              
+  1. `hero-1080.mp4` (web)                                                  
+  2. `hero-1080.webm` (web)                                                 
+  3. `hero-poster.jpg`                                                      
+  4. Mobile fallback poster + reduced-motion static mode                    
+                                                                            
+  Playback behavior:                                                        
+  1. Desktop: autoplay muted loop.                                          
+  2. Pause when offscreen.                                                  
+  3. Reduced-motion: static poster.                                         
+  4. Mobile low-power fallback to poster-first + tap-to-play.               
+                                                                            
+  ## Thumbnail governance                                                   
+  1. Manual curated bank in CMS/table with role tags.                       
+  2. Fields:                                                                
+     - `asset_id`                                                           
+     - `frame_timecode`                                                     
+     - `role_tag` (`context|trust|process|texture`)                         
+     - `approved_by`                                                        
+     - `approved_at`                                                        
+  3. Landing always renders exactly 3 approved records.                     
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Technical Architecture                                                 
+                                                                            
+  ## Monorepo structure                                                     
+  1. `apps/home`                                                            
+  2. `apps/coedit`                                                          
+  3. `apps/coscript`                                                        
+  4. `packages/ui`                                                          
+  5. `packages/brand`                                                       
+  6. `packages/types`                                                       
+  7. `packages/api-client`                                                  
+  8. `services/orchestrator` (AI + workflows)                               
+  9. `services/media-worker` (transcode/thumbnails)                         
+                                                                            
+  ## Deploy model                                                           
+  Netlify sites:                                                            
+  1. `contentco-op-home`                                                    
+  2. `contentco-op-coedit`                                                  
+  3. `contentco-op-coscript`                                                
+                                                                            
+  Each with own domain assignment and env set; shared package versioning    
+  from monorepo.                                                            
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Public API / Interface Changes                                         
+                                                                            
+  ## Auth                                                                   
+  1. `POST /auth/login`                                                     
+  2. `POST /auth/invite/accept`                                             
+  3. `POST /auth/logout`                                                    
+  4. `GET /auth/session`                                                    
+                                                                            
+  ## Co-Edit                                                                
+  1. `GET /coedit/projects`                                                 
+  2. `GET /coedit/assets/:id`                                               
+  3. `POST /coedit/assets/:id/versions`                                     
+  4. `POST /coedit/comments`                                                
+  5. `PATCH /coedit/comments/:id`                                           
+  6. `POST /coedit/approvals/:gateId/decision`                              
+  7. `GET /coedit/assets/:id/audit-log`                                     
+                                                                            
+  ## Co-Script                                                              
+  1. `POST /coscript/watchlists`                                            
+  2. `POST /coscript/watchlists/:id/sync`                                   
+  3. `GET /coscript/outliers`                                               
+  4. `POST /coscript/briefs`                                                
+  5. `POST /coscript/scripts/generate`                                      
+  6. `POST /coscript/scripts/:id/fix`                                       
+  7. `GET /coscript/scripts/:id/history`                                    
+  8. `POST /coscript/vault/save`                                            
+                                                                            
+  ## Media                                                                  
+  1. `POST /media/hero/transcode`                                           
+  2. `POST /media/thumbnail/extract`                                        
+  3. `POST /media/thumbnail/approve`                                        
+  4. `GET /media/thumbnail/approved?surface=home`                           
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Data Model Additions (Supabase)                                        
+  1. `orgs`, `org_members`, `org_invites`, `sessions`                       
+  2. `review_assets`, `asset_versions`, `timecoded_comments`,               
+  `approval_gates`, `approval_decisions`, `review_events`                   
+  3. `watchlists`, `watchlist_sources`, `source_videos`, `outlier_scores`,  
+  `briefs`, `script_jobs`, `script_variants`, `script_fixes`, `vault_items` 
+  4. `media_assets`, `media_derivatives`, `thumbnail_candidates`,           
+  `thumbnail_approvals`                                                     
+  5. `usage_ledger`, `plan_limits`, `org_plan_subscriptions`                
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Phase Plan                                                             
+                                                                            
+  ## Phase 0: Niche Intelligence R&D (2-3 weeks)                            
+  Deliverables:                                                             
+  1. Transcribe/deconstruct 8-12 Kallaway/Sandcastles videos into feature   
+  map.                                                                      
+  2. Build Energy Messaging Matrix (personas, objections, trigger language, 
+   compliance tone).                                                        
+  3. Curate top 30 internal video moments + role tags.                      
+  4. Produce IA blueprint and copy system for all three surfaces.           
+                                                                            
+  Exit criteria:                                                            
+  1. Decision-complete UX blueprint approved.                               
+  2. Curated hero and thumbnail bank approved.                              
+  3. Co-Script brief schema locked.                                         
+                                                                            
+  ## Phase 1: Monorepo + Deployment Foundation                              
+  1. Split apps and shared packages.                                        
+  2. Configure 3 Netlify sites and domain bindings.                         
+  3. Add shared auth middleware and env contracts.                          
+                                                                            
+  Exit criteria:                                                            
+  1. All 3 sites deploy independently from one repo.                        
+  2. Shared design tokens compile across apps.                              
+                                                                            
+  ## Phase 2: Landing Production Build                                      
+  1. Implement full-viewport video hero and composited readable copy zone.  
+  2. Implement curated 3-frame strip and role labels.                       
+  3. Implement sector emphasis + revised messaging.                         
+                                                                            
+  Exit criteria:                                                            
+  1. LCP + readability pass.                                                
+  2. No visual clutter/border overuse.                                      
+  3. CTA flows route correctly to product domains.                          
+                                                                            
+  ## Phase 3: Co-Edit MVP                                                   
+  1. Queue, asset stage, timecoded comments, resolve, approvals.            
+  2. Version upload + compare.                                              
+  3. Immutable audit log.                                                   
+                                                                            
+  Exit criteria:                                                            
+  1. Full review cycle can complete in-system with role accountability.     
+                                                                            
+  ## Phase 4: Co-Script MVP                                                 
+  1. Watchlists, outliers, required structured brief.                       
+  2. Variant generation (A/B/C), fix loop, save to vault.                   
+  3. Link script artifacts to Co-Edit project creation.                     
+                                                                            
+  Exit criteria:                                                            
+  1. End-to-end script workflow works without external tools.               
+                                                                            
+  ## Phase 5: v1.1 Intelligence                                             
+  1. Add advanced orchestrator steps (psychology/rewrite/compliance         
+  suggestion passes).                                                       
+  2. Add post-publish performance feedback loop.                            
+  3. Add analytics/quality dashboards.                                      
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Test Cases and Scenarios                                               
+                                                                            
+  ## Landing                                                                
+  1. Hero video autoplay behavior across desktop/mobile/reduced-motion.     
+  2. Text readability over all hero segments.                               
+  3. Exactly 3 approved thumbnails render, with correct role tags.          
+  4. CTA navigation to subdomains.                                          
+                                                                            
+  ## Co-Edit                                                                
+  1. Add comment at timecode, seek from thread, resolve state transition.   
+  2. Upload version and compare against prior.                              
+  3. Approval gate requires correct role.                                   
+  4. Audit log contains immutable decision trail.                           
+                                                                            
+  ## Co-Script                                                              
+  1. Generation blocked until brief required fields complete.               
+  2. Outlier-linked generation stores source reference.                     
+  3. Fix loop creates new revision, preserving prior.                       
+  4. Vault save and retrieval.                                              
+                                                                            
+  ## Security                                                               
+  1. Uninvited user blocked from all product routes.                        
+  2. Invite acceptance creates correct org membership.                      
+  3. Session invalidation on logout and expiry.                             
+                                                                            
+  ---                                                                       
+                                                                            
+  ## KPIs                                                                   
+  1. Review cycle time reduction target: >=60%.                             
+  2. Script-to-production handoff target: <48h.                             
+  3. Training/long-form completion target: >85%.                            
+  4. Client NPS target: >85.                                                
+  5. Audit completeness: 100% for approved assets.                          
+                                                                            
+  ---                                                                       
+                                                                            
+  ## Assumptions and Defaults                                               
+  1. Strict invite-only access includes reviewers and approvers (no         
+  anonymous review links in v1).                                            
+  2. Landing remains public.                                                
+  3. Home uses bright theme; product apps use dark operational theme.       
+  4. Manual thumbnail curation is authoritative in v1.                      
+  5. AI orchestration starts as single service with modular steps;          
+  multi-framework orchestration deferred.                                   
+  6. Existing UI scaffolding in current repo is treated as migration seed,  
+  not final architecture.                                                   
+  Strategic Architecture and Market Positioning for the Content Co-op       
+  Platform RedesignThe Macro Dynamics of B2B Video in the Industrial Energy 
+   SectorThe global energy landscape, particularly centralized in           
+  industrial and corporate hubs like Houston, Texas, is undergoing a        
+  profound structural and operational transition. As traditional oil and    
+  gas enterprises pivot toward sustainable integration, carbon capture      
+  utilization, and advanced industrial automation, the mechanisms of        
+  corporate communication must evolve proportionally to maintain            
+  stakeholder trust and market positioning. The historical reliance on      
+  static PDF brochures, generic corporate overviews, and dense, unreadable  
+  technical manuals is rapidly becoming obsolete. In their place,           
+  high-signal, narrative-driven video content has emerged as the primary    
+  vehicle for B2B engagement, technical education, and executive thought    
+  leadership.Industrial buying behaviors are shifting at an unprecedented   
+  pace. Procurement officers, facility managers, and engineering leads are  
+  increasingly exhibiting content consumption patterns that mirror those of 
+   retail consumers. These decision-makers prioritize short-form video,     
+  authentic executive messaging, and visually immersive technical           
+  explainers over traditional long-form text. Within this context, the      
+  demand for video formats that deliver measurable return on investment and 
+   clear engagement metrics has accelerated. Recent market data indicates   
+  that an overwhelming majority of businesses now utilize video as a core   
+  marketing apparatus, with short-form content driving the highest          
+  conversion optimization rates and significantly higher engagement         
+  compared to static imagery.For a specialized video production agency      
+  operating deeply within the Houston industrial, electrical, and           
+  automation sectors, providing high-quality video files via standard cloud 
+   storage links is no longer a competitive differentiator. Such agencies   
+  must provide a proprietary digital platform that serves a dual purpose.   
+  First, the platform must act as a frictionless operational conduit for    
+  client deliverables, streamlining the historically painful review and     
+  approval process. Second, it must operate as a highly sophisticated       
+  engine for data-driven creative strategy, helping clients uncover exactly 
+   what messaging resonates in a crowded market. The redesign of the        
+  "Content Co-op" platform represents exactly this strategic evolution. It  
+  seeks to seamlessly merge the operational rigor of professional video     
+  proofing systems—resembling the workflows of Wipster or Frame.io—with the 
+   strategic, psychology-backed generative capabilities of modern           
+  artificial intelligence scriptwriting tools, mirroring the methodologies  
+  of Sandcastles.ai.This strategic alignment requires a robust technical    
+  architecture, a nuanced understanding of B2B viewer psychology, and a     
+  cinematic user experience that reinforces the agency's premium brand      
+  positioning at every touchpoint. The resulting ecosystem will not simply  
+  be a tool for viewing videos; it will be a comprehensive suite for        
+  engineering, refining, and approving high-stakes corporate                
+  narratives.Architectural Blueprint: The Next.js Monorepo EcosystemTo      
+  facilitate a cohesive experience across a flagship marketing landing page 
+   and two distinct, complex web applications—referred to herein as Co-Edit 
+   and Co-Script—the platform must adopt a modern monorepo architecture. A  
+  monorepo centralizes the codebase into a single repository, allowing      
+  disparate applications to share foundational user interface components,   
+  backend data clients, typography guidelines, and authentication logic     
+  without duplicating code or creating versioning conflicts.The recommended 
+   infrastructure leverages Next.js, utilizing the App Router paradigm for  
+  highly optimized hybrid static and server-side rendering. This framework  
+  is managed through a dedicated workspace tool, such as Turborepo or Nx,   
+  which optimizes build times through advanced caching algorithms, and is   
+  deployed via Netlify's globally distributed edge infrastructure. The data 
+   layer, user authentication, and real-time synchronization will be        
+  entirely managed by Supabase. Supabase provides a highly scalable,        
+  dedicated PostgreSQL database augmented with real-time WebSocket          
+  capabilities, which are absolutely essential for the synchronized video   
+  review features required in the Co-Edit application.The workspace         
+  structure is defined by a strict separation of concerns, dividing the     
+  platform into consumer-facing applications and shared internal packages.  
+  The apps/home directory houses the cinematic, single-page flagship        
+  landing site hosted at the primary domain. The apps/coedit directory      
+  contains the standalone video review, versioning, and approval product,   
+  hosted on a dedicated subdomain. The apps/coscript directory encapsulates 
+   the generative AI scriptwriting and outlier research product, hosted on  
+  its own subdomain. Supporting these applications are the internal         
+  packages: packages/ui serves as a shared design system containing React   
+  components utilized across all three applications to ensure absolute      
+  visual consistency, while packages/database acts as a shared Supabase     
+  client and Object-Relational Mapper, ensuring unified type safety and     
+  schema definitions across the entire ecosystem.Deploying a monorepo       
+  across multiple distinct subdomains requires precise configuration within 
+   the edge hosting environment. Netlify natively supports complex monorepo 
+   deployments by allowing platform administrators to specify distinct base 
+   directories and publish directories for each application residing within 
+   the overarching repository. Each application is configured as an         
+  independent Netlify site, mapped to its respective subdomain. However,    
+  because they all share the same root domain, secure cross-application     
+  authentication can be elegantly maintained. Supabase session cookies must 
+   be strictly configured with a domain attribute encompassing the root     
+  domain and a secure cross-site policy, allowing an invited industrial     
+  client to transition seamlessly from the Co-Edit review portal to the     
+  Co-Script generation engine without experiencing the friction of          
+  re-authentication.Unified Database Schema and Row Level SecurityThe       
+  underlying PostgreSQL database must be engineered to handle highly        
+  diverse datasets simultaneously—ranging from precise timecoded video      
+  coordinates to vast large language model generation histories and complex 
+   organization metadata. The schema relies on a foundational shared        
+  identity model encompassing organizations, organizational members, user   
+  profiles, and secure sessions.For the Co-Edit suite, the data model       
+  requires tables specifically tuned for video review workflows. This       
+  includes ledgers for review assets, immutable asset versions, highly      
+  specific timecoded comments containing spatial coordinates, approval      
+  gates, and individual approval decisions. For the Co-Script suite, the    
+  structure is fundamentally different, requiring tables for watchlists,    
+  source videos, outlier engagement scores, structured creative briefs,     
+  script generations, variant matrices, and vault items.To ensure absolute  
+  data privacy and compliance between different B2B industrial clients—many 
+   of whom may be direct competitors within the Houston energy              
+  sector—Supabase Row Level Security policies must be rigorously and        
+  flawlessly implemented. Row Level Security operates at the database       
+  kernel level, guaranteeing that a user can only query, insert, or update  
+  records that are explicitly tied to their cryptographically assigned      
+  organization identifier. This fundamentally secures proprietary corporate 
+   training videos, highly sensitive unreleased CEO announcements, and      
+  confidential product launch scripts from unauthorized access.ModuleCore   
+  Database TablesPrimary FunctionSecurity RequirementIdentity (Shared)orgs, 
+   org_members, user_profiles, sessionsManages tenant isolation and user    
+  permissions.Strict RLS binding users to specific                          
+  org_id.Co-Editreview_assets, asset_versions, timecoded_comments,          
+  approval_gatesTracks video uploads, versions, and spatial/temporal        
+  markup.Immutable audit logs for approval tracking.Co-Scriptwatchlists,    
+  source_videos, outlier_scores, script_generationsStores scraped           
+  competitor data and LLM prompt/response histories.Isolation of            
+  proprietary strategy prompts.Mediamedia_assets, media_derivatives,        
+  thumbnail_candidatesManages transcoded video files and mathematically     
+  scored thumbnails.Secure signed URLs for asset delivery.Co-Edit:          
+  Engineering the Video Review and Approval PipelineThe revision and review 
+   phase is historically the most friction-prone aspect of the entire video 
+   production lifecycle. Relying on vague email feedback creates severe     
+  operational bottlenecks, introduces critical misunderstandings, extends   
+  delivery timelines, and significantly frustrates executive stakeholders.  
+  When an engineering director requests an alteration to a specific valve   
+  in an animated sequence, textual descriptions are highly inadequate. The  
+  Co-Edit application is systematically designed to eliminate this          
+  ambiguity entirely through precise, visually anchored, timecoded          
+  collaboration.Competitive Synthesis: Wipster vs. Frame.io vs. WistiaTo    
+  construct the optimal review tool specifically tailored for a production  
+  agency catering to industrial and energy clients, one must deeply analyze 
+   and synthesize the strengths and weaknesses of the current market        
+  leaders. The goal is not replication, but rather the strategic            
+  aggregation of best-in-class features tailored for a specific,            
+  non-technical B2B audience.Wipster is widely revered across the industry  
+  for its highly intuitive, straightforward review interface and its        
+  implementation of frame-accurate commenting. It excels fundamentally in   
+  simplifying the feedback workflow for non-technical stakeholders, such as 
+   a busy energy executive reviewing a corporate message or a safety        
+  manager auditing a training module. However, market analysis and user     
+  feedback indicate that Wipster's user interface can occasionally feel     
+  archaic or sluggish, and its pricing models severely penalize agencies    
+  with high-volume storage needs, making it difficult to scale.Frame.io     
+  stands as the undisputed industry standard for high-end film production   
+  and broadcast workflows, boasting incredibly deep integrations with Adobe 
+   editing suites and revolutionary Camera-to-Cloud capabilities. While     
+  undeniably powerful, its interface is exceedingly dense, intentionally    
+  designed to resemble a non-linear editor. For corporate clients whose     
+  sole objective is to review a finished asset and provide concise          
+  feedback, this density introduces massive, unnecessary cognitive load.    
+  Furthermore, its rigid per-user pricing model scales poorly for           
+  production agencies that maintain constantly fluctuating rosters of       
+  freelance editors and numerous external client reviewers.Wistia operates  
+  primarily as a premium marketing and secure hosting platform rather than  
+  a dedicated review tool, yet it offers a vastly superior, cinematic       
+  viewing experience. Its video player is universally praised for its       
+  exceptionally clean, distraction-free aesthetic and robust, granular      
+  analytics that track viewer drop-off down to the second. While Wistia has 
+   introduced functional review tools, they lack the deep version-control   
+  matrices and highly specific frame-drawing granularity required by        
+  dedicated post-production software workflows.The Co-Edit UX Philosophy:   
+  The Natural Video WindowThe Co-Edit interface will aggressively adopt     
+  Wistia's minimalist visual philosophy while injecting Wipster's powerful  
+  collaborative utility into the background. The central design imperative  
+  for this application is the concept of the "Natural Video Window."Unlike  
+  Frame.io, which wraps the video asset in heavy, dark-mode technical       
+  framing and complex timeline scrubbers, Co-Edit will present a largely    
+  borderless, highly cinematic canvas. The video asset must command the     
+  absolute center of the viewport, removing all technical distractions. The 
+   user interaction model follows a strictly constrained, linear sequence   
+  designed for rapid adoption by corporate users. The client selects an     
+  asset from their queue, plays the cut, clicks directly on the canvas to   
+  pause playback, adds a timecoded mark, marks previous comments as         
+  resolved, and finally navigates to the approval gates.The mechanical      
+  elegance of the platform occurs at the moment of interaction. When a      
+  client clicks anywhere on the video frame, the playback pauses precisely  
+  at that exact millisecond. A subtle, cleanly designed panel smoothly      
+  transitions into the viewport, capturing the textual comment while        
+  simultaneously pinning a visual marker—such as a high-contrast dot or a   
+  user-drawn bounding box—to the exact X and Y spatial coordinates of the   
+  click. This dual-axis tracking ensures the post-production team knows     
+  exactly which component of the complex industrial machinery, which line   
+  of textual overlay, or which specific visual transition requires          
+  adjustment.Technical Implementation of Real-Time Annotation and           
+  ApprovalBuilding this seamless collaborative layer requires incredibly    
+  robust front-end state management. Leveraging established libraries such  
+  as react-player, or developing a heavily customized HTML5 video           
+  application programming interface wrapper, provides the necessary         
+  software hooks for progress tracking, duration analysis, and precise      
+  seek-to functions. This allows the user interface to track timecodes      
+  seamlessly beneath the visual layer.The most critical component of the    
+  Co-Edit experience is absolute real-time synchronization. Utilizing       
+  Supabase Realtime, which is built upon highly efficient WebSockets, the   
+  platform achieves instant data propagation. When a client submits a       
+  comment on a video, the data payload—containing the specific asset        
+  identifier, the user's profile identifier, the exact timecode, and the X  
+  and Y coordinates of the click—is broadcast instantly to all connected    
+  clients. Editors actively viewing the project timeline in a different     
+  geographical location will see the visual marker appear instantaneously   
+  on their screen, fostering a live, highly fluid collaborative dialogue    
+  that drastically reduces revision cycle times.Furthermore, Co-Edit will   
+  institute rigorous, system-enforced "Approval Gates." Rather than relying 
+   on a loose, legally ambiguous "looks good" buried within a lengthy       
+  comment thread, the system will enforce an immutable cryptographic audit  
+  log of all final decisions. Authorized stakeholders must explicitly click 
+   through a multi-stage approval sequence, logging their definitive        
+  sign-off on a specific version hash. This mechanism establishes absolute, 
+   undeniable accountability between the production agency and the          
+  industrial client, mitigating scope creep and ensuring contractual        
+  clarity on final deliverables.Interface RegionCore FunctionalityTechnical 
+   RequirementUpload LaneIngestion of raw assets and derivatives.Secure     
+  chunked upload to cloud storage buckets.Version StackChronological        
+  archiving of all video iterations.Side-by-side comparative playback via   
+  synced HTML5 players.Timeline ThreadCentralized repository for            
+  timestamped feedback.Real-time WebSocket broadcasting for instant         
+  updates.Approval RailFormal gatekeeping for project completion.Immutable  
+  database writes binding user ID to asset hash.Co-Script: Decoding and     
+  Rebuilding the AI Storytelling EngineWhile the Co-Edit application        
+  handles the mechanical execution and refinement of the visual product,    
+  the Co-Script application is designed to handle the critical phases of    
+  ideation, conceptual strategy, and narrative structuring. The             
+  foundational logic of this module is deeply inspired by the highly        
+  successful methodologies of Sandcastles.ai and the analytical frameworks  
+  popularized by digital creator Kane Kallaway. Sandcastles represents a    
+  paradigm shift in content creation; it is not merely a generic artificial 
+   intelligence text generator operating on a blank canvas. Rather, it is a 
+   highly sophisticated, multi-stage engine engineered for analyzing viewer 
+   psychology, detecting mathematical engagement outliers, and seamlessly   
+  mapping proven narrative structures onto new, proprietary content.For a   
+  specialized agency serving the highly technical energy, automation, and   
+  electrical sectors, relying on generic large language model outputs from  
+  standard chatbot interfaces is completely insufficient. The B2B           
+  industrial buyer profile is uniquely challenging. These decision-makers   
+  are highly skeptical, inherently risk-averse, strictly focused on return  
+  on investment, and ostensibly driven by pure logic. Yet, behavioral       
+  economic research consistently demonstrates that they are ultimately      
+  swayed by profound, underlying emotional triggers—such as the acute fear  
+  of catastrophic operational failure, the intense desire for industry      
+  authority, and the fundamental human need for simplified complexity in an 
+   increasingly overwhelming technological landscape. The Co-Script         
+  architecture must fundamentally operationalize these psychological        
+  nuances.The Outlier Theory MethodologyThe core philosophical framework    
+  driving the Co-Script application is known as "Outlier Theory." This      
+  premise dictates that instead of relying on pure creative guesswork or    
+  intuition to determine what content will perform well, a creator must     
+  systematically and mathematically analyze what has already proven         
+  successful within a highly specific market niche, and then meticulously   
+  reverse-engineer its core structural components.The Co-Script user        
+  workflow is engineered around a strict, deterministic pipeline designed   
+  to guarantee results:Watchlists: Agency strategists or clients input the  
+  specific URLs of top-performing competitors, highly regarded industry     
+  publications, and adjacent thought leaders (for example, leading energy   
+  technology startups or global automation equipment manufacturers).Outlier 
+   Detection: The backend system continuously scrapes and monitors          
+  engagement metrics across these defined channels. It utilizes statistical 
+   modeling to identify true "outliers"—videos that generate view counts or 
+   engagement rates that are significantly higher than that specific        
+  channel's historical baseline average, proving the concept resonated      
+  deeply with the target audience.Source Context & Extraction: Once an      
+  outlier is identified, the system automatically downloads and processes   
+  the audio transcripts of these specific videos, converting spoken word    
+  into machine-readable text.Pattern Analysis: Using advanced Large         
+  Language Models, the system parses the raw transcript to identify the     
+  exact narrative framework, pacing, and psychological triggers utilized by 
+   the original creator.Context Engineering and LLM ArchitectureTo achieve  
+  this granular level of analysis, the Co-Script application relies heavily 
+   on the principles of "Context Engineering." The failure of most modern   
+  AI content generation tools stems directly from insufficient, highly      
+  generic, or poorly structured context, rather than inherently weak        
+  underlying models.When Co-Script analyzes a raw transcript, it utilizes   
+  sophisticated batch inference techniques to categorize and segment the    
+  text. It mathematically identifies the "Hook" (the critical first three   
+  to five seconds specifically designed to arrest viewer attention), the    
+  "Body" (the substantive technical value, educational insight, or          
+  narrative arc), and the "Call to Action." By consistently feeding the     
+  large language model highly structured, rigid prompts alongside the raw   
+  transcript data, the system outputs a detailed "Feature Matrix"           
+  explaining exactly why the video succeeded from a psychological           
+  standpoint.When generating a completely new script for an energy client,  
+  the user does not face a blank page. Instead, they fill out a highly      
+  structured creative brief detailing their specific product or message.    
+  The large language model is then prompted to execute Retrieval-Augmented  
+  Generation (RAG). It actively merges the client's highly specific         
+  technical parameters—such as the specifications of a new Supervisory      
+  Control and Data Acquisition (SCADA) system rollout—with the proven       
+  structural geometry and pacing of the previously analyzed outlier video.  
+  This rigorous, multi-step process ensures that the final output is both   
+  technically accurate for the industrial sector and psychologically        
+  engaging for the human viewer.Psychological Triggers and Narrative Hooks  
+  in Industrial B2BA corporate video script, no matter how technically      
+  brilliant, is only as effective as its opening hook. Extensive audience   
+  retention research indicates that a massive percentage of viewer          
+  attention is permanently lost within the first few seconds if the core    
+  value proposition is not immediately clear and emotionally resonant. In   
+  the highly specialized industrial B2B space, the most effective narrative 
+   hooks do not sound like traditional marketing pitches; instead, they     
+  read like genuine human moments that happen to articulate a very specific 
+   operational pain point perfectly.The Co-Script engine will be explicitly 
+   programmed to recognize, categorize, and generate specific psychological 
+   hook archetypes customized for the unique realities of the energy        
+  sector:Desire Mapping / The Pain Point Gap: This specific hook structure  
+  immediately contrasts the viewer's current frustrating, inefficient, or   
+  dangerous reality with a highly desired future state of operational       
+  excellence. Example output: "Most industrial plant managers are currently 
+   flying completely blind on fugitive emissions data. Here is the exact    
+  edge-computing sensor architecture we deployed to achieve full regulatory 
+   transparency in under 30 days."The Specificity Effect: In B2B marketing, 
+   hyper-specific scenarios create instant, undeniable credibility. Broad   
+  generalities immediately trigger skepticism. Example output: "If you have 
+   ever had a subsea blowout preventer fail a routine pressure test at 3:00 
+   AM, this critical diagnostic update is specifically for your engineering 
+   team."The Lightbulb Effect / Pattern Break: This narrative approach      
+  introduces a counter-intuitive insight that directly challenges deeply    
+  entrenched conventional industry wisdom, generating immediate, powerful   
+  curiosity. Example output: "The biggest long-term risk to your municipal  
+  grid stability isn't extreme weather events—it is the legacy data silos   
+  hiding within your control rooms."Beyond the initial hook, the            
+  overarching narrative structure must sustain viewer attention through     
+  complex technical explanations. The Co-Script module will seamlessly      
+  utilize established storytelling frameworks, such as the "1-3-9 Story     
+  Spine" or the concept of "Nested Loops." These frameworks ensure that     
+  dry, highly technical product features are consistently framed within     
+  human-centric narratives. By doing so, incredibly complex automation      
+  solutions and abstract energy transition strategies become easily         
+  comprehensible and emotionally resonant to highly diverse stakeholders,   
+  from on-site technicians to boardroom executives.The Flagship Landing     
+  Experience (contentco-op.com)While the internal product applications      
+  (Co-Edit and Co-Script) house incredibly dense, complex functionality,    
+  the public-facing landing page must serve a completely different purpose. 
+   It must prioritize absolute clarity, premium cinematic aesthetics, and   
+  rapid user conversion. Taking direct architectural and design cues from   
+  Wistia's highly successful marketing surfaces, the digital design must    
+  ruthlessly minimize cognitive load and eliminate unnecessary friction.The 
+   primary contentco-op.com domain will feature a highly curated,           
+  cinematic, single-page layout. The defining visual element of this        
+  experience is a full-viewport, borderless background video. This system   
+  is seeded by the agency's highest-quality asset, specifically designated  
+  as HLSR+bp_30 Sec Spot_FINAL.mp4. This continuously autoplaying,          
+  gracefully muted loop serves as immediate, visceral, unarguable proof of  
+  the production agency's elite cinematic caliber.To maintain an            
+  uncluttered, highly premium aesthetic, the interface design will          
+  intentionally eschew heavy "boxed" interface cards, complex navigation    
+  menus, or dense embedded product dashboards. All primary typographic      
+  elements—including the main headline and supporting value proposition     
+  copy—will be strictly left-aligned. These text elements will rest within  
+  a carefully calibrated, readability-safe composited scrim zone, ensuring  
+  absolute contrast and legibility against the dynamic, moving background   
+  video regardless of the device resolution.Beneath the primary viewport    
+  fold, a strictly constrained and highly intentional "Thumbnail System"    
+  will operate. To prevent visual overwhelm, the system will utilize a      
+  deterministic, automated scoring job to evaluate all potential video      
+  thumbnails based on strict photographic criteria: focal clarity, subject  
+  legibility, color contrast, and the effective use of negative space. The  
+  platform will algorithmically select and display exactly three purposeful 
+   frames, distinctly tagged with the core agency pillars: Context, Trust,  
+  and Process. This extreme curation prevents the "wall of video" fatigue   
+  common to agency portfolios and funnels the prospective user directly     
+  toward the primary Call to Action paths: initiating a creative brief or   
+  logging into the secure, invite-only Co-Edit or Co-Script product         
+  environments.Strategic Implementation and Phased RolloutThe execution of  
+  a platform of this magnitude and complexity requires a highly             
+  disciplined, strictly phased engineering approach. This methodology is    
+  necessary to mitigate technical risk, ensure the stability of the shared  
+  database schema, and guarantee seamless alignment with the agency's       
+  existing operational workflows.Phase A: Research and Specification        
+  HardeningBefore any code is written, the fundamental philosophy of the    
+  platform must be locked. This involves the delivery of comprehensive      
+  markdown documents detailing the exact user experience paradigms          
+  extracted from Wipster, the strategic context engineering workflows       
+  deconstructed from Sandcastles, and the aesthetic principles derived from 
+   Wistia. Furthermore, the Co-Script module requires the manual            
+  transcription and mapping of 8 to 12 highly successful                    
+  Kallaway/Sandcastles videos into a definitive feature matrix to train the 
+   generative models.Phase B: Monorepo Foundation and Data ModelingThe      
+  engineering team will establish the foundational Next.js workspace. This  
+  involves configuring the shared UI and database packages, mapping the     
+  three distinct Netlify site configurations, and routing the subdomains.   
+  The critical deliverable in this phase is the absolute hardening of the   
+  Supabase PostgreSQL database schema. The team must rigorously test and    
+  deploy the Row Level Security policies to guarantee flawless multi-tenant 
+   data isolation before any client data is ingested.Phase C & D: The       
+  Execution Engine (Landing and Co-Edit)The team will finalize the          
+  contentco-op.com landing page, implementing the borderless video hero     
+  component and the deterministic thumbnail scoring system. Simultaneously, 
+   the Co-Edit product build will commence. This requires developing the    
+  secure video upload pipeline, integrating the custom React player, and    
+  writing the complex WebSocket logic required for real-time,               
+  frame-accurate comment synchronization. The final step is establishing    
+  the immutable cryptographic audit trail for the approval gate             
+  system.Phase E: The Intelligence Engine (Co-Script)Development shifts to  
+  the highly complex generative AI capabilities. Engineers will construct   
+  the API integrations required to scrape social metrics for the Outlier    
+  detection system. They will develop the structured prompt chains and      
+  context engineering protocols for the Large Language Models to analyze    
+  transcripts and map psychological triggers. Finally, they will build the  
+  intuitive brief builder that seamlessly translates raw client inputs into 
+   highly structured, high-converting video scripts.Phase F & G: Quality    
+  Assurance, Beta, and LaunchThe final phases involve rigorous performance  
+  budgeting to ensure the cinematic landing page loads in under 2.5         
+  seconds. The agency will initiate an internal alpha test strictly         
+  utilizing agency operators to capture and log any workflow friction       
+  points. This is followed by an invited beta program extended to 5 to 10   
+  highly trusted industrial client accounts, focusing specifically on their 
+   completion rates for video approvals and script generation. Only upon    
+  successful validation of these metrics will the platform move to full     
+  production.By systematically merging the precise operational efficiency   
+  of specialized revision software with the profound analytical power of    
+  AI-driven, psychology-backed narrative frameworks, the Content Co-op      
+  platform will fundamentally transcend traditional agency deliverables. It 
+   will permanently elevate the agency's market position, transforming it   
+  from a mere vendor of video files into an indispensable strategic partner 
+   capable of engineering highly predictable, maximum-impact communication  
+  architectures for the complex realities of the modern energy and          
+  industrial sectors.                                                       
+
+⏺ That's a substantial vision doc. Let me explore the current state of the
+  codebase first, then come back with a concrete implementation plan grounded in
+   what actually exists.
+
+⏺ Entered plan mode
+  Claude is now exploring and designing an implementation approach.
+
+⏺ 2 Explore agents finished (ctrl+o to expand)
+   ├─ Explore monorepo structure · 61 tool uses · 64.6k tokens
+   │  ⎿  Done
+   └─ Explore media and docs · 47 tool uses · 64.2k tokens
+      ⎿  Done
+
+⏺ Good — I've got a thorough picture of the codebase. Now let me synthesize this
+   into an actionable plan.
+
+⏺ Plan(Design implementation plan)
+  ⎿  Done (96 tool uses · 101.6k tokens · 5m 48s)
+  (ctrl+o to expand)
+
+⏺ Now let me read a few critical files to validate the plan details before
+  finalizing.
+
+⏺ Read 5 files (ctrl+o to expand)
+
+⏺ Good, I've got everything I need. Let me write the plan.
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ User answered Claude's questions:
+  ⎿  · Where do you want to start? The plan has 6 phases. Phase 1 
+     (architecture cleanup + landing page) and Phase 2 (design system + 
+     product app polish) are the highest-impact frontend work. Phase 3 
+     (Supabase backend) is the prerequisite for real data. What should we 
+     build first? → Phase 1: Landing page (Recommended)
+
+⏺ Good — Phase 1 it is. Let me finalize the plan with that focus.
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ User approved Claude's plan
+  ⎿  Plan saved to: ~/.claude/plans/graceful-marinating-pancake.md · /plan 
+     to edit
+     Content Co-op Implementation Plan — Phase 1
+
+     Context
+
+     The codebase is a Turbo monorepo with 3 Next.js 16 apps (apps/home,
+     apps/coedit, apps/coscript) and 4 shared packages (brand, ui, types,
+     api-client). Current design quality is 3/10 with a target of 8/10. No
+     backend — mock data only. The root src/app/ duplicates what's in apps/
+      and must be resolved.
+
+     Focus: Architecture cleanup + landing page ship. Get contentco-op.com
+     to production quality.
+
+     ---
+     Step 1: Expand shared packages (harvest root code)
+
+     The root src/ has the most mature code. Extract what's reusable before
+      removing it.
+
+     packages/brand/src/tokens.ts
+
+     Expand from current 18-line color-only file to include:
+     - Full CSS custom property map for both palettes (home light + product
+      dark)
+     - Spacing scale: 4, 8, 12, 16, 24, 32, 48, 64, 96px
+     - Typography scale: display sizes, body sizes, letter-spacing,
+     line-height
+     - Border radii: 8, 12, 16, 20, 24, 999px
+     - Shadows and transition timing
+
+     packages/brand/src/tokens.css (new file)
+
+     Canonical shared CSS extracted from root globals.css:
+     - CSS custom properties for both palettes (:root and
+     [data-surface="product"])
+     - Reset/base styles (box-sizing, margin removal)
+     - Typography scale classes
+     - Button base styles (.button, .button.primary, .button.ghost,
+     .button.light, .button.small)
+     - Shared utility styles (.kicker, .badge, .pill)
+
+     packages/types/src/index.ts
+
+     Merge types from src/lib/coedit-data.ts:
+     - QueueItem, ReviewComment, ApprovalGate → add to existing
+     CuratedFrame, ReviewAsset, TimecodedComment, ScriptBrief
+     - ReviewStatus union type
+
+     packages/ui/src/ — Component expansion
+
+     Currently only Pill and SectionTitle with inline styles. Add:
+     - Button.tsx — Variants: primary, ghost, light, default. Sizes:
+     default, small. Uses CSS classes from tokens.css
+     - Badge.tsx — Role tags, timecode badges, status indicators
+     - Nav.tsx — Shared navigation with surface prop ("home" | "coedit" |
+     "coscript"), brand lockup, active state, cross-app links. Migrates
+     logic from src/components/TopNav.tsx
+
+     ---
+     Step 2: Rebuild apps/home landing page
+
+     Target: Photography-first, video hero, curated 3-frame strip, minimal
+     text. Option 13 design direction.
+
+     apps/home/app/layout.tsx
+
+     - Import fonts via next/font/google: Inter (body) + Space Grotesk
+     (display)
+     - Import @contentco-op/brand/src/tokens.css
+     - Set data-surface="home" on body
+     - Wire font CSS variables
+
+     apps/home/app/globals.css
+
+     Full rewrite. Currently 168 lines — expand to cover:
+     - Hero section: full-viewport video with composited scrim,
+     left-aligned copy zone
+     - Curated strip: 3-frame layout with role tags
+     - Platform section: Co-Edit + Co-Script feature cards (carried from
+     root marketing page)
+     - Workflow section: 4-step process strip
+     - CTA callout: full-width background image with overlay
+     - Footer
+     - Responsive breakpoints at 1220px, 760px
+
+     Source material:
+     - Root src/app/globals.css lines 302-637 (marketing styles)
+     - design-options/option-13-landing-flagship.html (visual target)
+
+     apps/home/app/page.tsx
+
+     Keep existing structure but expand:
+     - Hero: video + copy (already good) — add platform section below
+     curated strip
+     - Curated: 3 frames (already implemented) — polish styling
+     - Add: Workflow section (4 steps), CTA callout, Footer
+     - Import shared Nav component from @contentco-op/ui
+
+     apps/home/app/hero-video.tsx
+
+     Keep as-is — the IntersectionObserver, reduced-motion, and tap-to-play
+      implementation is solid. Only update className if CSS changes require
+      it.
+
+     Static assets
+
+     - Verify apps/home/public/media/ has: hero-1080.mp4, hero-1080.webm,
+     hero-poster.jpg, thumb-context.jpg, thumb-trust.jpg, thumb-process.jpg
+     - Copy any needed images from public/cc/stills/ and public/cc/photos/
+     into apps/home/public/
+
+     ---
+     Step 3: Remove root app
+
+     After all useful code is migrated:
+
+     - Delete src/ directory entirely
+     - Remove root next.config.ts
+     - Remove root postcss.config.mjs
+     - Remove root next-env.d.ts
+     - Clean root tsconfig.json — keep as base config only, remove
+     paths/include pointing to src/
+     - Clean root package.json — remove root-level next/react/react-dom
+     deps (should only be in app workspaces)
+     - Delete root .next/ build output
+
+     ---
+     Step 4: Per-app Netlify config
+
+     - Create apps/home/netlify.toml — build command points at home app,
+     publish .next
+     - Create apps/coedit/netlify.toml — same pattern
+     - Create apps/coscript/netlify.toml — same pattern
+     - Update root .netlify/netlify.toml or remove if deploying per-app
+
+     Each Netlify site build command: npx turbo run build 
+     --filter=@contentco-op/home (etc.)
+
+     ---
+     Execution order
+
+     1. Step 1 (packages) — no risk, additive only
+     2. Step 2 (landing rebuild) — depends on Step 1 for shared
+     components/tokens
+     3. Step 3 (root removal) — depends on Step 2 being verified working
+     4. Step 4 (Netlify) — independent, can happen anytime
+
+     Files touched: ~15-20 files created/modified, root src/ deleted
+
+     ---
+     Verification
+
+     After completing Phase 1:
+     - npm run dev starts all 3 apps on ports 4100/4101/4102
+     - apps/home at localhost:4100 renders: hero video (autoplay muted
+     loop), curated 3-frame strip, platform section, workflow section, CTA
+     callout, footer
+     - Hero auto-plays on desktop, pauses offscreen, falls back to poster
+     on reduced-motion
+     - Nav links to localhost:4101 (Co-Edit) and localhost:4102 (Co-Script)
+      work
+     - turbo build succeeds for all 3 apps with no errors
+     - Root src/ directory is gone, no orphaned imports
+     - Shared packages (@contentco-op/brand, @contentco-op/ui,
+     @contentco-op/types) import cleanly in all apps
+
+     ---
+     Future phases (not in scope now)
+
+     - Phase 2: Design system completion + Co-Edit/Co-Script UI polish to
+     8/10
+     - Phase 3: Supabase backend + real auth
+     - Phase 4: Co-Edit MVP with real data
+     - Phase 5: Co-Script MVP with AI pipeline
+     - Phase 6: Motion, performance, accessibility, production hardening
+
+⏺ Plan approved. Let me set up tasks and start building.
+
+⏺ Now let me start Step 1. I need to read the source files I'll be harvesting
+  from.
+
+⏺ Read 4 files (ctrl+o to expand)
+
+⏺ Now let me read a few more files to understand the current app layouts and the
+   Option 13 design target.
+
+⏺ Read 4 files (ctrl+o to expand)
+
+⏺ Let me also check the Option 13 design direction for the landing page visual
+  target.
+
+⏺ Searched for 1 pattern, read 8 files (ctrl+o to expand)
+
+⏺ Good, I now have full context. Let me also quickly check what assets exist in
+  the home app's public directory and the package configs for the other
+  packages.
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Now I have full context. Time to build. Starting with Step 1: expanding shared
+   packages.
+
+  I'll work on multiple files in parallel since they're independent.
+
+⏺ Write(packages/brand/src/tokens.ts)
+  ⎿  Added 84 lines, removed 9 lines
+       1 +/* ─── Content Co-op Design Tokens ─── */                      
+       2 +                                                               
+       3  export const brand = {
+       4    home: {
+       3 -    background: "#eef4ed",                                     
+       4 -    ink: "#111c2a",                                            
+       5 -    muted: "#475a6d",                                          
+       6 -    accent: "#8ec2ff",                                         
+       7 -    accent2: "#c9f8b4"                                         
+       5 +    background: "#edf4ee",                                     
+       6 +    ink: "#121d2a",                                            
+       7 +    muted: "#4a5e71",                                          
+       8 +    line: "#c8d7cb",                                           
+       9 +    accent: "#c7f7b8",                                         
+      10 +    cta: "#132642",                                            
+      11 +    ctaLine: "#395b89",                                        
+      12    },
+      13    product: {
+      10 -    background: "#08101d",                                     
+      11 -    surface: "#111d31",                                        
+      14 +    background: "#070f1c",                                     
+      15 +    surface: "#0d1420",                                        
+      16 +    elevated: "#121c2b",                                       
+      17      ink: "#edf3ff",
+      18      muted: "#9cadc8",
+      14 -    accent: "#b9ff77"                                          
+      15 -  }                                                            
+      19 +    line: "#243248",                                           
+      20 +    accent: "#b9ff77",                                         
+      21 +  },                                                           
+      22 +  semantic: {                                                  
+      23 +    success: "#3ec983",                                        
+      24 +    warning: "#e4ad5b",                                        
+      25 +    danger: "#de7676",                                         
+      26 +    ring: "#7ca0718f",                                         
+      27 +  },                                                           
+      28  } as const;
+      29  
+      30 +export const spacing = {                                       
+      31 +  0: "0",                                                      
+      32 +  1: "4px",                                                    
+      33 +  2: "8px",                                                    
+      34 +  3: "12px",                                                   
+      35 +  4: "16px",                                                   
+      36 +  5: "20px",                                                   
+      37 +  6: "24px",                                                   
+      38 +  8: "32px",                                                   
+      39 +  10: "40px",                                                  
+      40 +  12: "48px",                                                  
+      41 +  16: "64px",                                                  
+      42 +  24: "96px",                                                  
+      43 +} as const;                                                    
+      44 +                                                               
+      45 +export const radii = {                                         
+      46 +  sm: "8px",                                                   
+      47 +  md: "12px",                                                  
+      48 +  lg: "16px",                                                  
+      49 +  xl: "18px",                                                  
+      50 +  "2xl": "24px",                                               
+      51 +  full: "999px",                                               
+      52 +} as const;                                                    
+      53 +                                                               
+      54 +export const typography = {                                    
+      55 +  display: {                                                   
+      56 +    family: "'Space Grotesk', 'Inter', sans-serif",            
+      57 +    h1: "clamp(3rem, 7.8vw, 7.2rem)",                          
+      58 +    h2: "clamp(1.5rem, 3vw, 3.4rem)",                          
+      59 +    h3: "clamp(1rem, 1.7vw, 1.35rem)",                         
+      60 +    letterSpacing: "-0.03em",                                  
+      61 +    lineHeight: { h1: "0.89", h2: "0.98", h3: "1.2" },         
+      62 +  },                                                           
+      63 +  body: {                                                      
+      64 +    family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe
+         + UI', sans-serif",                                             
+      65 +    base: "1rem",                                              
+      66 +    sm: "0.88rem",                                             
+      67 +    xs: "0.78rem",                                             
+      68 +    xxs: "0.72rem",                                            
+      69 +    lineHeight: "1.62",                                        
+      70 +  },                                                           
+      71 +  label: {                                                     
+      72 +    size: "0.7rem",                                            
+      73 +    weight: "630",                                             
+      74 +    letterSpacing: "0.18em",                                   
+      75 +    transform: "uppercase" as const,                           
+      76 +  },                                                           
+      77 +} as const;                                                    
+      78 +                                                               
+      79 +export const transitions = {                                   
+      80 +  fast: "140ms ease",                                          
+      81 +  base: "170ms ease",                                          
+      82 +  slow: "300ms ease",                                          
+      83 +} as const;                                                    
+      84 +                                                               
+      85 +export const shadows = {                                       
+      86 +  sm: "0 2px 8px rgba(0,0,0,.08)",                             
+      87 +  md: "0 10px 24px rgba(0,0,0,.12)",                           
+      88 +  lg: "0 20px 42px rgba(0,0,0,.25)",                           
+      89 +  hero: "0 20px 42px rgba(0,0,0,.32)",                         
+      90 +} as const;                                                    
+      91 +                                                               
+      92  export const roles = ["context", "trust", "process", "texture"]
+           as const;
+      93 +export type RoleTag = (typeof roles)[number];                  
+
+⏺ Write(packages/brand/src/tokens.css)
+  ⎿  Wrote 180 lines to packages/brand/src/tokens.css
+       1 /* ─── Content Co-op Shared Tokens CSS ─── */
+       2 /* Imported by each app's layout to establish baseline */
+       3 
+       4 /* ─── Palette: Home (light) ─── */
+       5 :root,
+       6 [data-surface="home"] {
+       7   --bg: #edf4ee;
+       8   --ink: #121d2a;
+       9   --muted: #4a5e71;
+      10   --line: #c8d7cb;
+     … +170 lines (ctrl+o to expand)
+
+⏺ Write(packages/brand/src/index.ts)
+  ⎿
+
+⏺ Now expand the types package with merged types from root coedit-data:
+
+⏺ Write(packages/types/src/index.ts)
+  ⎿  Added 49 lines, removed 3 lines
+      1 +/* ─── Shared type definitions ─── */                           
+      2 +                                                                
+      3 +/* ─── Roles ─── */                                             
+      4  export type RoleTag = "context" | "trust" | "process" | "texture
+         ";
+      5  
+      6 +/* ─── Curated Frames (Landing) ─── */                          
+      7  export interface CuratedFrame {
+      8    id: string;
+      9    assetId: string;
+     ...
+      15    imageUrl: string;
+      16  }
+      17  
+      18 +/* ─── Co-Edit ─── */                                          
+      19 +export type ReviewStatus = "In review" | "Needs changes" | "Rea
+         +dy to approve" | "Approved";                                   
+      20 +                                                               
+      21  export interface ReviewAsset {
+      22    id: string;
+      23    title: string;
+      24    project: string;
+      18 -  status: "In review" | "Needs changes" | "Ready" | "Approved";
+      25 +  status: ReviewStatus;                                        
+      26  }
+      27  
+      28 +export interface QueueItem {                                   
+      29 +  id: string;                                                  
+      30 +  asset: string;                                               
+      31 +  project: string;                                             
+      32 +  owner: string;                                               
+      33 +  reviewers: number;                                           
+      34 +  status: ReviewStatus;                                        
+      35 +  updated: string;                                             
+      36 +  due: string;                                                 
+      37 +  durationSeconds: number;                                     
+      38 +  poster: string;                                              
+      39 +}                                                              
+      40 +                                                               
+      41  export interface TimecodedComment {
+      42    id: string;
+      23 -  assetId: string;                                             
+      24 -  atSeconds: number;                                           
+      43 +  assetId?: string;                                            
+      44 +  at: number;                                                  
+      45    body: string;
+      46    state: "open" | "resolved";
+      47    author: string;
+      48    role: string;
+      49  }
+      50  
+      51 +export interface ApprovalGate {                                
+      52 +  id: string;                                                  
+      53 +  stakeholder: string;                                         
+      54 +  role: string;                                                
+      55 +  state: "pending" | "approved" | "changes_requested";         
+      56 +  updated: string;                                             
+      57 +}                                                              
+      58 +                                                               
+      59 +/* ─── Co-Script ─── */                                        
+      60  export interface ScriptBrief {
+      61    id: string;
+      62    scriptType: string;
+     ...
+      65    constraints: string;
+      66    keyPoints: string;
+      67  }
+      68 +                                                               
+      69 +export interface ScriptVariant {                               
+      70 +  id: string;                                                  
+      71 +  key: string;                                                 
+      72 +  label: string;                                               
+      73 +  body: string;                                                
+      74 +  revisionNumber: number;                                      
+      75 +}                                                              
+      76 +                                                               
+      77 +/* ─── Media ─── */                                            
+      78 +export interface MediaDerivative {                             
+      79 +  id: string;                                                  
+      80 +  assetId: string;                                             
+      81 +  format: string;                                              
+      82 +  url: string;                                                 
+      83 +  sizeBytes: number;                                           
+      84 +}                                                              
+
+⏺ Now build the UI components. First let me check the ui package's tsconfig:
+
+⏺ Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Write(packages/ui/src/index.tsx)
+  ⎿  Added 5 lines, removed 9 lines
+      1 -import type { PropsWithChildren } from "react";                 
+      2 -                                                                
+      3 -export function Pill({ children }: PropsWithChildren) {         
+      4 -  return <span style={{ border: "1px solid #3a5e89", borderRadiu
+        -s: 999, padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}>{childr
+        -en}</span>;                                                     
+      5 -}                                                               
+      6 -                                                                
+      7 -export function SectionTitle({ children }: PropsWithChildren) { 
+      8 -  return <h2 style={{ margin: 0, fontSize: "clamp(2rem, 4.4vw, 3
+        -.4rem)", letterSpacing: "-0.04em", lineHeight: 0.95 }}>{children
+        -}</h2>;                                                         
+      9 -}                                                               
+      1 +export { Button } from "./button";                              
+      2 +export { Badge } from "./badge";                                
+      3 +export { Nav } from "./nav";                                    
+      4 +export { Pill } from "./pill";                                  
+      5 +export { SectionTitle } from "./section-title";                 
+
+⏺ Write(packages/ui/src/pill.tsx)
+  ⎿  Wrote 5 lines to packages/ui/src/pill.tsx
+      1 import type { PropsWithChildren } from "react";
+      2 
+      3 export function Pill({ children, className }: PropsWithChildren<{
+         className?: string }>) {
+      4   return <span className={`badge ${className ?? ""}`}>{children}<
+        /span>;
+      5 }
+
+⏺ Write(packages/ui/src/section-title.tsx)
+  ⎿  Wrote 5 lines to packages/ui/src/section-title.tsx
+      1 import type { PropsWithChildren } from "react";
+      2 
+      3 export function SectionTitle({ children, className }: PropsWithCh
+        ildren<{ className?: string }>) {
+      4   return <h2 className={className}>{children}</h2>;
+      5 }
+
+⏺ Write(packages/ui/src/button.tsx)
+  ⎿  Wrote 40 lines to packages/ui/src/button.tsx
+       1 import type { PropsWithChildren, AnchorHTMLAttributes, ButtonHTM
+         LAttributes } from "react";
+       2 
+       3 type Variant = "default" | "light" | "ghost";
+       4 type Size = "default" | "small";
+       5 
+       6 interface ButtonBaseProps {
+       7   variant?: Variant;
+       8   size?: Size;
+       9   className?: string;
+      10 }
+     … +30 lines (ctrl+o to expand)
+
+⏺ Write(packages/ui/src/badge.tsx)
+  ⎿  Wrote 13 lines to packages/ui/src/badge.tsx
+       1 import type { PropsWithChildren } from "react";
+       2 
+       3 interface BadgeProps {
+       4   className?: string;
+       5   variant?: "default" | "resolved" | "role";
+       6 }
+       7 
+       8 export function Badge({ children, className, variant = "default"
+          }: PropsWithChildren<BadgeProps>) {
+       9   const cn = ["badge", variant !== "default" ? `badge-${variant}
+         ` : "", className ?? ""]
+      10     .filter(Boolean)
+     … +3 lines (ctrl+o to expand)
+
+⏺ Now the Nav component — the most complex shared component. It needs to work
+  across all 3 surfaces:
+
+⏺ Write(packages/ui/src/nav.tsx)
+  ⎿  Wrote 59 lines to packages/ui/src/nav.tsx
+       1 "use client";
+       2 
+       3 interface NavProps {
+       4   surface: "home" | "coedit" | "coscript";
+       5   /** Base URLs for cross-app linking. Defaults to subdomains in
+          prod, localhost ports in dev. */
+       6   urls?: {
+       7     home?: string;
+       8     coedit?: string;
+       9     coscript?: string;
+      10   };
+     … +49 lines (ctrl+o to expand)
+
+⏺ Now add @contentco-op/brand as a dependency of the UI package:
+
+⏺ Update(packages/ui/package.json)
+  ⎿  Added 1 line
+      10      "typecheck": "tsc -p tsconfig.json --noEmit"
+      11    },
+      12    "dependencies": {
+      13 +    "@contentco-op/brand": "0.1.0",                            
+      14      "react": "^19.2.0"
+      15    }
+      16  }
+
+⏺ Step 1 is done. Let me mark it complete and move to Step 2.
+
+⏺ Now Step 2: Rebuild the apps/home landing page. I need to:
+  1. Upgrade layout.tsx with fonts and shared token import
+  2. Rewrite globals.css with the full landing styles
+  3. Expand page.tsx with platform section, workflow section, CTA callout,
+  footer
+
+  First, I need to copy some images from public/cc/ into apps/home/public/ for
+  the sections that need them:
+
+⏺ Bash(mkdir -p
+      /Users/baileyeubanks/Desktop/contentco-op/apps/home/public/photos
+      /Users/baileyeubanks/Desktop/contentco-op/apps/home/public/stills
+      /Users/baileyeubank…)
+  ⎿  done
+
+⏺ Now rebuild the layout with fonts and shared tokens:
+
+⏺ Write(apps/home/app/layout.tsx)
+  ⎿  Added 18 lines, removed 3 lines
+       1  import "./globals.css";
+       2  import type { Metadata } from "next";
+       3 +import { Inter, Space_Grotesk } from "next/font/google";       
+       4  
+       5 +const inter = Inter({                                          
+       6 +  subsets: ["latin"],                                          
+       7 +  variable: "--font-body",                                     
+       8 +  display: "swap",                                             
+       9 +});                                                            
+      10 +                                                               
+      11 +const spaceGrotesk = Space_Grotesk({                           
+      12 +  subsets: ["latin"],                                          
+      13 +  variable: "--font-display",                                  
+      14 +  weight: ["500", "600", "700"],                               
+      15 +  display: "swap",                                             
+      16 +});                                                            
+      17 +                                                               
+      18  export const metadata: Metadata = {
+      19    title: "Content Co-op | Industrial Video Intelligence",
+       6 -  description: "Strategic video tools for energy, automation, a
+         -nd industrial communication teams."                            
+      20 +  description:                                                 
+      21 +    "High-stakes production systems for energy and industrial t
+         +eams. Clear messaging, accountable workflow, and premium execut
+         +ion from strategy to approval.",                               
+      22  };
+      23  
+      24  export default function RootLayout({ children }: { children: Re
+          act.ReactNode }) {
+      25    return (
+      11 -    <html lang="en">                                           
+      12 -      <body>{children}</body>                                  
+      26 +    <html lang="en" className={`${inter.variable} ${spaceGrotes
+         +k.variable}`}>                                                 
+      27 +      <body data-surface="home">{children}</body>              
+      28      </html>
+      29    );
+      30  }
+
+⏺ Now the big one — the full globals.css for the home app. This merges the best
+  of root globals.css (marketing styles) with the Option 13 design direction:
+
+⏺ Write(apps/home/app/globals.css)
+  ⎿  Added 400 lines, removed 66 lines
+        1 -:root {                                                       
+        2 -  --bg: #edf4ee;                                              
+        3 -  --ink: #121d2a;                                             
+        4 -  --muted: #4a5e71;                                           
+        5 -  --line: #c8d7cb;                                            
+        6 -  --dark: #08101c;                                            
+        7 -  --cta: #132642;                                             
+        8 -  --cta-line: #395b89;                                        
+        9 -  --accent: #c7f7b8;                                          
+        1 +@import "tailwindcss";                                        
+        2 +@import "@contentco-op/brand/src/tokens.css";                 
+        3 +                                                              
+        4 +@theme inline {                                               
+        5 +  --font-sans: var(--font-body);                              
+        6 +  --font-mono: var(--font-body);                              
+        7  }
+        8  
+       12 -* { box-sizing: border-box; }                                 
+       13 -html, body { margin: 0; padding: 0; font-family: Inter, -apple
+          --system, BlinkMacSystemFont, "Segoe UI", sans-serif; backgroun
+          -d: var(--bg); color: var(--ink); }                            
+       14 -a { color: inherit; text-decoration: none; }                  
+        9 +/* ─── Base overrides for home surface ─── */                 
+       10 +body {                                                        
+       11 +  font-family: var(--font-body), "Inter", -apple-system, Blink
+          +MacSystemFont, "Segoe UI", sans-serif;                        
+       12 +}                                                             
+       13  
+       16 -.shell { width: min(1540px, 96vw); margin: 0 auto; }          
+       14 +h1, h2, h3, h4 {                                              
+       15 +  font-family: var(--font-display), "Space Grotesk", "Inter", 
+          +sans-serif;                                                   
+       16 +}                                                             
+       17  
+       18 -.nav {                                                        
+       18 +.muted {                                                      
+       19 +  color: var(--muted);                                        
+       20 +  line-height: 1.62;                                          
+       21 +}                                                             
+       22 +                                                              
+       23 +/* ─── Navigation ─── */                                      
+       24 +.cc-nav {                                                     
+       25 +  position: sticky;                                           
+       26 +  top: 0;                                                     
+       27 +  z-index: 200;                                               
+       28 +  border-bottom: 1px solid var(--line);                       
+       29 +  background: color-mix(in srgb, var(--bg) 94%, white);       
+       30 +  backdrop-filter: blur(12px);                                
+       31 +}                                                             
+       32 +                                                              
+       33 +.cc-nav-inner {                                               
+       34 +  width: min(1540px, 96vw);                                   
+       35 +  margin: 0 auto;                                             
+       36 +  padding: 0.9rem 0;                                          
+       37    display: grid;
+       38    grid-template-columns: auto 1fr auto;
+       39 +  gap: 1.2rem;                                                
+       40    align-items: center;
+       22 -  gap: 1rem;                                                  
+       23 -  padding: 1rem 0;                                            
+       24 -  border-bottom: 1px solid var(--line);                       
+       25 -  text-transform: uppercase;                                  
+       26 -  letter-spacing: .12em;                                      
+       27 -  font-size: .74rem;                                          
+       41  }
+       29 -.brand { font-weight: 700; display: flex; align-items: center;
+          - gap: .55rem; }                                               
+       30 -.brand::before { content: ""; width: 8px; height: 8px; border-
+          -radius: 50%; background: #2d6a45; box-shadow: 0 0 0 5px #2d6a4
+          -524; }                                                        
+       31 -.nav-links { justify-self: center; display: flex; gap: 2rem; c
+          -olor: #6a7d8a; }                                              
+       32 -.nav-links a.active { color: var(--ink); border-bottom: 1px so
+          -lid var(--ink); padding-bottom: .2rem; }                      
+       33 -.nav-cta { display: flex; gap: .55rem; }                      
+       34 -.button {                                                     
+       35 -  border-radius: 999px;                                       
+       36 -  border: 1px solid var(--cta-line);                          
+       37 -  background: var(--cta);                                     
+       38 -  color: #eaf2ff;                                             
+       39 -  padding: .58rem .95rem;                                     
+       40 -  font-size: .7rem;                                           
+       41 -  letter-spacing: .1em;                                       
+       42 -  text-transform: uppercase;                                  
+       42 +                                                              
+       43 +.cc-nav-brand {                                               
+       44 +  display: inline-flex;                                       
+       45 +  align-items: center;                                        
+       46 +  gap: 0.55rem;                                               
+       47 +}                                                             
+       48 +                                                              
+       49 +.cc-nav-mark {                                                
+       50 +  width: 8px;                                                 
+       51 +  height: 8px;                                                
+       52 +  border-radius: 50%;                                         
+       53 +  background: #2d6a45;                                        
+       54 +  box-shadow: 0 0 0 5px #2d6a4524;                            
+       55 +}                                                             
+       56 +                                                              
+       57 +.cc-nav-wordmark {                                            
+       58 +  font-size: 0.84rem;                                         
+       59    font-weight: 700;
+       60 +  letter-spacing: 0.02em;                                     
+       61  }
+       45 -.button.light { background: #edf4ff; border-color: #edf4ff; co
+          -lor: #111d31; }                                               
+       62  
+       63 +.cc-nav-links {                                               
+       64 +  justify-self: center;                                       
+       65 +  display: inline-flex;                                       
+       66 +  align-items: center;                                        
+       67 +  gap: 2rem;                                                  
+       68 +}                                                             
+       69 +                                                              
+       70 +.cc-nav-link {                                                
+       71 +  position: relative;                                         
+       72 +  font-size: 0.74rem;                                         
+       73 +  font-weight: 600;                                           
+       74 +  letter-spacing: 0.12em;                                     
+       75 +  text-transform: uppercase;                                  
+       76 +  color: #6a7d8a;                                             
+       77 +  transition: color 150ms ease;                               
+       78 +  padding-bottom: 0.2rem;                                     
+       79 +}                                                             
+       80 +                                                              
+       81 +.cc-nav-link:hover,                                           
+       82 +.cc-nav-link.active {                                         
+       83 +  color: var(--ink);                                          
+       84 +}                                                             
+       85 +                                                              
+       86 +.cc-nav-link.active {                                         
+       87 +  border-bottom: 1px solid var(--ink);                        
+       88 +}                                                             
+       89 +                                                              
+       90 +.cc-nav-actions {                                             
+       91 +  display: inline-flex;                                       
+       92 +  align-items: center;                                        
+       93 +  gap: 0.55rem;                                               
+       94 +}                                                             
+       95 +                                                              
+       96 +/* ─── Page shell ─── */                                      
+       97 +.page {                                                       
+       98 +  min-height: 100vh;                                          
+       99 +}                                                             
+      100 +                                                              
+      101 +.shell {                                                      
+      102 +  width: min(1540px, 96vw);                                   
+      103 +  margin: 0 auto;                                             
+      104 +  display: grid;                                              
+      105 +  gap: 4.2rem;                                                
+      106 +}                                                             
+      107 +                                                              
+      108 +/* ─── Hero ─── */                                            
+      109  .hero {
+      110    margin-top: 1rem;
+      111    border: 1px solid var(--line);
+     ...
+      118    padding: 1.4rem;
+      119    background: #070f1c;
+      120  }
+      121 +                                                              
+      122  .hero video,
+      123  .hero .poster {
+      124    position: absolute;
+     ...
+      128    object-fit: cover;
+      129    object-position: 70% center;
+      130  }
+      131 +                                                              
+      132  .hero::before {
+      133    content: "";
+      134    position: absolute;
+      135    inset: 0;
+      136    background:
+       73 -    linear-gradient(108deg, rgba(7, 14, 25, .95) 0 37%, rgba(7
+          -, 14, 25, .84) 54%, rgba(7, 14, 25, .62) 68%, rgba(7, 14, 25, 
+          -.44) 100%),                                                   
+       74 -    radial-gradient(140% 100% at 50% 2%, transparent 40%, rgba
+          -(0, 0, 0, .4) 100%);                                          
+      137 +    linear-gradient(108deg, rgba(7, 14, 25, 0.95) 0 37%, rgba(
+          +7, 14, 25, 0.84) 54%, rgba(7, 14, 25, 0.62) 68%, rgba(7, 14, 2
+          +5, 0.44) 100%),                                               
+      138 +    radial-gradient(140% 100% at 50% 2%, transparent 40%, rgba
+          +(0, 0, 0, 0.4) 100%);                                         
+      139    z-index: 1;
+      140  }
+      141 +                                                              
+      142  .hero .poster {
+      143    z-index: 0;
+      144    opacity: 1;
+       80 -  transition: opacity .35s ease;                              
+      145 +  transition: opacity 0.35s ease;                             
+      146  }
+      147 +                                                              
+      148  .hero-copy {
+      149    position: relative;
+      150    z-index: 2;
+      151    width: min(1000px, 100%);
+      152    border-radius: 18px;
+      153    padding: 1rem 1rem 1.1rem;
+       88 -  background: linear-gradient(135deg, rgba(12, 21, 35, .67), r
+          -gba(10, 18, 30, .52));                                        
+      154 +  background: linear-gradient(135deg, rgba(12, 21, 35, 0.67), 
+          +rgba(10, 18, 30, 0.52));                                      
+      155    backdrop-filter: blur(8px);
+       90 -  box-shadow: 0 20px 42px rgba(0, 0, 0, .25);                 
+      156 +  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.25);                
+      157  }
+       92 -.kicker { font-size: .7rem; letter-spacing: .18em; text-transf
+          -orm: uppercase; color: #b4c7e4; font-weight: 700; }           
+      158 +                                                              
+      159 +.hero .kicker {                                               
+      160 +  color: #b4c7e4;                                             
+      161 +}                                                             
+      162 +                                                              
+      163  .hero h1 {
+       94 -  margin: .45rem 0 0;                                         
+      164 +  margin: 0.45rem 0 0;                                        
+      165    font-size: clamp(3rem, 7.8vw, 7.2rem);
+       96 -  line-height: .89;                                           
+       97 -  letter-spacing: -.055em;                                    
+      166 +  line-height: 0.89;                                          
+      167 +  letter-spacing: -0.055em;                                   
+      168    color: #eef3ff;
+      169  }
+      170 +                                                              
+      171  .hero h1 em {
+      172    font-style: italic;
+      173    font-family: "Times New Roman", Times, serif;
+      174    font-weight: 500;
+      175    color: var(--accent);
+      176  }
+      177 +                                                              
+      178  .lede-row {
+      179    margin-top: 1rem;
+      180    display: grid;
+      181    grid-template-columns: 1fr 1fr;
+      182    gap: 1rem;
+      183  }
+      112 -.lede { margin: 0; color: #c0cde3; line-height: 1.5; font-size
+          -: clamp(1.03rem, 1.3vw, 1.16rem); max-width: 34ch; }          
+      113 -.value-list { margin: 0; padding: 0; list-style: none; display
+          -: grid; gap: .42rem; }                                        
+      114 -.value-list li { border: 1px solid #385377; border-radius: 999
+          -px; width: fit-content; padding: .22rem .52rem; color: #d7e3f9
+          -; background: rgba(15, 29, 50, .72); font-size: .88rem; }     
+      115 -.action-row { margin-top: .95rem; display: flex; gap: .6rem; f
+          -lex-wrap: wrap; }                                             
+      184  
+      185 +.lede {                                                       
+      186 +  margin: 0;                                                  
+      187 +  color: #c0cde3;                                             
+      188 +  line-height: 1.5;                                           
+      189 +  font-size: clamp(1.03rem, 1.3vw, 1.16rem);                  
+      190 +  max-width: 34ch;                                            
+      191 +}                                                             
+      192 +                                                              
+      193 +.value-list {                                                 
+      194 +  margin: 0;                                                  
+      195 +  padding: 0;                                                 
+      196 +  list-style: none;                                           
+      197 +  display: grid;                                              
+      198 +  gap: 0.42rem;                                               
+      199 +}                                                             
+      200 +                                                              
+      201 +.value-list li {                                              
+      202 +  border: 1px solid #385377;                                  
+      203 +  border-radius: 999px;                                       
+      204 +  width: fit-content;                                         
+      205 +  padding: 0.22rem 0.52rem;                                   
+      206 +  color: #d7e3f9;                                             
+      207 +  background: rgba(15, 29, 50, 0.72);                         
+      208 +  font-size: 0.88rem;                                         
+      209 +}                                                             
+      210 +                                                              
+      211 +.action-row {                                                 
+      212 +  margin-top: 0.95rem;                                        
+      213 +  display: flex;                                              
+      214 +  gap: 0.6rem;                                                
+      215 +  flex-wrap: wrap;                                            
+      216 +}                                                             
+      217 +                                                              
+      218 +/* ─── Curated frames strip ─── */                            
+      219  .curated {
+      220    position: relative;
+      221    z-index: 2;
+      222    margin-top: 1rem;
+      223  }
+      122 -.curated-head { display: flex; justify-content: space-between;
+          - align-items: center; margin-bottom: .65rem; color: #c7d7f0; f
+          -ont-size: .72rem; text-transform: uppercase; letter-spacing: .
+          -14em; }                                                       
+      123 -.curated-head small { border: 1px solid #3d618d; border-radius
+          -: 999px; padding: .18rem .42rem; background: rgba(14, 29, 50, 
+          -.8); }                                                        
+      224 +                                                              
+      225 +.curated-head {                                               
+      226 +  display: flex;                                              
+      227 +  justify-content: space-between;                             
+      228 +  align-items: center;                                        
+      229 +  margin-bottom: 0.65rem;                                     
+      230 +  color: #c7d7f0;                                             
+      231 +  font-size: 0.72rem;                                         
+      232 +  text-transform: uppercase;                                  
+      233 +  letter-spacing: 0.14em;                                     
+      234 +}                                                             
+      235 +                                                              
+      236 +.curated-head small {                                         
+      237 +  border: 1px solid #3d618d;                                  
+      238 +  border-radius: 999px;                                       
+      239 +  padding: 0.18rem 0.42rem;                                   
+      240 +  background: rgba(14, 29, 50, 0.8);                          
+      241 +}                                                             
+      242 +                                                              
+      243  .curated-strip {
+      244    display: grid;
+      245    grid-template-columns: repeat(3, minmax(0, 1fr));
+      127 -  gap: .75rem;                                                
+      246 +  gap: 0.75rem;                                               
+      247  }
+      248 +                                                              
+      249  .frame {
+      250    border: 1px solid #2f496f;
+      251    border-radius: 14px;
+      252    overflow: hidden;
+      133 -  background: rgba(12, 24, 45, .7);                           
+      253 +  background: rgba(12, 24, 45, 0.7);                          
+      254    min-height: 168px;
+      255  }
+      136 -.frame img { width: 100%; height: 136px; object-fit: cover; di
+          -splay: block; }                                               
+      137 -.frame p { margin: .44rem .5rem .5rem; color: #afc1dd; font-si
+          -ze: .76rem; line-height: 1.35; }                              
+      256  
+      139 -.page { min-height: 100vh; }                                  
+      140 -.card { border: 1px solid var(--line); border-radius: 18px; pa
+          -dding: 1rem; background: #f6faf3; }                           
+      257 +.frame img {                                                  
+      258 +  width: 100%;                                                
+      259 +  height: 136px;                                              
+      260 +  object-fit: cover;                                          
+      261 +  display: block;                                             
+      262 +}                                                             
+      263 +                                                              
+      264 +.frame p {                                                    
+      265 +  margin: 0.44rem 0.5rem 0.5rem;                              
+      266 +  color: #afc1dd;                                             
+      267 +  font-size: 0.76rem;                                         
+      268 +  line-height: 1.35;                                          
+      269 +}                                                             
+      270 +                                                              
+      271  .mobile-play {
+      272    position: absolute;
+      273    z-index: 3;
+     ...
+      275    top: 1rem;
+      276    border-radius: 999px;
+      277    border: 1px solid #365172;
+      148 -  background: rgba(7, 16, 28, .82);                           
+      278 +  background: rgba(7, 16, 28, 0.82);                          
+      279    color: #e7f0ff;
+      150 -  padding: .4rem .75rem;                                      
+      151 -  font-size: .72rem;                                          
+      152 -  letter-spacing: .08em;                                      
+      280 +  padding: 0.4rem 0.75rem;                                    
+      281 +  font-size: 0.72rem;                                         
+      282 +  letter-spacing: 0.08em;                                     
+      283    text-transform: uppercase;
+      284    font-weight: 700;
+      285    display: none;
+      286 +  cursor: pointer;                                            
+      287  }
+      288  
+      289 +/* ─── Platform section ─── */                                
+      290 +.section {                                                    
+      291 +  width: min(1340px, 100%);                                   
+      292 +  margin: 0 auto;                                             
+      293 +  display: grid;                                              
+      294 +  gap: 1.2rem;                                                
+      295 +}                                                             
+      296 +                                                              
+      297 +.section-head {                                               
+      298 +  max-width: 84ch;                                            
+      299 +  display: grid;                                              
+      300 +  gap: 0.7rem;                                                
+      301 +}                                                             
+      302 +                                                              
+      303 +.section-lede {                                               
+      304 +  max-width: 72ch;                                            
+      305 +  line-height: 1.62;                                          
+      306 +  color: var(--muted);                                        
+      307 +  font-size: clamp(1rem, 1.2vw, 1.16rem);                     
+      308 +}                                                             
+      309 +                                                              
+      310 +.card-grid {                                                  
+      311 +  display: grid;                                              
+      312 +  gap: 0.9rem;                                                
+      313 +}                                                             
+      314 +                                                              
+      315 +.card-grid-2 {                                                
+      316 +  grid-template-columns: repeat(2, minmax(0, 1fr));           
+      317 +}                                                             
+      318 +                                                              
+      319 +.card-grid-4 {                                                
+      320 +  grid-template-columns: repeat(4, minmax(0, 1fr));           
+      321 +}                                                             
+      322 +                                                              
+      323 +.card {                                                       
+      324 +  border-radius: 18px;                                        
+      325 +  background: #eef4e8;                                        
+      326 +  border: 1px solid #d9e4cf;                                  
+      327 +  color: #16201e;                                             
+      328 +  padding: 1.02rem;                                           
+      329 +  display: grid;                                              
+      330 +  gap: 0.48rem;                                               
+      331 +}                                                             
+      332 +                                                              
+      333 +.chip {                                                       
+      334 +  display: inline-flex;                                       
+      335 +  align-items: center;                                        
+      336 +  border-radius: 999px;                                       
+      337 +  border: 1px solid #b6c8a8;                                  
+      338 +  background: #ecf4e2;                                        
+      339 +  color: #2f402f;                                             
+      340 +  padding: 0.32rem 0.58rem;                                   
+      341 +  font-size: 0.72rem;                                         
+      342 +  font-weight: 620;                                           
+      343 +  letter-spacing: 0.03em;                                     
+      344 +  white-space: nowrap;                                        
+      345 +  width: fit-content;                                         
+      346 +}                                                             
+      347 +                                                              
+      348 +.process-step {                                               
+      349 +  font-size: 0.66rem;                                         
+      350 +  letter-spacing: 0.16em;                                     
+      351 +  text-transform: uppercase;                                  
+      352 +  color: #60755f;                                             
+      353 +  font-weight: 700;                                           
+      354 +}                                                             
+      355 +                                                              
+      356 +.inline-cta {                                                 
+      357 +  display: flex;                                              
+      358 +  gap: 0.62rem;                                               
+      359 +  flex-wrap: wrap;                                            
+      360 +}                                                             
+      361 +                                                              
+      362 +/* Home-surface button overrides (light context) */           
+      363 +.section .button {                                            
+      364 +  background: #111812;                                        
+      365 +  border-color: #111812;                                      
+      366 +  color: #eef4e9;                                             
+      367 +}                                                             
+      368 +                                                              
+      369 +.section .button:hover {                                      
+      370 +  background: #070b08;                                        
+      371 +  border-color: #070b08;                                      
+      372 +}                                                             
+      373 +                                                              
+      374 +.section .button.ghost {                                      
+      375 +  color: #223122;                                             
+      376 +  border-color: #c4d3b6;                                      
+      377 +  background: #edf4e6;                                        
+      378 +}                                                             
+      379 +                                                              
+      380 +.section .button.ghost:hover {                                
+      381 +  background: #e2ecda;                                        
+      382 +  border-color: #b2c5a0;                                      
+      383 +}                                                             
+      384 +                                                              
+      385 +/* ─── CTA Callout ─── */                                     
+      386 +.callout {                                                    
+      387 +  position: relative;                                         
+      388 +  min-height: 410px;                                          
+      389 +  overflow: hidden;                                           
+      390 +  border-radius: 24px;                                        
+      391 +}                                                             
+      392 +                                                              
+      393 +.callout-bg {                                                 
+      394 +  position: absolute;                                         
+      395 +  inset: 0;                                                   
+      396 +}                                                             
+      397 +                                                              
+      398 +.callout-bg img {                                             
+      399 +  object-fit: cover;                                          
+      400 +  filter: saturate(0.76) hue-rotate(-22deg) brightness(0.95); 
+      401 +}                                                             
+      402 +                                                              
+      403 +.callout-overlay {                                            
+      404 +  position: absolute;                                         
+      405 +  inset: 0;                                                   
+      406 +  background:                                                 
+      407 +    linear-gradient(102deg, #f5f7f0e8 12%, #edf3e2cc 46%, #e1e
+          +ad4b7 72%, #dae5caa8 100%),                                   
+      408 +    linear-gradient(180deg, #f5f7f072, #f5f7f0c2);            
+      409 +}                                                             
+      410 +                                                              
+      411 +.callout-inner {                                              
+      412 +  position: relative;                                         
+      413 +  z-index: 1;                                                 
+      414 +  max-width: 72ch;                                            
+      415 +  padding: clamp(1.2rem, 3vw, 2.8rem);                        
+      416 +  display: grid;                                              
+      417 +  gap: 0.9rem;                                                
+      418 +  color: #15201c;                                             
+      419 +}                                                             
+      420 +                                                              
+      421 +/* ─── Footer ─── */                                          
+      422 +.cc-footer {                                                  
+      423 +  width: min(1340px, 100%);                                   
+      424 +  margin: 0 auto;                                             
+      425 +  border-top: 1px solid #d4ddcc;                              
+      426 +  padding-top: 2.2rem;                                        
+      427 +  padding-bottom: 3rem;                                       
+      428 +}                                                             
+      429 +                                                              
+      430 +.cc-footer-inner {                                            
+      431 +  display: flex;                                              
+      432 +  justify-content: space-between;                             
+      433 +  align-items: flex-start;                                    
+      434 +  gap: 1.2rem;                                                
+      435 +  flex-wrap: wrap;                                            
+      436 +}                                                             
+      437 +                                                              
+      438 +.cc-footer-brand {                                            
+      439 +  max-width: 56ch;                                            
+      440 +  display: grid;                                              
+      441 +  gap: 0.62rem;                                               
+      442 +}                                                             
+      443 +                                                              
+      444 +.cc-footer-links {                                            
+      445 +  display: flex;                                              
+      446 +  gap: 0.84rem;                                               
+      447 +  flex-wrap: wrap;                                            
+      448 +  color: #5b695e;                                             
+      449 +  font-size: 0.88rem;                                         
+      450 +}                                                             
+      451 +                                                              
+      452 +.cc-footer-links a:hover {                                    
+      453 +  color: #243327;                                             
+      454 +}                                                             
+      455 +                                                              
+      456 +/* ─── Responsive ─── */                                      
+      457  @media (max-width: 980px) {
+      159 -  .nav-cta { display: none; }                                 
+      160 -  .hero { min-height: auto; padding: 1rem; }                  
+      161 -  .hero video, .hero .poster { object-position: 64% center; } 
+      162 -  .hero-copy { padding: .9rem; }                              
+      458 +  .cc-nav-actions { display: none; }                          
+      459 +                                                              
+      460 +  .hero {                                                     
+      461 +    min-height: auto;                                         
+      462 +    padding: 1rem;                                            
+      463 +  }                                                           
+      464 +                                                              
+      465 +  .hero video,                                                
+      466 +  .hero .poster {                                             
+      467 +    object-position: 64% center;                              
+      468 +  }                                                           
+      469 +                                                              
+      470 +  .hero-copy { padding: 0.9rem; }                             
+      471    .lede-row { grid-template-columns: 1fr; }
+      472    .curated-strip { grid-template-columns: 1fr; }
+      165 -  .hero h1 { font-size: clamp(2.2rem, 10vw, 3.8rem); }        
+      166 -  .mobile-play { display: inline-flex; align-items: center; } 
+      473 +                                                              
+      474 +  .hero h1 {                                                  
+      475 +    font-size: clamp(2.2rem, 10vw, 3.8rem);                   
+      476 +  }                                                           
+      477 +                                                              
+      478 +  .mobile-play {                                              
+      479 +    display: inline-flex;                                     
+      480 +    align-items: center;                                      
+      481 +  }                                                           
+      482 +                                                              
+      483 +  .card-grid-2,                                               
+      484 +  .card-grid-4 {                                              
+      485 +    grid-template-columns: 1fr;                               
+      486 +  }                                                           
+      487 +                                                              
+      488 +  .callout { min-height: 340px; }                             
+      489  }
+      490 +                                                              
+      491 +@media (max-width: 760px) {                                   
+      492 +  .cc-nav-links {                                             
+      493 +    width: 100%;                                              
+      494 +    justify-content: space-between;                           
+      495 +    gap: 1rem;                                                
+      496 +  }                                                           
+      497 +                                                              
+      498 +  .cc-nav-link { font-size: 0.68rem; }                        
+      499 +  .button { font-size: 0.72rem; }                             
+      500 +  .hero { min-height: 80vh; }                                 
+      501 +}                                                             
+
+⏺ Now rebuild the page with the full structure — hero + platform section +
+  workflow + CTA callout + footer:
+
+⏺ Write(apps/home/app/page.tsx)
+  ⎿  Added 150 lines, removed 31 lines
+       1  import Image from "next/image";
+       2 +import { Nav } from "@contentco-op/ui";                        
+       3  import { HeroVideo } from "./hero-video";
+       4  
+       5  const curated = [
+       6    {
+       7      assetId: "bpms150-drone-finishline1",
+       8      frameTimecode: "00:02.14",
+       8 -    approvedBy: "content-ops",                                 
+       9 -    approvedAt: "2026-02-24T15:00:00.000Z",                    
+       9      role: "Context",
+      10      text: "Context opener: establishes scale and environment.",
+      12 -    image: "/media/thumb-context.jpg"                          
+      11 +    image: "/media/thumb-context.jpg",                         
+      12    },
+      13    {
+      14      assetId: "accurate-meter-t2",
+      15      frameTimecode: "00:11.22",
+      17 -    approvedBy: "content-ops",                                 
+      18 -    approvedAt: "2026-02-24T15:00:00.000Z",                    
+      16      role: "Trust",
+      17      text: "Operator close-up: credibility and human focus.",
+      21 -    image: "/media/thumb-trust.jpg"                            
+      18 +    image: "/media/thumb-trust.jpg",                           
+      19    },
+      20    {
+      21      assetId: "kodiak-team-trust",
+      22      frameTimecode: "00:17.08",
+      26 -    approvedBy: "content-ops",                                 
+      27 -    approvedAt: "2026-02-24T15:00:00.000Z",                    
+      23      role: "Process",
+      24      text: "Process frame: reinforces execution and field confid
+          ence.",
+      30 -    image: "/media/thumb-process.jpg"                          
+      31 -  }                                                            
+      32 -];                                                             
+      25 +    image: "/media/thumb-process.jpg",                         
+      26 +  },                                                           
+      27 +] as const;                                                    
+      28  
+      29 +const workflow = [                                             
+      30 +  {                                                            
+      31 +    step: "01",                                                
+      32 +    title: "Strategy Brief",                                   
+      33 +    detail: "Objective, constraints, audience, and decision-mak
+         +er are locked before capture starts.",                         
+      34 +  },                                                           
+      35 +  {                                                            
+      36 +    step: "02",                                                
+      37 +    title: "Production",                                       
+      38 +    detail: "Field capture and edit pipelines run with clear ow
+         +nership and measurable delivery targets.",                     
+      39 +  },                                                           
+      40 +  {                                                            
+      41 +    step: "03",                                                
+      42 +    title: "Review",                                           
+      43 +    detail: "Co-Edit manages timecoded comments, version compar
+         +ison, and final approval checkpoints.",                        
+      44 +  },                                                           
+      45 +  {                                                            
+      46 +    step: "04",                                                
+      47 +    title: "Script Intelligence",                              
+      48 +    detail: "Co-Script turns outliers into repeatable messaging
+         + and channel-specific variants.",                              
+      49 +  },                                                           
+      50 +] as const;                                                    
+      51 +                                                               
+      52  export default function HomePage() {
+      53    return (
+      54      <main className="page">
+      37 -      <div className="shell">                                  
+      38 -        <header className="nav">                               
+      39 -          <div className="brand">Content Co-op</div>           
+      40 -          <nav className="nav-links">                          
+      41 -            <a className="active" href="/">Home</a>            
+      42 -            <a href="https://coedit.contentco-op.com">Co-Edit</
+         -a>                                                             
+      43 -            <a href="https://coscript.contentco-op.com">Co-Scri
+         -pt</a>                                                         
+      44 -          </nav>                                               
+      45 -          <div className="nav-cta">                            
+      46 -            <a className="button" href="/login">Portal Login</a
+         ->                                                              
+      47 -            <a className="button light" href="/brief">Start Ene
+         -rgy Brief</a>                                                  
+      48 -          </div>                                               
+      49 -        </header>                                              
+      55 +      <Nav surface="home" />                                   
+      56  
+      57 +      <div className="shell">                                  
+      58 +        {/* ─── Hero ─── */}                                   
+      59          <section className="hero">
+      60            <HeroVideo />
+      61            <section className="hero-copy">
+     ...
+      65              </h1>
+      66              <div className="lede-row">
+      67                <p className="lede">
+      60 -                High-stakes production systems for energy and i
+         -ndustrial teams. Clear messaging, accountable workflow,        
+      61 -                and premium execution from strategy to approval
+         -.                                                              
+      68 +                High-stakes production systems for energy and i
+         +ndustrial teams. Clear messaging,                              
+      69 +                accountable workflow, and premium execution fro
+         +m strategy to approval.                                        
+      70                </p>
+      71                <ul className="value-list">
+      72                  <li>Built for leadership communication</li>
+     ...
+      75                </ul>
+      76              </div>
+      77              <div className="action-row">
+      70 -              <a className="button light" href="/brief">Start E
+         -nergy Brief</a>                                                
+      71 -              <a className="button" href="https://coedit.conten
+         -tco-op.com">Open Co-Edit</a>                                   
+      72 -              <a className="button" href="https://coscript.cont
+         -entco-op.com">Open Co-Script</a>                               
+      78 +              <a className="button light" href="/brief">       
+      79 +                Start Energy Brief                             
+      80 +              </a>                                             
+      81 +              <a className="button" href="https://coedit.conten
+         +tco-op.com">                                                   
+      82 +                Open Co-Edit                                   
+      83 +              </a>                                             
+      84 +              <a className="button" href="https://coscript.cont
+         +entco-op.com">                                                 
+      85 +                Open Co-Script                                 
+      86 +              </a>                                             
+      87              </div>
+      88            </section>
+      89  
+     ...
+       95              <div className="curated-strip">
+       96                {curated.map((item) => (
+       97                  <article key={item.assetId} className="frame">
+       84 -                  <Image src={item.image} alt={`${item.role} f
+          -rame`} width={640} height={360} />                            
+       98 +                  <Image                                      
+       99 +                    src={item.image}                          
+      100 +                    alt={`${item.role} frame`}                
+      101 +                    width={640}                               
+      102 +                    height={360}                              
+      103 +                  />                                          
+      104                    <p>
+       86 -                    <strong>{item.role}</strong> · {item.text}
+      105 +                    <strong>{item.role}</strong> &middot; {ite
+          +m.text}                                                       
+      106                    </p>
+      107                  </article>
+      108                ))}
+      109              </div>
+      110            </section>
+      111          </section>
+      112 +                                                              
+      113 +        {/* ─── Platform ─── */}                              
+      114 +        <section className="section" id="platform">           
+      115 +          <header className="section-head">                   
+      116 +            <p className="kicker">Platform</p>                
+      117 +            <h2>Two surfaces. One production standard.</h2>   
+      118 +            <p className="section-lede">                      
+      119 +              Co-Edit runs review and approvals. Co-Script con
+          +verts high-performing patterns into                           
+      120 +              publish-ready language.                         
+      121 +            </p>                                              
+      122 +          </header>                                           
+      123 +          <div className="card-grid card-grid-2">             
+      124 +            <article className="card">                        
+      125 +              <span className="chip">Co-Edit</span>           
+      126 +              <h3>Review. Compare. Approve.</h3>              
+      127 +              <p className="muted">                           
+      128 +                Wipster-class collaboration flow with explicit
+          + stakeholder ownership and full                               
+      129 +                revision traceability.                        
+      130 +              </p>                                            
+      131 +              <div className="inline-cta">                    
+      132 +                <a className="button" href="https://coedit.con
+          +tentco-op.com">                                               
+      133 +                  Open Co-Edit                                
+      134 +                </a>                                          
+      135 +              </div>                                          
+      136 +            </article>                                        
+      137 +            <article className="card">                        
+      138 +              <span className="chip">Co-Script</span>         
+      139 +              <h3>Watch. Model. Generate.</h3>                
+      140 +              <p className="muted">                           
+      141 +                Sandcastles-class intelligence flow using watc
+          +hlists, outliers, structured briefs,                          
+      142 +                and fix loops.                                
+      143 +              </p>                                            
+      144 +              <div className="inline-cta">                    
+      145 +                <a className="button" href="https://coscript.c
+          +ontentco-op.com">                                             
+      146 +                  Open Co-Script                              
+      147 +                </a>                                          
+      148 +              </div>                                          
+      149 +            </article>                                        
+      150 +          </div>                                              
+      151 +        </section>                                            
+      152 +                                                              
+      153 +        {/* ─── Workflow ─── */}                              
+      154 +        <section className="section">                         
+      155 +          <header className="section-head">                   
+      156 +            <p className="kicker">Workflow</p>                
+      157 +            <h2>Built for teams that need clean decisions.</h2
+          +>                                                             
+      158 +          </header>                                           
+      159 +          <div className="card-grid card-grid-4">             
+      160 +            {workflow.map((item) => (                         
+      161 +              <article key={item.step} className="card">      
+      162 +                <p className="process-step">{item.step}</p>   
+      163 +                <h3>{item.title}</h3>                         
+      164 +                <p className="muted">{item.detail}</p>        
+      165 +              </article>                                      
+      166 +            ))}                                               
+      167 +          </div>                                              
+      168 +        </section>                                            
+      169 +                                                              
+      170 +        {/* ─── CTA Callout ─── */}                           
+      171 +        <section className="section">                         
+      172 +          <div className="callout">                           
+      173 +            <div className="callout-bg" aria-hidden="true">   
+      174 +              <Image src="/photos/review-4g9a1137.jpg" alt="" 
+          +fill sizes="100vw" />                                         
+      175 +            </div>                                            
+      176 +            <div className="callout-overlay" aria-hidden="true
+          +" />                                                          
+      177 +            <div className="callout-inner">                   
+      178 +              <p className="kicker">Access</p>                
+      179 +              <h2>Internal teams and invited clients run from 
+          +one portal.</h2>                                              
+      180 +              <p className="section-lede">                    
+      181 +                No split threads, no hidden versions, no ad ho
+          +c review chaos.                                               
+      182 +              </p>                                            
+      183 +              <div className="action-row">                    
+      184 +                <a className="button" href="/login">          
+      185 +                  Portal Login                                
+      186 +                </a>                                          
+      187 +                <a className="button ghost" href="https://coed
+          +it.contentco-op.com">                                         
+      188 +                  View Co-Edit                                
+      189 +                </a>                                          
+      190 +              </div>                                          
+      191 +            </div>                                            
+      192 +          </div>                                              
+      193 +        </section>                                            
+      194 +                                                              
+      195 +        {/* ─── Footer ─── */}                                
+      196 +        <footer className="cc-footer">                        
+      197 +          <div className="cc-footer-inner">                   
+      198 +            <div className="cc-footer-brand">                 
+      199 +              <Image src="/logos/lockup-3408.png" alt="Content
+          + Co-op" width={220} height={58} />                            
+      200 +              <p className="muted">                           
+      201 +                Content Co-op. Premium production and strategi
+          +c messaging systems.                                          
+      202 +              </p>                                            
+      203 +            </div>                                            
+      204 +            <nav className="cc-footer-links" aria-label="Foote
+          +r links">                                                     
+      205 +              <a href="/">Home</a>                            
+      206 +              <a href="https://coedit.contentco-op.com">Co-Edi
+          +t</a>                                                         
+      207 +              <a href="https://coscript.contentco-op.com">Co-S
+          +cript</a>                                                     
+      208 +              <a href="/login">Login</a>                      
+      209 +            </nav>                                            
+      210 +          </div>                                              
+      211 +        </footer>                                             
+      212        </div>
+      213      </main>
+      214    );
+
+⏺ Now let me check that the home app's next.config.ts includes the brand package
+   for CSS import and make sure PostCSS is set up for Tailwind:
+
+⏺ Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+⏺ The PostCSS config is at the root — Tailwind v4 uses @tailwindcss/postcss. Let
+   me check if the home app picks it up, or if each app needs its own:
+
+⏺ Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Each app needs its own PostCSS config since Next.js looks in the app's
+  directory. Let me create them:
+
+⏺ Write(apps/home/postcss.config.mjs)
+  ⎿  Wrote 7 lines to apps/home/postcss.config.mjs
+      1 const config = {
+      2   plugins: {
+      3     "@tailwindcss/postcss": {},
+      4   },
+      5 };
+      6 
+      7 export default config;
+
+⏺ Write(apps/coedit/postcss.config.mjs)
+  ⎿  Wrote 7 lines to apps/coedit/postcss.config.mjs
+      1 const config = {
+      2   plugins: {
+      3     "@tailwindcss/postcss": {},
+      4   },
+      5 };
+      6 
+      7 export default config;
+
+⏺ Write(apps/coscript/postcss.config.mjs)
+  ⎿  Wrote 7 lines to apps/coscript/postcss.config.mjs
+      1 const config = {
+      2   plugins: {
+      3     "@tailwindcss/postcss": {},
+      4   },
+      5 };
+      6 
+      7 export default config;
+
+⏺ Now let me check if the @tailwindcss/postcss dependency is listed in the apps:
+
+⏺ Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Tailwind isn't in any app's dependencies. Let me check if it's installed at
+  all:
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ They exist in hoisted node_modules but aren't in any package.json. I need to
+  add them as dev deps to each app that uses them. Let me add them to the home
+  app:
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Update(apps/home/package.json)
+  ⎿  Added 1 line
+      18      "react-dom": "19.2.3"
+      19    },
+      20    "devDependencies": {
+      21 +    "@tailwindcss/postcss": "^4",                              
+      22      "@types/node": "^20.19.16",
+      23      "@types/react": "^19.2.2",
+      24      "@types/react-dom": "^19.2.2",
+
+⏺ Now let me also add it to the other apps. Let me read and update them:
+
+⏺ Read 2 files (ctrl+o to expand)
+
+⏺ Update(apps/coedit/package.json)
+  ⎿  Added 1 line
+      18      "react-dom": "19.2.3"
+      19    },
+      20    "devDependencies": {
+      21 +    "@tailwindcss/postcss": "^4",                              
+      22      "@types/node": "^20.19.16",
+      23      "@types/react": "^19.2.2",
+      24      "@types/react-dom": "^19.2.2",
+
+⏺ Update(apps/coscript/package.json)
+  ⎿  Added 1 line
+      18      "react-dom": "19.2.3"
+      19    },
+      20    "devDependencies": {
+      21 +    "@tailwindcss/postcss": "^4",                              
+      22      "@types/node": "^20.19.16",
+      23      "@types/react": "^19.2.2",
+      24      "@types/react-dom": "^19.2.2",
+
+⏺ Now let me also make sure the home app's next.config.ts includes
+  @contentco-op/brand for CSS imports to work through transpilePackages, and add
+   the @contentco-op/api-client:
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Good — brand is already in transpilePackages. But I'm importing a CSS file
+  from the brand package (@contentco-op/brand/src/tokens.css). With Tailwind
+  v4's @import, the CSS import should resolve through the package. Let me verify
+   the import path will work — the brand package main is src/index.ts, but we're
+   importing src/tokens.css directly. That should work since transpilePackages
+  includes it.
+
+  Let me also check the home app's tsconfig to ensure proper setup:
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Good. Now Step 2 is mostly done. Let me mark it and move to Step 3 (remove
+  root app):
+
+⏺ Step 3: Remove the root app. First let me check what's in src/ to make sure
+  nothing else needs to be harvested:
+
+⏺ Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Before deleting src/, let me verify the apps/coedit already has equivalent
+  pages (or save ReviewStudio for Phase 2):
+
+⏺ Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Good — apps/coedit already has its own asset detail page, approvals, projects,
+   API routes, and mock data. The root src/components/coedit/ReviewStudio.tsx is
+   the richer interactive version that we'll want in Phase 2, but the
+  apps/coedit already has its own structure. Since this is all uncommitted, I
+  should preserve the ReviewStudio code somewhere accessible rather than losing
+  it.
+
+  Let me save it into the coedit app's lib for future use:
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ I'll save a copy of ReviewStudio into apps/coedit/lib/ for Phase 2 use, then
+  delete src/:
+
+⏺ Write(apps/coedit/lib/review-studio-ref.tsx)
+  ⎿  Wrote 250 lines to apps/coedit/lib/review-studio-ref.tsx
+       1 /**
+       2  * Reference implementation of ReviewStudio from root src/.
+       3  * Preserved for Phase 2 migration into apps/coedit/app/asset/[i
+         d]/page.tsx.
+       4  * Import paths will need updating from @/lib/coedit-data to ./m
+         ock.
+       5  */
+       6 
+       7 "use client";
+       8 
+       9 import { useEffect, useMemo, useRef, useState } from "react";
+      10 import {
+     … +240 lines (ctrl+o to expand)
+
+⏺ Now I need to check the mock.ts to make sure it exports what the reference
+  needs:
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ The mock.ts is simpler than the root coedit-data.ts. I'll update it to include
+   the full seed data so the ReviewStudio ref works in Phase 2. But for now, the
+   review-studio-ref.tsx imports from ./mock — it won't compile yet because
+  mock.ts doesn't export those names. That's fine — it's a reference file for
+  Phase 2, not active code.
+
+  Now delete the root app files:
+
+⏺ Bash(rm -rf /Users/baileyeubanks/Desktop/contentco-op/src && echo "src/
+      deleted")
+  ⎿  src/ deleted
+
+⏺ Now clean up the root config files that belonged to the root app:
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Bash(rm /Users/baileyeubanks/Desktop/contentco-op/next.config.ts
+      /Users/baileyeubanks/Desktop/contentco-op/next-env.d.ts 2>/dev/null; echo
+      "done")
+  ⎿  done
+
+⏺ Now clean up tsconfig.json to be base-only. The current root one has @/* paths
+   pointing to src/ and includes .next/ dirs — these are root-app artifacts:
+
+⏺ Write(tsconfig.json)
+  ⎿  Added 13 lines, removed 30 lines
+       1  {
+       2 +  "extends": "./tsconfig.base.json",                           
+       3    "compilerOptions": {
+       3 -    "target": "ES2017",                                        
+       4 -    "lib": ["dom", "dom.iterable", "esnext"],                  
+       5 -    "allowJs": true,                                           
+       6 -    "skipLibCheck": true,                                      
+       7 -    "strict": true,                                            
+       8 -    "noEmit": true,                                            
+       9 -    "esModuleInterop": true,                                   
+      10 -    "module": "esnext",                                        
+      11 -    "moduleResolution": "bundler",                             
+      12 -    "resolveJsonModule": true,                                 
+      13 -    "isolatedModules": true,                                   
+      14 -    "jsx": "react-jsx",                                        
+      15 -    "incremental": true,                                       
+      16 -    "plugins": [                                               
+      17 -      {                                                        
+      18 -        "name": "next"                                         
+      19 -      }                                                        
+      20 -    ],                                                         
+      21 -    "paths": {                                                 
+      22 -      "@/*": ["./src/*"]                                       
+      23 -    }                                                          
+       4 +    "noEmit": true                                             
+       5    },
+      25 -  "include": [                                                 
+      26 -    "next-env.d.ts",                                           
+      27 -    "**/*.ts",                                                 
+      28 -    "**/*.tsx",                                                
+      29 -    ".next/types/**/*.ts",                                     
+      30 -    ".next/dev/types/**/*.ts",                                 
+      31 -    "**/*.mts"                                                 
+      32 -  ],                                                           
+      33 -  "exclude": ["node_modules"]                                  
+       6 +  "include": [],                                               
+       7 +  "exclude": ["node_modules"],                                 
+       8 +  "references": [                                              
+       9 +    { "path": "apps/home" },                                   
+      10 +    { "path": "apps/coedit" },                                 
+      11 +    { "path": "apps/coscript" },                               
+      12 +    { "path": "packages/brand" },                              
+      13 +    { "path": "packages/ui" },                                 
+      14 +    { "path": "packages/types" },                              
+      15 +    { "path": "packages/api-client" }                          
+      16 +  ]                                                            
+      17  }
+
+⏺ Remove the root PostCSS config (apps now have their own) and the root .next
+  build output:
+
+⏺ Bash(rm /Users/baileyeubanks/Desktop/contentco-op/postcss.config.mjs
+      2>/dev/null; rm -rf /Users/baileyeubanks/Desktop/contentco-op/.next
+      2>/dev/null; echo "done")
+  ⎿  done
+
+⏺ Now the root package.json — it should only have workspace scripts and devDeps
+  (no next/react). Let me verify:
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Root package.json is clean — no next/react deps. Good.
+
+⏺ Step 4: Per-app Netlify configs:
+
+⏺ Write(apps/home/netlify.toml)
+  ⎿  Wrote 6 lines to apps/home/netlify.toml
+      1 [build]
+      2   command = "cd ../.. && npx turbo run build --filter=@contentco-
+        op/home"
+      3   publish = ".next"
+      4 
+      5 [[plugins]]
+      6   package = "@netlify/plugin-nextjs"
+
+⏺ Write(apps/coedit/netlify.toml)
+  ⎿  Wrote 6 lines to apps/coedit/netlify.toml
+      1 [build]
+      2   command = "cd ../.. && npx turbo run build --filter=@contentco-
+        op/coedit"
+      3   publish = ".next"
+      4 
+      5 [[plugins]]
+      6   package = "@netlify/plugin-nextjs"
+
+⏺ Write(apps/coscript/netlify.toml)
+  ⎿  Wrote 6 lines to apps/coscript/netlify.toml
+      1 [build]
+      2   command = "cd ../.. && npx turbo run build --filter=@contentco-
+        op/coscript"
+      3   publish = ".next"
+      4 
+      5 [[plugins]]
+      6   package = "@netlify/plugin-nextjs"
+
+⏺ Step 5: Verify the build. Let me install deps and try building:
+
+⏺ Bash(npm install 2>&1 | tail -20)
+  ⎿  added 11 packages, and audited 381 packages in 2s
+
+     144 packages are looking for funding
+     … +3 lines (ctrl+o to expand)
+
+⏺ Good. Now let's try building the home app:
+
+⏺ Bash(npx turbo run build --filter=@contentco-op/home 2>&1 | tail -40)
+  ⎿  Attention:
+     Turborepo now collects completely anonymous telemetry regarding usage.
+     This information is used to shape the Turborepo roadmap and prioritize
+     … +8 lines (ctrl+o to expand)
+
+⏺ Need to add packageManager field to root package.json:
+
+⏺ Bash(node -v 2>/dev/null; npm -v 2>/dev/null)
+  ⎿  v25.6.1
+     11.9.0
+
+⏺ Update(package.json)
+  ⎿  Added 1 line
+      2    "name": "contentco-op-monorepo",
+      3    "version": "0.2.0",
+      4    "private": true,
+      5 +  "packageManager": "npm@11.9.0",                               
+      6    "workspaces": [
+      7      "apps/*",
+      8      "packages/*",
+
+⏺ Bash(npx turbo run build --filter=@contentco-op/home 2>&1 | tail -50)
+  ⎿  @contentco-op/brand:build: brand tokens: source only
+     @contentco-op/types:build: types: source only
+     @contentco-op/ui:build: cache miss, executing 89b96fa1b8ddca53
+     … +45 lines (ctrl+o to expand)
+  ⎿  (timeout 3m)
+  ⎿  [Image #1]
+  ⎿  [Image #2]
+  ⎿  [Image #3]
+  ⎿  [Image #4]
+  ⎿  [Image #5]
+  ⎿  [Image #6]
+  ⎿  [Image #7]
+  ⎿  [Image #8]
+  ⎿  [Image #9]
+  ⎿  [Image #10]
+  ⎿  [Image #11]
+  ⎿  [Image #12]
+  ⎿  [Image #13]
+  ⎿  API Error: 400 
+     {"type":"error","error":{"type":"invalid_request_error","message":"Could 
+     not process image"},"request_id":"req_011CYToiWmq25HkoHZGqcLDs"}
+
+✻ Brewed for 18m 27s
+
+[Image #1]
+  ⎿  [Image #2]
+  ⎿  [Image #3]
+  ⎿  [Image #4]
+  ⎿  [Image #5]
+  ⎿  API Error: 400 
+     {"type":"error","error":{"type":"invalid_request_error","message":"Could 
+     not process image"},"request_id":"req_011CYTomodBCKJaMNiTfsUMJ"}
+
+[Image #6]
+  ⎿  [Image #7]
+  ⎿  [Image #8]
+  ⎿  [Image #9]
+  ⎿  [Image #10]
+  ⎿  [Image #11]
+  ⎿  [Image #12]
+  ⎿  [Image #13]
+  ⎿  [Image #14]
+  ⎿  [Image #15]
+  ⎿  [Image #16]
+  ⎿  API Error: 400 
+     {"type":"error","error":{"type":"invalid_request_error","message":"Could 
+     not process image"},"request_id":"req_011CYTowFZPsK9A42PKC1QcU"}
+
+❯ /Users/baileyeubanks/Desktop/ACS_WEB\ SPOT/Hga-g_Mp9z3g3XrN.mp4 -         
+  inspiration too                                                           
+  ⎿  API Error: 400 
+     {"type":"error","error":{"type":"invalid_request_error","message":"Could 
+     not process image"},"request_id":"req_011CYTr3W2gy6U14B9kxFL9X"}
+
+❯ working ?  
+  ⎿  API Error: 400 
+     {"type":"error","error":{"type":"invalid_request_error","message":"Could 
+     not process image"},"request_id":"req_011CYTtNT8aWomt3mCy5CexN"}
+
+❯ is this stuck 
+  ⎿  API Error: 400 
+     {"type":"error","error":{"type":"invalid_request_error","message":"Could 
+     not process image"},"request_id":"req_011CYTzuRcrhwFqwcpK9mgNb"}

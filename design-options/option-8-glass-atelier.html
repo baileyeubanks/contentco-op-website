@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Option 8 - Glass Atelier</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap');
+
+    :root {
+      --bg: #03060a;
+      --ink: #edf3ff;
+      --muted: #9babc5;
+      --line: #2b3c58;
+      --glass: rgba(14, 23, 39, .62);
+      --glass-line: rgba(122, 155, 201, .34);
+      --accent: #94c3ff;
+      --mint: #d6ffd9;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: 'Outfit', sans-serif;
+      background:
+        radial-gradient(1200px circle at 84% -8%, #2646737a 8%, transparent 56%),
+        radial-gradient(900px circle at -8% 110%, #23486a66 10%, transparent 50%),
+        var(--bg);
+    }
+
+    .shell { width: min(1510px, 95vw); margin: 0 auto; }
+
+    .nav {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      padding: .95rem 0;
+      border-bottom: 1px solid #1f3150;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .74rem;
+    }
+    .brand { font-weight: 700; display: flex; align-items: center; gap: .55rem; }
+    .brand::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px #94c3ff24;
+    }
+    .links { justify-self: center; display: flex; gap: 2rem; color: var(--muted); }
+    .links span:first-child { color: var(--ink); border-bottom: 1px solid var(--ink); }
+    .cta {
+      border: 1px solid #35557d;
+      border-radius: 999px;
+      background: #10233b;
+      color: #eaf2ff;
+      padding: .58rem .96rem;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .hero {
+      margin-top: 1rem;
+      border: 1px solid #253955;
+      border-radius: 24px;
+      overflow: hidden;
+      min-height: 84vh;
+      background:
+        linear-gradient(120deg, #050b14f1, #050b14cf 43%, #050b149e 72%, #050b1480 100%),
+        url('../public/cc/photos/review-4g9a1137.jpg') center/cover no-repeat;
+      position: relative;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 1.6rem;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(20px);
+      pointer-events: none;
+    }
+    .hero::before {
+      width: 480px;
+      height: 480px;
+      right: -8%;
+      top: -18%;
+      background: radial-gradient(circle, #6a90c94d 8%, transparent 66%);
+    }
+    .hero::after {
+      width: 420px;
+      height: 420px;
+      left: -6%;
+      bottom: -20%;
+      background: radial-gradient(circle, #5ca0c240 12%, transparent 68%);
+    }
+
+    .glass {
+      border: 1px solid var(--glass-line);
+      border-radius: 18px;
+      background: linear-gradient(140deg, rgba(15, 25, 42, .74), rgba(11, 19, 33, .54));
+      box-shadow: inset 0 1px 0 rgba(182, 207, 241, .15), 0 16px 40px rgba(3, 8, 14, .4);
+      backdrop-filter: blur(10px);
+    }
+
+    .top {
+      width: min(900px, 100%);
+      padding: 1rem 1rem 1.2rem;
+      z-index: 2;
+    }
+    .kicker {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      color: #a5bbdc;
+      font-weight: 700;
+    }
+    h1 {
+      margin: .45rem 0 0;
+      font-size: clamp(3rem, 7.8vw, 7.2rem);
+      line-height: .9;
+      letter-spacing: -.05em;
+      max-width: 11ch;
+      text-wrap: balance;
+    }
+    h1 em {
+      font-family: 'Newsreader', serif;
+      font-style: italic;
+      font-weight: 600;
+      color: var(--mint);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .8rem;
+      margin-top: .7rem;
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.45;
+    }
+    .actions { margin-top: .8rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid #3f6291;
+      background: #132844;
+      color: #e6f0ff;
+      padding: .72rem 1rem;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .btn.primary { background: #edf4ff; border-color: #edf4ff; color: #101a2b; }
+
+    .deck {
+      align-self: end;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: .5rem;
+    }
+    .asset {
+      border: 1px solid #2f4b71;
+      border-radius: 13px;
+      overflow: hidden;
+      aspect-ratio: 4/5;
+      background: #0d1727;
+      position: relative;
+      transform-origin: center bottom;
+      animation: float 6s ease-in-out infinite;
+    }
+    .asset:nth-child(2) { animation-delay: .4s; }
+    .asset:nth-child(3) { animation-delay: .8s; }
+    .asset:nth-child(4) { animation-delay: 1.2s; }
+    .asset:nth-child(5) { animation-delay: 1.6s; }
+    .asset:nth-child(6) { animation-delay: 2s; }
+    .asset img { width: 100%; height: 100%; object-fit: cover; }
+    .asset::after {
+      content: attr(data-role);
+      position: absolute;
+      left: .35rem;
+      bottom: .3rem;
+      border: 1px solid #466a99;
+      border-radius: 999px;
+      background: #0f1c30d4;
+      color: #d9e8ff;
+      font-size: .62rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: .16rem .33rem;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-7px) scale(1.02); }
+    }
+
+    @media (max-width: 1100px) {
+      .split { grid-template-columns: 1fr; }
+      .deck { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .hero { padding: 1rem; }
+      .deck { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .top { padding: .9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="nav">
+      <div class="brand">Content Co-op</div>
+      <div class="links"><span>Home</span><span>Co-Edit</span><span>Co-Script</span></div>
+      <button class="cta">Start Brief</button>
+    </header>
+
+    <section class="hero">
+      <article class="glass top">
+        <div class="kicker">Option 8 / Glass Atelier</div>
+        <h1>Creative systems, <em>rendered live.</em></h1>
+        <div class="split">
+          <p>Motion-forward visual system designed for high-end narrative production.</p>
+          <p>Co-Edit handles review/approval lanes; Co-Script handles watchlists, outliers, and variant generation.</p>
+        </div>
+        <div class="actions">
+          <button class="btn primary">Start Creative Brief</button>
+          <button class="btn">Open Co-Script</button>
+        </div>
+      </article>
+
+      <div class="deck">
+        <figure class="asset" data-role="Review"><img src="../public/cc/stills/bpms150-drone-finishline1_t1.jpg" alt=""></figure>
+        <figure class="asset" data-role="Version"><img src="../public/cc/stills/accurate-meter_t2.jpg" alt=""></figure>
+        <figure class="asset" data-role="Outlier"><img src="../public/cc/stills/the-title-promo-x-2_t3.jpg" alt=""></figure>
+        <figure class="asset" data-role="Brief"><img src="../public/cc/stills/tray30-01-v1_t2.jpg" alt=""></figure>
+        <figure class="asset" data-role="Fix loop"><img src="../public/cc/stills/gno-03_t3.jpg" alt=""></figure>
+        <figure class="asset" data-role="Publish"><img src="../public/cc/stills/xxx-final-jumbotron_t2.jpg" alt=""></figure>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

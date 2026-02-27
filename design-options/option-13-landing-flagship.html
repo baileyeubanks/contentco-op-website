@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Option 13 - Flagship Landing</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap');
+
+    :root {
+      --bg: #040a13;
+      --ink: #edf3ff;
+      --muted: #9caecc;
+      --line: #253754;
+      --chip: #0e1d32cc;
+      --chip-line: #3b5c89;
+      --button: #102641;
+      --button-line: #3f618f;
+      --button-light: #edf3ff;
+      --button-light-text: #101a2d;
+      --accent: #c9f8b4;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Sora', sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1000px circle at 92% -12%, #21426b7d 8%, transparent 54%),
+        var(--bg);
+    }
+
+    .shell { width: min(1540px, 96vw); margin: 0 auto; }
+
+    .nav {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid #1d314f;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .74rem;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+      background: color-mix(in srgb, var(--bg) 90%, #071224);
+    }
+
+    .brand {
+      font-weight: 700;
+      display: flex;
+      gap: .55rem;
+      align-items: center;
+    }
+    .brand::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #97c0ff;
+      box-shadow: 0 0 0 6px #97c0ff24;
+    }
+
+    .links {
+      justify-self: center;
+      display: flex;
+      gap: 2rem;
+      color: var(--muted);
+    }
+    .links a {
+      color: inherit;
+      text-decoration: none;
+      padding-bottom: .2rem;
+      border-bottom: 1px solid transparent;
+    }
+    .links a.active {
+      color: var(--ink);
+      border-bottom-color: var(--ink);
+    }
+
+    .cta-row { display: flex; gap: .55rem; }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid var(--button-line);
+      background: var(--button);
+      color: #e8f1ff;
+      padding: .58rem .95rem;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn.light {
+      background: var(--button-light);
+      border-color: var(--button-light);
+      color: var(--button-light-text);
+    }
+
+    .hero {
+      margin-top: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      overflow: hidden;
+      min-height: 86vh;
+      position: relative;
+      display: grid;
+      align-content: space-between;
+      padding: 1.4rem;
+      background:
+        linear-gradient(108deg, #050d19f4 0 35%, #050d19cd 51%, #050d1996 66%, #050d1968 100%),
+        url('../public/cc/photos/review-4g9a1137.jpg') 70% center / cover no-repeat;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(130% 100% at 50% 2%, transparent 40%, rgba(0, 0, 0, .42) 100%),
+        linear-gradient(180deg, rgba(9, 18, 31, .10), rgba(8, 16, 27, .36));
+      pointer-events: none;
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 2;
+      width: min(980px, 100%);
+      border: 1px solid #304865;
+      border-radius: 18px;
+      padding: 1rem 1rem 1.1rem;
+      background: linear-gradient(135deg, rgba(12, 21, 35, .75), rgba(10, 18, 30, .56));
+      backdrop-filter: blur(8px);
+      box-shadow: 0 20px 42px rgba(0, 0, 0, .32);
+    }
+
+    .kicker {
+      font-size: .7rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: #afc4e3;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: .45rem 0 0;
+      font-size: clamp(3rem, 7.7vw, 7.3rem);
+      line-height: .89;
+      letter-spacing: -.055em;
+      max-width: 10ch;
+      text-wrap: balance;
+    }
+    h1 em {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--accent);
+      letter-spacing: .01em;
+    }
+
+    .lede-row {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .lede {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1.02rem, 1.25vw, 1.17rem);
+      line-height: 1.48;
+      max-width: 35ch;
+    }
+
+    .why {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: .42rem;
+      color: #c0d0e8;
+      font-size: .9rem;
+      line-height: 1.4;
+    }
+    .why li {
+      border: 1px solid #355072;
+      border-radius: 999px;
+      width: fit-content;
+      padding: .22rem .52rem;
+      background: #0f1e33a8;
+    }
+
+    .action-row {
+      margin-top: .95rem;
+      display: flex;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
+
+    .exhibit {
+      position: relative;
+      z-index: 2;
+      margin-top: 1rem;
+      padding: .2rem 0 .1rem;
+    }
+
+    .exhibit-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .65rem;
+      color: #c1d3ef;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+    }
+    .exhibit-head small {
+      border: 1px solid var(--chip-line);
+      border-radius: 999px;
+      padding: .18rem .42rem;
+      background: var(--chip);
+      color: #d7e6fd;
+    }
+
+    .strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .75rem;
+    }
+    .frame {
+      border: 1px solid #2f496f;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #0c182d8a;
+      min-height: 168px;
+      position: relative;
+      box-shadow: 0 10px 24px rgba(2, 8, 14, .28);
+    }
+    .frame img { width: 100%; height: 136px; object-fit: cover; display: block; }
+    .frame p {
+      margin: .44rem .5rem .5rem;
+      color: #a6b8d3;
+      font-size: .76rem;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 980px) {
+      .hero {
+        min-height: auto;
+        padding: 1rem;
+        background-position: 58% center;
+      }
+      .hero-copy { padding: .9rem; }
+      .lede-row { grid-template-columns: 1fr; }
+      .strip { grid-template-columns: 1fr; }
+      h1 { max-width: none; }
+      .cta-row { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="nav">
+      <div class="brand">Content Co-op</div>
+      <nav class="links">
+        <a class="active" href="./option-13-landing-flagship.html">Home</a>
+        <a href="./option-13-co-edit-product.html">Co-Edit</a>
+        <a href="./option-13-co-script-product.html">Co-Script</a>
+      </nav>
+      <div class="cta-row">
+        <a class="btn" href="./option-13-co-edit-product.html">Open Co-Edit</a>
+        <a class="btn light" href="./option-13-co-script-product.html">Open Co-Script</a>
+      </div>
+    </header>
+
+    <main class="hero">
+      <section class="hero-copy">
+        <div class="kicker">Option 13 / Flagship Direction</div>
+        <h1>Minimal stage, <em>maximum signal.</em></h1>
+        <div class="lede-row">
+          <p class="lede">High-stakes production systems for energy and industrial teams. Clear messaging, accountable workflow, and premium execution from strategy to approval.</p>
+          <ul class="why">
+            <li>Built for leadership communication</li>
+            <li>Faster approval without quality loss</li>
+            <li>Evidence-first creative decisions</li>
+          </ul>
+        </div>
+        <div class="action-row">
+          <a class="btn light" href="#">Start Creative Brief</a>
+          <a class="btn" href="#">View Selected Work</a>
+        </div>
+      </section>
+
+      <section class="exhibit">
+        <div class="exhibit-head">
+          <span>Selected work / curated frames</span>
+          <small>3 of 3</small>
+        </div>
+        <div class="strip">
+          <article class="frame">
+            <img src="../public/cc/stills/bpms150-drone-finishline1_t1.jpg" alt="">
+            <p>Context opener: establishes scale and environment.</p>
+          </article>
+          <article class="frame">
+            <img src="../public/cc/stills/accurate-meter_t2.jpg" alt="">
+            <p>Operator close-up: credibility and human focus.</p>
+          </article>
+          <article class="frame">
+            <img src="../public/cc/photos/trust-4g9a6146.jpg" alt="">
+            <p>Trust frame: reinforces executive confidence.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -11,9 +11,6 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "dev:home": "npm run dev -w @contentco-op/home",
-    "dev:coedit": "npm run dev -w @contentco-op/coedit",
-    "dev:coscript": "npm run dev -w @contentco-op/coscript",
-    "dev:codeliver": "npm run dev -w @contentco-op/codeliver",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck"

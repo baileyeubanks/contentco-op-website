@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Option 12 - Minimal Cinema Grid</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Libre+Baskerville:ital@1&display=swap');
+
+    :root {
+      --bg: #0b1118;
+      --ink: #ecf2fc;
+      --muted: #9aa9c2;
+      --line: #25374f;
+      --panel: #111a26;
+      --accent: #8fb9ff;
+      --cream: #eef3ff;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1000px circle at 90% -10%, #21406683 8%, transparent 55%),
+        var(--bg);
+    }
+
+    .shell { width: min(1500px, 95vw); margin: 0 auto; }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1d304a;
+      padding: .95rem 0;
+      font-size: .74rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+    .brand { display: flex; gap: .54rem; align-items: center; font-weight: 700; }
+    .brand::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px #8fb9ff23; }
+    .links { display: flex; gap: 2rem; color: var(--muted); }
+    .links span:first-child { color: var(--ink); border-bottom: 1px solid var(--ink); }
+    .cta { border: 1px solid #355982; border-radius: 999px; background: #132845; color: #e6f0ff; padding: .58rem .92rem; font-size: .71rem; font-weight: 700; }
+
+    .layout {
+      margin-top: 1rem;
+      display: grid;
+      gap: .8rem;
+      grid-template-columns: 1.2fr .8fr;
+      min-height: 82vh;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      background:
+        linear-gradient(106deg, #0b121df5 0 38%, #0b121dc7 55%, #0b121d9d 70%, #0b121d73 100%),
+        url('../public/cc/photos/process-380a8000.jpg') center/cover no-repeat;
+      position: relative;
+      padding: 1.25rem;
+      display: grid;
+      align-content: space-between;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(130% 100% at 50% 0%, transparent 35%, rgba(0, 0, 0, .38) 100%);
+      pointer-events: none;
+    }
+    .hero > * { position: relative; z-index: 2; }
+
+    .kicker { font-size: .72rem; text-transform: uppercase; letter-spacing: .2em; color: #a8bedc; font-weight: 700; }
+    h1 {
+      margin: .42rem 0 0;
+      font-size: clamp(3rem, 8vw, 7rem);
+      line-height: .9;
+      letter-spacing: -.05em;
+      max-width: 9ch;
+    }
+    h1 em {
+      font-family: 'Libre Baskerville', serif;
+      font-style: italic;
+      font-weight: 400;
+      color: #bfd4ef;
+    }
+    .lede {
+      margin: .85rem 0 0;
+      max-width: 37ch;
+      color: var(--muted);
+      font-size: clamp(1.03rem, 1.35vw, 1.18rem);
+      line-height: 1.48;
+    }
+
+    .actions { margin-top: .88rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid #3a5e89;
+      background: #132744;
+      color: #ebf3ff;
+      padding: .7rem .98rem;
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .11em;
+      font-weight: 700;
+    }
+    .btn.primary { background: var(--cream); border-color: var(--cream); color: #111d2f; }
+
+    .thumb-grid {
+      border: 1px solid #2b4262;
+      border-radius: 16px;
+      padding: .55rem;
+      background: #0a1424bf;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .48rem;
+    }
+    .thumb {
+      border: 1px solid #325073;
+      border-radius: 10px;
+      overflow: hidden;
+      min-height: 88px;
+      position: relative;
+      background: #0d1728;
+    }
+    .thumb img { width: 100%; height: 88px; object-fit: cover; display: block; }
+    .thumb::after {
+      content: attr(data-tag);
+      position: absolute;
+      left: .3rem;
+      bottom: .28rem;
+      border: 1px solid #426692;
+      border-radius: 999px;
+      font-size: .62rem;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      padding: .14rem .28rem;
+      color: #d7e6fd;
+      background: #0a1a2fd4;
+    }
+
+    .right {
+      display: grid;
+      gap: .8rem;
+      grid-template-rows: 1fr 1fr;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 1rem;
+      background: linear-gradient(170deg, #101a28, #0d1623);
+    }
+    .panel h3 { margin: .2rem 0 .4rem; font-size: 2rem; letter-spacing: -.03em; }
+    .panel p { margin: 0; color: var(--muted); line-height: 1.42; }
+
+    .list { margin-top: .65rem; display: grid; gap: .45rem; }
+    .item {
+      border: 1px solid #2e4767;
+      border-radius: 11px;
+      padding: .48rem .58rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: .45rem;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #9fbded; }
+    .pill {
+      border: 1px solid #446b9a;
+      border-radius: 999px;
+      font-size: .62rem;
+      padding: .18rem .35rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #cce0ff;
+      background: #122540;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; min-height: auto; }
+      .right { grid-template-rows: auto auto; }
+      .thumb-grid { grid-template-columns: 1fr 1fr; }
+      h1 { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="nav">
+      <div class="brand">Content Co-op</div>
+      <div class="links"><span>Home</span><span>Co-Edit</span><span>Co-Script</span></div>
+      <button class="cta">Start Brief</button>
+    </header>
+
+    <main class="layout">
+      <section class="hero">
+        <div>
+          <div class="kicker">Option 12 / Minimal Cinema Grid</div>
+          <h1>Minimal stage, <em>maximum signal.</em></h1>
+          <p class="lede">A high-contrast hero with a small, role-based thumbnail grid. No clutter, no endless wall, and every image assigned to a narrative function.</p>
+          <div class="actions">
+            <button class="btn primary">Start Creative Brief</button>
+            <button class="btn">Open Co-Edit</button>
+          </div>
+        </div>
+
+        <div class="thumb-grid">
+          <figure class="thumb" data-tag="Context"><img src="../public/cc/stills/bpms150-drone-finishline1_t1.jpg" alt=""></figure>
+          <figure class="thumb" data-tag="Operator"><img src="../public/cc/stills/accurate-meter_t2.jpg" alt=""></figure>
+          <figure class="thumb" data-tag="Texture"><img src="../public/cc/stills/the-title-promo-x-2_t3.jpg" alt=""></figure>
+          <figure class="thumb" data-tag="Process"><img src="../public/cc/photos/process-380a8026.jpg" alt=""></figure>
+          <figure class="thumb" data-tag="People"><img src="../public/cc/photos/trust-4g9a6146.jpg" alt=""></figure>
+          <figure class="thumb" data-tag="Close"><img src="../public/cc/stills/tray30-01-v1_t2.jpg" alt=""></figure>
+        </div>
+      </section>
+
+      <aside class="right">
+        <article class="panel">
+          <div class="kicker">Co-Edit</div>
+          <h3>Review Studio</h3>
+          <p>Uploader + timeline feedback + version compare + formal approvals.</p>
+          <div class="list">
+            <div class="item"><span class="dot"></span><span>BPMS150_Cutdown_v12</span><span class="pill">In review</span></div>
+            <div class="item"><span class="dot"></span><span>AccurateMeter_v4</span><span class="pill">Needs change</span></div>
+            <div class="item"><span class="dot"></span><span>TitlePromo_v3</span><span class="pill">Ready</span></div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="kicker">Co-Script</div>
+          <h3>Script Studio</h3>
+          <p>Outlier watchlists become structured briefs, then variants and fix loops.</p>
+          <div class="list">
+            <div class="item"><span class="dot"></span><span>Outlier selected</span><span class="pill">2.9x</span></div>
+            <div class="item"><span class="dot"></span><span>Variant A generated</span><span class="pill">Direct</span></div>
+            <div class="item"><span class="dot"></span><span>Fix queued</span><span class="pill">Pending</span></div>
+          </div>
+        </article>
+      </aside>
+    </main>
+  </div>
+</body>
+</html>

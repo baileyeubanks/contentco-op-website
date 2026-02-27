@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Option 3 - Swiss Grid</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #f6f6f2;
+      --ink: #0c1015;
+      --muted: #42515f;
+      --line: #c9d2dc;
+      --accent: #84ff4f;
+      --panel: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--ink);
+      background: linear-gradient(#f6f6f2, #eef2ec);
+    }
+
+    .shell { width: min(1480px, 95vw); margin: 0 auto; }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .9rem 0;
+      border-bottom: 1px solid var(--line);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+    }
+
+    .brand { font-weight: 800; letter-spacing: .08em; }
+    .links { display: flex; gap: 2rem; color: #64768b; }
+    .links span:first-child { color: #0c1015; border-bottom: 1px solid #0c1015; }
+    .cta {
+      border: 1px solid #1f2b3a;
+      background: #121a24;
+      color: #f3f7fb;
+      padding: .62rem 1rem;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      font-size: .72rem;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: .9rem;
+      min-height: 72vh;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 2.2rem;
+      display: grid;
+      align-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: auto -16% -36% auto;
+      width: 50vw;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, #84ff4f5b 10%, transparent 66%);
+    }
+
+    .kicker {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .74rem;
+      color: #5d6f80;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+    }
+
+    h1 {
+      margin: .8rem 0 0;
+      font-size: clamp(2.8rem, 8vw, 7.2rem);
+      line-height: .9;
+      letter-spacing: -.05em;
+      max-width: 9ch;
+      text-wrap: balance;
+    }
+
+    h1 span { color: #6a7785; display: block; }
+
+    .lede {
+      margin: 0;
+      color: #334252;
+      font-size: clamp(1.08rem, 1.6vw, 1.32rem);
+      line-height: 1.45;
+      max-width: 36ch;
+    }
+
+    .actions {
+      margin-top: 1.1rem;
+      display: flex;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid #bdc9d7;
+      background: #fff;
+      padding: .72rem 1rem;
+      font-size: .74rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: #6fd447;
+      color: #0a1704;
+    }
+
+    .rail {
+      display: grid;
+      gap: .9rem;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .tile {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 1rem;
+      display: grid;
+      gap: .8rem;
+      align-content: start;
+    }
+
+    .tile h3 {
+      margin: .1rem 0 .2rem;
+      font-size: 2rem;
+      line-height: .95;
+      letter-spacing: -.03em;
+    }
+
+    .tile p { margin: 0; color: #4e5f70; line-height: 1.45; }
+
+    .mini {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: .8rem;
+      align-items: center;
+      border: 1px solid #d3dbe5;
+      padding: .5rem;
+      background: #f8fbff;
+    }
+
+    .mini img { width: 100%; height: 86px; object-fit: cover; filter: saturate(.85); }
+
+    .metrics {
+      margin-top: 1rem;
+      border-top: 1px solid var(--line);
+      padding-top: .9rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .7rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .8rem;
+      color: #5c6b7d;
+    }
+
+    .metrics b {
+      display: block;
+      color: #0f1722;
+      font-size: 1.2rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; min-height: auto; }
+      .rail { grid-template-rows: auto; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="nav">
+      <div class="brand">Content Co-op</div>
+      <div class="links"><span>Home</span><span>Co-Edit</span><span>Co-Script</span></div>
+      <button class="cta">Book Production Call</button>
+    </header>
+
+    <main class="grid">
+      <section class="hero">
+        <div>
+          <div class="kicker">Option 3 / Swiss Grid</div>
+          <h1>Controlled systems <span>for serious teams.</span></h1>
+        </div>
+        <div>
+          <p class="lede">Light-mode, structured, and typographic. This direction feels design-led and operational with minimal decoration and hard information hierarchy.</p>
+          <div class="actions">
+            <button class="btn primary">Start Creative Brief</button>
+            <button class="btn">Open Co-Edit Studio</button>
+          </div>
+          <div class="metrics">
+            <div><b>2.8x</b> approval speed</div>
+            <div><b>14d</b> average cycle</div>
+            <div><b>88%</b> first-pass clarity</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="rail">
+        <article class="tile">
+          <div class="kicker">Co-Edit</div>
+          <h3>Review engine</h3>
+          <p>Uploader + timeline comments + approval chain with clean operational controls.</p>
+          <div class="mini">
+            <img src="../public/cc/stills/bpms150-drone-finishline1_t1.jpg" alt="" />
+            <div>
+              <div class="kicker">Studio lane</div>
+              <strong>Version 12 in review</strong>
+            </div>
+          </div>
+        </article>
+        <article class="tile">
+          <div class="kicker">Co-Script</div>
+          <h3>Signal engine</h3>
+          <p>Watchlists + outliers + structured brief + variants and fix loops for publishing velocity.</p>
+          <div class="mini">
+            <img src="../public/cc/stills/accurate-meter_t2.jpg" alt="" />
+            <div>
+              <div class="kicker">Outlier modeled</div>
+              <strong>Variant B ready</strong>
+            </div>
+          </div>
+        </article>
+      </aside>
+    </main>
+  </div>
+</body>
+</html>

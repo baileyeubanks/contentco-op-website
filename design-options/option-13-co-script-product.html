@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Option 13 - Co-Script Product</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --bg: #08101d;
+      --panel: #0f192b;
+      --panel-soft: #111d31;
+      --ink: #edf3ff;
+      --muted: #9cadc8;
+      --line: #2d4467;
+      --accent: #b9ff77;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Sora, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(900px circle at 88% -10%, #2445757a 10%, transparent 56%),
+        var(--bg);
+    }
+    .shell { width: min(1540px, 96vw); margin: 0 auto; }
+    .nav {
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center;
+      padding: 1rem 0; border-bottom: 1px solid #1f3552;
+      font-size: .74rem; text-transform: uppercase; letter-spacing: .12em;
+    }
+    .brand { font-weight: 700; display: flex; gap: .55rem; align-items: center; }
+    .brand::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #97c0ff; box-shadow: 0 0 0 6px #97c0ff24; }
+    .links { justify-self: center; display: flex; gap: 2rem; color: var(--muted); }
+    .links a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; padding-bottom: .2rem; }
+    .links a.active { color: var(--ink); border-bottom-color: var(--ink); }
+    .cta { border: 1px solid #365987; border-radius: 999px; background: #122743; color: #e7f1ff; padding: .58rem .95rem; font-size: .7rem; font-weight: 700; text-decoration: none; }
+
+    .layout {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: .84fr 1.16fr;
+      gap: .8rem;
+      min-height: 84vh;
+    }
+
+    .left {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 1rem;
+      background: linear-gradient(170deg, var(--panel), var(--panel-soft));
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: .65rem;
+    }
+    .kicker { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: #b1c6e6; font-weight: 700; }
+    h1 { margin: 0; font-size: clamp(2.2rem, 5vw, 4.2rem); letter-spacing: -.04em; line-height: .95; }
+    .lede { margin: 0; color: var(--muted); line-height: 1.45; }
+
+    .source {
+      border: 1px solid #35557f;
+      border-radius: 14px;
+      background: #0c172b;
+      overflow: hidden;
+    }
+    .source img { width: 100%; height: 210px; object-fit: cover; display: block; }
+    .source .meta { padding: .62rem; color: #bcd0ee; font-size: .84rem; line-height: 1.35; }
+
+    .chips { margin-top: .6rem; display: flex; gap: .42rem; flex-wrap: wrap; }
+    .chip {
+      border: 1px solid #3e628f;
+      border-radius: 999px;
+      padding: .24rem .44rem;
+      font-size: .66rem;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: #d3e4ff;
+      background: #132845;
+    }
+
+    .right {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(170deg, #0e182a, #0b1524);
+      padding: 1rem;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: .7rem;
+    }
+    .form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .55rem;
+    }
+    .field {
+      border: 1px solid #375b88;
+      border-radius: 11px;
+      padding: .52rem .58rem;
+      background: #0f1d33;
+      color: #d0e0f8;
+      font-size: .84rem;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .field.wide { grid-column: span 2; min-height: 112px; align-items: flex-start; color: #a9bddb; }
+    .actions { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid #3d618f;
+      background: #132845;
+      color: #e8f2ff;
+      padding: .7rem 1rem;
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .11em;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      min-height: 42px;
+    }
+    .btn.primary { background: var(--accent); border-color: #98e14f; color: #071104; }
+
+    .variants {
+      border: 1px solid #355680;
+      border-radius: 14px;
+      background: #0d1a2e;
+      padding: .62rem;
+      display: grid;
+      gap: .5rem;
+    }
+    .variant {
+      border: 1px solid #395c89;
+      border-radius: 11px;
+      padding: .5rem .56rem;
+      background: #101f36;
+    }
+    .variant h4 { margin: 0; font-size: .95rem; letter-spacing: -.01em; }
+    .variant p { margin: .28rem 0 0; color: #b5c7e2; font-size: .84rem; line-height: 1.38; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; min-height: auto; }
+      .form { grid-template-columns: 1fr; }
+      .field.wide { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="nav">
+      <div class="brand">Content Co-op</div>
+      <nav class="links">
+        <a href="./option-13-landing-flagship.html">Home</a>
+        <a href="./option-13-co-edit-product.html">Co-Edit</a>
+        <a class="active" href="./option-13-co-script-product.html">Co-Script</a>
+      </nav>
+      <a class="cta" href="#">Start Brief</a>
+    </header>
+
+    <main class="layout">
+      <section class="left">
+        <div class="kicker">Co-Script</div>
+        <h1>Signal-driven scripts for real operators.</h1>
+        <p class="lede">Modeled after outlier pattern systems: source context, structured brief, variants, and fix loops — without generic AI copy.</p>
+        <article class="source">
+          <img src="../public/cc/stills/accurate-meter_t2.jpg" alt="">
+          <div class="meta">Source outlier selected • Relative lift 2.9x • Platform: YouTube • Window: 48h</div>
+        </article>
+        <div class="chips">
+          <span class="chip">Hook: problem first</span>
+          <span class="chip">Middle: proof</span>
+          <span class="chip">CTA: next step</span>
+        </div>
+      </section>
+
+      <section class="right">
+        <div class="kicker">Structured brief</div>
+        <div class="form">
+          <div class="field">Script type <span>Operational</span></div>
+          <div class="field">Audience <span>Field operators</span></div>
+          <div class="field">Objective <span>Drive behavior</span></div>
+          <div class="field">Constraints <span>Legal, compliant</span></div>
+          <div class="field wide">Key points:
+            Situation -> Why it matters -> What changes -> Expected action
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="#">Generate Variants</a>
+          <a class="btn" href="#">Run Fix Loop</a>
+        </div>
+        <div class="variants">
+          <article class="variant">
+            <h4>Variant A / Direct</h4>
+            <p>Operator-first script with clear action language and explicit accountability.</p>
+          </article>
+          <article class="variant">
+            <h4>Variant B / Executive</h4>
+            <p>Leadership narrative framing that aligns risk, priorities, and decision path.</p>
+          </article>
+          <article class="variant">
+            <h4>Variant C / Human</h4>
+            <p>Trust-first tone with plain language and practical next-step direction.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

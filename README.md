@@ -1,67 +1,51 @@
-# Content Co-op Monorepo (v2.1 MVP)
+# Content Co-op — Monorepo
 
-Three-surface system with one brand and two standalone products.
+Marketing flagship site + shared infrastructure for the Content Co-op product suite.
 
-## Surfaces
+## Architecture
 
-1. `contentco-op.com` (`apps/home`) - bright cinematic flagship and brief entry.
-2. `coedit.contentco-op.com` (`apps/coedit`) - dark precision review and approvals.
-3. `coscript.contentco-op.com` (`apps/coscript`) - dark signal-first script generation.
+```
+contentco-op (this repo)
+├── apps/home            → contentco-op.com (marketing + onboarding)
+├── packages/ui          → shared React components
+├── packages/brand       → design tokens & CSS variables
+├── packages/types       → shared TypeScript interfaces
+├── packages/api-client  → typed API client wrapper
+├── services/orchestrator → job queue orchestration
+├── services/media-worker → video transcoding scripts
+└── infra/               → Supabase migrations + Netlify configs
+```
 
-## Repository layout
+## Standalone Apps
 
-1. `apps/home`, `apps/coedit`, `apps/coscript`
-2. `packages/ui`, `packages/brand`, `packages/types`, `packages/api-client`
-3. `services/orchestrator` (single orchestrator service)
-4. `services/media-worker` (transcode and thumbnail workflow scripts)
-5. `infra/supabase/migrations` (schema)
-6. `infra/netlify` (site-specific deploy config)
+Each product app lives in its own repo and deploys independently:
 
-## Run locally
+| App | Repo | URL | Stack |
+|-----|------|-----|-------|
+| Co-Edit | [baileyeubanks/coedit](https://github.com/baileyeubanks/coedit) | coedit.contentco-op.com | Vite + React + FFmpeg.wasm |
+| Co-Script | [baileyeubanks/coscript](https://github.com/baileyeubanks/coscript) | coscript.contentco-op.com | Next.js + Supabase |
+| Co-Deliver | [baileyeubanks/codeliver](https://github.com/baileyeubanks/codeliver) | codeliver.contentco-op.com | Next.js + Supabase |
+
+## Development
 
 ```bash
 npm install
-npm run dev:home
-npm run dev:coedit
-npm run dev:coscript
+npm run dev:home    # Start marketing site on :4100
+npm run dev         # Start all workspaces
+npm run build       # Production build
 ```
 
-Ports:
+## Supabase
 
-1. Home: `http://localhost:4100`
-2. Co-Edit: `http://localhost:4101`
-3. Co-Script: `http://localhost:4102`
+Shared database: `briokwdoonawhxisbydy.supabase.co`
 
-## Invite-only access
+Migrations live in `infra/supabase/migrations/`.
 
-Set `CCO_INVITE_CODE` in environment before testing auth forms.
+## Hero Media
 
-## Hero media
-
-Current hero source:
-
-`/Users/baileyeubanks/Desktop/CC_PHOTOS/HLSR+bp_30 Sec Spot_FINAL.mp4`
-
-Generated outputs:
-
-1. `apps/home/public/media/hero-1080.mp4`
-2. `apps/home/public/media/hero-1080.webm`
-3. `apps/home/public/media/hero-poster.jpg`
+Source: `CC_PHOTOS/HLSR+bp_30 Sec Spot_FINAL.mp4`
 
 Regenerate:
-
 ```bash
 npm run hero:transcode -w @contentco-op/media-worker
 ```
-
-## API contract status
-
-MVP route stubs implemented for:
-
-1. Auth (`/api/auth/login`)
-2. Co-Edit (`/api/coedit/*`)
-3. Co-Script (`/api/coscript/*`)
-4. Media workflow (`/api/media/*`)
-
-Wire these handlers to Supabase and queue workers in next implementation pass.
-
