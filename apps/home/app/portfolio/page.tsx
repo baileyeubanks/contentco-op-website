@@ -6,7 +6,7 @@ import { Nav } from "@contentco-op/ui";
 
 // ── CDN Base ─────────────────────────────────────────────────────
 // Update this after deploying CC_PORTFOLIO_WEB to Netlify
-const CDN = "https://ccportfolio.netlify.app";
+const CDN = "https://cc-portfolio-cdn.netlify.app";
 
 // ── Types ────────────────────────────────────────────────────────
 interface Episode {
