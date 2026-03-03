@@ -4,6 +4,8 @@ node_modules
 .turbo
 dist
 coverage
+*.tsbuildinfo
+**/*.tsbuildinfo
 .env*
 !.env.local.example
 apps/**/.next

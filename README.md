@@ -35,11 +35,22 @@ npm run dev         # Start all workspaces
 npm run build       # Production build
 ```
 
+Quality baseline:
+
+```bash
+npm run lint
+npm run typecheck
+```
+
 ## Supabase
 
 Shared database: `briokwdoonawhxisbydy.supabase.co`
 
 Migrations live in `infra/supabase/migrations/`.
+
+## Environment Policy
+
+Use `.env.local.example` as the canonical template for local environment configuration.
 
 ## Hero Media
 
