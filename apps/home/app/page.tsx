@@ -94,6 +94,14 @@ export default function HomePage() {
               <p>Watchlists. Outlier detection. Publish-ready scripts.</p>
               <span className="product-cta">Open Co-Script &rarr;</span>
             </a>
+            <a className="product-card" href="https://coedit.contentco-op.com">
+              <div className="product-wordmark">
+                <span className="product-co">Co-</span>Edit
+              </div>
+              <p className="product-stage">Post-Production</p>
+              <p>Browser-based video editor. Layers, timeline, media bin, AI assist.</p>
+              <span className="product-cta">Open Co-Edit &rarr;</span>
+            </a>
             <a className="product-card" href="https://contentco-op.com/cocreate">
               <div className="product-wordmark">
                 <span className="product-co">Co-</span>Create
@@ -162,8 +170,10 @@ export default function HomePage() {
           <nav className="cc-footer-links" aria-label="Footer links">
             <a href="/">Home</a>
             <a href="/portfolio">Portfolio</a>
+            <a href="https://coedit.contentco-op.com">Co-Edit</a>
             <a href="https://coscript.contentco-op.com">Co-Script</a>
             <a href="https://codeliver.contentco-op.com">Co-Deliver</a>
+            <a href="/cocreate">Co-Create</a>
             <a href="/login" className="cc-footer-portal">Client Portal &rarr;</a>
           </nav>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Nav } from "@contentco-op/ui";
 import s from "./page.module.css";
 
 const CONTENT_TYPES = [
@@ -111,24 +112,8 @@ export default function CoCreatePage() {
     <div className={s.wrap}>
       <div className={s.shell}>
 
-        {/* Nav */}
-        <nav className={s.nav}>
-          <Link href="https://contentco-op.com" className={s.brand}>
-            Content Co-op
-          </Link>
-          <div className={s.navLinks}>
-            <Link href="https://contentco-op.com">Home</Link>
-            <Link href="https://contentco-op.com/portfolio">Portfolio</Link>
-            <Link href="https://coedit.contentco-op.com">Co-Edit</Link>
-            <Link href="https://coscript.contentco-op.com">Co-Script</Link>
-            <Link href="https://contentco-op.com/cocreate" className={s.active}>
-              Co-Create
-            </Link>
-          </div>
-          <div className={s.navAction}>
-            <Link href="/login">Portal Login</Link>
-          </div>
-        </nav>
+        {/* Nav — shared component */}
+        <Nav surface="cocreate" />
 
         {/* Header */}
         <div className={s.header}>
