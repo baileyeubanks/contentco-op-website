@@ -4,7 +4,10 @@ WORKDIR /app
 
 COPY . .
 
-RUN corepack enable \
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/* \
+  && corepack enable \
   && corepack prepare npm@11.9.0 --activate \
   && npm ci \
   && npm run build -w @contentco-op/home
