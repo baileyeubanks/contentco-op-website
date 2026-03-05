@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Nav } from "@contentco-op/ui";
 
@@ -256,8 +256,8 @@ const C = {
   bg: "#0c1322",
   card: "#101b2e",
   cardBorder: "#1e3454",
-  cardHover: "#6b9fd4",
-  accent: "#6b9fd4",
+  cardHover: "#4c8ef5",
+  accent: "#4c8ef5",
   label: "#5a7ea8",
   muted: "#7a9bc4",
   text: "#edf3ff",
@@ -268,6 +268,14 @@ const C = {
 
 // ── Main Page ────────────────────────────────────────────────────
 export default function PortfolioPage() {
+  return (
+    <Suspense>
+      <PortfolioContent />
+    </Suspense>
+  );
+}
+
+function PortfolioContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

@@ -51,7 +51,7 @@ export default function HomePage() {
             <em>maximum signal.</em>
           </h1>
           <a className="button light" href="/onboard">
-            Begin Onboarding
+            Creative Brief
           </a>
         </div>
       </section>
@@ -164,7 +164,7 @@ export default function HomePage() {
             <a href="/portfolio">Portfolio</a>
             <a href="https://coscript.contentco-op.com">Co-Script</a>
             <a href="https://codeliver.contentco-op.com">Co-Deliver</a>
-            <a href="/login">Client Login</a>
+            <a href="/login" className="cc-footer-portal">Client Portal &rarr;</a>
           </nav>
         </div>
       </footer>

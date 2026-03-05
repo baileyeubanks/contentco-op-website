@@ -12,7 +12,7 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-family: var(--font-display), "Space Grotesk", "Inter", sans-serif;
+  font-family: var(--font-display), Georgia, serif;
 }
 
 .muted {
@@ -155,12 +155,12 @@ h1, h2, h3, h4 {
   letter-spacing: -0.02em;
 }
 
-/* "maximum signal." — italic serif, vibrant blue */
+/* "maximum signal." — italic Fraunces, electric sapphire */
 .hero h1 em {
   font-style: italic;
-  font-family: "Times New Roman", Times, serif;
-  font-weight: 500;
-  color: #6b9fd4;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  color: #4c8ef5;
 }
 
 .hero-lede {
@@ -198,7 +198,7 @@ h1, h2, h3, h4 {
   position: relative;
   z-index: 2;
   padding: clamp(2rem, 5vw, 4.5rem);
-  font-family: var(--font-display), "Space Grotesk", sans-serif;
+  font-family: var(--font-display), Georgia, serif;
   font-size: clamp(1.6rem, 3.2vw, 3rem);
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -267,8 +267,8 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #6b9fd4;
-  border: 1px solid rgba(107, 159, 212, 0.35);
+  color: #4c8ef5;
+  border: 1px solid rgba(76, 142, 245, 0.35);
   border-radius: 999px;
   padding: 0.15rem 0.45rem;
 }
@@ -313,12 +313,12 @@ h1, h2, h3, h4 {
 }
 
 .products-kicker {
-  font-family: var(--font-display), "Space Grotesk", sans-serif;
+  font-family: var(--font-body), sans-serif;
   font-size: clamp(1.1rem, 2vw, 1.5rem);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #6b9fd4;
+  color: #4c8ef5;
   margin-bottom: 2.5rem;
 }
 
@@ -342,14 +342,14 @@ h1, h2, h3, h4 {
 }
 
 .product-card:hover {
-  border-color: rgba(107, 159, 212, 0.3);
+  border-color: rgba(76, 142, 245, 0.3);
   transform: translateY(-3px);
   background: rgba(15, 24, 38, 0.7);
 }
 
 /* Branded wordmark — the "Co-" prefix is accented */
 .product-wordmark {
-  font-family: var(--font-display), "Space Grotesk", sans-serif;
+  font-family: var(--font-display), Georgia, serif;
   font-size: clamp(2rem, 3vw, 2.8rem);
   font-weight: 700;
   letter-spacing: -0.04em;
@@ -358,7 +358,7 @@ h1, h2, h3, h4 {
 }
 
 .product-co {
-  color: #6b9fd4;
+  color: #4c8ef5;
 }
 
 .product-stage {
@@ -366,7 +366,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #6b9fd4;
+  color: #4c8ef5;
   opacity: 0.7;
   margin-bottom: -0.4rem;
 }
@@ -382,7 +382,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #6b9fd4;
+  color: #4c8ef5;
   transition: color 150ms ease;
 }
 
@@ -428,10 +428,10 @@ h1, h2, h3, h4 {
 }
 
 .trust-quote-mark {
-  font-family: "Times New Roman", Times, serif;
+  font-family: var(--font-display), Georgia, serif;
   font-size: clamp(5rem, 8vw, 7rem);
   line-height: 0.5;
-  color: #6b9fd4;
+  color: #4c8ef5;
   opacity: 0.5;
   user-select: none;
 }
@@ -443,7 +443,7 @@ h1, h2, h3, h4 {
 
 .trust blockquote {
   margin: 0;
-  font-family: var(--font-display), "Space Grotesk", sans-serif;
+  font-family: var(--font-display), Georgia, serif;
   font-size: clamp(1.5rem, 2.8vw, 2.4rem);
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -524,6 +524,21 @@ h1, h2, h3, h4 {
 
 .cc-footer-links a:hover {
   color: #eef3ff;
+}
+
+.cc-footer-portal {
+  color: #4c8ef5 !important;
+  border: 1px solid rgba(76, 142, 245, 0.35);
+  border-radius: 4px;
+  padding: 0.22rem 0.7rem;
+  margin-left: 0.4rem;
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.cc-footer-portal:hover {
+  background: rgba(76, 142, 245, 0.1);
+  border-color: rgba(76, 142, 245, 0.65);
+  color: #7ab0ff !important;
 }
 
 /* ─── Buttons ─── */
