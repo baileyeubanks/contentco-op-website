@@ -12,3 +12,10 @@ apps/**/.turbo
 apps/**/node_modules
 services/**/node_modules
 packages/**/node_modules
+
+# Build artifacts and local-only research
+2026-02-24-205554-let-me-dig-through-every-photo-folder-in-your-driv.txt
+tmp_research
+design-options
+docs/brand
+supabase/.temp
