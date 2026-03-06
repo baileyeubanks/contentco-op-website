@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { invokeOpenClawTask } from "@/lib/openclaw";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
@@ -68,10 +69,49 @@ export async function POST(req: Request) {
     // non-fatal — event bridge notification only
   }
 
+  const openclaw = await invokeOpenClawTask({
+    taskType: "research",
+    businessUnit: "CC",
+    prompt:
+      "A new Content Co-op brief just arrived. Summarize the request, identify missing information, recommend the first follow-up, and draft a concise human acknowledgment.",
+    context: {
+      trigger: "brief_lead_intake",
+      brief_id: data.id,
+      status: data.status,
+      created_at: data.created_at,
+      brief: {
+        contact_name: body.contact_name,
+        contact_email: body.contact_email,
+        phone: body.phone || null,
+        company: body.company || null,
+        role: body.role || null,
+        location: body.location || null,
+        content_type: body.content_type || null,
+        deliverables: body.deliverables || null,
+        audience: body.audience || null,
+        tone: body.tone || null,
+        deadline: body.deadline || null,
+        objective: body.objective || null,
+        key_messages: body.key_messages || null,
+      },
+      portal_url: `/portal/${data.id}?token=${data.access_token}`,
+    },
+    timeoutMs: Number(process.env.OPENCLAW_TASK_TIMEOUT_MS || 4000),
+  });
+
+  if (!openclaw.ok && !openclaw.skipped) {
+    console.error("OpenClaw brief intake failed:", openclaw.error || openclaw.statusCode);
+  }
+
   return NextResponse.json({
     id: data.id,
     access_token: data.access_token,
     status: data.status,
     created_at: data.created_at,
+    openclaw: {
+      ok: openclaw.ok,
+      skipped: Boolean(openclaw.skipped),
+      status_code: openclaw.statusCode,
+    },
   });
 }
