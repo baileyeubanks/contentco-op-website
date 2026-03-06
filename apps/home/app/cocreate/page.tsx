@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Nav } from "@contentco-op/ui";
 import s from "./page.module.css";
 
@@ -85,6 +84,8 @@ export default function CoCreatePage() {
   const [form, setForm] = useState<FormState>(empty);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [quoteDraftId, setQuoteDraftId] = useState("");
+  const [quoteDraftStatus, setQuoteDraftStatus] = useState<"idle" | "created" | "failed">("idle");
 
   const set = (k: keyof FormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -101,6 +102,23 @@ export default function CoCreatePage() {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Server error");
+      const payload = await res.json();
+      const briefId = payload?.id;
+      setQuoteDraftId("");
+      setQuoteDraftStatus("idle");
+
+      if (briefId) {
+        const draftRes = await fetch(`/api/briefs/${encodeURIComponent(briefId)}/quote-draft`, {
+          method: "POST",
+        });
+        if (draftRes.ok) {
+          const draftPayload = await draftRes.json();
+          setQuoteDraftId(String(draftPayload?.quote?.id || ""));
+          setQuoteDraftStatus("created");
+        } else {
+          setQuoteDraftStatus("failed");
+        }
+      }
       setStatus("success");
     } catch (err) {
       setErrorMsg("Submission failed — please email brief@contentco-op.com directly.");
@@ -113,7 +131,7 @@ export default function CoCreatePage() {
       <div className={s.shell}>
 
         {/* Nav — shared component */}
-        <Nav surface="cocreate" />
+        <Nav surface="home" />
 
         {/* Header */}
         <div className={s.header}>
@@ -135,6 +153,13 @@ export default function CoCreatePage() {
               <p className={s.successBody}>
                 We'll review {form.project_name ? `"${form.project_name}"` : "your brief"} and
                 reach out to {form.contact_email} within one business day to discuss next steps.
+              </p>
+              <p className={s.successBody}>
+                {quoteDraftStatus === "created"
+                  ? `Internal quote draft created${quoteDraftId ? ` (${quoteDraftId.slice(0, 8)})` : ""} for root review.`
+                  : quoteDraftStatus === "failed"
+                    ? "Brief saved, but the internal quote draft needs manual review in root."
+                    : "Brief saved and queued for internal review."}
               </p>
             </div>
           </div>
