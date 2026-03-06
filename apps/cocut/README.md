@@ -92,16 +92,18 @@ create policy "Users manage own projects" on projects
 
 ## Deployment
 
-Deploy to Netlify:
+Deploy to Cloudflare/Coolify runtime:
 
 ```bash
 npm run build
 # Output in dist/
 ```
 
-The `netlify.toml` is pre-configured. Connect your repo to Netlify and set the environment variables in the Netlify dashboard.
+Configure environment variables in your host dashboard and ensure these headers are present at the edge:
+- `Cross-Origin-Embedder-Policy: require-corp`
+- `Cross-Origin-Opener-Policy: same-origin`
 
-**Note:** FFmpeg.wasm requires `Cross-Origin-Embedder-Policy` headers. These are configured in both `vite.config.ts` (dev) and `netlify.toml` (prod).
+**Note:** FFmpeg.wasm requires these headers in production and local development.
 
 ## License
 

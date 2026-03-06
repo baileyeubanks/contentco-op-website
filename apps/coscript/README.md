@@ -21,7 +21,7 @@ AI-powered content scripting tool for teams. Choose a template, configure your a
 - Anthropic Claude API (content generation)
 - Google Gemini API (tool-enabled orchestration)
 - Tailwind CSS
-- Netlify deployment
+- Cloudflare/Coolify deployment
 
 ## Getting Started
 
@@ -113,13 +113,12 @@ Detailed stage presets and AI Studio card mapping: `docs/gemini-studio-playbook.
 
 ## Deployment
 
-Deploy to Netlify:
+Deploy to Cloudflare/Coolify runtime:
 
 ```bash
 npm run build
 ```
-
-The `netlify.toml` is pre-configured with the `@netlify/plugin-nextjs` plugin. Connect your repo to Netlify and set environment variables in the dashboard.
+Set runtime environment variables in your host dashboard and run with standard Next.js production commands.
 
 ## License
 

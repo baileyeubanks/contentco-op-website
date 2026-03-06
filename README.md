@@ -13,7 +13,7 @@ contentco-op (this repo)
 ├── packages/api-client  → typed API client wrapper
 ├── services/orchestrator → job queue orchestration
 ├── services/media-worker → video transcoding scripts
-└── infra/               → Supabase migrations + Netlify configs
+└── infra/               → Supabase migrations + deployment/runtime configs
 ```
 
 ## Standalone Apps
