@@ -81,8 +81,8 @@ function isPrivateNetworkUrl(value: string) {
   }
 }
 
-function isPublicEdgeRuntime() {
-  return process.env.NETLIFY === "true" || process.env.CONTEXT === "production";
+function allowPrivateRuntimeTargets() {
+  return process.env.ALLOW_PRIVATE_RUNTIME_TARGETS === "true";
 }
 
 async function probeJson(url: string, timeoutMs = 2500): Promise<HealthSection> {

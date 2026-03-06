@@ -27,8 +27,8 @@ function isPrivateNetworkUrl(value: string) {
   }
 }
 
-function isPublicEdgeRuntime() {
-  return process.env.NETLIFY === "true" || process.env.CONTEXT === "production";
+function allowPrivateRuntimeTargets() {
+  return process.env.ALLOW_PRIVATE_RUNTIME_TARGETS === "true";
 }
 
 function resolveBlazeBaseUrl() {
@@ -55,7 +55,7 @@ export async function invokeOpenClawTask({
       skipped: true,
       statusCode: null,
       latencyMs: null,
-      error: isPublicEdgeRuntime() ? "private_blaze_target_unreachable_from_public_runtime" : "missing_blaze_api_url",
+      error: !allowPrivateRuntimeTargets() ? "private_blaze_target_unreachable_from_runtime" : "missing_blaze_api_url",
     };
   }
 
@@ -118,7 +118,7 @@ export async function probeOpenClawHealth(timeoutMs = DEFAULT_TIMEOUT_MS): Promi
     return {
       status: "not_configured",
       latencyMs: null,
-      error: isPublicEdgeRuntime() ? "private_blaze_target_unreachable_from_public_runtime" : "missing_blaze_api_url",
+      error: !allowPrivateRuntimeTargets() ? "private_blaze_target_unreachable_from_runtime" : "missing_blaze_api_url",
     };
   }
 
