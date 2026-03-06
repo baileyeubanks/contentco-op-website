@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prestart": "node scripts/verify-runtime-env.mjs",
+    "prebuild": "node scripts/verify-runtime-env.mjs",
     "dev": "next dev -p 4100",
     "build": "next build",
-    "start": "next start -p 4100",
+    "start": "HOSTNAME=0.0.0.0 PORT=4100 node .next/standalone/apps/home/server.js",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
