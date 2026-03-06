@@ -6,6 +6,7 @@ const REQUIRED_ENV = [
   "SUPABASE_SERVICE_KEY",
   "BLAZE_API_URL|BLAZE_API_BASE_URL",
   "DEER_API_BASE_URL",
+  "CCO_SESSION_SECRET",
 ];
 
 function isKeySatisfied(spec) {

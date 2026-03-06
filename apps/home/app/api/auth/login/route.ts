@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createInviteSession, getSessionCookieName, getSessionTtlSeconds } from "@/lib/session";
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -16,12 +17,12 @@ export async function POST(req: Request) {
   }
 
   const res = NextResponse.redirect(new URL("/", req.url));
-  res.cookies.set("cco_session", `invited:${email}`, {
+  res.cookies.set(getSessionCookieName(), createInviteSession(email), {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 3
+    maxAge: getSessionTtlSeconds()
   });
   return res;
 }
