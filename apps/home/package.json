@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prestart": "node scripts/verify-runtime-env.mjs",
-    "prebuild": "node scripts/verify-runtime-env.mjs",
+    "prebuild": "node scripts/verify-runtime-env.mjs --phase=build",
     "dev": "next dev -p 4100",
     "build": "next build",
     "start": "HOSTNAME=0.0.0.0 PORT=4100 node .next/standalone/apps/home/server.js",
@@ -15,13 +15,16 @@
     "@contentco-op/brand": "0.1.0",
     "@contentco-op/types": "0.1.0",
     "@contentco-op/ui": "0.1.0",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
+    "leaflet": "^1.9.4",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^20.19.16",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
