@@ -11,9 +11,17 @@
   "scripts": {
     "dev": "turbo run dev --parallel",
     "dev:home": "npm run dev -w @contentco-op/home",
+    "dev:cocut": "npm run dev -w co-cut",
+    "dev:coscript": "npm run dev -w co-script",
+    "dev:codeliver": "npm run dev -w co-deliver",
     "build": "turbo run build",
+    "build:cocut": "npm run build -w co-cut",
+    "build:coscript": "npm run build -w co-script",
+    "build:codeliver": "npm run build -w co-deliver",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "verify:cco-nav": "node scripts/verify-cco-nav.mjs",
+    "verify": "npm run verify:cco-nav"
   },
   "devDependencies": {
     "@types/node": "^20.19.16",

@@ -1,6 +1,9 @@
+import { Nav } from "@contentco-op/ui";
+
 export default function BriefPage() {
   return (
     <main className="page">
+      <Nav surface="home" />
       <div className="shell" style={{ padding: "2rem 0" }}>
         <section className="card" style={{ maxWidth: 920 }}>
           <h1 style={{ marginTop: 0 }}>Energy Brief Wizard</h1>

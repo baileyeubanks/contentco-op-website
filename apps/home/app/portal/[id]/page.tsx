@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Nav } from "@contentco-op/ui";
 import { supabase } from "@/lib/supabase";
 import { PortalClient } from "./portal-client";
 import s from "./page.module.css";
@@ -63,6 +64,7 @@ export default async function PortalPage({ params, searchParams }: Props) {
 
   return (
     <div className={s.wrap}>
+      <Nav surface="home" />
       <div className={s.shell}>
         <Link href="/" className={s.backLink}>&larr; Back to Home</Link>
 

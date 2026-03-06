@@ -1,24 +1,23 @@
 "use client";
 
 interface NavProps {
-  surface: "home" | "portfolio" | "coedit" | "coscript" | "codeliver" | "cocreate";
+  /** Which product surface is active. "cocut" replaces the old "coedit"/"cocreate" surfaces. */
+  surface: "home" | "portfolio" | "cocut" | "coscript" | "codeliver";
   urls?: {
     home?: string;
     portfolio?: string;
-    coedit?: string;
+    cocut?: string;
     coscript?: string;
     codeliver?: string;
-    cocreate?: string;
   };
 }
 
 const prodUrls = {
   home: "https://contentco-op.com",
   portfolio: "https://contentco-op.com/portfolio",
-  coedit: "https://coedit.contentco-op.com",
-  coscript: "https://coscript.contentco-op.com",
-  codeliver: "https://codeliver.contentco-op.com",
-  cocreate: "https://contentco-op.com/cocreate",
+  cocut: "https://cut.contentco-op.com",
+  coscript: "https://script.contentco-op.com",
+  codeliver: "https://deliver.contentco-op.com",
 };
 
 export function Nav({ surface, urls }: NavProps) {
@@ -28,33 +27,30 @@ export function Nav({ surface, urls }: NavProps) {
     <header className="cc-nav">
       <div className="cc-nav-inner">
         <a href={u.home} className="cc-nav-brand" aria-label="Content Co-op home">
-          <span className="cc-nav-wordmark">Content Co-op</span>
+          <span className="cc-nav-wordmark">content co-op</span>
         </a>
 
         <nav className="cc-nav-links" aria-label="Primary navigation">
           <a href={u.home} className={`cc-nav-link ${surface === "home" ? "active" : ""}`}>
-            Home
+            home
           </a>
           <a href={u.portfolio} className={`cc-nav-link ${surface === "portfolio" ? "active" : ""}`}>
-            Portfolio
+            portfolio
           </a>
-          <a href={u.coedit} className={`cc-nav-link ${surface === "coedit" ? "active" : ""}`}>
-            Co-Edit
+          <a href={u.cocut} className={`cc-nav-link ${surface === "cocut" ? "active" : ""}`}>
+            co-cut
           </a>
           <a href={u.coscript} className={`cc-nav-link ${surface === "coscript" ? "active" : ""}`}>
-            Co-Script
+            co-script
           </a>
           <a href={u.codeliver} className={`cc-nav-link ${surface === "codeliver" ? "active" : ""}`}>
-            Co-Deliver
-          </a>
-          <a href={u.cocreate} className={`cc-nav-link ${surface === "cocreate" ? "active" : ""}`}>
-            Co-Create
+            co-deliver
           </a>
         </nav>
 
         <div className="cc-nav-actions">
           <a href={`${u.home}/login`} className="button small">
-            Client Login
+            client login
           </a>
         </div>
       </div>

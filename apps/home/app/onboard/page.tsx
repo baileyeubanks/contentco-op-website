@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Nav } from "@contentco-op/ui";
 import dynamic from "next/dynamic";
 import s from "./page.module.css";
 
@@ -224,6 +225,7 @@ export default function OnboardPage() {
 
   return (
     <div className={s.wrap}>
+      <Nav surface="home" />
       <div className={s.shell}>
         <Link href="/" className={s.backLink}>&larr; Back to Home</Link>
 

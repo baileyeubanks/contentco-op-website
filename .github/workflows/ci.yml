@@ -29,3 +29,6 @@ jobs:
 
       - name: Build
         run: npm run build --if-present
+
+      - name: Verify CCO Nav Contract
+        run: npm run verify:cco-nav --if-present

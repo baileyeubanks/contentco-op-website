@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Nav } from "@contentco-op/ui";
 
 /* ─── Types ─── */
 interface Contact {
@@ -138,6 +139,7 @@ export default function DashboardPage() {
       color: "var(--ink, #edf3ff)",
       fontFamily: "var(--font-body)",
     }}>
+      <Nav surface="home" />
 
       {/* ─── Header ─── */}
       <header style={{
