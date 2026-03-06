@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { probeOpenClawHealth } from "@/lib/openclaw";
 
 type HealthSection = {
   status: "ok" | "degraded" | "down" | "not_configured" | "missing";
@@ -25,6 +26,7 @@ type HealthPayload = {
   supabase: HealthSection;
   blaze: HealthSection;
   deer: HealthSection;
+  openclaw: HealthSection;
 };
 
 const REQUIRED_ENV = [
@@ -58,6 +60,12 @@ function resolveRequiredEnv() {
   present.BLAZE_API_URL = blazeUrl;
   present.BLAZE_API_BASE_URL = blazeUrl;
   return { present, missing };
+}
+
+function sanitizePresentEnv(present: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(present).map(([key, value]) => [key, value ? "[set]" : ""]),
+  );
 }
 
 function isDownOrDegraded(section: HealthSection) {
@@ -142,10 +150,12 @@ export async function GET(request: Request) {
   const supabaseProbeKey = process.env.SUPABASE_SERVICE_KEY || required.present.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
   const [supabase, blaze, deer] = await Promise.all([
+    // Supabase is source of truth; OpenClaw is supplemental intelligence.
     checkSupabase(required.present.NEXT_PUBLIC_SUPABASE_URL || "", supabaseProbeKey),
     checkExternalUrl(required.present.BLAZE_API_URL || "", "BLAZE_API_URL|BLAZE_API_BASE_URL"),
     checkExternalUrl(deerBaseUrl, "DEER_API_BASE_URL|DEER_HEALTH_URL"),
   ]);
+  const openclaw = await probeOpenClawHealth();
 
   if (scope === "local") {
     const status = local.status === "ok" && supabase.status === "ok" ? "healthy" : "critical";
@@ -153,24 +163,26 @@ export async function GET(request: Request) {
       status,
       scope,
       timestamp: now(),
-      required_env: required,
+      required_env: { ...required, present: sanitizePresentEnv(required.present) },
       local,
       supabase,
       blaze,
       deer,
+      openclaw,
     });
   }
 
-  const externalOk = !isDownOrDegraded(blaze) && !isDownOrDegraded(deer);
+  const externalOk = !isDownOrDegraded(blaze) && !isDownOrDegraded(deer) && !isDownOrDegraded(openclaw);
   const status = deriveStatus(local, supabase, externalOk);
   return toJson(status === "critical" ? 503 : 200, {
     status,
     scope,
     timestamp: now(),
-    required_env: required,
+    required_env: { ...required, present: sanitizePresentEnv(required.present) },
     local,
     supabase,
     blaze,
     deer,
+    openclaw,
   });
 }

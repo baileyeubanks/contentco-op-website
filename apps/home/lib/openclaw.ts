@@ -92,3 +92,56 @@ export async function invokeOpenClawTask({
     clearTimeout(timer);
   }
 }
+
+export async function probeOpenClawHealth(timeoutMs = DEFAULT_TIMEOUT_MS): Promise<{
+  status: "ok" | "degraded" | "down" | "not_configured";
+  statusCode?: number;
+  latencyMs: number | null;
+  payload?: unknown;
+  error?: string;
+}> {
+  const baseUrl = resolveBlazeBaseUrl();
+  if (!baseUrl) {
+    return {
+      status: "not_configured",
+      latencyMs: null,
+      error: "missing_blaze_api_url",
+    };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const startedAt = Date.now();
+    const response = await fetch(`${baseUrl}/api/openclaw/health`, {
+      method: "GET",
+      headers: { accept: "application/json" },
+      signal: controller.signal,
+    });
+    const latencyMs = Date.now() - startedAt;
+    const text = await response.text();
+
+    let payload: unknown = null;
+    try {
+      payload = text ? JSON.parse(text) : null;
+    } catch {
+      payload = { raw: text };
+    }
+
+    return {
+      status: response.ok ? "ok" : "degraded",
+      statusCode: response.status,
+      latencyMs,
+      payload,
+    };
+  } catch (error) {
+    return {
+      status: "down",
+      latencyMs: null,
+      error: String(error),
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
