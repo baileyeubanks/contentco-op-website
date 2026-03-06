@@ -72,6 +72,19 @@ function isDownOrDegraded(section: HealthSection) {
   return section.status === "down" || section.status === "degraded";
 }
 
+function isPrivateNetworkUrl(value: string) {
+  try {
+    const { hostname } = new URL(value);
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname.startsWith("10.") || hostname.startsWith("192.168.") || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isPublicEdgeRuntime() {
+  return process.env.NETLIFY === "true" || process.env.CONTEXT === "production";
+}
+
 async function probeJson(url: string, timeoutMs = 2500): Promise<HealthSection> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);

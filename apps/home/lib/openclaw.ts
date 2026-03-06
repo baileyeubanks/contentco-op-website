@@ -18,6 +18,19 @@ type OpenClawTaskResult = {
 const DEFAULT_TIMEOUT_MS = 4000;
 const BLAZE_ENV_ALIASES = ["BLAZE_API_URL", "BLAZE_API_BASE_URL"] as const;
 
+function isPrivateNetworkUrl(value: string) {
+  try {
+    const { hostname } = new URL(value);
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname.startsWith("10.") || hostname.startsWith("192.168.") || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isPublicEdgeRuntime() {
+  return process.env.NETLIFY === "true" || process.env.CONTEXT === "production";
+}
+
 function resolveBlazeBaseUrl() {
   for (const key of BLAZE_ENV_ALIASES) {
     const value = process.env[key]?.trim();
@@ -42,7 +55,7 @@ export async function invokeOpenClawTask({
       skipped: true,
       statusCode: null,
       latencyMs: null,
-      error: "missing_blaze_api_url",
+      error: isPublicEdgeRuntime() ? "private_blaze_target_unreachable_from_public_runtime" : "missing_blaze_api_url",
     };
   }
 
@@ -105,7 +118,7 @@ export async function probeOpenClawHealth(timeoutMs = DEFAULT_TIMEOUT_MS): Promi
     return {
       status: "not_configured",
       latencyMs: null,
-      error: "missing_blaze_api_url",
+      error: isPublicEdgeRuntime() ? "private_blaze_target_unreachable_from_public_runtime" : "missing_blaze_api_url",
     };
   }
 
