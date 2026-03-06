@@ -7,7 +7,7 @@ export default async function RootAppLayout({
   children: React.ReactNode;
 }) {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"));
+  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
 
   return (
     <div

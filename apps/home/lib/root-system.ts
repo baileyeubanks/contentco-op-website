@@ -14,7 +14,7 @@ async function safeTable<T = MaybeRecord[]>(
 export async function getRootRuntimeSnapshot() {
   const headerStore = await headers();
   const host = headerStore.get("host");
-  const brand = resolveRootBrand(host);
+  const brand = resolveRootBrand(host, headerStore.get("x-root-brand"));
   const sb = getSupabase();
 
   const [claimsRes, handoffRes, documentsRes] = await Promise.all([

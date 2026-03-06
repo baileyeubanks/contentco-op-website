@@ -27,7 +27,7 @@ const ROLE_CARDS = [
 
 export default async function RootEntryPage() {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"));
+  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
 
   return (
     <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 32 }}>
