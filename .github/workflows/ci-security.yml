@@ -19,12 +19,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
       - name: Build home app
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co

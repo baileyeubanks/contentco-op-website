@@ -69,7 +69,7 @@ export default function CoCreatePage() {
       />
 
       <div className={s.shell}>
-        <Nav surface="home" />
+        <Nav surface="cocut" />
 
         <div className={s.header}>
           <div>

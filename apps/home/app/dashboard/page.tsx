@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { Nav } from "@contentco-op/ui";
 
 /* ─── Types ─── */
 interface Contact {
@@ -182,6 +183,7 @@ export default function RootDashboard() {
   return (
     <>
       <style>{cssReset}</style>
+      <Nav surface="home" />
 
       {/* ─── Top bar ─── */}
       <header className="r-topbar">

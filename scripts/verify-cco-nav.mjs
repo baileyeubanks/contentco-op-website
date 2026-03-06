@@ -11,7 +11,7 @@ const FILES = [
   { path: "apps/home/app/dashboard/page.tsx", surface: "home" },
   { path: "apps/home/app/portal/[id]/page.tsx", surface: "home" },
   { path: "apps/home/app/portfolio/page.tsx", surface: "portfolio" },
-  { path: "apps/home/app/cocreate/page.tsx", surface: "cocreate" },
+  { path: "apps/home/app/cocreate/page.tsx", surface: "cocut" },
 ];
 
 const missingImport = [];

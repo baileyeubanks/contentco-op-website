@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
+import { Nav } from "@contentco-op/ui";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -33,6 +34,7 @@ export default function LoginPage() {
   return (
     <div data-surface="product" style={page}>
       <style>{css}</style>
+      <Nav surface="home" />
 
       <div className="login-card">
         <div className="login-brand">
