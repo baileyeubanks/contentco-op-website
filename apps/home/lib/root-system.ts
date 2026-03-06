@@ -36,7 +36,9 @@ export async function getRootRuntimeSnapshot() {
     safeTable(
       sb
         .from("document_artifacts")
-        .select("id, business_unit, document_type, render_status, created_at")
+        .select(
+          "id, source_document_id, business_unit, document_type, version_label, render_status, outcome_status, storage_path, created_at",
+        )
         .order("created_at", { ascending: false })
         .limit(20),
     ),

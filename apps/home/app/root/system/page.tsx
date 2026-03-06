@@ -126,6 +126,39 @@ export default async function RootSystemPage() {
             </div>
           </div>
         </section>
+
+        <section style={card}>
+          <div style={sectionTitle}>Document Artifacts</div>
+          <div style={{ display: "grid", gap: 10 }}>
+            {snapshot.document_artifacts.length === 0 ? (
+              <div style={emptyStyle}>No document artifacts logged yet.</div>
+            ) : (
+              snapshot.document_artifacts.filter(Boolean).map((artifact) => (
+                <div key={String(artifact?.id)} style={rowStyle}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1.2fr 1fr 1fr 1fr",
+                      gap: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <div style={{ fontWeight: 700 }}>
+                      {String(artifact.document_type || "document")} · {String(artifact.business_unit || "UNKNOWN")}
+                    </div>
+                    <div style={metaStyle}>render: {String(artifact.render_status || "unknown")}</div>
+                    <div style={metaStyle}>outcome: {String(artifact.outcome_status || "pending")}</div>
+                    <div style={metaStyle}>{new Date(String(artifact.created_at)).toLocaleString()}</div>
+                  </div>
+                  <div style={{ ...metaStyle, marginTop: 6 }}>
+                    version: {String(artifact.version_label || "unlabeled")} · source:{" "}
+                    {String(artifact.source_document_id || "none")} · path: {String(artifact.storage_path || "none")}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );
