@@ -1,327 +1,140 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Script from "next/script";
 import { Nav } from "@contentco-op/ui";
 import s from "./page.module.css";
 
-const CONTENT_TYPES = [
-  "Executive Thought Piece",
-  "Safety & Compliance Update",
-  "Operational Change Communication",
-  "Culture & Values Story",
-  "Training & Onboarding",
-  "Brand / Capabilities Reel",
-  "Mini-Series",
-  "Other",
-];
+const BOOKING_URL =
+  "https://calendar.google.com/calendar/appointments/schedules/AcZssZ3V2sQevdtlybFNEhEe3DQ5gE4GNdwNlH-47cIn5iFy0eUY7qxfraJnlq0c7iVoqjGbjhso2ZHl?gv=true";
 
-const AUDIENCES = [
-  "Field Operators",
-  "Plant Leadership",
-  "Corporate / C-Suite",
-  "External / Public",
-  "Mixed — Multiple audiences",
-];
-
-const OBJECTIVES = [
-  "Drive behavior change",
-  "Inform & align",
-  "Build trust / credibility",
-  "Train / onboard",
-  "Showcase capability",
-  "Reassure stakeholders",
-];
-
-const TONES = [
-  "Cinematic — high production, emotive",
-  "Clean & corporate — direct, polished",
-  "Documentary — authentic, on-the-ground",
-  "Training — clear, structured, instructional",
-  "Mixed — varies by segment",
-];
-
-const DELIVERABLES = [
-  "Single video (final cut only)",
-  "Single video + raw files",
-  "2–3 short-form cuts",
-  "Full series (3+ episodes)",
-  "Script only — no production",
-];
-
-interface FormState {
-  project_name: string;
-  company: string;
-  contact_name: string;
-  contact_email: string;
-  content_type: string;
-  audience: string;
-  objective: string;
-  tone: string;
-  deliverables: string;
-  deadline: string;
-  key_messages: string;
-  references: string;
-  notes: string;
+declare global {
+  interface Window {
+    calendar?: {
+      schedulingButton?: {
+        load: (options: {
+          url: string;
+          color: string;
+          label: string;
+          target: HTMLElement;
+        }) => void;
+      };
+    };
+  }
 }
 
-const empty: FormState = {
-  project_name: "",
-  company: "",
-  contact_name: "",
-  contact_email: "",
-  content_type: CONTENT_TYPES[0],
-  audience: AUDIENCES[0],
-  objective: OBJECTIVES[0],
-  tone: TONES[0],
-  deliverables: DELIVERABLES[0],
-  deadline: "",
-  key_messages: "",
-  references: "",
-  notes: "",
-};
-
 export default function CoCreatePage() {
-  const [form, setForm] = useState<FormState>(empty);
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [quoteDraftId, setQuoteDraftId] = useState("");
-  const [quoteDraftStatus, setQuoteDraftStatus] = useState<"idle" | "created" | "failed">("idle");
+  const [schedulerReady, setSchedulerReady] = useState(false);
 
-  const set = (k: keyof FormState) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  useEffect(() => {
+    if (!schedulerReady) return;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.project_name || !form.contact_email) return;
-    setStatus("submitting");
-    try {
-      const res = await fetch("/api/briefs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error("Server error");
-      const payload = await res.json();
-      const briefId = payload?.id;
-      setQuoteDraftId("");
-      setQuoteDraftStatus("idle");
+    let cancelled = false;
 
-      if (briefId) {
-        const draftRes = await fetch(`/api/briefs/${encodeURIComponent(briefId)}/quote-draft`, {
-          method: "POST",
+    const mountScheduler = (attempt = 0) => {
+      if (cancelled) return;
+
+      const target = document.getElementById("googleBookingButton");
+      const loader = window.calendar?.schedulingButton?.load;
+
+      if (target && loader) {
+        target.innerHTML = "";
+        loader({
+          url: BOOKING_URL,
+          color: "#104390",
+          label: "Book an appointment",
+          target,
         });
-        if (draftRes.ok) {
-          const draftPayload = await draftRes.json();
-          setQuoteDraftId(String(draftPayload?.quote?.id || ""));
-          setQuoteDraftStatus("created");
-        } else {
-          setQuoteDraftStatus("failed");
-        }
+        return;
       }
-      setStatus("success");
-    } catch (err) {
-      setErrorMsg("Submission failed — please email brief@contentco-op.com directly.");
-      setStatus("error");
-    }
-  };
+
+      if (attempt < 20) {
+        window.setTimeout(() => mountScheduler(attempt + 1), 300);
+      }
+    };
+
+    mountScheduler();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [schedulerReady]);
 
   return (
     <div className={s.wrap}>
-      <div className={s.shell}>
+      <Script
+        src="https://calendar.google.com/calendar/scheduling-button-script.js"
+        strategy="afterInteractive"
+        onLoad={() => setSchedulerReady(true)}
+      />
 
-        {/* Nav — shared component */}
+      <div className={s.shell}>
         <Nav surface="home" />
 
-        {/* Header */}
         <div className={s.header}>
           <div>
             <p className={s.kicker}>Co-Create</p>
-            <h1 className={s.title}>Creative Brief</h1>
+            <h1 className={s.title}>Book an Appointment</h1>
             <p className={s.subtitle}>
-              Tell us about your project. We'll take it from here.
+              Start with a strategy call. If you already know the shape of the project, you can send
+              the creative brief after you book.
             </p>
           </div>
         </div>
 
-        {/* Body */}
-        {status === "success" ? (
-          <div className={s.grid}>
-            <div className={s.success}>
-              <div className={s.successIcon}>✓</div>
-              <h2 className={s.successTitle}>Brief received.</h2>
-              <p className={s.successBody}>
-                We'll review {form.project_name ? `"${form.project_name}"` : "your brief"} and
-                reach out to {form.contact_email} within one business day to discuss next steps.
+        <div className={s.bookingGrid}>
+          <section className={s.panel}>
+            <p className={s.panelLabel}>Schedule</p>
+            <div className={s.schedulerWrap}>
+              <div id="googleBookingButton" className={s.schedulerMount} />
+
+              <a
+                className={s.schedulerFallback}
+                href={BOOKING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open calendar in a new tab
+              </a>
+
+              <p className={s.schedulerHelper}>
+                Use the same name and email you want us to tie to the project. That keeps the follow-up
+                clean when we move into proposal and production.
               </p>
-              <p className={s.successBody}>
-                {quoteDraftStatus === "created"
-                  ? `Internal quote draft created${quoteDraftId ? ` (${quoteDraftId.slice(0, 8)})` : ""} for root review.`
-                  : quoteDraftStatus === "failed"
-                    ? "Brief saved, but the internal quote draft needs manual review in root."
-                    : "Brief saved and queued for internal review."}
-              </p>
             </div>
-          </div>
-        ) : (
-          <form className={s.grid} onSubmit={handleSubmit}>
+          </section>
 
-            {/* Left — project context */}
-            <div>
-              <div className={s.panel}>
-                <p className={s.panelLabel}>Project</p>
-                <div className={s.formGrid}>
-                  <div className={`${s.fieldWrap} ${s.formGridFull}`}>
-                    <label className={s.label}>Project name *</label>
-                    <input
-                      className={s.field}
-                      value={form.project_name}
-                      onChange={set("project_name")}
-                      placeholder="e.g. Fowler Ridge — Safety Series"
-                      required
-                    />
-                  </div>
-                  <div className={s.fieldWrap}>
-                    <label className={s.label}>Company / Client</label>
-                    <input
-                      className={s.field}
-                      value={form.company}
-                      onChange={set("company")}
-                      placeholder="Acme Energy Co."
-                    />
-                  </div>
-                  <div className={s.fieldWrap}>
-                    <label className={s.label}>Deadline</label>
-                    <input
-                      className={s.field}
-                      type="date"
-                      value={form.deadline}
-                      onChange={set("deadline")}
-                    />
-                  </div>
-                  <div className={s.fieldWrap}>
-                    <label className={s.label}>Your name</label>
-                    <input
-                      className={s.field}
-                      value={form.contact_name}
-                      onChange={set("contact_name")}
-                      placeholder="Jane Smith"
-                    />
-                  </div>
-                  <div className={s.fieldWrap}>
-                    <label className={s.label}>Email *</label>
-                    <input
-                      className={s.field}
-                      type="email"
-                      value={form.contact_email}
-                      onChange={set("contact_email")}
-                      placeholder="jane@company.com"
-                      required
-                    />
-                  </div>
-                </div>
+          <section className={s.panel}>
+            <p className={s.panelLabel}>What Happens Next</p>
+            <div className={s.metaStack}>
+              <div className={s.metaRow}>
+                <span className={s.metaKey}>Step 1</span>
+                <span className={s.metaVal}>Book a strategy call on the calendar.</span>
               </div>
-
-              <div className={s.panel} style={{ marginTop: ".9rem" }}>
-                <p className={s.panelLabel}>Scope</p>
-                <div className={s.formGrid}>
-                  <div className={s.fieldWrap}>
-                    <label className={s.label}>Content type</label>
-                    <select className={s.field} value={form.content_type} onChange={set("content_type")}>
-                      {CONTENT_TYPES.map((t) => <option key={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div className={s.fieldWrap}>
-                    <label className={s.label}>Deliverables</label>
-                    <select className={s.field} value={form.deliverables} onChange={set("deliverables")}>
-                      {DELIVERABLES.map((d) => <option key={d}>{d}</option>)}
-                    </select>
-                  </div>
-                  <div className={s.fieldWrap}>
-                    <label className={s.label}>Audience</label>
-                    <select className={s.field} value={form.audience} onChange={set("audience")}>
-                      {AUDIENCES.map((a) => <option key={a}>{a}</option>)}
-                    </select>
-                  </div>
-                  <div className={s.fieldWrap}>
-                    <label className={s.label}>Tone</label>
-                    <select className={s.field} value={form.tone} onChange={set("tone")}>
-                      {TONES.map((t) => <option key={t}>{t}</option>)}
-                    </select>
-                  </div>
-                </div>
+              <div className={s.metaRow}>
+                <span className={s.metaKey}>Step 2</span>
+                <span className={s.metaVal}>We review the opportunity and frame the right scope.</span>
+              </div>
+              <div className={s.metaRow}>
+                <span className={s.metaKey}>Step 3</span>
+                <span className={s.metaVal}>If needed, we send the creative brief to gather details ahead of the call.</span>
+              </div>
+              <div className={s.metaRow}>
+                <span className={s.metaKey}>Step 4</span>
+                <span className={s.metaVal}>The conversation feeds directly into root for quote and production follow-through.</span>
               </div>
             </div>
 
-            {/* Right — brief details */}
-            <div>
-              <div className={s.panel}>
-                <p className={s.panelLabel}>Brief</p>
-                <div className={s.formGrid}>
-                  <div className={`${s.fieldWrap} ${s.formGridFull}`}>
-                    <label className={s.label}>Primary objective</label>
-                    <select className={s.field} value={form.objective} onChange={set("objective")}>
-                      {OBJECTIVES.map((o) => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
-                  <div className={`${s.fieldWrap} ${s.formGridFull}`}>
-                    <label className={s.label}>
-                      Key messages
-                    </label>
-                    <textarea
-                      className={s.textarea}
-                      value={form.key_messages}
-                      onChange={set("key_messages")}
-                      placeholder={"— What must the viewer know, feel, or do?\n— Core narrative points\n— Any mandated messaging"}
-                      rows={5}
-                    />
-                  </div>
-                  <div className={`${s.fieldWrap} ${s.formGridFull}`}>
-                    <label className={s.label}>
-                      References / examples
-                    </label>
-                    <textarea
-                      className={s.textarea}
-                      value={form.references}
-                      onChange={set("references")}
-                      placeholder="Links, competitors, internal videos you admire — or describe the look/feel"
-                      rows={3}
-                    />
-                  </div>
-                  <div className={`${s.fieldWrap} ${s.formGridFull}`}>
-                    <label className={s.label}>
-                      Access, constraints & special notes
-                    </label>
-                    <textarea
-                      className={s.textarea}
-                      value={form.notes}
-                      onChange={set("notes")}
-                      placeholder="Site access requirements, safety protocols, existing footage, budget range, approval chain…"
-                      rows={3}
-                    />
-                  </div>
-                </div>
-
-                <hr className={s.divider} />
-
-                <div className={s.submitRow}>
-                  <p className={s.submitNote}>
-                    We'll follow up within one business day.
-                    {errorMsg && <><br /><span style={{ color: "#de7676" }}>{errorMsg}</span></>}
-                  </p>
-                  <button
-                    className={s.btnPrimary}
-                    type="submit"
-                    disabled={status === "submitting"}
-                  >
-                    {status === "submitting" ? "Sending…" : "Submit Brief"}
-                  </button>
-                </div>
-              </div>
+            <div className={s.bookingActions}>
+              <a className={s.btnPrimary} href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
+                Book now
+              </a>
+              <a className={s.secondaryLink} href="/onboard">
+                Prefer to send the creative brief first?
+              </a>
             </div>
-
-          </form>
-        )}
+          </section>
+        </div>
       </div>
     </div>
   );

@@ -50,8 +50,8 @@ export default function HomePage() {
             <br />
             <em>maximum signal.</em>
           </h1>
-          <a className="button light" href="/onboard">
-            Creative Brief
+          <a className="button light" href="/cocreate">
+            Book an Appointment
           </a>
         </div>
       </section>
@@ -106,9 +106,9 @@ export default function HomePage() {
               <div className="product-wordmark">
                 <span className="product-co">Co-</span>Create
               </div>
-              <p className="product-stage">Production</p>
-              <p>Rapid sound-bite editing. Waveform-first. Interview-ready cuts.</p>
-              <span className="product-cta">Coming Soon</span>
+              <p className="product-stage">Discovery</p>
+              <p>Book a strategy call first. If needed, we collect the creative brief before the meeting.</p>
+              <span className="product-cta">Book an Appointment &rarr;</span>
             </a>
             <a className="product-card" href="https://codeliver.contentco-op.com">
               <div className="product-wordmark">
@@ -173,7 +173,7 @@ export default function HomePage() {
             <a href="https://coedit.contentco-op.com">Co-Edit</a>
             <a href="https://coscript.contentco-op.com">Co-Script</a>
             <a href="https://codeliver.contentco-op.com">Co-Deliver</a>
-            <a href="/cocreate">Co-Create</a>
+            <a href="/cocreate">Book an Appointment</a>
             <a href="/root" className="cc-footer-portal">Root App &rarr;</a>
           </nav>
         </div>

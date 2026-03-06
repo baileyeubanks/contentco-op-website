@@ -3,7 +3,7 @@
   min-height: 100vh;
   background: #070f1c;
   color: #edf3ff;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .shell {
@@ -97,6 +97,14 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr 1.3fr;
+  gap: .9rem;
+  align-items: start;
+  padding-bottom: 4rem;
+}
+
+.bookingGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
   gap: .9rem;
   align-items: start;
   padding-bottom: 4rem;
@@ -207,9 +215,67 @@ select.field option { background: #0d1a2e; }
   color: #5a7ea8;
   line-height: 1.4;
 }
+
+.schedulerWrap {
+  display: grid;
+  gap: 1rem;
+}
+
+.schedulerMount {
+  min-height: 56px;
+}
+
+.schedulerFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid #3a5d8a;
+  background: #132846;
+  color: #e8f2ff;
+  padding: .82rem 1.1rem;
+  font-size: .76rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.schedulerFallback:hover {
+  border-color: #4c8ef5;
+}
+
+.schedulerHelper {
+  margin: 0;
+  color: #9caecc;
+  font-size: .85rem;
+  line-height: 1.65;
+}
+
+.metaStack {
+  display: grid;
+  gap: .2rem;
+}
+
+.bookingActions {
+  display: grid;
+  gap: .75rem;
+  margin-top: 1.4rem;
+}
+
+.secondaryLink {
+  color: #9fd1ff;
+  font-size: .82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.secondaryLink:hover {
+  color: #edf3ff;
+}
 .btnPrimary {
-  background: #b5ff66;
-  border: 1px solid #b5ff66;
+  background: #4c8ef5;
+  border: 1px solid #4c8ef5;
   color: #0d1b2d;
   border-radius: 999px;
   padding: .7rem 1.6rem;
@@ -238,8 +304,8 @@ select.field option { background: #0d1a2e; }
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #b5ff6622;
-  border: 1px solid #b5ff6666;
+  background: rgba(76,142,245,0.13);
+  border: 1px solid rgba(76,142,245,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -276,5 +342,6 @@ select.field option { background: #0d1a2e; }
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .grid { grid-template-columns: 1fr; }
+  .bookingGrid { grid-template-columns: 1fr; }
   .formGrid { grid-template-columns: 1fr; }
 }
