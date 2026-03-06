@@ -11,6 +11,14 @@ body {
   font-family: var(--font-body), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+[data-root-brand="acs"] {
+  --accent: var(--root-accent);
+}
+
+[data-root-brand="cc"] {
+  --accent: var(--root-accent);
+}
+
 h1, h2, h3, h4 {
   font-family: var(--font-display), Georgia, serif;
 }
@@ -18,6 +26,111 @@ h1, h2, h3, h4 {
 .muted {
   color: var(--muted);
   line-height: 1.62;
+}
+
+.root-login-card {
+  width: min(100%, 380px);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 30px 26px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.root-login-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--root-accent) 0%, transparent 80%);
+  opacity: 0.7;
+}
+
+.root-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.root-login-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--root-accent);
+  box-shadow: 0 0 12px var(--root-accent);
+}
+
+.root-login-name {
+  font-size: 1.15rem;
+  font-weight: 760;
+  letter-spacing: -0.03em;
+}
+
+.root-login-sub {
+  margin: 0 0 24px 16px;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.root-login-form {
+  display: grid;
+  gap: 14px;
+}
+
+.root-login-field {
+  display: grid;
+  gap: 6px;
+}
+
+.root-login-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.root-login-input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--ink);
+  font: inherit;
+}
+
+.root-login-input:focus {
+  outline: none;
+  border-color: var(--root-accent);
+}
+
+.root-login-error {
+  font-size: 0.78rem;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: rgba(222,118,118,0.08);
+  border: 1px solid rgba(222,118,118,0.16);
+  color: #de7676;
+}
+
+.root-login-btn {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--root-accent);
+  color: white;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 /* ─── Ambient Video Crossfade Layers ─── */

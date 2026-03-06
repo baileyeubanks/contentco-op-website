@@ -174,7 +174,7 @@ export default function HomePage() {
             <a href="https://coscript.contentco-op.com">Co-Script</a>
             <a href="https://codeliver.contentco-op.com">Co-Deliver</a>
             <a href="/cocreate">Co-Create</a>
-            <a href="/login" className="cc-footer-portal">Client Portal &rarr;</a>
+            <a href="/root" className="cc-footer-portal">Root App &rarr;</a>
           </nav>
         </div>
       </footer>
