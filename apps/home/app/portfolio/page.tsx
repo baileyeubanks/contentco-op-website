@@ -5,8 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Nav } from "@contentco-op/ui";
 
 // ── CDN Base ─────────────────────────────────────────────────────
-// Update this after deploying CC_PORTFOLIO_WEB to Netlify
-const CDN = "https://cc-portfolio-cdn.netlify.app";
+const CDN = process.env.NEXT_PUBLIC_PORTFOLIO_CDN_URL || "/portfolio";
 
 // ── Types ────────────────────────────────────────────────────────
 interface Episode {

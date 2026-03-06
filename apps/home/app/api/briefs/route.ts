@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // Insert into events table → netlify_event_bridge routes to main + cc-worker (non-fatal)
+  // Insert into events table so the NAS worker and Blaze can process the brief.
   try {
     await supabase.from("events").insert({
       type: "brief_submitted",
