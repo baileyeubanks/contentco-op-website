@@ -1,0 +1,757 @@
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(170, 116, 52, 0.16), transparent 24rem),
+    radial-gradient(circle at left 20%, rgba(35, 67, 106, 0.28), transparent 26rem),
+    linear-gradient(180deg, #071019 0%, #09131d 42%, #060c13 100%);
+  color: #edf2f7;
+}
+
+.hero,
+.proofIntro,
+.flagshipSection,
+.section,
+.routingSection {
+  width: min(1360px, 94vw);
+  margin: 0 auto;
+}
+
+.hero {
+  padding: 8.4rem 0 2.5rem;
+}
+
+.heroShell {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 1.3rem;
+  align-items: stretch;
+}
+
+.heroCopy,
+.heroTile,
+.pillarCard,
+.flagshipCard,
+.featuredCard,
+.supportingCard,
+.routingCard,
+.modalShell {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 26px 80px rgba(0, 0, 0, 0.25);
+}
+
+.heroCopy {
+  display: grid;
+  align-content: start;
+  gap: 1.3rem;
+  padding: 2rem;
+  border-radius: 32px;
+  background:
+    linear-gradient(145deg, rgba(11, 19, 30, 0.96), rgba(8, 15, 23, 0.84)),
+    radial-gradient(circle at top left, rgba(199, 145, 69, 0.16), transparent 20rem);
+}
+
+.eyebrow,
+.sectionEyebrow,
+.storyLabel,
+.tileMeta,
+.routingLabel,
+.mediaLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.eyebrow,
+.sectionEyebrow,
+.storyLabel,
+.tileMeta,
+.mediaLabel {
+  color: #dcb682;
+}
+
+.heroTitle,
+.sectionTitle,
+.cardTitle,
+.featuredTitle,
+.supportingTitle,
+.modalTitle {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.045em;
+}
+
+.heroTitle {
+  max-width: 11ch;
+  font-size: clamp(3.2rem, 7vw, 6rem);
+  line-height: 0.92;
+}
+
+.heroBody,
+.sectionCopy,
+.cardHeadline,
+.cardSummary,
+.storyBlock p,
+.pillarCard p,
+.supportingText,
+.routingCard p,
+.modalHeadline,
+.modalNote {
+  color: rgba(237, 242, 247, 0.72);
+  line-height: 1.68;
+}
+
+.heroBody {
+  max-width: 38rem;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.heroActions,
+.inlineActions,
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.primaryButton,
+.secondaryButton,
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.82rem 1.3rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid rgba(237, 190, 118, 0.7);
+  background: linear-gradient(135deg, #efc184 0%, #b87b34 100%);
+  color: #16100a;
+}
+
+.secondaryButton,
+.ghostButton {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 16, 25, 0.72);
+  color: rgba(237, 242, 247, 0.84);
+}
+
+.primaryButton:hover,
+.secondaryButton:hover,
+.ghostButton:hover,
+.heroTile:hover,
+.featuredMedia:hover,
+.supportingMedia:hover,
+.routingCard:hover {
+  transform: translateY(-2px);
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.statCard {
+  display: grid;
+  gap: 0.22rem;
+  padding: 1rem 1.05rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.statCard strong {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  line-height: 1;
+}
+
+.statCard span {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(237, 242, 247, 0.58);
+}
+
+.heroMosaic {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 1rem;
+}
+
+.heroTile {
+  position: relative;
+  min-height: 18rem;
+  padding: 0;
+  border: 0;
+  border-radius: 28px;
+  overflow: hidden;
+  background: #0d1823;
+  text-align: left;
+  color: inherit;
+}
+
+.heroTileLarge {
+  grid-row: span 2;
+  min-height: 33rem;
+}
+
+.heroMosaic .heroTile:nth-child(2),
+.heroMosaic .heroTile:nth-child(3) {
+  min-height: 16rem;
+}
+
+.heroMosaic .heroTile:nth-child(2) {
+  grid-column: 2;
+}
+
+.heroMosaic .heroTile:nth-child(3) {
+  grid-column: 2;
+}
+
+.imageWrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.tileScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 11, 18, 0.06), rgba(6, 11, 18, 0.86) 100%);
+}
+
+.heroTileBody,
+.openBadge,
+.flagshipMediaCard {
+  position: absolute;
+  z-index: 1;
+}
+
+.heroTileBody {
+  inset: auto 1.15rem 1.2rem;
+  display: grid;
+  gap: 0.32rem;
+}
+
+.tileTitle {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.tileTag {
+  color: rgba(237, 242, 247, 0.68);
+  font-size: 0.82rem;
+}
+
+.proofIntro,
+.flagshipSection,
+.section,
+.routingSection {
+  padding: 1.2rem 0 0;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-size: clamp(2rem, 3vw, 3.25rem);
+  line-height: 0.98;
+}
+
+.sectionCopy {
+  max-width: 37rem;
+  margin: 0;
+  font-size: 0.94rem;
+}
+
+.pillarGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.pillarCard {
+  padding: 1.25rem;
+  border-radius: 24px;
+  background: rgba(10, 18, 28, 0.74);
+}
+
+.pillarCard h3 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.pillarCard p {
+  margin: 0.7rem 0 0;
+  font-size: 0.92rem;
+}
+
+.flagshipCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  gap: 0;
+  margin-top: 1.25rem;
+  border-radius: 34px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(10, 17, 26, 0.94), rgba(7, 13, 20, 0.88));
+}
+
+.flagshipMedia,
+.featuredMedia,
+.supportingMedia,
+.modalStage,
+.modalThumb {
+  position: relative;
+  overflow: hidden;
+  background: #0b1621;
+}
+
+.flagshipMedia {
+  min-height: 34rem;
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.flagshipMediaCard {
+  left: 1.2rem;
+  bottom: 1.2rem;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: rgba(6, 11, 18, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.flagshipBody,
+.featuredBody,
+.supportingBody,
+.modalAside {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.flagshipBody {
+  padding: 1.6rem;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  color: rgba(237, 242, 247, 0.62);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dot {
+  width: 0.22rem;
+  height: 0.22rem;
+  border-radius: 999px;
+  background: rgba(237, 242, 247, 0.26);
+}
+
+.cardTitle {
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  line-height: 0.96;
+}
+
+.cardHeadline,
+.modalHeadline {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.cardSummary {
+  margin: 0;
+  font-size: 0.94rem;
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.storyStack,
+.modalStory {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.storyBlock {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.storyBlock p {
+  margin: 0.55rem 0 0;
+  font-size: 0.9rem;
+}
+
+.tokenRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.token {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.95rem;
+  padding: 0.3rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(237, 242, 247, 0.82);
+  font-size: 0.72rem;
+}
+
+.featuredGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.featuredCard,
+.supportingCard,
+.routingCard {
+  border-radius: 28px;
+  overflow: hidden;
+  background: rgba(10, 18, 28, 0.76);
+}
+
+.featuredMedia {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.openBadge {
+  right: 1rem;
+  bottom: 1rem;
+  padding: 0.42rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(6, 11, 18, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #edf2f7;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.featuredBody {
+  padding: 1.2rem;
+}
+
+.featuredTitle {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.supportingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.supportingMedia {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.supportingBody {
+  padding: 1rem;
+}
+
+.supportingTitle {
+  font-size: 1.28rem;
+  line-height: 1.02;
+}
+
+.supportingClient {
+  margin: 0;
+  color: rgba(220, 182, 130, 0.86);
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.supportingText {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.routingSection {
+  padding-bottom: 4.25rem;
+}
+
+.routingGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.routingCard {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.4rem;
+  text-decoration: none;
+  color: inherit;
+  background:
+    radial-gradient(circle at top right, rgba(220, 182, 130, 0.12), transparent 18rem),
+    rgba(10, 18, 28, 0.8);
+}
+
+.routingCard h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.04;
+}
+
+.routingLabel {
+  color: rgba(220, 182, 130, 0.92);
+}
+
+.routingCta {
+  color: #edf2f7;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(4, 8, 12, 0.88);
+  backdrop-filter: blur(16px);
+}
+
+.modalShell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  width: min(1380px, 97vw);
+  max-height: 94vh;
+  overflow: hidden;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #09121b 0%, #060d14 100%);
+}
+
+.modalStage {
+  align-self: stretch;
+  min-height: 32rem;
+}
+
+.modalStageBadge {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(6, 11, 18, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.modalVideo,
+.modalFallback {
+  width: 100%;
+  height: 100%;
+}
+
+.modalVideo {
+  display: block;
+  object-fit: contain;
+  background: #000;
+}
+
+.modalFallback {
+  position: relative;
+}
+
+.modalFallbackCopy {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(6, 11, 18, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #edf2f7;
+}
+
+.modalFallbackCopy span {
+  color: rgba(237, 242, 247, 0.72);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.modalAside {
+  padding: 1.3rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.modalTitle {
+  font-size: clamp(2rem, 3vw, 3.1rem);
+  line-height: 0.96;
+}
+
+.modalNote {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.modalGallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.modalThumb {
+  aspect-ratio: 4 / 3;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.modalThumbActive {
+  border-color: rgba(220, 182, 130, 0.86);
+  box-shadow: 0 0 0 1px rgba(220, 182, 130, 0.18);
+}
+
+@media (max-width: 1180px) {
+  .heroShell,
+  .flagshipCard,
+  .modalShell,
+  .featuredGrid,
+  .supportingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroMosaic {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .heroTileLarge,
+  .heroMosaic .heroTile:nth-child(2),
+  .heroMosaic .heroTile:nth-child(3) {
+    grid-column: auto;
+    min-height: 18rem;
+  }
+
+  .flagshipMedia {
+    min-height: 24rem;
+  }
+
+  .storyGrid,
+  .pillarGrid,
+  .routingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalAside {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
+@media (max-width: 760px) {
+  .hero {
+    padding-top: 7.4rem;
+  }
+
+  .heroCopy,
+  .flagshipBody,
+  .featuredBody,
+  .supportingBody,
+  .routingCard,
+  .modalAside {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .heroMosaic,
+  .statRow,
+  .supportingGrid,
+  .modalGallery {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHeader {
+    display: grid;
+    align-items: start;
+  }
+
+  .modalBackdrop {
+    padding: 0.35rem;
+  }
+
+  .modalShell {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 22px;
+  }
+}

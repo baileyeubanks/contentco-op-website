@@ -1,0 +1,219 @@
+{
+  "version": "2026-03-13",
+  "flagshipStudyId": "citgo-lcr",
+  "featuredStudyIds": ["ceraweek", "accurate-meter", "adaptive-stainless"],
+  "entries": [
+    {
+      "id": "citgo-lcr",
+      "title": "Life Critical Rules",
+      "client": "CITGO Petroleum",
+      "sector": "Safety systems",
+      "year": "2024",
+      "format": "9-part safety series",
+      "scope": "9 episodes, repeatable rollout",
+      "headline": "A safety training system built to survive operations scrutiny, not just look cinematic.",
+      "summary": "Content Co-op turned CITGO's Life Critical Rules into a serialized training package built for repeat use, field comprehension, and stakeholder confidence.",
+      "mandate": "Package mandatory safety guidance into a format crews would actually watch while keeping the language credible for operations and HSE review.",
+      "execution": "The series combines animated instruction, live footage, and episodic packaging so each rule can stand alone or work as part of a broader training system.",
+      "outcome": "The result reads like a durable communications system: organized, watchable, and usable across a real rollout.",
+      "proofPoints": [
+        "Serialized training architecture",
+        "Built for repeat viewing",
+        "Balances operations clarity with premium finish"
+      ],
+      "deliverables": [
+        "9 released episodes",
+        "Animation + live-action system",
+        "Episode-by-episode navigation",
+        "Operations-ready safety messaging"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13",
+        "notes": "Cover and supporting stills align to safety/operations context."
+      },
+      "gallery": [
+        {
+          "src": "/cc/photos/gallery-fire-gear-rack.jpg",
+          "alt": "Fire and safety gear arranged as proof imagery for CITGO Life Critical Rules",
+          "alignment": "client_specific"
+        },
+        {
+          "src": "/cc/photos/gallery-control-room.jpg",
+          "alt": "Industrial control room still representing operations scrutiny in the CITGO safety series",
+          "alignment": "shared_environment"
+        },
+        {
+          "src": "/cc/portfolio/xxx_final-jumbotron_t1.jpg",
+          "alt": "Safety collage still used as proof imagery for the CITGO training package",
+          "alignment": "client_specific"
+        }
+      ]
+    },
+    {
+      "id": "ceraweek",
+      "title": "CERAWeek Coverage",
+      "client": "ABB + Schneider Electric",
+      "sector": "Executive and conference",
+      "year": "2024",
+      "format": "Conference coverage system",
+      "scope": "Interviews, recap, and brand cuts",
+      "headline": "Conference coverage built to preserve signal after the event, not disappear into the feed.",
+      "summary": "Executive interviews, summit moments, and post-event edits were shaped into a durable conference package for two enterprise energy brands.",
+      "mandate": "Capture conference access, executive presence, and brand relevance in a way that remained useful after the event week ended.",
+      "execution": "The coverage approach combined interview structure, event texture, and recap packaging so the work could support thought leadership and follow-through.",
+      "outcome": "The finished pieces turn conference access into proof for marketing, communications, and leadership teams instead of leaving it as disposable social content.",
+      "proofPoints": [
+        "Executive interview packaging",
+        "High-credibility event environment",
+        "Useful after the event week"
+      ],
+      "deliverables": [
+        "Executive interview edits",
+        "Conference recap film",
+        "Brand support cuts"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13",
+        "notes": "Conference stills are now event-specific and no longer padded with unrelated industrial photos."
+      },
+      "gallery": [
+        {
+          "src": "/cc/photos/gallery-ceraweek-speaker.jpg",
+          "alt": "Speaker on stage at CERAWeek energy conference",
+          "alignment": "client_specific"
+        }
+      ]
+    },
+    {
+      "id": "adaptive-stainless",
+      "title": "Adaptive Stainless",
+      "client": "Adaptive Stainless",
+      "sector": "Industrial brand",
+      "year": "2024",
+      "format": "Industrial film",
+      "scope": "Shop-floor brand positioning",
+      "headline": "Fabrication capability framed with enough discipline to feel premium, not generic industrial stock.",
+      "summary": "A shop-floor brand film built around precision fabrication, process clarity, and the people behind the work.",
+      "mandate": "Turn custom metalwork and fabrication capability into a brand story that felt clean, modern, and credible to industrial buyers.",
+      "execution": "The edit leans on machinery detail, process rhythm, and a controlled visual language rather than broad claims or overproduced corporate messaging.",
+      "outcome": "The final film reads as industrial proof: exacting, confident, and specific to the work itself.",
+      "proofPoints": [
+        "Process-first shop-floor cinematography",
+        "Premium finish without losing grit",
+        "Useful for sales and positioning conversations"
+      ],
+      "deliverables": [
+        "Industrial brand film",
+        "Shop-floor coverage",
+        "Process-focused visual system"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13",
+        "notes": "Single proof still is specific to the fabrication environment."
+      },
+      "gallery": [
+        {
+          "src": "/cc/photos/gallery-machinist-cnc.jpg",
+          "alt": "Machinist operating a CNC machine during Adaptive Stainless production",
+          "alignment": "client_specific"
+        }
+      ]
+    },
+    {
+      "id": "accurate-meter",
+      "title": "Accurate Meter & Supply",
+      "client": "Accurate Meter & Supply",
+      "sector": "Energy brand",
+      "year": "2018",
+      "format": "Brand film",
+      "scope": "Facilities, field, and leadership coverage",
+      "headline": "A precision-measurement business framed like a premium capability, not a commodity vendor.",
+      "summary": "Facilities, field operations, and leadership context were shaped into a positioning film that makes technical capability feel credible and commercially sharp.",
+      "mandate": "Show both engineering seriousness and commercial polish for a business serving energy-sector clients with precision equipment and expertise.",
+      "execution": "The film combines facility coverage, field reality, and leadership messaging into one coherent story instead of splitting technical proof from brand narrative.",
+      "outcome": "The piece gives the company a stronger sales-facing story and a visual language that supports premium positioning.",
+      "proofPoints": [
+        "Facility and field context in one narrative",
+        "Executive message integrated into the proof",
+        "Sharper premium positioning"
+      ],
+      "deliverables": [
+        "Brand positioning film",
+        "Facilities coverage",
+        "Field production",
+        "Executive interview capture"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13",
+        "notes": "Only project-specific stills remain in the gallery."
+      },
+      "gallery": [
+        {
+          "src": "/cc/portfolio/accurate-meter_final-x_t1.jpg",
+          "alt": "Proof frame from the Accurate Meter brand film",
+          "alignment": "client_specific"
+        },
+        {
+          "src": "/cc/portfolio/accurate-meter_final-x_t2.jpg",
+          "alt": "Industrial equipment still from Accurate Meter work",
+          "alignment": "client_specific"
+        },
+        {
+          "src": "/cc/portfolio/accurate-meter_final-x_t3.jpg",
+          "alt": "Close-up proof still from Accurate Meter brand film",
+          "alignment": "client_specific"
+        }
+      ]
+    },
+    {
+      "id": "kodiak",
+      "title": "Kodiak Gas Services",
+      "client": "Kodiak Gas Services",
+      "sector": "Recruitment",
+      "year": "2022",
+      "format": "Recruitment film",
+      "scope": "Field-first recruiting story",
+      "headline": "Recruitment work aimed at real operators, with the field reality doing the selling.",
+      "summary": "The film centers actual work, equipment, and crew context so recruitment messaging feels grounded in the job rather than abstract employer-brand language.",
+      "mandate": "Attract skilled operators and technicians without flattening the work into generic culture messaging.",
+      "execution": "Field operations, equipment detail, and crew presence carry the narrative so prospects can quickly read what the job and company actually feel like.",
+      "outcome": "The project gives recruitment conversations a sharper front door and stronger credibility with technical talent.",
+      "proofPoints": [
+        "Field-heavy recruitment positioning",
+        "Credible operations context",
+        "Built for skilled labor audiences"
+      ],
+      "deliverables": [
+        "Recruitment film",
+        "Crew and equipment coverage",
+        "Culture story grounded in the work"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13",
+        "notes": "Supporting stills are grounded in field context and marked as shared environment where client-specific naming is unavailable."
+      },
+      "gallery": [
+        {
+          "src": "/cc/photos/gallery-kodiak-crew.jpg",
+          "alt": "Kodiak field crew in hard hats",
+          "alignment": "client_specific"
+        },
+        {
+          "src": "/cc/photos/gallery-desert-tanks.jpg",
+          "alt": "Desert tank and energy landscape from Kodiak recruiting work",
+          "alignment": "shared_environment"
+        }
+      ]
+    }
+  ]
+}

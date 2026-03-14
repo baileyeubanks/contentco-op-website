@@ -22,3 +22,5 @@ supabase/.temp
 
 # Local deploy folder
 .netlify
+.playwright-cli
+ops/reports
