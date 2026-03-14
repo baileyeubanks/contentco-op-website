@@ -76,7 +76,11 @@ function resolveEnvValue(spec: string) {
 }
 
 function resolvePublicAssetPath(src: string) {
-  return path.join(process.cwd(), "public", src.replace(/^\//, ""));
+  const relativePath = src.replace(/^\//, "");
+  return [
+    path.join(process.cwd(), "public", relativePath),
+    path.join(process.cwd(), "apps/home/public", relativePath),
+  ];
 }
 
 async function pathExists(filePath: string) {
@@ -86,6 +90,24 @@ async function pathExists(filePath: string) {
   } catch {
     return false;
   }
+}
+
+async function anyPathExists(filePaths: string[]) {
+  for (const filePath of filePaths) {
+    if (await pathExists(filePath)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function isStandaloneRuntime() {
+  return anyPathExists([
+    path.join(process.cwd(), "server.js"),
+    path.join(process.cwd(), "apps/home/server.js"),
+    path.join(process.cwd(), ".next/standalone/apps/home/server.js"),
+  ]);
 }
 
 function reviewAgeDays(reviewedAt: string) {
@@ -141,8 +163,7 @@ async function buildPortfolioChecks(): Promise<RepoHealthCheck[]> {
 
     for (const image of study.gallery) {
       if (image.src.startsWith("/")) {
-        const assetPath = resolvePublicAssetPath(image.src);
-        const exists = await pathExists(assetPath);
+        const exists = await anyPathExists(resolvePublicAssetPath(image.src));
         if (!exists) {
           missingAssets.push(image.src);
         }
@@ -213,6 +234,16 @@ async function buildPortfolioChecks(): Promise<RepoHealthCheck[]> {
 }
 
 async function buildRouteCheck(): Promise<RepoHealthCheck> {
+  if (await isStandaloneRuntime()) {
+    return {
+      id: "public_routes",
+      label: "Public route source",
+      status: "ok",
+      detail: "Standalone production runtime detected; public routes are bundled into the current image.",
+      updatedAt: now(),
+    };
+  }
+
   const missingFiles: string[] = [];
 
   for (const relativePath of PUBLIC_ROUTE_FILES) {
@@ -255,6 +286,28 @@ async function buildRuntimeCheck(): Promise<RepoHealthCheck> {
 }
 
 async function buildIntakeCheck(): Promise<RepoHealthCheck> {
+  if (await isStandaloneRuntime()) {
+    const handoffVersionValid = CREATIVE_BRIEF_HANDOFF_VERSION.startsWith("cco.home.creative-brief.v");
+    const missingRequired = REQUIRED_RUNTIME_ENV.filter((key) => !resolveEnvValue(key));
+    const issues = [
+      ...(handoffVersionValid ? [] : ["handoff version is not namespaced correctly"]),
+      ...missingRequired.map((value) => `env ${value} missing`),
+    ];
+
+    return {
+      id: "intake_contract",
+      label: "Creative brief intake",
+      status: issues.length ? "fail" : "ok",
+      detail: issues.length
+        ? issues.join("; ")
+        : "Standalone production runtime detected and intake dependencies are configured.",
+      updatedAt: now(),
+      meta: {
+        handoffVersion: CREATIVE_BRIEF_HANDOFF_VERSION,
+      },
+    };
+  }
+
   const missingFiles: string[] = [];
 
   for (const relativePath of INTAKE_ROUTE_FILES) {
