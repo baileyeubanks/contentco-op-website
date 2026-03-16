@@ -705,7 +705,7 @@ function OnboardContent() {
 
   return (
     <div className={s.wrap}>
-      <Nav surface="brief" />
+      <Nav surface="home" />
       <div className={s.shell}>
         <Link href="/" className={s.backLink}>&larr; Back to Home</Link>
 
@@ -831,7 +831,7 @@ export default function OnboardPage() {
     <Suspense
       fallback={(
         <div className={s.wrap}>
-          <Nav surface="brief" />
+          <Nav surface="home" />
           <div className={s.shell} />
         </div>
       )}
