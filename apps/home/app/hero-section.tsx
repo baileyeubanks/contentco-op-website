@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { AmbientVideo } from "./ambient-video";
 
@@ -57,11 +58,27 @@ const TAGLINES = [
 ];
 
 interface HeroSectionProps {
-  clips: string[];
+  clips: readonly string[];
 }
 
 export function HeroSection({ clips }: HeroSectionProps) {
-  const t = TAGLINES[0];
+  const [idx, setIdx] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  const advance = useCallback(() => {
+    setFade(false);
+    setTimeout(() => {
+      setIdx((prev) => (prev + 1) % TAGLINES.length);
+      setFade(true);
+    }, 600);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(advance, 7000);
+    return () => clearInterval(interval);
+  }, [advance]);
+
+  const t = TAGLINES[idx];
 
   return (
     <section className="hero">
@@ -74,9 +91,9 @@ export function HeroSection({ clips }: HeroSectionProps) {
       <div
         className="hero-content"
         style={{
-          opacity: 1,
-          transform: "translateY(0)",
-          transition: "opacity 350ms ease, transform 350ms ease",
+          opacity: fade ? 1 : 0,
+          transform: fade ? "translateY(0)" : "translateY(12px)",
+          transition: "opacity 600ms ease, transform 600ms ease",
         }}
       >
         <h1>
@@ -85,7 +102,7 @@ export function HeroSection({ clips }: HeroSectionProps) {
           <em>{t.line2}</em>
         </h1>
         <p className="hero-subtitle">{t.sub}</p>
-        <Link className="button light" href="/book">
+        <Link className="button light" href="/onboard">
           Start a Project
         </Link>
       </div>
