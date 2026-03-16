@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const blazeApiUrl = process.env.BLAZE_API_URL ?? "";
+
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
@@ -10,6 +12,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@contentco-op/ui", "@contentco-op/brand", "@contentco-op/types"],
   expireTime: 60,
   async headers() {
+    const connectSrcExtra = blazeApiUrl ? ` ${blazeApiUrl}` : "";
     return [
       {
         source: "/:path*",
@@ -25,7 +28,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https:",
               "style-src 'self' 'unsafe-inline' https://calendar.google.com",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://calendar.google.com",
-              "connect-src 'self' https: http://10.0.0.21:8899 http://10.0.0.57:8080",
+              `connect-src 'self' https:${connectSrcExtra}`,
               "frame-src 'self' https://calendar.google.com",
               "font-src 'self' data:",
               "frame-ancestors 'none'",
