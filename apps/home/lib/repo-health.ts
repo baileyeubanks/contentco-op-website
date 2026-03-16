@@ -46,6 +46,13 @@ function normalizeStatus(status: "ok" | "degraded" | "down" | "missing" | "not_c
   return "fail";
 }
 
+function normalizeLegacyAuxStatus(
+  status: "ok" | "degraded" | "down" | "missing" | "not_configured",
+): RepoHealthCheckStatus {
+  if (status === "ok") return "ok";
+  return "warn";
+}
+
 function summarizeChecks(checks: RepoHealthCheck[]) {
   return checks.reduce(
     (summary, check) => {
@@ -367,8 +374,10 @@ async function buildDependencyChecks(scope: RepoHealthScope): Promise<RepoHealth
     {
       id: "deer_dependency",
       label: "Deer dependency",
-      status: normalizeStatus(rootHealth.deer.status),
-      detail: rootHealth.deer.error || `Status ${rootHealth.deer.status}${rootHealth.deer.statusCode ? ` (${rootHealth.deer.statusCode})` : ""}`,
+      status: normalizeLegacyAuxStatus(rootHealth.deer.status),
+      detail:
+        rootHealth.deer.error
+        || `Legacy auxiliary status ${rootHealth.deer.status}${rootHealth.deer.statusCode ? ` (${rootHealth.deer.statusCode})` : ""}`,
       updatedAt: rootHealth.timestamp,
       meta: {
         latencyMs: rootHealth.deer.latency_ms ?? null,

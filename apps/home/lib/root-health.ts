@@ -34,7 +34,6 @@ const REQUIRED_ENV = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_KEY",
-  "DEER_API_BASE_URL",
 ];
 
 const BLAZE_ENV_ALIASES = ["BLAZE_API_URL", "BLAZE_API_BASE_URL"];
@@ -137,12 +136,12 @@ async function checkExternalUrl(url: string, label: string): Promise<HealthSecti
 function deriveStatus(
   local: RootHealthSnapshot["local"],
   supabase: HealthSection,
-  externalOk: boolean,
+  blazeOk: boolean,
 ): RootHealthSnapshot["status"] {
   if (local.status !== "ok") return "critical";
   if (supabase.status === "down" || supabase.status === "missing") return "critical";
   if (supabase.status === "degraded") return "degraded";
-  if (!externalOk) return "degraded";
+  if (!blazeOk) return "degraded";
   return "healthy";
 }
 
@@ -190,10 +189,12 @@ export async function getRootHealthSnapshot(scope: RootHealthScope = "full"): Pr
     };
   }
 
-  const externalOk = !isDownOrDegraded(blaze) && !isDownOrDegraded(deer);
+  // Deer is a legacy auxiliary dependency. Keep reporting it, but do not let a
+  // missing or degraded Deer lane mark the merged HOME/ROOT runtime critical.
+  const blazeOk = !isDownOrDegraded(blaze);
 
   return {
-    status: deriveStatus(local, supabase, externalOk),
+    status: deriveStatus(local, supabase, blazeOk),
     scope,
     timestamp: now(),
     required_env: { ...required, present: sanitizePresentEnv(required.present) },
