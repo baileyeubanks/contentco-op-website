@@ -11,12 +11,12 @@ interface GalleryImage {
 }
 
 interface RotatingGalleryProps {
-  images: GalleryImage[];
+  images: readonly GalleryImage[];
   columns?: number;
   interval?: number;
 }
 
-function shuffle<T>(arr: T[]): T[] {
+function shuffle<T>(arr: readonly T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -76,22 +76,17 @@ function GallerySlot({ images, delay, interval }: { images: GalleryImage[]; dela
     );
     obs.observe(el);
 
-    const startTimer = setTimeout(() => {
-      const timer = setInterval(advance, interval);
-      return () => clearInterval(timer);
-    }, delay);
-
-    // Also set a recurring interval after delay
-    let timer: ReturnType<typeof setInterval>;
     const delayTimer = setTimeout(() => {
-      timer = setInterval(advance, interval);
+      advance();
+      const timer = setInterval(advance, interval);
+      cleanupTimer = () => clearInterval(timer);
     }, delay);
+    let cleanupTimer = () => {};
 
     return () => {
       obs.disconnect();
-      clearTimeout(startTimer);
       clearTimeout(delayTimer);
-      if (timer) clearInterval(timer);
+      cleanupTimer();
     };
   }, [advance, delay, interval]);
 

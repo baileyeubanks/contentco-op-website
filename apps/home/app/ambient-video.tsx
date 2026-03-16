@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 
 interface AmbientVideoProps {
-  src: string | string[];
+  src: string | readonly string[];
   poster: string;
   label?: string;
 }
 
-function shuffle<T>(arr: T[], keepFirst = 0): T[] {
+function shuffle<T>(arr: readonly T[], keepFirst = 0): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > keepFirst; i--) {
     const j = keepFirst + Math.floor(Math.random() * (i - keepFirst + 1));
@@ -50,7 +50,7 @@ function SingleClipVideo({ src, poster, label }: { src: string; poster: string; 
 }
 
 /* ── Multi clip: crossfade rotation ── */
-function MultiClipVideo({ clips, poster, label }: { clips: string[]; poster: string; label: string }) {
+function MultiClipVideo({ clips, poster, label }: { clips: readonly string[]; poster: string; label: string }) {
   const [playlist] = useState(() => shuffle(clips, 3));
   const indexRef = useRef(0);
   const videoARef = useRef<HTMLVideoElement | null>(null);

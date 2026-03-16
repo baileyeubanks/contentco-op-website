@@ -1308,6 +1308,11 @@ h1, h2, h3, h4 {
   pointer-events: none;
 }
 
+.trust-photo-image {
+  width: 100%;
+  height: 100%;
+}
+
 .trust-text {
   display: grid;
   gap: 1.4rem;
