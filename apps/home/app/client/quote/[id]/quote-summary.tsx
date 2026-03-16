@@ -2,26 +2,31 @@
 
 import Image from "next/image";
 import type { QuoteData, QuoteItem } from "./quote-client-view";
+import { TierSelector, buildTiers, type TierKey, type TierOption } from "./tier-selector";
 
 export function QuoteSummary({
   quote,
   items,
   onAccept,
+  selectedTier,
+  onSelectTier,
 }: {
   quote: QuoteData;
   items: QuoteItem[];
   onAccept: () => void;
+  selectedTier: TierKey;
+  onSelectTier: (tier: TierKey, option: TierOption) => void;
 }) {
+  const tiers = buildTiers(quote, items);
+  const activeTier = tiers.find((t) => t.key === selectedTier) ?? tiers[1];
+
   const createdDate = new Date(quote.created_at);
   const validUntil = new Date(createdDate.getTime() + 14 * 24 * 60 * 60 * 1000);
-  const depositDollars = (quote.deposit_amount_cents / 100).toFixed(2);
-  const total = Number(quote.estimated_total);
+  const depositDollars = (activeTier.depositCents / 100).toFixed(2);
+  const total = activeTier.price;
 
-  /* Filter out internal adjustment items, group by service_type kind */
-  const displayItems = items.filter((item) => {
-    const kind = (item.metadata as Record<string, unknown>)?.kind;
-    return kind !== "delta" && kind !== "residual";
-  });
+  /* Use items from the active tier for display */
+  const displayItems = activeTier.items;
   const phases = new Map<string, QuoteItem[]>();
   for (const item of displayItems) {
     const phase = (item.metadata as Record<string, unknown>)?.kind === "addon" ? "Add-Ons" : "Services";
@@ -132,6 +137,14 @@ export function QuoteSummary({
           </div>
         )}
 
+        {/* Tier selector */}
+        <TierSelector
+          quote={quote}
+          items={items}
+          selectedTier={selectedTier}
+          onSelectTier={onSelectTier}
+        />
+
         {/* Line items table */}
         <div className="border border-gray-200 rounded-xl overflow-hidden mb-6">
           <table className="w-full text-sm">
@@ -178,7 +191,7 @@ export function QuoteSummary({
             </div>
             <div className="flex justify-between px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
               <span>Balance due on completion</span>
-              <span>${(total - quote.deposit_amount_cents / 100).toFixed(2)}</span>
+              <span>${(total - activeTier.depositCents / 100).toFixed(2)}</span>
             </div>
           </div>
         </div>

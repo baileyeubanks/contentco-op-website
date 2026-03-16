@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { QuoteSummary } from "./quote-summary";
 import { AgreementSection } from "./agreement-section";
 import { CheckoutSection } from "./checkout-section";
+import { buildTiers, type TierKey, type TierOption } from "./tier-selector";
 
 export type QuoteData = {
   id: string;
@@ -57,6 +58,23 @@ export function QuoteClientView({
 
   const [step, setStep] = useState<Step>(initialStep);
 
+  /* Tier selection state — default to "recommended" (the original quote) */
+  const [selectedTier, setSelectedTier] = useState<TierKey>("recommended");
+
+  const tiers = useMemo(() => buildTiers(quote, items), [quote, items]);
+  const activeTier = tiers.find((t) => t.key === selectedTier) ?? tiers[1];
+
+  /* Build an adjusted quote object with the tier price/deposit for checkout */
+  const adjustedQuote: QuoteData = useMemo(() => ({
+    ...quote,
+    estimated_total: activeTier.price,
+    deposit_amount_cents: activeTier.depositCents,
+  }), [quote, activeTier]);
+
+  const handleSelectTier = (key: TierKey, _option: TierOption) => {
+    setSelectedTier(key);
+  };
+
   /* Progress indicator */
   const steps: { key: Step; label: string }[] = [
     { key: "summary", label: "Review" },
@@ -78,20 +96,22 @@ export function QuoteClientView({
         <p className="text-gray-600 max-w-md mx-auto mb-6">
           Thank you, {quote.client_name}. Your deposit of{" "}
           <span className="font-semibold">
-            ${(quote.deposit_amount_cents / 100).toFixed(2)}
+            ${(adjustedQuote.deposit_amount_cents / 100).toFixed(2)}
           </span>{" "}
           has been received. We&apos;ll be in touch shortly to schedule your service.
         </p>
         <div className="bg-white rounded-xl border border-gray-200 p-6 max-w-sm mx-auto text-left">
           <p className="text-sm text-gray-500 mb-1">Quote</p>
           <p className="font-semibold text-gray-900 mb-3">#{quote.quote_number}</p>
+          <p className="text-sm text-gray-500 mb-1">Package</p>
+          <p className="font-semibold text-gray-900 mb-3 capitalize">{selectedTier}</p>
           <p className="text-sm text-gray-500 mb-1">Total</p>
           <p className="font-semibold text-gray-900 mb-3">
-            ${Number(quote.estimated_total).toFixed(2)}
+            ${Number(adjustedQuote.estimated_total).toFixed(2)}
           </p>
           <p className="text-sm text-gray-500 mb-1">Deposit Paid</p>
           <p className="font-semibold text-green-700">
-            ${(quote.deposit_amount_cents / 100).toFixed(2)}
+            ${(adjustedQuote.deposit_amount_cents / 100).toFixed(2)}
           </p>
         </div>
         <p className="text-sm text-gray-400 mt-8">
@@ -151,12 +171,14 @@ export function QuoteClientView({
           quote={quote}
           items={items}
           onAccept={() => setStep("agreement")}
+          selectedTier={selectedTier}
+          onSelectTier={handleSelectTier}
         />
       )}
 
       {step === "agreement" && (
         <AgreementSection
-          quote={quote}
+          quote={adjustedQuote}
           onBack={() => setStep("summary")}
           onAccepted={() => setStep("checkout")}
         />
@@ -164,7 +186,7 @@ export function QuoteClientView({
 
       {step === "checkout" && (
         <CheckoutSection
-          quote={quote}
+          quote={adjustedQuote}
           onBack={() => setStep("agreement")}
           onSuccess={() => setStep("confirmed")}
         />
