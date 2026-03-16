@@ -35,11 +35,11 @@ export async function GET(
   }
 
   /* Fetch line items */
-  const { data: items } = await sb
+  const { data: items, error: itemsError } = await sb
     .from("quote_items")
-    .select("id, description, quantity, unit_price, phase_name")
+    .select("id, name, description, quantity, unit_price, subtotal, sort_order, service_type, metadata")
     .eq("quote_id", id)
-    .order("created_at", { ascending: true });
+    .order("sort_order", { ascending: true });
 
   return NextResponse.json({
     quote: {

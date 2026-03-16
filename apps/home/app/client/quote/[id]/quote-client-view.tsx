@@ -28,10 +28,14 @@ export type QuoteData = {
 
 export type QuoteItem = {
   id: string;
+  name: string | null;
   description: string;
   quantity: number;
   unit_price: number;
-  phase_name: string | null;
+  subtotal: number | null;
+  sort_order: number | null;
+  service_type: string | null;
+  metadata: Record<string, unknown> | null;
 };
 
 type Step = "summary" | "agreement" | "checkout" | "confirmed";

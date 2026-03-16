@@ -17,10 +17,14 @@ export function QuoteSummary({
   const depositDollars = (quote.deposit_amount_cents / 100).toFixed(2);
   const total = Number(quote.estimated_total);
 
-  /* Group items by phase_name if present */
+  /* Filter out internal adjustment items, group by service_type kind */
+  const displayItems = items.filter((item) => {
+    const kind = (item.metadata as Record<string, unknown>)?.kind;
+    return kind !== "delta" && kind !== "residual";
+  });
   const phases = new Map<string, QuoteItem[]>();
-  for (const item of items) {
-    const phase = item.phase_name || "Services";
+  for (const item of displayItems) {
+    const phase = (item.metadata as Record<string, unknown>)?.kind === "addon" ? "Add-Ons" : "Services";
     if (!phases.has(phase)) phases.set(phase, []);
     phases.get(phase)!.push(item);
   }
@@ -249,7 +253,7 @@ function PhaseGroup({
         const lineTotal = item.quantity * item.unit_price;
         return (
           <tr key={item.id} className="hover:bg-gray-50/50">
-            <td className="px-4 py-3 text-gray-900">{item.description}</td>
+            <td className="px-4 py-3 text-gray-900">{item.name || item.description}</td>
             <td className="px-3 py-3 text-center text-gray-600">{item.quantity}</td>
             <td className="px-3 py-3 text-right text-gray-600">
               ${Number(item.unit_price).toFixed(2)}
