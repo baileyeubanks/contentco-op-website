@@ -1,5 +1,8 @@
 /* ─── Shared type definitions ─── */
 
+/* ─── ROOT Canonical Ontology ─── */
+export * from "./ontology";
+
 /* ─── Roles ─── */
 export type RoleTag = "context" | "trust" | "process" | "texture";
 
