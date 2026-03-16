@@ -3,8 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
-  images: { unoptimized: true },
+  images: {
+    unoptimized: true,
+    qualities: [75, 82, 85],
+  },
   transpilePackages: ["@contentco-op/ui", "@contentco-op/brand", "@contentco-op/types"],
+  expireTime: 60,
   async headers() {
     return [
       {
@@ -29,6 +33,7 @@ const nextConfig: NextConfig = {
               "form-action 'self'",
             ].join("; "),
           },
+          { key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" },
         ],
       },
     ];
