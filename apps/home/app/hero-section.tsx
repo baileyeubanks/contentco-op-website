@@ -58,7 +58,7 @@ const TAGLINES = [
 ];
 
 interface HeroSectionProps {
-  clips: readonly string[];
+  clips: string[];
 }
 
 export function HeroSection({ clips }: HeroSectionProps) {
