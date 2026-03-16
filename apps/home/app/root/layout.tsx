@@ -1,5 +1,7 @@
 import { headers } from "next/headers";
 import { resolveRootBrand } from "@/lib/root-brand";
+import { RootShell } from "@/app/root/components/root-shell";
+import "@contentco-op/ui/src/atlantis/tokens.css";
 
 export default async function RootAppLayout({
   children,
@@ -25,7 +27,7 @@ export default async function RootAppLayout({
         } as React.CSSProperties
       }
     >
-      {children}
+      <RootShell brandKey={brand.key}>{children}</RootShell>
     </div>
   );
 }
