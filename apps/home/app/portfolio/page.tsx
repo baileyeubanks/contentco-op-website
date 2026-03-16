@@ -5,8 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Nav } from "@contentco-op/ui";
 
 // ── CDN Base ─────────────────────────────────────────────────────
-// Update this after deploying CC_PORTFOLIO_WEB to Netlify
-const CDN = "https://cc-portfolio-cdn.netlify.app";
+const CDN = "/cc/portfolio-cdn";
 
 // ── Types ────────────────────────────────────────────────────────
 interface Episode {
@@ -52,21 +51,21 @@ const ITEMS: PortfolioItem[] = [
     category: "Energy",
     description:
       "Nine-episode animated safety series covering CITGO's Life Critical Rules — the essential safety standards governing permit work, energy isolation, confined spaces, PPE, working at heights, lifting, and more. Produced with cinematic animation and in-field footage.",
-    thumb: `${CDN}/instagram-video-1761251931353_1_iris3.jpg`,
+    thumb: `${CDN}/thumb_citgo_ep1.jpg`,
     file: `${CDN}/CITGO_LCR_Ep1_web.mp4`,
     year: "2024",
     duration: "2:41",
     isGroup: true,
     episodes: [
-      { title: "Ep. 1 — A Valid Permit",       file: `${CDN}/CITGO_LCR_Ep1_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep1_web.jpg`,  duration: "2:41" },
-      { title: "Ep. 2 — Energy Isolation",     file: `${CDN}/CITGO_LCR_Ep2_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep2_web.jpg`,  duration: "2:42" },
-      { title: "Ep. 3 — Confined Spaces",      file: `${CDN}/CITGO_LCR_Ep3_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep3_web.jpg`,  duration: "2:03" },
-      { title: "Ep. 4 — Required PPE",         file: `${CDN}/CITGO_LCR_Ep4_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep4_web.jpg`,  duration: "2:09" },
-      { title: "Ep. 5 — Working at Heights",   file: `${CDN}/CITGO_LCR_Ep5_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep5_web.jpg`,  duration: "1:48" },
-      { title: "Ep. 6 — Lifting Operations",   file: `${CDN}/CITGO_LCR_Ep6_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep6_web.jpg`,  duration: "2:01" },
-      { title: "Ep. 7 — Permit Overriding",    file: `${CDN}/CITGO_LCR_Ep7_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep7_web.jpg`,  duration: "1:49" },
-      { title: "Ep. 8 — Abandoning Hazards",   file: `${CDN}/CITGO_LCR_Ep8_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep8_web.jpg`,  duration: "2:16" },
-      { title: "Ep. 9 — Line of Fire",         file: `${CDN}/CITGO_LCR_Ep9_web.mp4`, thumb: `${CDN}/CITGO_LCR_Ep9_web.jpg`,  duration: "2:47" },
+      { title: "Ep. 1 — A Valid Permit",       file: `${CDN}/CITGO_LCR_Ep1_web.mp4`, thumb: `${CDN}/thumb_citgo_ep1.jpg`,  duration: "2:41" },
+      { title: "Ep. 2 — Energy Isolation",     file: `${CDN}/CITGO_LCR_Ep2_web.mp4`, thumb: `${CDN}/thumb_citgo_ep2.jpg`,  duration: "2:42" },
+      { title: "Ep. 3 — Confined Spaces",      file: `${CDN}/CITGO_LCR_Ep3_web.mp4`, thumb: `${CDN}/thumb_citgo_ep3.jpg`,  duration: "2:03" },
+      { title: "Ep. 4 — Required PPE",         file: `${CDN}/CITGO_LCR_Ep4_web.mp4`, thumb: `${CDN}/thumb_citgo_ep4.jpg`,  duration: "2:09" },
+      { title: "Ep. 5 — Working at Heights",   file: `${CDN}/CITGO_LCR_Ep5_web.mp4`, thumb: `${CDN}/thumb_citgo_ep5.jpg`,  duration: "1:48" },
+      { title: "Ep. 6 — Lifting Operations",   file: `${CDN}/CITGO_LCR_Ep6_web.mp4`, thumb: `${CDN}/thumb_citgo_ep6.jpg`,  duration: "2:01" },
+      { title: "Ep. 7 — Permit Overriding",    file: `${CDN}/CITGO_LCR_Ep7_web.mp4`, thumb: `${CDN}/thumb_citgo_ep7.jpg`,  duration: "1:49" },
+      { title: "Ep. 8 — Abandoning Hazards",   file: `${CDN}/CITGO_LCR_Ep8_web.mp4`, thumb: `${CDN}/thumb_citgo_ep8.jpg`,  duration: "2:16" },
+      { title: "Ep. 9 — Line of Fire",         file: `${CDN}/CITGO_LCR_Ep9_web.mp4`, thumb: `${CDN}/thumb_citgo_ep9.jpg`,  duration: "2:47" },
     ],
     tags: ["animation", "safety", "oil & gas"],
   },
@@ -79,17 +78,17 @@ const ITEMS: PortfolioItem[] = [
     category: "Event",
     description:
       "A suite of content produced for BP's presence at the Houston Livestock Show & Rodeo at NRG Stadium. Includes cinematic broadcast spots, a recap of the on-site event, and large-format jumbotron pieces mastered for NRG's main screen.",
-    thumb: `${CDN}/HLSR_2025_v.1.jpg`,
+    thumb: `${CDN}/thumb_hlsr_2025.jpg`,
     file: `${CDN}/HLSR_2025_v.1.mp4`,
     year: "2025",
     duration: "0:30",
     isGroup: true,
     episodes: [
-      { title: "HLSR 2025 Spot",          file: `${CDN}/HLSR_2025_v.1.mp4`,          thumb: `${CDN}/HLSR_2025_v.1.jpg`,          duration: "0:30" },
-      { title: "HLSR 2024 — Volunteers",  file: `${CDN}/HLSR_2024_web.mp4`,           thumb: `${CDN}/HLSR_2024_web.jpg`,           duration: "0:30" },
-      { title: "Rodeo Recap",             file: `${CDN}/Rodeo_Recap_BP_web.mp4`,      thumb: `${CDN}/Rodeo_Recap_BP_web.jpg`,      duration: "0:49" },
-      { title: "NRG Jumbotron Grid",      file: `${CDN}/XXX_Final_Jumbotron.mp4`,     thumb: `${CDN}/XXX_Final_Jumbotron.jpg`,     duration: "0:20", ar: "5.28/1" },
-      { title: "NRG Wide Promo",          file: `${CDN}/The_Title_Promo_X_2.mp4`,     thumb: `${CDN}/The_Title_Promo_X_2.jpg`,     duration: "0:37", ar: "2.08/1" },
+      { title: "HLSR 2025 Spot",          file: `${CDN}/HLSR_2025_v.1.mp4`,          thumb: `${CDN}/thumb_hlsr_2025.jpg`,          duration: "0:30" },
+      { title: "HLSR 2024 — Volunteers",  file: `${CDN}/HLSR_2024_web.mp4`,           thumb: `${CDN}/thumb_hlsr_2024.jpg`,           duration: "0:30" },
+      { title: "Rodeo Recap",             file: `${CDN}/Rodeo_Recap_BP_web.mp4`,      thumb: `${CDN}/thumb_rodeo_recap.jpg`,      duration: "0:49" },
+      { title: "NRG Jumbotron Grid",      file: `${CDN}/XXX_Final_Jumbotron.mp4`,     thumb: `${CDN}/thumb_jumbotron.jpg`,     duration: "0:20", ar: "5.28/1" },
+      { title: "NRG Wide Promo",          file: `${CDN}/The_Title_Promo_X_2.mp4`,     thumb: `${CDN}/thumb_title_promo.jpg`,     duration: "0:37", ar: "2.08/1" },
     ],
     tags: ["event", "broadcast", "jumbotron"],
   },
@@ -102,15 +101,15 @@ const ITEMS: PortfolioItem[] = [
     category: "Energy",
     description:
       "Conference coverage produced for ABB and Schneider Electric at CERAWeek and related energy industry summits. Executive interviews, brand sizzles, and event recaps — capturing the energy industry's biggest ideas from the world's leading energy conference.",
-    thumb: `${CDN}/Schneider_2024_Recap_v.XX.jpg`,
+    thumb: `${CDN}/thumb_schneider.jpg`,
     file: `${CDN}/Schneider_2024_Recap_v.XX.mp4`,
     year: "2024",
     duration: "2:18",
     isGroup: true,
     episodes: [
-      { title: "Schneider Electric — 2024 Recap",   file: `${CDN}/Schneider_2024_Recap_v.XX.mp4`,              thumb: `${CDN}/Schneider_2024_Recap_v.XX.jpg`,              duration: "2:18" },
-      { title: "ABB at CERAWeek",                    file: `${CDN}/instagram-video-1761251591061_1_prob4.mp4`,   thumb: `${CDN}/instagram-video-1761251591061_1_prob4.jpg`,   duration: "1:36" },
-      { title: "ABB — #HerStory",                   file: `${CDN}/instagram-video-1761251505774_1_prob4.mp4`,   thumb: `${CDN}/instagram-video-1761251505774_1_prob4.jpg`,   duration: "1:17" },
+      { title: "Schneider Electric — 2024 Recap",   file: `${CDN}/Schneider_2024_Recap_v.XX.mp4`,              thumb: `${CDN}/thumb_schneider.jpg`,              duration: "2:18" },
+      { title: "ABB at CERAWeek",                    file: `${CDN}/instagram-video-1761251591061_1_prob4.mp4`,   thumb: `${CDN}/thumb_abb.jpg`,   duration: "1:36" },
+      { title: "ABB — #HerStory",                   file: `${CDN}/instagram-video-1761251505774_1_prob4.mp4`,   thumb: `${CDN}/thumb_abb_herstory.jpg`,   duration: "1:17" },
     ],
     tags: ["conference", "B2B", "energy"],
   },
@@ -123,7 +122,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Energy",
     description:
       "Full production brand film showcasing precision measurement solutions for the energy sector. Multi-day shoot spanning facilities, field operations, and executive interviews.",
-    thumb: `${CDN}/Accurate_Meter_FINAL_X.jpg`,
+    thumb: `${CDN}/thumb_accurate_meter.jpg`,
     file: `${CDN}/Accurate_Meter_FINAL_X_web.mp4`,
     year: "2018",
     duration: "2:17",
@@ -138,7 +137,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Industrial",
     description:
       "Industrial brand film for Adaptive Stainless — a Texas-based custom fabrication and metalwork company. Cinematic coverage of the shop floor, fabrication process, and team.",
-    thumb: `${CDN}/Adaptive_Stainless_v.16.jpg`,
+    thumb: `${CDN}/thumb_adaptive.jpg`,
     file: `${CDN}/Adaptive_Stainless_v.16.mp4`,
     year: "2024",
     duration: "1:45",
@@ -153,7 +152,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Energy",
     description:
       "Recruitment video for Kodiak Gas Services highlighting field operations, equipment, and team culture. Produced to attract skilled technicians and operators to one of the largest gas compression service companies in the U.S.",
-    thumb: `${CDN}/Kodiak_Recruitment_web.jpg`,
+    thumb: `${CDN}/thumb_kodiak.jpg`,
     file: `${CDN}/Kodiak_Recruitment_web.mp4`,
     year: "2022",
     duration: "3:30",
@@ -168,7 +167,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Energy",
     description:
       "Aerial and ground-level production for Industrial Contractors of Arkansas featuring refinery operations, CEO interview, and facility coverage across the Arkansas energy corridor.",
-    thumb: `${CDN}/EIR30_12mb.jpg`,
+    thumb: `${CDN}/thumb_ica_aerial.jpg`,
     file: `${CDN}/EIR30_12mb.mp4`,
     year: "2023",
     duration: "0:30",
@@ -183,7 +182,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Energy",
     description:
       "Executive interview with CEO Michael Kirkland of Industrial Contractors of Arkansas — covering the company's growth, capabilities, and approach to large-scale energy construction projects.",
-    thumb: `${CDN}/instagram-video-1761251546096_1_prob4.jpg`,
+    thumb: `${CDN}/thumb_ica_ceo.jpg`,
     file: `${CDN}/instagram-video-1761251546096_1_prob4.mp4`,
     year: "2023",
     duration: "1:30",
@@ -198,7 +197,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Sports",
     description:
       "Animated content produced for BP's youth STEM education initiative — showcasing kids engaged in art, science, and creative learning through BP's community investment programs.",
-    thumb: `${CDN}/instagram-video-1761252052423_1_iris3.jpg`,
+    thumb: `${CDN}/thumb_bp_stem.jpg`,
     file: `${CDN}/instagram-video-1761252052423_1_iris3.mp4`,
     year: "2024",
     duration: "1:00",
@@ -213,7 +212,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Sports",
     description:
       "Competition swimming coverage capturing athletes in the water. Slow-motion underwater sequences and poolside coverage for athletic content.",
-    thumb: `${CDN}/instagram-video-1761252126160_1_iris3.jpg`,
+    thumb: `${CDN}/thumb_swimming.jpg`,
     file: `${CDN}/instagram-video-1761252126160_1_iris3.mp4`,
     year: "2024",
     duration: "1:00",
@@ -228,7 +227,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Sports",
     description:
       "Gymnastics competition coverage featuring floor routines, apparatus work, and performance moments. Cinematic slow-motion and live action capture.",
-    thumb: `${CDN}/instagram-video-1761252107336_iris3.jpg`,
+    thumb: `${CDN}/thumb_gymnastics.jpg`,
     file: `${CDN}/instagram-video-1761252107336_iris3.mp4`,
     year: "2024",
     duration: "0:57",
@@ -243,7 +242,7 @@ const ITEMS: PortfolioItem[] = [
     category: "Sports",
     description:
       "Basketball game coverage including scoreboard action and in-game moments. Multi-camera sports production for athletic content.",
-    thumb: `${CDN}/instagram-video-1761251765870_1_prob4.jpg`,
+    thumb: `${CDN}/thumb_basketball.jpg`,
     file: `${CDN}/instagram-video-1761251765870_1_prob4.mp4`,
     year: "2024",
     duration: "1:12",
