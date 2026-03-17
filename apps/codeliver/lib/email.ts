@@ -45,6 +45,7 @@ export async function sendEmail(payload: EmailPayload): Promise<{ id: string } |
 
 export function getBaseUrl(): string {
   if (typeof window !== "undefined") return window.location.origin;
+  if (process.env.APP_BASE_URL) return process.env.APP_BASE_URL;
   if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return "http://localhost:3000";

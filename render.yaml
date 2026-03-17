@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    branch: main
+    branch: blaze-v4/codeliver-render-suite
     autoDeploy: true
     buildCommand: npm ci && npm run build -w co-deliver
     startCommand: npm run start -w co-deliver
@@ -16,6 +16,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: APP_BASE_URL
+        value: https://contentco-op-codeliver.onrender.com
       - key: NEXT_PUBLIC_MONOREPO_URL
         value: https://github.com/baileyeubanks/blaze-v4
       - key: NEXT_PUBLIC_COCUT_URL
@@ -42,7 +44,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    branch: main
+    branch: blaze-v4/codeliver-render-suite
     autoDeploy: true
     buildCommand: npm ci && npm run build -w co-script
     startCommand: npm run start -w co-script
@@ -82,7 +84,7 @@ services:
     runtime: static
     plan: free
     region: oregon
-    branch: main
+    branch: blaze-v4/codeliver-render-suite
     autoDeploy: true
     buildCommand: npm ci && npm run build -w co-cut
     staticPublishPath: ./apps/cocut/dist
