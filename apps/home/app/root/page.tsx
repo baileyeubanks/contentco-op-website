@@ -1,156 +1,88 @@
-import Link from "next/link";
-import { headers } from "next/headers";
-import { resolveRootBrand } from "@/lib/root-brand";
+"use client";
 
-const ROLE_CARDS = [
-  {
-    title: "Client",
-    body: "Track quotes, invoices, files, and communication history.",
-    href: "/login",
-  },
-  {
-    title: "Crew",
-    body: "View assignments, routing, live dispatch state, and checklists.",
-    href: "/root/login",
-  },
-  {
-    title: "Admin",
-    body: "Run approvals, finance, documents, dispatch, and system health.",
-    href: "/root/login",
-  },
-  {
-    title: "Root",
-    body: "Open the full operations core for Astro Cleanings and Content Co-op.",
-    href: "/root/login",
-  },
-];
+import { useState } from "react";
+import { createClient } from "@/lib/supabase-browser";
 
-export default async function RootEntryPage() {
-  const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+export default function RootLoginPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+  async function handleLogin(e: React.FormEvent) {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+      const supabase = createClient();
+        const { error: authError } = await supabase.auth.signInWithPassword({
+                email: email.trim().toLowerCase(),
+                password,
+        });
+
+      if (authError) {
+              setError(authError.message);
+              setLoading(false);
+              return;
+      }
+
+      window.location.href = "/root/overview";
+  }
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 32 }}>
-      <div
-        style={{
-          width: "min(1180px, 100%)",
-          display: "grid",
-          gap: 24,
-        }}
-      >
-        <div
-          style={{
-            padding: "28px 30px",
-            borderRadius: 18,
-            border: "1px solid var(--line)",
-            background: "rgba(255,255,255,0.03)",
-            boxShadow: "0 18px 80px rgba(0,0,0,0.24)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <span
-              style={{
-                width: 9,
-                height: 9,
-                borderRadius: "50%",
-                background: "var(--root-accent)",
-                boxShadow: "0 0 14px var(--root-accent)",
-              }}
-            />
-            <span style={{ fontSize: "1.08rem", fontWeight: 760, letterSpacing: "-0.03em" }}>
-              root
-            </span>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gap: 12,
-              gridTemplateColumns: "1.3fr 1fr",
-              alignItems: "end",
-            }}
-          >
-            <div>
-              <h1
+        <main
                 style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "clamp(2.4rem, 5vw, 5rem)",
-                  lineHeight: 0.92,
-                  letterSpacing: "-0.06em",
-                  margin: 0,
+                          minHeight: "100vh",
+                          display: "grid",
+                          placeItems: "center",
+                          padding: 24,
                 }}
               >
-                One operating system.
-                <br />
-                <em style={{ color: "var(--root-accent)", fontStyle: "italic" }}>
-                  Two businesses.
-                </em>
-              </h1>
-            </div>
-            <div style={{ color: "var(--muted)", fontSize: "0.95rem", lineHeight: 1.6 }}>
-              <div style={{ textTransform: "uppercase", letterSpacing: "0.16em", fontSize: "0.66rem", marginBottom: 8 }}>
-                {brand.domainLabel}
-              </div>
-              <div>{brand.loginHint}</div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            gap: 16,
-          }}
-        >
-          {ROLE_CARDS.map((card) => (
-            <Link
-              key={card.title}
-              href={card.href}
-              style={{
-                display: "grid",
-                gap: 10,
-                textDecoration: "none",
-                color: "inherit",
-                padding: "20px 18px",
-                borderRadius: 16,
-                background: "rgba(255,255,255,0.025)",
-                border: "1px solid rgba(255,255,255,0.07)",
-                minHeight: 180,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "0.68rem",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.14em",
-                  color: "var(--muted)",
-                }}
-              >
-                {card.title}
-              </div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", letterSpacing: "-0.04em" }}>
-                {card.title === "Root" ? "Operations Core" : `${card.title} Access`}
-              </div>
-              <p style={{ margin: 0, color: "var(--muted)", lineHeight: 1.6, fontSize: "0.9rem" }}>
-                {card.body}
-              </p>
-              <span
-                style={{
-                  marginTop: "auto",
-                  fontSize: "0.72rem",
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--root-accent)",
-                  fontWeight: 700,
-                }}
-              >
-                Open →
-              </span>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </main>
-  );
-}
+              <div className="root-login-card">
+                      <div className="root-login-brand">
+                                <span className="root-login-dot" />
+                                <span className="root-login-name">root</span>span>
+                      </div>div>
+              
+                      <p className="root-login-sub">admin access only · email + password</p>p>
+              
+                      <form onSubmit={handleLogin} className="root-login-form">
+                                <label className="root-login-field">
+                                            <span className="root-login-label">Email</span>span>
+                                            <input
+                                                            type="email"
+                                                            value={email}
+                                                            onChange={(e) => setEmail(e.target.value)}
+                                                            placeholder="you@company.com"
+                                                            className="root-login-input"
+                                                            required
+                                                            autoFocus
+                                                          />
+                                </label>label>
+                      
+                                <label className="root-login-field">
+                                            <span className="root-login-label">Password</span>span>
+                                            <input
+                                                            type="password"
+                                                            value={password}
+                                                            onChange={(e) => setPassword(e.target.value)}
+                                                            placeholder="••••••••"
+                                                            className="root-login-input"
+                                                            required
+                                                          />
+                                </label>label>
+                      
+                        {error && <div className="root-login-error">{error}</div>div>}
+                      
+                                <button
+                                              type="submit"
+                                              className="root-login-btn"
+                                              disabled={loading}
+                                            >
+                                  {loading ? "signing in..." : "sign in to root"}
+                                </button>button>
+                      </form>form>
+              </div>div>
+        </main>main>
+      );
+}</main>
