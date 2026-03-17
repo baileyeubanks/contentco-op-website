@@ -87,9 +87,16 @@ export default async function ClientQuotePage({
 
   const clientItems = (items ?? []).map((item: any) => ({
     id: item.id,
+    name: item.name ?? item.description ?? "Line item",
     description: item.description,
     quantity: item.quantity,
     unit_price: item.unit_price,
+    subtotal:
+      item.subtotal ??
+      Number(item.quantity ?? 0) * Number(item.unit_price ?? 0),
+    sort_order: item.sort_order ?? null,
+    service_type: item.service_type ?? quote.service_type ?? null,
+    metadata: item.metadata ?? null,
     phase_name: item.phase_name,
   }));
 

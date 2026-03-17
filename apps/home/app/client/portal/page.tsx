@@ -1,15 +1,8 @@
 import { getSupabase } from "../../../lib/supabase";
 import { PortalView } from "./portal-view";
+import type { PortalData } from "./portal-view";
 
 export const dynamic = "force-dynamic";
-
-interface PortalData {
-  contact: Record<string, unknown>;
-  quotes: Record<string, unknown>[];
-  jobs: Record<string, unknown>[];
-  invoices: Record<string, unknown>[];
-  payments: Record<string, unknown>[];
-}
 
 async function fetchPortalData(
   email?: string,

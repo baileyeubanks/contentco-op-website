@@ -8,14 +8,14 @@ import { Button } from "@contentco-op/ui/src/atlantis/Button";
 
 /* ---------- Types ---------- */
 
-interface Contact {
+export interface Contact {
   id: string;
   name: string;
   email: string;
   phone: string;
 }
 
-interface Quote {
+export interface Quote {
   id: string;
   quote_number: string;
   service_type: string;
@@ -25,7 +25,7 @@ interface Quote {
   created_at: string;
 }
 
-interface Job {
+export interface Job {
   id: string;
   service_address: string;
   scheduled_start: string;
@@ -36,7 +36,7 @@ interface Job {
   total_amount_cents: number;
 }
 
-interface Invoice {
+export interface Invoice {
   id: string;
   invoice_number: string;
   amount: number;
@@ -49,7 +49,7 @@ interface Invoice {
   created_at: string;
 }
 
-interface Payment {
+export interface Payment {
   id: string;
   quote_id: string;
   invoice_id: string;
@@ -59,7 +59,7 @@ interface Payment {
   created_at: string;
 }
 
-interface PortalData {
+export interface PortalData {
   contact: Contact;
   quotes: Quote[];
   jobs: Job[];
