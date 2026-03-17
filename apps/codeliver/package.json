@@ -8,8 +8,8 @@
   "scripts": {
     "dev": "next dev -p 4103",
     "build": "next build",
-    "start": "next start -p 4103",
-    "lint": "next lint",
+    "start": "sh -c 'next start --hostname 0.0.0.0 --port ${PORT:-4103}'",
+    "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -25,6 +25,7 @@
     "marked": "^17.0.3",
     "nanoid": "^5.1.6",
     "next": "16.1.6",
+    "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",

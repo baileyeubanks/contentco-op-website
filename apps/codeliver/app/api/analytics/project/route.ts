@@ -63,17 +63,28 @@ async function getAggregateAnalytics(
   supabase: ReturnType<typeof getSupabase>,
   projectId: string
 ) {
+  const assetIds =
+    (
+      await supabase
+        .from("assets")
+        .select("id")
+        .eq("project_id", projectId)
+        .is("deleted_at", null)
+    ).data?.map((asset: { id: string }) => asset.id) ?? [];
+
   // Total assets
   const { count: totalAssets } = await supabase
     .from("assets")
     .select("id", { count: "exact", head: true })
-    .eq("project_id", projectId);
+    .eq("project_id", projectId)
+    .is("deleted_at", null);
 
   // Active reviews (assets with status in_review)
   const { count: activeReviews } = await supabase
     .from("assets")
     .select("id", { count: "exact", head: true })
     .eq("project_id", projectId)
+    .is("deleted_at", null)
     .eq("status", "in_review");
 
   // Comments this week
@@ -82,31 +93,26 @@ async function getAggregateAnalytics(
   const { count: commentsThisWeek } = await supabase
     .from("comments")
     .select("id", { count: "exact", head: true })
-    .in(
-      "asset_id",
-      (
-        await supabase
-          .from("assets")
-          .select("id")
-          .eq("project_id", projectId)
-      ).data?.map((a: { id: string }) => a.id) ?? []
-    )
+    .in("asset_id", assetIds)
     .gte("created_at", weekAgo.toISOString());
+
+  const { count: openComments } = await supabase
+    .from("comments")
+    .select("id", { count: "exact", head: true })
+    .in("asset_id", assetIds)
+    .neq("status", "resolved");
 
   // Approval decisions breakdown
   const { data: steps } = await supabase
-    .from("approval_steps")
+    .from("approvals")
     .select("status, decided_at, created_at")
-    .in(
-      "asset_id",
-      (
-        await supabase
-          .from("assets")
-          .select("id")
-          .eq("project_id", projectId)
-      ).data?.map((a: { id: string }) => a.id) ?? []
-    )
+    .in("asset_id", assetIds)
     .neq("status", "pending");
+
+  const { data: inviteViews } = await supabase
+    .from("review_invites")
+    .select("view_count")
+    .in("asset_id", assetIds);
 
   const decisions: Record<string, number> = {};
   let totalApprovalMs = 0;
@@ -135,15 +141,7 @@ async function getAggregateAnalytics(
   const { data: recentComments } = await supabase
     .from("comments")
     .select("created_at")
-    .in(
-      "asset_id",
-      (
-        await supabase
-          .from("assets")
-          .select("id")
-          .eq("project_id", projectId)
-      ).data?.map((a: { id: string }) => a.id) ?? []
-    )
+    .in("asset_id", assetIds)
     .gte("created_at", thirtyDaysAgo.toISOString())
     .order("created_at", { ascending: true });
 
@@ -168,6 +166,11 @@ async function getAggregateAnalytics(
     active_reviews: activeReviews ?? 0,
     comments_this_week: commentsThisWeek ?? 0,
     avg_approval_hours: avgApprovalHours,
+    total_share_views: (inviteViews ?? []).reduce(
+      (sum, invite) => sum + ((invite as { view_count: number | null }).view_count ?? 0),
+      0,
+    ),
+    open_comments: openComments ?? 0,
     comments_per_day: commentsPerDay,
     decisions,
   });
@@ -190,7 +193,7 @@ async function getReviewerStats(
 
   // Get all approval steps for this project
   const { data: allSteps } = await supabase
-    .from("approval_steps")
+    .from("approvals")
     .select("assignee_email, status, decided_at, created_at")
     .in("asset_id", ids);
 

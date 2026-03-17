@@ -1,31 +1,25 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { getSupabase } from "@/lib/supabase";
+import { verifyAssetOwner } from "@/lib/server/codeliver-data";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+  const access = await verifyAssetOwner(user.id, id);
+  if (!access.allowed) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
+  }
+
   const { data, error } = await getSupabase()
     .from("assets")
-    .select("*")
+    .select("*, projects(name)")
     .eq("id", id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
-
-  // Verify user owns the project this asset belongs to
-  const { data: project, error: projectError } = await getSupabase()
-    .from("projects")
-    .select("owner_id")
-    .eq("id", data.project_id)
-    .single();
-
-  if (projectError || !project || project.owner_id !== user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   return NextResponse.json(data);
 }
 
@@ -36,23 +30,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const body = await req.json();
 
-  // Verify user owns the asset's project
-  const { data: asset } = await getSupabase()
-    .from("assets")
-    .select("project_id")
-    .eq("id", id)
-    .single();
-
-  if (!asset) return NextResponse.json({ error: "Asset not found" }, { status: 404 });
-
-  const { data: project, error: projectError } = await getSupabase()
-    .from("projects")
-    .select("owner_id")
-    .eq("id", asset.project_id)
-    .single();
-
-  if (projectError || !project || project.owner_id !== user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const access = await verifyAssetOwner(user.id, id);
+  if (!access.allowed) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
   }
 
   const { data, error } = await getSupabase()
@@ -72,27 +52,26 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   const { id } = await params;
 
-  // Verify user owns the asset's project
-  const { data: asset } = await getSupabase()
-    .from("assets")
-    .select("project_id")
-    .eq("id", id)
-    .single();
-
-  if (!asset) return NextResponse.json({ error: "Asset not found" }, { status: 404 });
-
-  const { data: project, error: projectError } = await getSupabase()
-    .from("projects")
-    .select("owner_id")
-    .eq("id", asset.project_id)
-    .single();
-
-  if (projectError || !project || project.owner_id !== user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const access = await verifyAssetOwner(user.id, id);
+  if (!access.allowed) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
   }
 
-  const { error } = await getSupabase().from("assets").delete().eq("id", id);
+  const { error } = await getSupabase()
+    .from("assets")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  await getSupabase().from("activity_log").insert({
+    project_id: access.project.id,
+    asset_id: id,
+    actor_id: user.id,
+    actor_name: user.email ?? "Unknown",
+    action: "archived_asset",
+    details: { asset_title: access.asset.title },
+  });
+
   return NextResponse.json({ ok: true });
 }

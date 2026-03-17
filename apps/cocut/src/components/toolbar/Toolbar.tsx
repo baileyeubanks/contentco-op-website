@@ -13,6 +13,29 @@ import { formatTime } from '../../utils/formatTime';
 import { saveProject, exportProjectJSON, importProjectJSON } from '../../services/projectService';
 import { supabase } from '../../lib/supabase';
 
+const PRODUCT_LINKS = [
+  {
+    href: import.meta.env.VITE_MONOREPO_URL || 'https://github.com/baileyeubanks/blaze-v4',
+    label: 'Monorepo',
+    external: true,
+  },
+  {
+    href: import.meta.env.VITE_COCUT_URL || 'http://localhost:5173',
+    label: 'co-cut',
+    external: false,
+  },
+  {
+    href: import.meta.env.VITE_COSCRIPT_URL || 'http://localhost:4102',
+    label: 'co-script',
+    external: false,
+  },
+  {
+    href: import.meta.env.VITE_CODELIVER_URL || 'http://localhost:4103',
+    label: 'co-deliver',
+    external: false,
+  },
+] as const;
+
 export function Toolbar() {
   const addElement = useElementStore((s) => s.addElement);
   const elements = useElementStore((s) => s.elements);
@@ -80,6 +103,45 @@ export function Toolbar() {
         <span style={{ fontSize: 8, color: C.textDim, marginLeft: 2, fontWeight: 500, letterSpacing: 1, textTransform: 'uppercase' as const }}>
           by content co-op
         </span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 8, flexWrap: 'wrap' }}>
+        <span
+          style={{
+            fontSize: 9,
+            color: C.textDim,
+            fontWeight: 700,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+          }}
+        >
+          Monorepo Apps
+        </span>
+        {PRODUCT_LINKS.map((item) => {
+          const active = item.label === 'co-cut';
+          return (
+            <a
+              key={item.label}
+              href={item.href}
+              target={item.external ? '_blank' : undefined}
+              rel={item.external ? 'noreferrer' : undefined}
+              style={{
+                padding: '4px 10px',
+                borderRadius: 999,
+                border: `1px solid ${active ? C.accent : C.border}`,
+                background: active ? C.surface2 : 'transparent',
+                color: active ? C.accent : C.textDim,
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: 0.8,
+                textTransform: 'uppercase',
+                textDecoration: 'none',
+              }}
+            >
+              {item.label}
+            </a>
+          );
+        })}
       </div>
 
       {/* Mode toggle: Edit | Cut */}

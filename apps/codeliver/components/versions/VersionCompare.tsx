@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Layers, SplitSquareHorizontal, X } from "lucide-react";
 import type { Version } from "@/lib/types/codeliver";
@@ -7,12 +8,18 @@ import type { Version } from "@/lib/types/codeliver";
 interface VersionCompareProps {
   versionA: Version;
   versionB: Version;
+  fileType?: string;
   onClose: () => void;
 }
 
 type Mode = "side-by-side" | "overlay";
 
-export default function VersionCompare({ versionA, versionB, onClose }: VersionCompareProps) {
+export default function VersionCompare({
+  versionA,
+  versionB,
+  fileType = "video",
+  onClose,
+}: VersionCompareProps) {
   const [mode, setMode] = useState<Mode>("side-by-side");
   const [overlayOpacity, setOverlayOpacity] = useState(0.5);
   const [syncedTime, setSyncedTime] = useState(0);
@@ -56,6 +63,7 @@ export default function VersionCompare({ versionA, versionB, onClose }: VersionC
 
   const left = versionA.version_number < versionB.version_number ? versionA : versionB;
   const right = versionA.version_number < versionB.version_number ? versionB : versionA;
+  const isVideo = fileType === "video";
 
   return (
     <div className="fixed inset-0 bg-[var(--bg)] z-50 flex flex-col">
@@ -103,40 +111,86 @@ export default function VersionCompare({ versionA, versionB, onClose }: VersionC
               <span className="absolute top-2 left-2 text-xs font-mono text-white/60 bg-black/50 px-2 py-0.5 rounded">
                 v{left.version_number}
               </span>
-              <video
-                ref={videoARef}
-                src={left.file_url}
-                className="max-w-full max-h-full"
-                onClick={togglePlay}
-              />
+              {isVideo ? (
+                <video
+                  ref={videoARef}
+                  src={left.file_url}
+                  className="max-w-full max-h-full"
+                  onClick={togglePlay}
+                />
+              ) : (
+                <Image
+                  src={left.file_url}
+                  alt={`Version ${left.version_number}`}
+                  width={1600}
+                  height={1200}
+                  unoptimized
+                  className="max-h-full max-w-full object-contain"
+                />
+              )}
             </div>
             <div className="flex-1 flex flex-col items-center justify-center bg-black relative">
               <span className="absolute top-2 left-2 text-xs font-mono text-white/60 bg-black/50 px-2 py-0.5 rounded">
                 v{right.version_number}
               </span>
-              <video
-                ref={videoBRef}
-                src={right.file_url}
-                className="max-w-full max-h-full"
-                onClick={togglePlay}
-              />
+              {isVideo ? (
+                <video
+                  ref={videoBRef}
+                  src={right.file_url}
+                  className="max-w-full max-h-full"
+                  onClick={togglePlay}
+                />
+              ) : (
+                <Image
+                  src={right.file_url}
+                  alt={`Version ${right.version_number}`}
+                  width={1600}
+                  height={1200}
+                  unoptimized
+                  className="max-h-full max-w-full object-contain"
+                />
+              )}
             </div>
           </div>
         ) : (
           <div className="h-full flex items-center justify-center bg-black relative">
-            <video
-              ref={videoARef}
-              src={left.file_url}
-              className="max-w-full max-h-full absolute"
-              onClick={togglePlay}
-            />
-            <video
-              ref={videoBRef}
-              src={right.file_url}
-              className="max-w-full max-h-full absolute"
-              style={{ opacity: overlayOpacity }}
-              onClick={togglePlay}
-            />
+            {isVideo ? (
+              <>
+                <video
+                  ref={videoARef}
+                  src={left.file_url}
+                  className="max-w-full max-h-full absolute"
+                  onClick={togglePlay}
+                />
+                <video
+                  ref={videoBRef}
+                  src={right.file_url}
+                  className="max-w-full max-h-full absolute"
+                  style={{ opacity: overlayOpacity }}
+                  onClick={togglePlay}
+                />
+              </>
+            ) : (
+              <>
+                <Image
+                  src={left.file_url}
+                  alt={`Version ${left.version_number}`}
+                  width={1600}
+                  height={1200}
+                  unoptimized
+                  className="absolute max-h-full max-w-full object-contain"
+                />
+                <Image
+                  src={right.file_url}
+                  alt={`Version ${right.version_number}`}
+                  width={1600}
+                  height={1200}
+                  unoptimized
+                  className="absolute max-h-full max-w-full object-contain"
+                  style={{ opacity: overlayOpacity }}
+                />
+              </>
+            )}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-[var(--surface)]/90 rounded-lg px-4 py-2 border border-[var(--border)]">
               <span className="text-xs text-[var(--dim)]">v{left.version_number}</span>
               <input
@@ -156,12 +210,16 @@ export default function VersionCompare({ versionA, versionB, onClose }: VersionC
 
       {/* Transport */}
       <div className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-center">
-        <button
-          onClick={togglePlay}
-          className="text-sm text-[var(--accent)] font-medium hover:underline"
-        >
-          {playing ? "Pause" : "Play"} synced
-        </button>
+        {isVideo ? (
+          <button
+            onClick={togglePlay}
+            className="text-sm text-[var(--accent)] font-medium hover:underline"
+          >
+            {playing ? "Pause" : "Play"} synced
+          </button>
+        ) : (
+          <span className="text-sm text-[var(--muted)]">Overlay slider available for image comparisons.</span>
+        )}
       </div>
     </div>
   );

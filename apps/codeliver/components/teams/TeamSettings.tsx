@@ -52,7 +52,6 @@ export default function TeamSettings({ teamId }: Props) {
   const [deleting, setDeleting] = useState(false);
 
   const fetchTeam = useCallback(async () => {
-    setLoading(true);
     const res = await fetch(`/api/teams?team_id=${teamId}`);
     if (res.ok) {
       const data = await res.json();
@@ -121,7 +120,7 @@ export default function TeamSettings({ teamId }: Props) {
       body: JSON.stringify({ team_id: teamId }),
     });
     if (res.ok) {
-      window.location.href = "/dashboard";
+      window.location.href = "/team";
     }
     setDeleting(false);
   }

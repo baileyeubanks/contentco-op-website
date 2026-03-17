@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2, FileText, FileJson } from "lucide-react";
+import { Download, Loader2, FileText, FileJson, FileArchive } from "lucide-react";
 
 interface ExportReportProps {
   projectId: string;
 }
 
-type ExportFormat = "csv" | "json";
+type ExportFormat = "pdf" | "csv" | "json";
 
 export default function ExportReport({ projectId }: ExportReportProps) {
   const [loading, setLoading] = useState(false);
-  const [format, setFormat] = useState<ExportFormat>("csv");
+  const [format, setFormat] = useState<ExportFormat>("pdf");
 
   async function handleExport() {
     setLoading(true);
@@ -47,6 +47,17 @@ export default function ExportReport({ projectId }: ExportReportProps) {
     <div className="flex items-center gap-3">
       {/* Format toggle */}
       <div className="flex bg-[var(--bg)] border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden">
+        <button
+          onClick={() => setFormat("pdf")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
+            format === "pdf"
+              ? "bg-[var(--accent)] text-white"
+              : "text-[var(--muted)] hover:text-[var(--ink)]"
+          }`}
+        >
+          <FileArchive size={12} />
+          PDF
+        </button>
         <button
           onClick={() => setFormat("csv")}
           className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${

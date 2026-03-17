@@ -2,83 +2,90 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
-  Play,
+  CheckCircle2,
+  Clock3,
+  Download,
+  FileText,
+  Layers3,
+  MapPin,
+  MessageSquare,
   Pause,
+  Play,
+  Share2,
   SkipBack,
   SkipForward,
   Volume2,
   VolumeX,
-  Maximize,
-  MessageSquare,
-  CheckCircle2,
-  Clock,
-  Send,
-  MapPin,
-  Share2,
-  Download,
-  X,
-  ChevronDown,
-  AlertTriangle,
+  WandSparkles,
 } from "lucide-react";
+import AISummary from "@/components/ai/AISummary";
+import ExportReport from "@/components/analytics/ExportReport";
+import PDFViewer from "@/components/assets/PDFViewer";
+import ImageViewer from "@/components/assets/ImageViewer";
+import ApprovalActions from "@/components/approvals/ApprovalActions";
+import ApprovalWorkflow from "@/components/approvals/ApprovalWorkflow";
+import CommentInput from "@/components/comments/CommentInput";
+import CommentThread from "@/components/comments/CommentThread";
+import ShareLinkList from "@/components/sharing/ShareLinkList";
+import ShareModal from "@/components/sharing/ShareModal";
+import { StatusBadge } from "@/components/suite/SuitePrimitives";
+import VersionCompare from "@/components/versions/VersionCompare";
+import VersionList from "@/components/versions/VersionList";
+import VersionUpload from "@/components/versions/VersionUpload";
+import type {
+  ApprovalDecision,
+  ApprovalStep,
+  ApprovalWorkflow as ApprovalWorkflowType,
+  Comment,
+  Version,
+} from "@/lib/types/codeliver";
 
 interface Asset {
   id: string;
   title: string;
   file_type: string;
   file_url: string | null;
+  thumbnail_url: string | null;
   status: string;
   project_id: string;
+  file_size: number | null;
   duration_seconds: number | null;
-}
-
-interface Comment {
-  id: string;
-  body: string;
-  author_name: string;
-  timecode_seconds: number | null;
-  pin_x: number | null;
-  pin_y: number | null;
-  status: string;
-  parent_id: string | null;
   created_at: string;
-  replies?: Comment[];
+  updated_at: string;
+  projects?: { name?: string | null } | null;
 }
 
-interface Approval {
+interface ShareLinkRow {
   id: string;
-  role_label: string;
-  assignee_email: string | null;
-  status: string;
-  decision_note: string | null;
-  step_order: number;
-  decided_at: string | null;
-}
-
-interface Version {
-  id: string;
-  version_number: number;
-  file_url: string;
-  notes: string | null;
+  permissions: string;
+  watermark_enabled: boolean;
+  download_enabled: boolean;
+  max_views: number | null;
+  view_count: number;
   created_at: string;
+  last_viewed_at: string | null;
+  reviewer_name: string | null;
 }
 
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
+type WorkspaceTab = "comments" | "approvals" | "share" | "ai" | "analytics";
+
+function formatTime(seconds: number) {
+  const safe = Math.max(0, seconds);
+  const minutes = Math.floor(safe / 60);
+  const remainder = Math.floor(safe % 60);
+  return `${minutes}:${remainder.toString().padStart(2, "0")}`;
 }
 
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default function AssetReviewPage() {
@@ -88,653 +95,879 @@ export default function AssetReviewPage() {
 
   const [asset, setAsset] = useState<Asset | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [approvals, setApprovals] = useState<Approval[]>([]);
+  const [approvals, setApprovals] = useState<ApprovalStep[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
+  const [workflow, setWorkflow] = useState<ApprovalWorkflowType | null>(null);
+  const [shareLinks, setShareLinks] = useState<ShareLinkRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Player state
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>("comments");
+  const [shareOpen, setShareOpen] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  const [compareVersions, setCompareVersions] = useState<[Version, Version] | null>(null);
+  const [replyTo, setReplyTo] = useState<string | undefined>();
+  const [commentPin, setCommentPin] = useState<{ x: number; y: number } | null>(null);
+  const [focusedApprovalId, setFocusedApprovalId] = useState<string | null>(null);
+
   const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [muted, setMuted] = useState(false);
+  const [approvalUpdating, setApprovalUpdating] = useState(false);
 
-  // Comment state
-  const [commentBody, setCommentBody] = useState("");
-  const [commentPin, setCommentPin] = useState<{ x: number; y: number } | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"comments" | "approvals" | "versions">("comments");
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [loadingSummary, setLoadingSummary] = useState(false);
-  const [showSummary, setShowSummary] = useState(false);
+  const loadWorkspace = useCallback(async () => {
+    setLoading(true);
+    setError("");
 
-  // Share modal
-  const [showShare, setShowShare] = useState(false);
-  const [shareLink, setShareLink] = useState("");
+    try {
+      const [assetResponse, commentResponse, approvalResponse, versionResponse, shareResponse, workflowResponse] =
+        await Promise.all([
+          fetch(`/api/assets/${assetId}`),
+          fetch(`/api/assets/${assetId}/comments`),
+          fetch(`/api/assets/${assetId}/approvals`),
+          fetch(`/api/assets/${assetId}/versions`),
+          fetch(`/api/assets/${assetId}/share`),
+          fetch(`/api/approvals/workflow?asset_id=${assetId}`),
+        ]);
 
-  useEffect(() => {
-    if (!assetId) return;
-    Promise.all([
-      fetch(`/api/assets/${assetId}`).then((r) => r.json()),
-      fetch(`/api/assets/${assetId}/comments`).then((r) => r.json()),
-      fetch(`/api/assets/${assetId}/approvals`).then((r) => r.json()),
-      fetch(`/api/assets/${assetId}/versions`).then((r) => r.json()),
-    ])
-      .then(([a, c, ap, v]) => {
-        setAsset(a);
-        setComments(c.items ?? []);
-        setApprovals(ap.items ?? []);
-        setVersions(v.items ?? []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      if (!assetResponse.ok) {
+        throw new Error("We couldn't load this review room.");
+      }
+
+      const [assetJson, commentJson, approvalJson, versionJson, shareJson, workflowJson] =
+        await Promise.all([
+          assetResponse.json(),
+          commentResponse.json().catch(() => ({})),
+          approvalResponse.json().catch(() => ({})),
+          versionResponse.json().catch(() => ({})),
+          shareResponse.json().catch(() => ({})),
+          workflowResponse.json().catch(() => ({})),
+        ]);
+
+      setAsset(assetJson as Asset);
+      setComments((commentJson.items ?? []) as Comment[]);
+      setApprovals((approvalJson.items ?? []) as ApprovalStep[]);
+      setVersions((versionJson.items ?? []) as Version[]);
+      setShareLinks((shareJson.items ?? []) as ShareLinkRow[]);
+      setWorkflow((workflowJson.workflow ?? null) as ApprovalWorkflowType | null);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Failed to load asset workspace.");
+    } finally {
+      setLoading(false);
+    }
   }, [assetId]);
 
-  // Video player controls
-  const togglePlay = useCallback(() => {
-    if (!videoRef.current) return;
-    if (playing) videoRef.current.pause();
-    else videoRef.current.play();
-    setPlaying(!playing);
-  }, [playing]);
+  useEffect(() => {
+    loadWorkspace();
+  }, [loadWorkspace]);
 
-  const seek = useCallback((seconds: number) => {
+  useEffect(() => {
+    const firstPendingApproval = approvals.find((approval) => approval.status === "pending");
+    setFocusedApprovalId(firstPendingApproval?.id ?? approvals[0]?.id ?? null);
+  }, [approvals]);
+
+  const rootComments = useMemo(() => comments.filter((comment) => !comment.parent_id), [comments]);
+  const repliesByParent = useMemo(() => {
+    const map = new Map<string, Comment[]>();
+
+    comments.forEach((comment) => {
+      if (!comment.parent_id) return;
+      const existing = map.get(comment.parent_id) ?? [];
+      existing.push(comment);
+      map.set(comment.parent_id, existing);
+    });
+
+    return map;
+  }, [comments]);
+
+  const openRootComments = rootComments.filter((comment) => comment.status !== "resolved");
+  const resolvedRootComments = rootComments.filter((comment) => comment.status === "resolved");
+  const pinnedComments = openRootComments.filter(
+    (comment) => comment.pin_x != null && comment.pin_y != null,
+  );
+  const timecodedComments = openRootComments.filter((comment) => comment.timecode_seconds != null);
+  const currentVersion =
+    versions.find((version) => version.is_current) ?? versions[0] ?? null;
+  const currentVersionNumber = currentVersion?.version_number ?? 1;
+  const focusedApproval = approvals.find((approval) => approval.id === focusedApprovalId) ?? null;
+  const pendingApprovals = approvals.filter((approval) => approval.status === "pending");
+  const completedApprovals = approvals.filter((approval) => approval.status !== "pending");
+  const shareViews = shareLinks.reduce((sum, link) => sum + (link.view_count ?? 0), 0);
+  const lastShare = shareLinks[0] ?? null;
+
+  const seek = useCallback((time: number) => {
     if (!videoRef.current) return;
-    videoRef.current.currentTime = Math.max(0, Math.min(seconds, duration));
+    const next = Math.max(0, Math.min(time, duration || time));
+    videoRef.current.currentTime = next;
+    setCurrentTime(next);
   }, [duration]);
 
-  const handleProgressClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!progressRef.current || !duration) return;
-      const rect = progressRef.current.getBoundingClientRect();
-      const pct = (e.clientX - rect.left) / rect.width;
-      seek(pct * duration);
-    },
-    [duration, seek]
-  );
+  function togglePlay() {
+    const video = videoRef.current;
+    if (!video) return;
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      switch (e.key) {
-        case " ":
-          e.preventDefault();
-          togglePlay();
-          break;
-        case "ArrowLeft":
-          seek(currentTime - 5);
-          break;
-        case "ArrowRight":
-          seek(currentTime + 5);
-          break;
-        case "m":
-          setMuted((m) => !m);
-          break;
-      }
+    if (playing) {
+      video.pause();
+      setPlaying(false);
+    } else {
+      video.play().catch(() => {});
+      setPlaying(true);
     }
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [togglePlay, seek, currentTime]);
+  }
 
-  // Click-to-pin on video
-  function handleVideoClick(e: React.MouseEvent<HTMLVideoElement>) {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+  function handleVideoClick(event: React.MouseEvent<HTMLVideoElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
     setCommentPin({ x, y });
-    if (videoRef.current && playing) {
+    setActiveTab("comments");
+
+    if (videoRef.current && !videoRef.current.paused) {
       videoRef.current.pause();
       setPlaying(false);
     }
   }
 
-  // Submit comment
-  async function submitComment() {
-    if (!commentBody.trim()) return;
-    setSubmitting(true);
-
-    const res = await fetch(`/api/assets/${assetId}/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        body: commentBody,
-        timecode_seconds: currentTime > 0 ? currentTime : null,
-        pin_x: commentPin?.x ?? null,
-        pin_y: commentPin?.y ?? null,
-        parent_id: replyingTo ?? null,
-      }),
-    });
-
-    if (res.ok) {
-      const comment = await res.json();
-      setComments((prev) => [...prev, comment]);
-      setCommentBody("");
-      setCommentPin(null);
-      setReplyingTo(null);
-    }
-    setSubmitting(false);
+  function handleTimelineClick(event: React.MouseEvent<HTMLDivElement>) {
+    if (!progressRef.current || !duration) return;
+    const rect = progressRef.current.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / rect.width;
+    seek(percent * duration);
   }
 
-  // Resolve comment
-  async function resolveComment(commentId: string) {
-    const res = await fetch(`/api/assets/${assetId}/comments`, {
+  function handleImageClick(x: number, y: number) {
+    setCommentPin({ x: x * 100, y: y * 100 });
+    setActiveTab("comments");
+  }
+
+  async function handleResolveComment(commentId: string) {
+    const response = await fetch(`/api/assets/${assetId}/comments`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: commentId, status: "resolved" }),
     });
-    if (res.ok) {
-      setComments((prev) =>
-        prev.map((c) => (c.id === commentId ? { ...c, status: "resolved" } : c))
-      );
-    }
+
+    if (!response.ok) return;
+
+    setComments((previous) =>
+      previous.map((comment) =>
+        comment.id === commentId ? { ...comment, status: "resolved" } : comment,
+      ),
+    );
   }
 
-  // Approval decision
-  async function submitApproval(approvalId: string, decision: string) {
-    const note = decision === "changes_requested" ? prompt("Note (optional):") ?? "" : "";
-    const res = await fetch(`/api/assets/${assetId}/approvals`, {
+  function handleCommentSubmitted(comment: Comment) {
+    setComments((previous) => [...previous, comment]);
+    setReplyTo(undefined);
+    setCommentPin(null);
+    setActiveTab("comments");
+  }
+
+  async function handleApprovalDecision(decision: ApprovalDecision, note?: string) {
+    if (!focusedApproval) return;
+    setApprovalUpdating(true);
+
+    const response = await fetch(`/api/assets/${assetId}/approvals`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: approvalId, status: decision, decision_note: note }),
+      body: JSON.stringify({
+        id: focusedApproval.id,
+        status: decision,
+        decision_note: note ?? null,
+      }),
     });
-    if (res.ok) {
-      setApprovals((prev) =>
-        prev.map((a) => (a.id === approvalId ? { ...a, status: decision, decision_note: note || a.decision_note } : a))
-      );
-    }
+
+    setApprovalUpdating(false);
+    if (!response.ok) return;
+
+    await loadWorkspace();
   }
 
-  // Share link
-  async function generateShareLink() {
-    const res = await fetch(`/api/assets/${assetId}/share`, { method: "POST" });
-    if (res.ok) {
-      const data = await res.json();
-      setShareLink(`${window.location.origin}/review/${data.token}`);
-      setShowShare(true);
-    }
-  }
-
-  // Generate summary of comments
-  async function generateSummary() {
-    if (comments.length === 0) return;
-    setLoadingSummary(true);
-    const res = await fetch("/api/ai/summarize", {
-      method: "POST",
+  async function handleSetCurrentVersion(versionId: string) {
+    const response = await fetch(`/api/assets/${assetId}/versions`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ asset_id: assetId }),
+      body: JSON.stringify({ version_id: versionId }),
     });
-    if (res.ok) {
-      const data = await res.json();
-      setSummary(data.summary);
-      setShowSummary(true);
-    }
-    setLoadingSummary(false);
+
+    if (!response.ok) return;
+
+    await loadWorkspace();
+  }
+
+  function handleCompareVersions(versionAId: string, versionBId: string) {
+    const versionA = versions.find((version) => version.id === versionAId);
+    const versionB = versions.find((version) => version.id === versionBId);
+    if (!versionA || !versionB) return;
+    setCompareVersions([versionA, versionB]);
   }
 
   if (loading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="skeleton h-8 w-48 mb-4 rounded-lg" />
-        <div className="skeleton aspect-video w-full mb-4 rounded-xl" />
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-6 py-6">
+        <div className="skeleton h-16 rounded-[20px]" />
+        <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)_420px]">
+          <div className="skeleton h-[520px] rounded-[20px]" />
+          <div className="skeleton h-[520px] rounded-[20px]" />
+          <div className="skeleton h-[520px] rounded-[20px]" />
+        </div>
       </div>
     );
   }
 
   if (!asset) {
     return (
-      <div className="p-6 text-center py-20">
-        <p className="text-[var(--muted)]">Asset not found</p>
+      <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+        <div className="text-2xl font-semibold text-[var(--ink)]">Review room unavailable</div>
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+          {error || "This asset could not be found."}
+        </p>
       </div>
     );
   }
 
-  const openComments = comments.filter((c) => c.status === "open" && !c.parent_id);
-  const resolvedComments = comments.filter((c) => c.status === "resolved" && !c.parent_id);
-
-  // Helper to get replies for a comment
-  function getReplies(commentId: string) {
-    return comments.filter((c) => c.parent_id === commentId);
-  }
-
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Left: Video Player */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/projects/${projectId}`}
-              className="text-[var(--muted)] hover:text-[var(--ink)] transition-colors"
-            >
-              <ArrowLeft size={18} />
-            </Link>
-            <div>
-              <h1 className="text-sm font-semibold">{asset.title}</h1>
-              <p className="text-xs text-[var(--dim)]">
-                {asset.file_type} · {versions.length > 0 ? `v${versions.length}` : "v1"}
-              </p>
+    <>
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6 px-6 py-6">
+        <header className="rounded-[24px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(15,23,42,0.88))] p-6 shadow-[0_20px_60px_rgba(2,6,23,0.28)]">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-3">
+              <Link
+                href={`/projects/${projectId}`}
+                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--ink)]"
+              >
+                <ArrowLeft size={15} />
+                Back to project workspace
+              </Link>
+
+              <div className="space-y-2">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+                  Review Workspace
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-3xl font-semibold tracking-[-0.04em] text-[var(--ink)]">
+                    {asset.title}
+                  </h1>
+                  <StatusBadge value={asset.status} />
+                </div>
+                <p className="max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                  {asset.projects?.name ?? "Project"} · {asset.file_type} review with versions,
+                  timecoded comments, approvals, controlled sharing, and export-ready reporting.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShareOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--ink)] transition hover:border-[color:rgba(52,211,153,0.22)]"
+              >
+                <Share2 size={14} className="text-[var(--accent)]" />
+                Share review
+              </button>
+              <ExportReport projectId={projectId} />
+              {asset.file_url ? (
+                <a
+                  href={asset.file_url}
+                  download
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--ink)] transition hover:border-[color:rgba(52,211,153,0.22)]"
+                >
+                  <Download size={14} className="text-[var(--accent)]" />
+                  Download current
+                </a>
+              ) : null}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={generateShareLink}
-              className="flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--ink)] border border-[var(--border)] rounded-lg px-3 py-1.5 transition-colors"
-            >
-              <Share2 size={14} /> Share
-            </button>
-            {asset.file_url && (
-              <a
-                href={asset.file_url}
-                download
-                className="flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--ink)] border border-[var(--border)] rounded-lg px-3 py-1.5 transition-colors"
-              >
-                <Download size={14} /> Download
-              </a>
-            )}
-          </div>
-        </div>
+        </header>
 
-        {/* Video / Preview */}
-        <div className="flex-1 flex items-center justify-center bg-black relative overflow-hidden">
-          {asset.file_type === "video" && asset.file_url ? (
-            <>
-              <video
-                ref={videoRef}
-                src={asset.file_url}
-                className="max-w-full max-h-full cursor-crosshair"
-                muted={muted}
-                onClick={handleVideoClick}
-                onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime ?? 0)}
-                onLoadedMetadata={() => setDuration(videoRef.current?.duration ?? 0)}
-                onEnded={() => setPlaying(false)}
-              />
-              {/* Pin marker */}
-              {commentPin && (
-                <div
-                  className="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{ left: `${commentPin.x}%`, top: `${commentPin.y}%` }}
-                >
-                  <MapPin size={24} className="text-[var(--accent)] drop-shadow-lg" />
+        <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)_420px]">
+          <aside className="space-y-5">
+            <section className="rounded-[22px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] p-5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--dim)]">
+                Current version
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-2xl font-semibold tracking-[-0.04em] text-[var(--ink)]">
+                    v{currentVersionNumber}
+                  </div>
+                  <div className="mt-1 text-sm text-[var(--muted)]">
+                    {currentVersion ? `Updated ${formatDate(currentVersion.created_at)}` : "Original upload"}
+                  </div>
                 </div>
+                <div className="rounded-2xl bg-[color:rgba(52,211,153,0.12)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+                  Live review target
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3">
+                <div className="rounded-2xl border border-[var(--border)] px-3 py-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                    Versions
+                  </div>
+                  <div className="mt-1 text-sm text-[var(--ink)]">{Math.max(versions.length, 1)}</div>
+                </div>
+                <div className="rounded-2xl border border-[var(--border)] px-3 py-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                    Open comments
+                  </div>
+                  <div className="mt-1 text-sm text-[var(--ink)]">{openRootComments.length}</div>
+                </div>
+                <div className="rounded-2xl border border-[var(--border)] px-3 py-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                    Pending approvals
+                  </div>
+                  <div className="mt-1 text-sm text-[var(--ink)]">{pendingApprovals.length}</div>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-[22px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] p-5">
+              {showUpload ? (
+                <VersionUpload
+                  assetId={assetId}
+                  currentVersionNumber={currentVersionNumber}
+                  onComplete={async () => {
+                    setShowUpload(false);
+                    await loadWorkspace();
+                  }}
+                  onCancel={() => setShowUpload(false)}
+                />
+              ) : (
+                <VersionList
+                  versions={versions}
+                  currentVersionId={currentVersion?.id}
+                  onSetCurrent={handleSetCurrentVersion}
+                  onCompare={handleCompareVersions}
+                  onUpload={() => setShowUpload(true)}
+                />
               )}
-              {/* Comment pins on video */}
-              {comments
-                .filter((c) => c.pin_x != null && c.pin_y != null && c.status === "open")
-                .map((c) => (
-                  <button
-                    key={c.id}
-                    className="absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 bg-[var(--accent)] text-white rounded-full text-[10px] font-bold flex items-center justify-center hover:scale-125 transition-transform"
-                    style={{ left: `${c.pin_x}%`, top: `${c.pin_y}%` }}
-                    onClick={() => {
-                      if (c.timecode_seconds != null) seek(c.timecode_seconds);
-                    }}
-                    title={c.body}
+            </section>
+          </aside>
+
+          <section className="space-y-5">
+            <div className="rounded-[24px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] p-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--dim)]">
+                    Review frame
+                  </div>
+                  <div className="mt-1 text-sm text-[var(--muted)]">
+                    Click directly on the frame to drop a pin and keep feedback tied to the right moment.
+                  </div>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                  <Layers3 size={13} />
+                  {asset.file_type}
+                </div>
+              </div>
+
+              <div className="relative overflow-hidden rounded-[20px] border border-[var(--border)] bg-black">
+                {asset.file_type === "video" && asset.file_url ? (
+                  <div className="relative aspect-video w-full bg-black">
+                    <video
+                      ref={videoRef}
+                      src={asset.file_url}
+                      className="h-full w-full cursor-crosshair object-contain"
+                      muted={muted}
+                      playsInline
+                      preload="metadata"
+                      onClick={handleVideoClick}
+                      onLoadedMetadata={() => setDuration(videoRef.current?.duration ?? 0)}
+                      onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime ?? 0)}
+                      onPlay={() => setPlaying(true)}
+                      onPause={() => setPlaying(false)}
+                      onEnded={() => setPlaying(false)}
+                    />
+
+                    {pinnedComments.map((comment, index) => (
+                      <button
+                        key={comment.id}
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          if (comment.timecode_seconds != null) {
+                            seek(comment.timecode_seconds);
+                          }
+                          setActiveTab("comments");
+                        }}
+                        className="absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-semibold text-slate-950 shadow-[0_12px_30px_rgba(16,185,129,0.35)]"
+                        style={{ left: `${comment.pin_x}%`, top: `${comment.pin_y}%` }}
+                        title={comment.body}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+
+                    {commentPin ? (
+                      <div
+                        className="absolute flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[color:rgba(52,211,153,0.32)] bg-[color:rgba(52,211,153,0.16)] text-[var(--accent)]"
+                        style={{ left: `${commentPin.x}%`, top: `${commentPin.y}%` }}
+                      >
+                        <MapPin size={16} />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : asset.file_type === "image" && asset.file_url ? (
+                  <div className="p-2">
+                    <ImageViewer url={asset.file_url} alt={asset.title} onImageClick={handleImageClick} />
+                  </div>
+                ) : asset.file_type === "document" && asset.file_url?.toLowerCase().endsWith(".pdf") ? (
+                  <div className="p-2">
+                    <PDFViewer url={asset.file_url} />
+                  </div>
+                ) : asset.file_url ? (
+                  <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+                    <FileText size={28} className="text-[var(--dim)]" />
+                    <div className="text-lg font-semibold text-[var(--ink)]">Preview not available</div>
+                    <p className="max-w-md text-sm leading-6 text-[var(--muted)]">
+                      This file can still move through versions, comments, approvals, and share controls even without an inline preview.
+                    </p>
+                    <a
+                      href={asset.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-950"
+                    >
+                      Open asset file
+                    </a>
+                  </div>
+                ) : (
+                  <div className="flex min-h-[420px] items-center justify-center text-sm text-[var(--muted)]">
+                    No file has been uploaded yet.
+                  </div>
+                )}
+              </div>
+
+              {asset.file_type === "video" ? (
+                <div className="mt-4 rounded-[20px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.02)] px-4 py-4">
+                  <div
+                    ref={progressRef}
+                    onClick={handleTimelineClick}
+                    className="relative h-2 cursor-pointer rounded-full bg-[color:rgba(255,255,255,0.08)]"
                   >
-                    {comments.filter((cc) => cc.status === "open" && !cc.parent_id).indexOf(c) + 1}
+                    <div
+                      className="h-full rounded-full bg-[var(--accent)]"
+                      style={{ width: duration ? `${(currentTime / duration) * 100}%` : "0%" }}
+                    />
+
+                    {timecodedComments.map((comment) => (
+                      <button
+                        key={comment.id}
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          if (comment.timecode_seconds != null) {
+                            seek(comment.timecode_seconds);
+                          }
+                          setActiveTab("comments");
+                        }}
+                        className="absolute top-1/2 h-4 w-2 -translate-y-1/2 rounded-full bg-[var(--orange)]"
+                        style={{
+                          left: duration
+                            ? `${((comment.timecode_seconds ?? 0) / duration) * 100}%`
+                            : "0%",
+                        }}
+                        title={`${comment.author_name}: ${comment.body}`}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => seek(currentTime - 10)}
+                        className="rounded-full border border-[var(--border)] p-2 text-[var(--muted)] transition hover:text-[var(--ink)]"
+                      >
+                        <SkipBack size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={togglePlay}
+                        className="rounded-full bg-[var(--accent)] p-3 text-slate-950"
+                      >
+                        {playing ? <Pause size={16} /> : <Play size={16} />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => seek(currentTime + 10)}
+                        className="rounded-full border border-[var(--border)] p-2 text-[var(--muted)] transition hover:text-[var(--ink)]"
+                      >
+                        <SkipForward size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMuted((value) => !value)}
+                        className="rounded-full border border-[var(--border)] p-2 text-[var(--muted)] transition hover:text-[var(--ink)]"
+                      >
+                        {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                      </button>
+                    </div>
+
+                    <div className="font-mono text-sm text-[var(--muted)]">
+                      {formatTime(currentTime)} / {formatTime(duration)}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="rounded-[24px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] p-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--dim)]">
+                    New feedback
+                  </div>
+                  <div className="mt-1 text-sm text-[var(--muted)]">
+                    Current note will capture the active timecode and any selected pin automatically.
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {asset.file_type === "video" ? (
+                    <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                      @ {formatTime(currentTime)}
+                    </span>
+                  ) : null}
+                  {commentPin ? (
+                    <button
+                      type="button"
+                      onClick={() => setCommentPin(null)}
+                      className="inline-flex items-center gap-2 rounded-full border border-[color:rgba(52,211,153,0.24)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent)]"
+                    >
+                      <MapPin size={12} />
+                      Clear pin
+                    </button>
+                  ) : null}
+                  {replyTo ? (
+                    <button
+                      type="button"
+                      onClick={() => setReplyTo(undefined)}
+                      className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]"
+                    >
+                      Cancel reply
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              <CommentInput
+                assetId={assetId}
+                parentId={replyTo}
+                timecode={asset.file_type === "video" ? currentTime : undefined}
+                pin={commentPin}
+                onSubmit={handleCommentSubmitted}
+                onCancel={replyTo ? () => setReplyTo(undefined) : undefined}
+              />
+            </div>
+          </section>
+
+          <aside className="rounded-[24px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(15,23,42,0.96),rgba(15,23,42,0.88))] shadow-[0_20px_60px_rgba(2,6,23,0.28)]">
+            <div className="border-b border-[var(--border)] px-3 py-3">
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { id: "comments", label: "Comments", count: openRootComments.length },
+                  { id: "approvals", label: "Approvals", count: approvals.length },
+                  { id: "share", label: "Share", count: shareLinks.length },
+                  { id: "ai", label: "AI", count: rootComments.length },
+                  { id: "analytics", label: "Metrics", count: shareViews },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id as WorkspaceTab)}
+                    className={`rounded-2xl px-3 py-3 text-center transition ${
+                      activeTab === tab.id
+                        ? "bg-[color:rgba(52,211,153,0.12)] text-[var(--accent)]"
+                        : "text-[var(--muted)] hover:bg-[color:rgba(255,255,255,0.04)] hover:text-[var(--ink)]"
+                    }`}
+                  >
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.16em]">
+                      {tab.label}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold">{tab.count}</div>
                   </button>
                 ))}
-            </>
-          ) : asset.file_type === "image" && asset.file_url ? (
-            <img src={asset.file_url} alt={asset.title} className="max-w-full max-h-full object-contain" />
-          ) : (
-            <div className="text-[var(--dim)] text-sm">
-              {asset.file_url ? "Preview not available" : "No file uploaded"}
-            </div>
-          )}
-        </div>
-
-        {/* Transport Controls */}
-        {asset.file_type === "video" && (
-          <div className="border-t border-[var(--border)] bg-[var(--surface)] px-4 py-2">
-            {/* Progress bar */}
-            <div
-              ref={progressRef}
-              className="h-1.5 bg-[var(--border)] rounded-full cursor-pointer mb-2 relative"
-              onClick={handleProgressClick}
-            >
-              <div
-                className="h-full bg-[var(--accent)] rounded-full transition-all"
-                style={{ width: duration ? `${(currentTime / duration) * 100}%` : "0%" }}
-              />
-              {/* Comment markers on timeline */}
-              {comments
-                .filter((c) => c.timecode_seconds != null)
-                .map((c) => (
-                  <div
-                    key={c.id}
-                    className="absolute top-0 w-1 h-full bg-[var(--orange)] rounded-full"
-                    style={{ left: duration ? `${((c.timecode_seconds ?? 0) / duration) * 100}%` : "0%" }}
-                    title={`${formatTime(c.timecode_seconds ?? 0)} - ${c.body.slice(0, 40)}`}
-                  />
-                ))}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button onClick={() => seek(currentTime - 10)} className="text-[var(--muted)] hover:text-[var(--ink)] p-1">
-                  <SkipBack size={16} />
-                </button>
-                <button onClick={togglePlay} className="text-[var(--ink)] hover:text-[var(--accent)] p-1">
-                  {playing ? <Pause size={20} /> : <Play size={20} />}
-                </button>
-                <button onClick={() => seek(currentTime + 10)} className="text-[var(--muted)] hover:text-[var(--ink)] p-1">
-                  <SkipForward size={16} />
-                </button>
-                <button onClick={() => setMuted(!muted)} className="text-[var(--muted)] hover:text-[var(--ink)] p-1">
-                  {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                </button>
-                <span className="text-xs text-[var(--muted)] font-mono ml-2">
-                  {formatTime(currentTime)} / {formatTime(duration)}
-                </span>
               </div>
-              <button
-                onClick={() => videoRef.current?.requestFullscreen()}
-                className="text-[var(--muted)] hover:text-[var(--ink)] p-1"
-              >
-                <Maximize size={16} />
-              </button>
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Right Sidebar */}
-      <div className="w-96 border-l border-[var(--border)] flex flex-col bg-[var(--surface)]">
-        {/* Tabs */}
-        <div className="flex border-b border-[var(--border)]">
-          {(["comments", "approvals", "versions"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                activeTab === tab
-                  ? "text-[var(--accent)] border-b-2 border-[var(--accent)]"
-                  : "text-[var(--muted)] hover:text-[var(--ink)]"
-              }`}
-            >
-              {tab === "comments" && `Comments (${openComments.length})`}
-              {tab === "approvals" && `Approvals (${approvals.length})`}
-              {tab === "versions" && `Versions (${versions.length || 1})`}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto">
-          {activeTab === "comments" && (
-            <div className="p-4 space-y-3">
-              {showSummary && summary && (
-                <div className="bg-[var(--accent-dim)] border border-[var(--accent)] rounded-lg p-3">
-                  <div className="flex items-start justify-between mb-2">
-                    <p className="text-xs font-semibold text-[var(--accent)] uppercase">Summary</p>
-                    <button
-                      onClick={() => setShowSummary(false)}
-                      className="text-[var(--accent)] hover:text-[var(--ink)]"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                  <p className="text-sm text-[var(--ink)] leading-relaxed">{summary}</p>
-                </div>
-              )}
-              {openComments.length > 0 && (
-                <button
-                  onClick={generateSummary}
-                  disabled={loadingSummary || comments.length === 0}
-                  className="w-full text-xs font-semibold py-2 px-3 border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent-dim)] rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {loadingSummary ? "Summarizing..." : "Summarize Comments"}
-                </button>
-              )}
-              {openComments.length === 0 && resolvedComments.length === 0 ? (
-                <div className="text-center py-8">
-                  <MessageSquare size={28} className="mx-auto mb-2 text-[var(--dim)]" />
-                  <p className="text-sm text-[var(--muted)]">No comments yet</p>
-                  <p className="text-xs text-[var(--dim)] mt-1">Click on the video to pin a comment</p>
-                </div>
-              ) : (
-                <>
-                  {openComments.map((c, i) => {
-                    const replies = getReplies(c.id);
-                    return (
-                      <div key={c.id} className="space-y-2">
-                        <div className="bg-[var(--bg)] border border-[var(--border)] rounded-lg p-3">
-                          <div className="flex items-start gap-2">
-                            <div className="w-5 h-5 rounded-full bg-[var(--accent)] text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                              {i + 1}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-semibold">{c.author_name}</span>
-                                {c.timecode_seconds != null && (
-                                  <button
-                                    onClick={() => seek(c.timecode_seconds!)}
-                                    className="text-[10px] font-mono text-[var(--accent)] hover:underline"
-                                  >
-                                    {formatTime(c.timecode_seconds)}
-                                  </button>
-                                )}
-                                <span className="text-[10px] text-[var(--dim)] ml-auto">{timeAgo(c.created_at)}</span>
-                              </div>
-                              <p className="text-sm text-[var(--ink)] leading-relaxed">{c.body}</p>
-                            </div>
-                          </div>
-                          <div className="flex justify-end gap-2 mt-2">
-                            <button
-                              onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                              className="text-[10px] font-semibold text-[var(--accent)] hover:underline"
-                            >
-                              {replyingTo === c.id ? "Cancel" : "Reply"}
-                            </button>
-                            <button
-                              onClick={() => resolveComment(c.id)}
-                              className="text-[10px] font-semibold text-[var(--green)] hover:underline flex items-center gap-1"
-                            >
-                              <CheckCircle2 size={10} /> Resolve
-                            </button>
-                          </div>
-                        </div>
-                        {replies.map((reply) => (
-                          <div key={reply.id} className="ml-6 bg-[var(--bg)] border border-[var(--border)] rounded-lg p-3">
-                            <div className="flex items-start gap-2">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-xs font-semibold">{reply.author_name}</span>
-                                  <span className="text-[10px] text-[var(--dim)] ml-auto">{timeAgo(reply.created_at)}</span>
-                                </div>
-                                <p className="text-sm text-[var(--ink)] leading-relaxed">{reply.body}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+            <div className="max-h-[calc(100vh-260px)] overflow-y-auto p-5">
+              {activeTab === "comments" ? (
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-3 py-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Open
                       </div>
-                    );
-                  })}
-                  {resolvedComments.length > 0 && (
-                    <div className="pt-2">
-                      <p className="text-xs font-semibold text-[var(--dim)] mb-2">
-                        Resolved ({resolvedComments.length})
+                      <div className="mt-1 text-lg font-semibold text-[var(--ink)]">{openRootComments.length}</div>
+                    </div>
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-3 py-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Resolved
+                      </div>
+                      <div className="mt-1 text-lg font-semibold text-[var(--ink)]">{resolvedRootComments.length}</div>
+                    </div>
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-3 py-3">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Pinned
+                      </div>
+                      <div className="mt-1 text-lg font-semibold text-[var(--ink)]">{pinnedComments.length}</div>
+                    </div>
+                  </div>
+
+                  {rootComments.length === 0 ? (
+                    <div className="rounded-[20px] border border-dashed border-[var(--border-light)] bg-[color:rgba(255,255,255,0.02)] px-5 py-10 text-center">
+                      <MessageSquare size={24} className="mx-auto text-[var(--dim)]" />
+                      <div className="mt-3 text-lg font-semibold text-[var(--ink)]">No review threads yet</div>
+                      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                        Drop a pin or pause on a timecode, then add the first comment below the viewer.
                       </p>
-                      {resolvedComments.map((c) => (
-                        <div key={c.id} className="bg-[var(--bg)]/50 border border-[var(--border)]/50 rounded-lg p-3 mb-2 opacity-60">
-                          <div className="flex items-center gap-2 mb-1">
-                            <CheckCircle2 size={12} className="text-[var(--green)]" />
-                            <span className="text-xs font-semibold">{c.author_name}</span>
-                            {c.timecode_seconds != null && (
-                              <span className="text-[10px] font-mono text-[var(--dim)]">
-                                {formatTime(c.timecode_seconds)}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-[var(--muted)] line-through">{c.body}</p>
-                        </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {rootComments.map((comment, index) => (
+                        <CommentThread
+                          key={comment.id}
+                          comment={comment}
+                          replies={repliesByParent.get(comment.id) ?? []}
+                          onReply={(parentId) => {
+                            setReplyTo(parentId);
+                            setActiveTab("comments");
+                          }}
+                          onResolve={handleResolveComment}
+                          onSeek={comment.timecode_seconds != null ? seek : undefined}
+                          index={index + 1}
+                        />
                       ))}
                     </div>
                   )}
-                </>
-              )}
-            </div>
-          )}
-
-          {activeTab === "approvals" && (
-            <div className="p-4 space-y-3">
-              {approvals.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle2 size={28} className="mx-auto mb-2 text-[var(--dim)]" />
-                  <p className="text-sm text-[var(--muted)]">No approval gates configured</p>
                 </div>
-              ) : (
-                approvals
-                  .sort((a, b) => a.step_order - b.step_order)
-                  .map((a) => (
-                    <div key={a.id} className="bg-[var(--bg)] border border-[var(--border)] rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">
-                            Step {a.step_order}: {a.role_label}
-                          </p>
-                          {a.assignee_email && (
-                            <p className="text-[10px] text-[var(--dim)] mt-0.5">{a.assignee_email}</p>
-                          )}
-                        </div>
-                        <span
-                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            a.status === "approved"
-                              ? "text-[var(--green)] bg-[var(--green-dim)]"
-                              : a.status === "changes_requested" || a.status === "rejected"
-                              ? "text-[var(--red)] bg-[var(--red-dim)]"
-                              : "text-[var(--orange)] bg-[var(--orange-dim)]"
+              ) : null}
+
+              {activeTab === "approvals" ? (
+                <div className="space-y-5">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Pending
+                      </div>
+                      <div className="mt-1 text-xl font-semibold text-[var(--ink)]">{pendingApprovals.length}</div>
+                    </div>
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Completed
+                      </div>
+                      <div className="mt-1 text-xl font-semibold text-[var(--ink)]">{completedApprovals.length}</div>
+                    </div>
+                  </div>
+
+                  <ApprovalWorkflow
+                    assetId={assetId}
+                    workflow={workflow}
+                    onUpdate={loadWorkspace}
+                  />
+
+                  {approvals.length > 0 ? (
+                    <div className="space-y-3">
+                      {approvals.map((approval) => (
+                        <button
+                          key={approval.id}
+                          type="button"
+                          onClick={() => setFocusedApprovalId(approval.id)}
+                          className={`w-full rounded-[18px] border px-4 py-4 text-left transition ${
+                            focusedApprovalId === approval.id
+                              ? "border-[color:rgba(52,211,153,0.28)] bg-[color:rgba(52,211,153,0.08)]"
+                              : "border-[var(--border)] bg-[color:rgba(255,255,255,0.02)]"
                           }`}
                         >
-                          {a.status.replace(/_/g, " ")}
-                        </span>
-                      </div>
-                      {a.decision_note && (
-                        <p className="text-xs text-[var(--muted)] italic mb-2">&ldquo;{a.decision_note}&rdquo;</p>
-                      )}
-                      {a.status === "pending" && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => submitApproval(a.id, "approved")}
-                            className="flex-1 bg-[var(--green)] text-black text-xs font-semibold py-1.5 rounded-lg hover:opacity-90 transition-opacity"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => submitApproval(a.id, "changes_requested")}
-                            className="flex-1 bg-[var(--red)] text-white text-xs font-semibold py-1.5 rounded-lg hover:opacity-90 transition-opacity"
-                          >
-                            Request Changes
-                          </button>
-                        </div>
-                      )}
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="text-sm font-semibold text-[var(--ink)]">{approval.role_label}</div>
+                              <div className="mt-1 text-sm text-[var(--muted)]">
+                                {approval.assignee_email ?? "Unassigned reviewer"}
+                              </div>
+                            </div>
+                            <StatusBadge value={approval.status} />
+                          </div>
+                          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[var(--dim)]">
+                            <span>Step {approval.step_order}</span>
+                            {approval.decided_at ? <span>Decided {formatDate(approval.decided_at)}</span> : null}
+                          </div>
+                          {approval.decision_note ? (
+                            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+                              {approval.decision_note}
+                            </p>
+                          ) : null}
+                        </button>
+                      ))}
                     </div>
-                  ))
-              )}
-            </div>
-          )}
+                  ) : (
+                    <div className="rounded-[20px] border border-dashed border-[var(--border-light)] bg-[color:rgba(255,255,255,0.02)] px-5 py-8 text-center">
+                      <div className="text-lg font-semibold text-[var(--ink)]">No approval workflow yet</div>
+                      <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                        Set up approvers and sequencing above to move this asset through a clear decision flow.
+                      </p>
+                    </div>
+                  )}
 
-          {activeTab === "versions" && (
-            <div className="p-4 space-y-3">
-              {versions.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-[var(--muted)]">Original version</p>
+                  {focusedApproval ? (
+                    <div className="rounded-[20px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] p-4">
+                      <div className="mb-3 text-sm font-semibold text-[var(--ink)]">
+                        Record decision for {focusedApproval.role_label}
+                      </div>
+                      <ApprovalActions
+                        onDecide={handleApprovalDecision}
+                        loading={approvalUpdating}
+                      />
+                    </div>
+                  ) : null}
                 </div>
-              ) : (
-                versions
-                  .sort((a, b) => b.version_number - a.version_number)
-                  .map((v) => (
-                    <div key={v.id} className="bg-[var(--bg)] border border-[var(--border)] rounded-lg p-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold">Version {v.version_number}</span>
-                        <span className="text-[10px] text-[var(--dim)]">{timeAgo(v.created_at)}</span>
-                      </div>
-                      {v.notes && <p className="text-xs text-[var(--muted)] mt-1">{v.notes}</p>}
-                    </div>
-                  ))
-              )}
-            </div>
-          )}
-        </div>
+              ) : null}
 
-        {/* Comment input (always visible when on comments tab) */}
-        {activeTab === "comments" && (
-          <div className="border-t border-[var(--border)] p-3">
-            {replyingTo && (
-              <div className="flex items-center gap-2 mb-2 text-xs text-[var(--accent)] bg-[var(--bg)] border border-[var(--border)] rounded px-2 py-1">
-                <span>Replying to comment</span>
-                <button onClick={() => setReplyingTo(null)} className="ml-auto hover:text-[var(--ink)]">
-                  <X size={12} />
-                </button>
-              </div>
-            )}
-            {commentPin && (
-              <div className="flex items-center gap-2 mb-2 text-xs text-[var(--accent)]">
-                <MapPin size={12} />
-                <span>Pin at ({Math.round(commentPin.x)}%, {Math.round(commentPin.y)}%)</span>
-                <button onClick={() => setCommentPin(null)} className="ml-auto hover:text-[var(--ink)]">
-                  <X size={12} />
-                </button>
-              </div>
-            )}
-            {currentTime > 0 && !replyingTo && (
-              <div className="text-[10px] text-[var(--dim)] mb-1 font-mono">
-                @ {formatTime(currentTime)}
-              </div>
-            )}
-            <div className="flex gap-2">
-              <input
-                value={commentBody}
-                onChange={(e) => setCommentBody(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && submitComment()}
-                placeholder={replyingTo ? "Write a reply..." : "Add a comment..."}
-                className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--dim)] focus:border-[var(--accent)] outline-none"
-              />
-              <button
-                onClick={submitComment}
-                disabled={submitting || !commentBody.trim()}
-                className="bg-[var(--accent)] text-white p-2 rounded-lg hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
-              >
-                <Send size={16} />
-              </button>
+              {activeTab === "share" ? (
+                <div className="space-y-5">
+                  <div className="rounded-[20px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="text-sm font-semibold text-[var(--ink)]">Share-ready review</div>
+                        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                          Issue controlled review links with permissions, download rules, view caps, and watermarking.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShareOpen(true)}
+                        className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-950"
+                      >
+                        New link
+                      </button>
+                    </div>
+                  </div>
+
+                  <ShareLinkList assetId={assetId} />
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Total views
+                      </div>
+                      <div className="mt-1 text-xl font-semibold text-[var(--ink)]">{shareViews}</div>
+                    </div>
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Latest link
+                      </div>
+                      <div className="mt-1 text-sm text-[var(--ink)]">
+                        {lastShare ? formatDate(lastShare.created_at) : "No links yet"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {activeTab === "ai" ? (
+                <div className="space-y-5">
+                  <div className="rounded-[20px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] p-5">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+                      <WandSparkles size={15} className="text-[var(--accent)]" />
+                      AI feedback summary
+                    </div>
+                    <p className="text-sm leading-6 text-[var(--muted)]">
+                      Summarize comment clusters, extract action items, and keep the next revision pass aligned to the feedback trail.
+                    </p>
+                  </div>
+                  <AISummary assetId={assetId} comments={rootComments} />
+                </div>
+              ) : null}
+
+              {activeTab === "analytics" ? (
+                <div className="space-y-5">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Comments
+                      </div>
+                      <div className="mt-1 text-xl font-semibold text-[var(--ink)]">{rootComments.length}</div>
+                    </div>
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Timecoded notes
+                      </div>
+                      <div className="mt-1 text-xl font-semibold text-[var(--ink)]">{timecodedComments.length}</div>
+                    </div>
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Versions
+                      </div>
+                      <div className="mt-1 text-xl font-semibold text-[var(--ink)]">{Math.max(versions.length, 1)}</div>
+                    </div>
+                    <div className="rounded-[18px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] px-4 py-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--dim)]">
+                        Share views
+                      </div>
+                      <div className="mt-1 text-xl font-semibold text-[var(--ink)]">{shareViews}</div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[20px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.03)] p-5">
+                    <div className="text-sm font-semibold text-[var(--ink)]">Last activity</div>
+                    <div className="mt-3 space-y-3 text-sm text-[var(--muted)]">
+                      <div className="flex items-start gap-3">
+                        <Clock3 size={14} className="mt-1 text-[var(--accent)]" />
+                        <span>Asset updated {formatDate(asset.updated_at)}.</span>
+                      </div>
+                      {currentVersion ? (
+                        <div className="flex items-start gap-3">
+                          <Layers3 size={14} className="mt-1 text-[var(--accent)]" />
+                          <span>Current review target is version {currentVersion.version_number}.</span>
+                        </div>
+                      ) : null}
+                      {lastShare ? (
+                        <div className="flex items-start gap-3">
+                          <Share2 size={14} className="mt-1 text-[var(--accent)]" />
+                          <span>
+                            Latest share link created {formatDate(lastShare.created_at)} with{" "}
+                            {lastShare.permissions} permissions.
+                          </span>
+                        </div>
+                      ) : null}
+                      {pendingApprovals.length > 0 ? (
+                        <div className="flex items-start gap-3">
+                          <CheckCircle2 size={14} className="mt-1 text-[var(--accent)]" />
+                          <span>{pendingApprovals.length} approval step(s) still need a decision.</span>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
-          </div>
-        )}
+          </aside>
+        </div>
       </div>
 
-      {/* Share Modal */}
-      {showShare && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Share Review Link</h3>
-              <button onClick={() => setShowShare(false)} className="text-[var(--muted)] hover:text-[var(--ink)]">
-                <X size={18} />
-              </button>
-            </div>
-            <p className="text-sm text-[var(--muted)] mb-3">
-              Anyone with this link can view and comment on this asset.
-            </p>
-            <div className="flex gap-2">
-              <input
-                readOnly
-                value={shareLink}
-                className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--ink)] font-mono"
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(shareLink);
-                }}
-                className="bg-[var(--accent)] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[var(--accent-hover)] transition-colors"
-              >
-                Copy
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <ShareModal
+        assetId={assetId}
+        open={shareOpen}
+        onClose={async () => {
+          setShareOpen(false);
+          const response = await fetch(`/api/assets/${assetId}/share`);
+          if (!response.ok) return;
+          const json = await response.json();
+          setShareLinks((json.items ?? []) as ShareLinkRow[]);
+        }}
+      />
+
+      {compareVersions ? (
+        <VersionCompare
+          versionA={compareVersions[0]}
+          versionB={compareVersions[1]}
+          fileType={asset.file_type}
+          onClose={() => setCompareVersions(null)}
+        />
+      ) : null}
+    </>
   );
 }

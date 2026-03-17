@@ -50,6 +50,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       author_email: body.author_email || user?.email || null,
       author_id: user?.id || null,
       timecode_seconds: body.timecode_seconds ?? null,
+      frame_number: body.frame_number ?? null,
       pin_x: body.pin_x ?? null,
       pin_y: body.pin_y ?? null,
       parent_id: body.parent_id ?? null,
@@ -68,7 +69,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       asset_id: id,
       actor_id: user?.id || null,
       actor_name: body.author_name || user?.email || "Anonymous",
-      action: "added_comment",
+      action: "comment_added",
       details: { asset_title: asset.data.title, body: body.body.slice(0, 100) },
     });
 
@@ -90,7 +91,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
   }
 
-  return NextResponse.json(data, { status: 201 });
+  return NextResponse.json({ comment: data, ...data }, { status: 201 });
 }
 
 export async function PATCH(req: Request) {

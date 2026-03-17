@@ -25,6 +25,29 @@ const NAV = [
   { href: "/frameworks", label: "Frameworks", icon: BookOpen },
 ];
 
+const PRODUCT_LINKS = [
+  {
+    href: process.env.NEXT_PUBLIC_MONOREPO_URL ?? "https://github.com/baileyeubanks/blaze-v4",
+    label: "Monorepo",
+    external: true,
+  },
+  {
+    href: process.env.NEXT_PUBLIC_COCUT_URL ?? "http://localhost:5173",
+    label: "co-cut",
+    external: false,
+  },
+  {
+    href: process.env.NEXT_PUBLIC_COSCRIPT_URL ?? "http://localhost:4102",
+    label: "co-script",
+    external: false,
+  },
+  {
+    href: process.env.NEXT_PUBLIC_CODELIVER_URL ?? "http://localhost:4103",
+    label: "co-deliver",
+    external: false,
+  },
+] as const;
+
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -153,7 +176,62 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main style={{ flex: 1, overflow: "auto" }}>{children}</main>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <header
+          style={{
+            borderBottom: "1px solid var(--line)",
+            background: "var(--surface)",
+            padding: "0.75rem 1rem",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "var(--muted)",
+              }}
+            >
+              Monorepo Apps
+            </span>
+            {PRODUCT_LINKS.map((item) => {
+              const active = item.label === "co-script";
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noreferrer" : undefined}
+                  style={{
+                    border: "1px solid var(--line)",
+                    borderColor: active ? "var(--accent)" : "var(--line)",
+                    background: active ? "var(--accent-dim)" : "transparent",
+                    color: active ? "var(--accent)" : "var(--muted)",
+                    borderRadius: 999,
+                    padding: "0.35rem 0.7rem",
+                    fontSize: "0.68rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+          </div>
+        </header>
+        <main style={{ flex: 1, overflow: "auto" }}>{children}</main>
+      </div>
     </div>
   );
 }

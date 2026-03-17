@@ -8,8 +8,8 @@
   "scripts": {
     "dev": "next dev -p 4102",
     "build": "next build",
-    "start": "next start -p 4102",
-    "lint": "next lint",
+    "start": "sh -c 'next start --hostname 0.0.0.0 --port ${PORT:-4102}'",
+    "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

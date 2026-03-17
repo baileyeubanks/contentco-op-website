@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Upload, X, FileVideo, Loader2 } from "lucide-react";
 import { formatFileSize } from "@/lib/utils/media";
+import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
 interface VersionUploadProps {
   assetId: string;
@@ -36,27 +37,40 @@ export default function VersionUpload({ assetId, currentVersionNumber, onComplet
     setUploading(true);
     setProgress(0);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("notes", notes);
-
     // Simulate progress since fetch doesn't support upload progress natively
     const progressInterval = setInterval(() => {
       setProgress((prev) => Math.min(prev + 10, 90));
     }, 200);
 
     try {
+      const supabase = createSupabaseBrowser();
+      const path = `${assetId}/versions/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("deliverables")
+        .upload(path, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("deliverables")
+        .getPublicUrl(path);
+
       const res = await fetch(`/api/assets/${assetId}/versions`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          file_url: urlData.publicUrl,
+          file_size: file.size,
+          notes,
+        }),
       });
 
       clearInterval(progressInterval);
 
-      if (res.ok) {
-        setProgress(100);
-        setTimeout(onComplete, 500);
-      }
+      if (!res.ok) throw new Error("Version upload failed");
+
+      setProgress(100);
+      setTimeout(onComplete, 500);
     } catch {
       clearInterval(progressInterval);
     } finally {
