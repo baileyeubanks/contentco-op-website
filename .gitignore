@@ -1,0 +1,43 @@
+node_modules
+.next
+.turbo
+dist
+coverage
+*.tsbuildinfo
+**/*.tsbuildinfo
+.env*
+!.env.local.example
+apps/**/.next
+apps/**/.turbo
+apps/**/node_modules
+apps/*.symlink.bak
+services/**/node_modules
+packages/**/node_modules
+
+# Build artifacts and local-only research
+2026-02-24-205554-let-me-dig-through-every-photo-folder-in-your-driv.txt
+tmp_research
+design-options
+docs/brand
+supabase/.temp
+
+# OS
+.DS_Store
+**/.DS_Store
+
+# Large media (served from CDN/local, not git)
+apps/home/media/portfolio-cdn/
+apps/home/media/hero/
+apps/home/media/cco_photos/
+apps/home/public/media/hero/
+
+# IDE / tooling
+.claude/
+.playwright-cli/
+.mcp.json
+output/
+apps/home/output/
+
+# Internal canonical media inventory metadata only
+apps/home/media/portfolio-masters-canonical/*.mp4
+apps/home/media/portfolio-masters-canonical/*.mov

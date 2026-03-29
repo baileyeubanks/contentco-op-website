@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Co-op — Brand Central</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,300;1,9..144,400;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f0ebe0;
+  --surface: #faf6ef;
+  --border: #d8cfc0;
+  --ink: #0b1928;
+  --ink-secondary: #485670;
+  --ink-tertiary: #8a8578;
+  --accent: #1e4d8c;
+  --accent-light: #b3c8f0;
+  --cream: #f0ebe0;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --pill: 999px;
+  --radius: 14px;
+  --section-pad: 80px 64px;
+}
+
+html { height: 100%; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* -- NAV -- */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 64px;
+  background: rgba(240,235,224,0.92);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-brand {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+}
+.nav-brand span { font-weight: 300; color: var(--ink-tertiary); margin-left: 6px; }
+.nav-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.nav-links a {
+  font-size: 0.82rem; font-weight: 500; color: var(--ink-secondary);
+  text-decoration: none; padding: 6px 14px; border-radius: var(--pill);
+  transition: all 0.2s;
+}
+.nav-links a:hover { background: rgba(30,77,140,0.08); color: var(--accent); }
+
+/* -- HERO -- */
+.hero {
+  position: relative;
+  padding: 100px 64px 80px;
+  max-width: 900px;
+}
+.hero-accent-bar {
+  position: absolute; left: 0; top: 15%; bottom: 15%;
+  width: 3px;
+  background: linear-gradient(180deg, #1e4d8c, #b3c8f0, transparent);
+}
+.hero-pill {
+  display: inline-block;
+  font-family: var(--font-body); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent); background: rgba(30,77,140,0.08);
+  padding: 6px 18px; border-radius: var(--pill);
+  margin-bottom: 32px;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 5vw, 4.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+}
+.hero h1 .light { font-weight: 300; color: #485670; font-size: 0.85em; }
+.hero h1 .accent { font-weight: 700; font-style: italic; color: #1e4d8c; font-size: 1.1em; }
+.hero-sub {
+  font-family: var(--font-body); font-weight: 700;
+  font-size: 1.25rem; color: var(--ink-secondary);
+  max-width: 520px; line-height: 1.3; margin-bottom: 36px;
+}
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-body); font-size: 0.88rem; font-weight: 600;
+  padding: 12px 28px; border-radius: var(--pill);
+  text-decoration: none; cursor: pointer; border: none;
+  transition: all 0.25s;
+}
+.btn-primary {
+  background: var(--accent); color: #fff;
+}
+.btn-primary:hover { background: #163d6e; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(30,77,140,0.25); }
+.btn-secondary {
+  background: transparent; color: var(--accent);
+  border: 1.5px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--accent); background: rgba(30,77,140,0.04); }
+
+/* -- STATS BAR -- */
+.stats-bar {
+  display: flex; gap: 0; padding: 0 64px;
+  margin-bottom: 80px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.stat-item {
+  flex: 1; padding: 28px 24px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.stat-item:last-child { border-right: none; }
+.stat-number {
+  font-family: var(--font-display); font-size: 1.6rem;
+  font-weight: 700; color: var(--accent);
+  display: block; margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 0.72rem; font-weight: 500; color: var(--ink-tertiary);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* -- SECTION SCAFFOLD -- */
+.section {
+  padding: var(--section-pad);
+  opacity: 1;
+}
+.section.observed {
+  animation: fadeUp 0.6s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.section-number {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  font-weight: 500; color: var(--ink-tertiary);
+  letter-spacing: 0.1em; margin-bottom: 12px;
+  display: block;
+}
+.section-title {
+  font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700; letter-spacing: -0.02em; color: var(--ink);
+  margin-bottom: 8px;
+}
+.section-subtitle {
+  font-size: 0.95rem; color: var(--ink-secondary);
+  max-width: 600px; margin-bottom: 48px; line-height: 1.7;
+}
+
+/* -- CARDS -- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.card:hover {
+  border-color: #c4baa8;
+  box-shadow: 0 4px 24px rgba(11,25,40,0.06);
+}
+
+/* -- QUICK ACCESS CATEGORIES -- */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.cat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  text-decoration: none; color: var(--ink);
+  transition: all 0.25s; cursor: pointer;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cat-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30,77,140,0.08);
+}
+.cat-icon {
+  width: 40px; height: 40px;
+  background: rgba(30,77,140,0.06);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+}
+.cat-card h3 {
+  font-family: var(--font-display); font-size: 1rem;
+  font-weight: 700; letter-spacing: -0.01em;
+}
+.cat-card p {
+  font-size: 0.78rem; color: var(--ink-secondary); line-height: 1.5;
+}
+
+/* -- GUIDELINES: COLORS -- */
+.colors-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px; margin-bottom: 56px;
+}
+.color-swatch {
+  border-radius: var(--radius); overflow: hidden;
+  cursor: pointer; transition: transform 0.2s;
+  border: 1px solid var(--border);
+}
+.color-swatch:hover { transform: scale(1.03); }
+.swatch-fill {
+  height: 80px; width: 100%;
+}
+.swatch-meta {
+  background: var(--surface); padding: 12px 14px;
+}
+.swatch-name {
+  font-size: 0.78rem; font-weight: 600; color: var(--ink);
+  display: block; margin-bottom: 4px;
+}
+.swatch-hex {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  color: var(--ink-tertiary);
+}
+.copy-toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--ink); color: #fff; padding: 10px 24px;
+  border-radius: var(--pill); font-size: 0.82rem; font-weight: 500;
+  pointer-events: none; opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+.copy-toast.show {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+
+/* -- GUIDELINES: TYPOGRAPHY -- */
+.type-specimens {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px; margin-bottom: 56px;
+}
+.type-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+}
+.type-sample {
+  font-size: 2rem; margin-bottom: 16px;
+  line-height: 1.2;
+}
+.type-card h4 {
+  font-size: 0.88rem; font-weight: 700; margin-bottom: 6px;
+}
+.type-card p {
+  font-size: 0.78rem; color: var(--ink-secondary); line-height: 1.5;
+}
+
+/* -- GUIDELINES: SPACING -- */
+.spacing-scale {
+  display: flex; align-items: flex-end; gap: 16px;
+  flex-wrap: wrap; margin-bottom: 32px;
+}
+.spacing-unit {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.spacing-block {
+  background: var(--accent); border-radius: 4px;
+  width: 40px; transition: opacity 0.2s;
+}
+.spacing-label {
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--ink-tertiary);
+}
+
+/* -- LOGOS -- */
+.logos-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+.logo-card {
+  border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.logo-card:hover { border-color: #c4baa8; }
+.logo-preview {
+  height: 150px; display: flex;
+  align-items: center; justify-content: center;
+  padding: 28px; transition: background 0.3s;
+}
+.logo-preview.light-bg { background: #ffffff; }
+.logo-preview.dark-bg { background: var(--ink); }
+.logo-preview img {
+  max-width: 200px; max-height: 100px;
+  object-fit: contain;
+}
+.logo-meta {
+  background: var(--surface); padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--border);
+}
+.logo-meta-left h4 {
+  font-size: 0.85rem; font-weight: 600; margin-bottom: 2px;
+}
+.logo-meta-left p {
+  font-size: 0.72rem; color: var(--ink-tertiary);
+}
+.logo-actions { display: flex; align-items: center; gap: 8px; }
+.toggle-bg-btn, .download-btn {
+  font-family: var(--font-body); font-size: 0.72rem; font-weight: 600;
+  padding: 6px 14px; border-radius: var(--pill); cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--ink-secondary); transition: all 0.2s;
+}
+.toggle-bg-btn:hover, .download-btn:hover {
+  border-color: var(--accent); color: var(--accent);
+}
+
+/* -- PHOTOGRAPHY -- */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.photo-item {
+  border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--border);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.photo-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(11,25,40,0.1);
+}
+.photo-item img {
+  width: 100%; height: 200px;
+  object-fit: cover; display: block;
+}
+.photo-caption {
+  padding: 12px 14px; background: var(--surface);
+  font-size: 0.75rem; color: var(--ink-secondary);
+  border-top: 1px solid var(--border);
+}
+
+/* -- CASE STUDIES -- */
+.case-studies { display: flex; flex-direction: column; gap: 24px; }
+
+/* -- Flagship: editorial feature layout -- */
+.case-study.flagship {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 20px rgba(30,77,140,0.06);
+}
+.case-study.flagship .case-hero {
+  position: relative;
+  height: 100%;
+  min-height: 340px;
+  overflow: hidden;
+}
+.case-study.flagship .case-hero img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.case-study.flagship .case-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(11,25,40,0.7));
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 28px;
+}
+.case-study.flagship .case-hero-overlay h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem; font-weight: 700;
+  color: #fff; margin-bottom: 2px;
+}
+.case-study.flagship .case-hero-overlay .case-client {
+  font-size: 0.78rem; color: rgba(255,255,255,0.7);
+  font-weight: 500;
+}
+.case-study.flagship .case-body {
+  padding: 32px 36px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+
+/* -- Standard: compact horizontal cards -- */
+.case-study:not(.flagship) {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.case-study:not(.flagship):hover {
+  border-color: #c4baa8;
+  box-shadow: 0 4px 20px rgba(11,25,40,0.06);
+}
+.case-study:not(.flagship) .case-hero {
+  position: relative;
+  height: 100%;
+  min-height: 180px;
+  overflow: hidden;
+}
+.case-study:not(.flagship) .case-hero img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.case-study:not(.flagship) .case-hero-overlay {
+  display: none;
+}
+.case-study:not(.flagship) .case-body {
+  padding: 24px 28px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+/* Inline titles for non-flagship cards (overlay hidden in side-by-side layout) */
+.case-study:not(.flagship) .case-title-inline {
+  font-family: var(--font-display);
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--ink); margin-bottom: 2px;
+  line-height: 1.3;
+}
+.case-study:not(.flagship) .case-client-inline {
+  display: block;
+  font-size: 0.75rem; font-weight: 500;
+  color: var(--ink-tertiary); margin-bottom: 12px;
+}
+
+/* Shared case body elements */
+.case-meta-row {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.case-meta-item {
+  font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--ink-tertiary);
+}
+.case-meta-item strong {
+  display: block; font-size: 0.82rem;
+  color: var(--ink); text-transform: none;
+  letter-spacing: 0; margin-top: 1px;
+}
+.case-headline {
+  font-family: var(--font-display);
+  font-size: 1.02rem; font-weight: 400;
+  font-style: italic; color: var(--accent);
+  line-height: 1.5; margin-bottom: 10px;
+}
+.case-text {
+  font-size: 0.85rem; color: var(--ink-secondary);
+  line-height: 1.7; margin-bottom: 14px;
+}
+.case-deliverables {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.case-tag {
+  font-size: 0.68rem; font-weight: 600;
+  padding: 3px 10px; border-radius: var(--pill);
+  background: rgba(30,77,140,0.07); color: var(--accent);
+}
+.case-gallery {
+  display: flex; gap: 10px; margin-top: 18px;
+}
+.case-gallery img {
+  width: 100%; max-width: 140px; height: 90px;
+  object-fit: cover; border-radius: 8px;
+  border: 1px solid var(--border);
+  flex: 1;
+}
+
+/* Flagship gallery wider */
+.case-study.flagship .case-gallery img {
+  max-width: 180px; height: 100px;
+}
+
+/* -- MOTION -- */
+.motion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+.motion-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.motion-card video { width: 100%; display: block; }
+.motion-meta {
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.motion-meta h4 { font-size: 0.85rem; font-weight: 600; }
+.motion-meta p { font-size: 0.72rem; color: var(--ink-tertiary); }
+
+/* -- EXPORTS -- */
+.exports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.export-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 22px;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: border-color 0.2s;
+}
+.export-card:hover { border-color: #c4baa8; }
+.export-card h4 { font-size: 0.88rem; font-weight: 600; }
+.export-card p { font-size: 0.75rem; color: var(--ink-secondary); line-height: 1.5; }
+.export-card .btn-pill { font-size: 0.75rem; padding: 8px 18px; align-self: flex-start; }
+
+/* -- VOICE -- */
+.pillars-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px; margin-bottom: 56px;
+}
+.pillar-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.pillar-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.pillar-accent {
+  width: 32px; height: 3px; border-radius: 2px;
+  margin-bottom: 20px;
+}
+.pillar-card h3 {
+  font-family: var(--font-display); font-size: 1.2rem;
+  font-weight: 700; margin-bottom: 10px;
+}
+.pillar-card p {
+  font-size: 0.85rem; color: var(--ink-secondary); line-height: 1.7;
+}
+
+.dos-donts {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.dos-col, .donts-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+}
+.dos-col h4, .donts-col h4 {
+  font-family: var(--font-display); font-size: 1rem;
+  font-weight: 700; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.dos-col li, .donts-col li {
+  font-size: 0.85rem; color: var(--ink-secondary);
+  margin-bottom: 10px; list-style: none;
+  padding-left: 20px; position: relative; line-height: 1.6;
+}
+.dos-col li::before {
+  content: ''; position: absolute; left: 0; top: 7px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #2d8a5e;
+}
+.donts-col li::before {
+  content: ''; position: absolute; left: 0; top: 7px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #c44a2a;
+}
+
+/* -- TEMPLATES -- */
+.templates-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+.template-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.template-card:hover { border-color: #c4baa8; }
+.template-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: rgba(30,77,140,0.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+.template-card h4 { font-size: 0.88rem; font-weight: 600; }
+.template-card p { font-size: 0.75rem; color: var(--ink-secondary); line-height: 1.5; }
+.template-specs {
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--ink-tertiary); margin-top: auto;
+}
+
+/* -- GOVERNANCE -- */
+.governance-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+.governance-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+}
+.governance-card h4 {
+  font-family: var(--font-display); font-size: 1rem;
+  font-weight: 700; margin-bottom: 14px;
+}
+.governance-card p, .governance-card li {
+  font-size: 0.85rem; color: var(--ink-secondary); line-height: 1.7;
+}
+.governance-card ul { list-style: none; padding: 0; }
+.governance-card li { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.governance-card li:last-child { border-bottom: none; }
+.owner-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; font-weight: 600; color: var(--accent);
+  background: rgba(30,77,140,0.08); padding: 4px 14px;
+  border-radius: var(--pill);
+}
+
+/* -- BRAND POSITIONING -- */
+.positioning-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px 36px;
+  margin-bottom: 32px;
+}
+.positioning-block h3 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 700; margin-bottom: 8px; color: var(--ink);
+}
+.positioning-block p {
+  font-size: 0.92rem; color: var(--ink-secondary); line-height: 1.7;
+  max-width: 680px;
+}
+.positioning-block .accent-text {
+  font-family: var(--font-display); font-size: 1.5rem;
+  font-weight: 700; font-style: italic; color: var(--accent);
+  line-height: 1.3; margin-bottom: 24px; max-width: 600px;
+}
+.values-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px; margin-top: 32px;
+}
+.value-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+}
+.value-card h4 {
+  font-family: var(--font-display); font-size: 1rem;
+  font-weight: 700; margin-bottom: 8px; color: var(--ink);
+}
+.value-card p {
+  font-size: 0.85rem; color: var(--ink-secondary); line-height: 1.7;
+}
+
+/* -- GUIDELINES CALLOUT BOX -- */
+.guideline-callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 28px 28px;
+  margin-top: 40px;
+  margin-bottom: 32px;
+}
+.guideline-callout h4 {
+  font-family: var(--font-display); font-size: 1rem;
+  font-weight: 700; margin-bottom: 12px; color: var(--ink);
+}
+.guideline-callout p, .guideline-callout li {
+  font-size: 0.85rem; color: var(--ink-secondary); line-height: 1.7;
+}
+.guideline-callout ul {
+  list-style: none; padding: 0; margin-top: 12px;
+}
+.guideline-callout li {
+  padding: 6px 0; padding-left: 16px; position: relative;
+}
+.guideline-callout li::before {
+  content: ''; position: absolute; left: 0; top: 12px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+}
+
+/* -- TYPE HIERARCHY DEMO -- */
+.type-hierarchy {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px 36px;
+  margin-bottom: 32px;
+}
+.type-hierarchy-row {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.type-hierarchy-row:last-child { border-bottom: none; }
+.type-hierarchy-row .label {
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--ink-tertiary); letter-spacing: 0.04em;
+}
+.type-hierarchy-row .usage {
+  font-size: 0.78rem; color: var(--ink-secondary); font-style: italic;
+}
+
+/* -- TONE SPECTRUM -- */
+.tone-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px; margin-top: 24px;
+}
+.tone-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 22px;
+}
+.tone-card h4 {
+  font-family: var(--font-display); font-size: 0.95rem;
+  font-weight: 700; margin-bottom: 8px;
+}
+.tone-card p {
+  font-size: 0.82rem; color: var(--ink-secondary); line-height: 1.6;
+}
+
+/* -- FOOTER -- */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 48px 64px;
+}
+.footer-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 40px; flex-wrap: wrap; gap: 32px;
+}
+.footer-brand {
+  font-family: var(--font-display); font-size: 1.1rem;
+  font-weight: 700; color: var(--ink); margin-bottom: 6px;
+}
+.footer-powered {
+  font-size: 0.72rem; color: var(--ink-tertiary);
+}
+.portal-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.portal-link {
+  font-size: 0.82rem; font-weight: 500;
+  color: var(--ink-secondary); text-decoration: none;
+  padding: 8px 20px; border-radius: var(--pill);
+  border: 1px solid var(--border); transition: all 0.2s;
+}
+.portal-link:hover { border-color: var(--accent); color: var(--accent); }
+.portal-link.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.footer-bottom {
+  font-size: 0.72rem; color: var(--ink-tertiary);
+}
+
+/* -- RESPONSIVE -- */
+@media (max-width: 768px) {
+  .nav { padding: 14px 24px; }
+  .nav-links { display: none; }
+  .hero { padding: 64px 24px 48px; }
+  .section { padding: 56px 24px; }
+  .stats-bar { padding: 0 24px; flex-wrap: wrap; }
+  .stat-item { flex: 1 1 33%; min-width: 100px; }
+  .dos-donts { grid-template-columns: 1fr; }
+  .footer { padding: 40px 24px; }
+  .positioning-block { padding: 28px 22px; }
+  .type-hierarchy { padding: 28px 22px; }
+  .case-study.flagship { grid-template-columns: 1fr; }
+  .case-study.flagship .case-hero { min-height: 200px; }
+  .case-study:not(.flagship) { grid-template-columns: 1fr; }
+  .case-study:not(.flagship) .case-hero { min-height: 160px; }
+  .case-study:not(.flagship) .case-hero-overlay { display: flex; }
+  .case-study:not(.flagship) .case-title-inline,
+  .case-study:not(.flagship) .case-client-inline { display: none; }
+  .case-gallery { flex-wrap: wrap; }
+  .case-gallery img { max-width: none; height: 120px; }
+}
+</style>
+</head>
+<body>
+
+<!-- -- NAV -- -->
+<nav class="nav">
+  <div class="nav-brand">Content Co-op <span>Brand Central</span></div>
+  <div class="nav-links">
+    <a href="#positioning">Positioning</a>
+    <a href="#guidelines">Guidelines</a>
+    <a href="#logos">Logos</a>
+    <a href="#visual-essence">Visual Essence</a>
+    <a href="#photography">Photography</a>
+    <a href="#visual-essence">Video Platform</a>
+    <a href="#motion">Motion</a>
+    <a href="#voice">Voice</a>
+    <a href="#governance">Governance</a>
+  </div>
+</nav>
+
+<!-- -- HERO -- -->
+<section class="hero">
+  <div class="hero-accent-bar"></div>
+  <div class="hero-pill">Brand Central</div>
+  <h1>
+    <span class="light">Minimal stage,</span><br>
+    <span class="accent" style="display:inline-block;margin-top:-4px;">maximum signal.</span>
+  </h1>
+  <p class="hero-sub">
+    Everything your team and partners need to represent Content Co-op with precision.
+    Colors, marks, voice, and assets — all in one place.
+  </p>
+  <div class="hero-actions">
+    <a href="#guidelines" class="btn-pill btn-primary">Browse Guidelines</a>
+    <a href="#exports" class="btn-pill btn-secondary">Download Assets</a>
+  </div>
+</section>
+
+<!-- -- STATS BAR -- -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-number">8</span>
+    <span class="stat-label">Brand Colors</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">11</span>
+    <span class="stat-label">Logo Variants</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">22</span>
+    <span class="stat-label">Photo Assets</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">4</span>
+    <span class="stat-label">Case Studies</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">19</span>
+    <span class="stat-label">Hero Reels</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">3</span>
+    <span class="stat-label">Typefaces</span>
+  </div>
+</div>
+
+<!-- -- QUICK ACCESS CATEGORIES -- -->
+<section class="section" id="categories">
+  <span class="section-number">00</span>
+  <h2 class="section-title">Quick Access</h2>
+  <p class="section-subtitle">Jump directly to the section you need.</p>
+  <div class="categories-grid">
+    <a href="#positioning" class="cat-card">
+      <div class="cat-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <h3>Brand Positioning</h3>
+      <p>Promise, mission, values, and audience</p>
+    </a>
+    <a href="#guidelines" class="cat-card">
+      <div class="cat-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+      <h3>Brand Guidelines</h3>
+      <p>Colors, typography, and spacing tokens</p>
+    </a>
+    <a href="#logos" class="cat-card">
+      <div class="cat-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+      <h3>Logo & Marks</h3>
+      <p>Wordmarks, lockups, and usage rules</p>
+    </a>
+    <a href="#photography" class="cat-card">
+      <div class="cat-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>
+      <h3>Photography & Film</h3>
+      <p>22 editorial images and art direction</p>
+    </a>
+    <a href="#visual-essence" class="cat-card">
+      <div class="cat-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+      <h3>Video Platform</h3>
+      <p>13 projects with AI-enriched metadata</p>
+    </a>
+    <a href="#voice" class="cat-card">
+      <div class="cat-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <h3>Voice & Verbal</h3>
+      <p>Personality, tone spectrum, and writing rules</p>
+    </a>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 01 — BRAND POSITIONING                                           -->
+<!-- ================================================================ -->
+<section class="section" id="positioning">
+  <span class="section-number">01</span>
+  <h2 class="section-title">Brand Positioning</h2>
+  <p class="section-subtitle">Who we are, why we exist, and who we serve. This is the strategic foundation every piece of creative builds from.</p>
+
+  <!-- Brand Promise -->
+  <div class="positioning-block">
+    <h3>Brand Promise</h3>
+    <p class="accent-text">We make the work visible.</p>
+    <p>Content Co-op exists to tell the stories of the people and industries that build the real world — energy, construction, manufacturing, infrastructure.</p>
+  </div>
+
+  <!-- Positioning Statement -->
+  <div class="positioning-block">
+    <h3>Positioning Statement</h3>
+    <p>For industrial and energy companies who need to show the world what they actually do, Content Co-op is the production partner that embeds with your teams and turns real operations into compelling content — because the work itself is the story.</p>
+  </div>
+
+  <!-- Core Values -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:20px;">Core Values</h3>
+  <div class="values-grid">
+    <div class="value-card">
+      <h4>Authenticity over production</h4>
+      <p>Real crews, real sites, real conditions. We don't manufacture moments — we capture them.</p>
+    </div>
+    <div class="value-card">
+      <h4>Craft over content</h4>
+      <p>Every frame is intentional. We'd rather deliver one exceptional piece than ten mediocre ones.</p>
+    </div>
+    <div class="value-card">
+      <h4>Partnership over vendor</h4>
+      <p>We embed, we don't just show up. We learn your operations, your people, your language.</p>
+    </div>
+    <div class="value-card">
+      <h4>Signal over noise</h4>
+      <p>One great piece beats ten mediocre ones. Every deliverable earns its place.</p>
+    </div>
+  </div>
+
+  <!-- Target Audience -->
+  <div class="guideline-callout" style="margin-top:48px;">
+    <h4>Target Audience</h4>
+    <p>Marketing directors, VP Communications, and brand managers at mid-to-large industrial, energy, and construction companies ($50M-$5B revenue). Decision-makers who understand that their real-world operations are inherently compelling — they just need the right team to capture and tell those stories.</p>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 02 — BRAND GUIDELINES                                            -->
+<!-- ================================================================ -->
+<section class="section" id="guidelines">
+  <span class="section-number">02</span>
+  <h2 class="section-title">Brand Guidelines</h2>
+  <p class="section-subtitle">The foundational tokens that define Content Co-op's visual identity. Every color, typeface, and spacing unit is intentional.</p>
+
+  <!-- COLORS -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:20px;">Color Palette</h3>
+  <div class="colors-grid">
+    <div class="color-swatch" onclick="copyHex('#0b1928','Deep Navy')">
+      <div class="swatch-fill" style="background:#0b1928;"></div>
+      <div class="swatch-meta">
+        <span class="swatch-name">Deep Navy</span>
+        <span class="swatch-hex">#0b1928</span>
+      </div>
+    </div>
+    <div class="color-swatch" onclick="copyHex('#1e4d8c','Sapphire')">
+      <div class="swatch-fill" style="background:#1e4d8c;"></div>
+      <div class="swatch-meta">
+        <span class="swatch-name">Sapphire</span>
+        <span class="swatch-hex">#1e4d8c</span>
+      </div>
+    </div>
+    <div class="color-swatch" onclick="copyHex('#485670','Slate')">
+      <div class="swatch-fill" style="background:#485670;"></div>
+      <div class="swatch-meta">
+        <span class="swatch-name">Slate</span>
+        <span class="swatch-hex">#485670</span>
+      </div>
+    </div>
+    <div class="color-swatch" onclick="copyHex('#b3c8f0','Periwinkle')">
+      <div class="swatch-fill" style="background:#b3c8f0;"></div>
+      <div class="swatch-meta">
+        <span class="swatch-name">Periwinkle</span>
+        <span class="swatch-hex">#b3c8f0</span>
+      </div>
+    </div>
+    <div class="color-swatch" onclick="copyHex('#f0ebe0','Warm Cream')">
+      <div class="swatch-fill" style="background:#f0ebe0;"></div>
+      <div class="swatch-meta">
+        <span class="swatch-name">Warm Cream</span>
+        <span class="swatch-hex">#f0ebe0</span>
+      </div>
+    </div>
+    <div class="color-swatch" onclick="copyHex('#faf6ef','Parchment')">
+      <div class="swatch-fill" style="background:#faf6ef;"></div>
+      <div class="swatch-meta">
+        <span class="swatch-name">Parchment</span>
+        <span class="swatch-hex">#faf6ef</span>
+      </div>
+    </div>
+    <div class="color-swatch" onclick="copyHex('#d8cfc0','Sand')">
+      <div class="swatch-fill" style="background:#d8cfc0;"></div>
+      <div class="swatch-meta">
+        <span class="swatch-name">Sand</span>
+        <span class="swatch-hex">#d8cfc0</span>
+      </div>
+    </div>
+    <div class="color-swatch" onclick="copyHex('#c4722a','Copper')">
+      <div class="swatch-fill" style="background:#c4722a;"></div>
+      <div class="swatch-meta">
+        <span class="swatch-name">Copper</span>
+        <span class="swatch-hex">#c4722a</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLOR USAGE GUIDELINES -->
+  <div class="guideline-callout">
+    <h4>Color Usage Guidelines</h4>
+    <p><strong>Usage Ratio:</strong> 70% cream/white backgrounds, 20% ink for text, 10% accent blue for CTAs and highlights.</p>
+    <ul>
+      <li><strong>Primary Palette:</strong> Cream (#f0ebe0) as background, Ink (#0b1928) as primary text, Accent (#1e4d8c) for interactive elements</li>
+      <li><strong>Supporting Colors:</strong> Surface (#faf6ef) for cards, Border (#d8cfc0) for dividers, Ink Secondary (#485670) for supporting text</li>
+      <li><strong>Accessibility:</strong> All text/background combinations must meet WCAG AA (4.5:1 contrast ratio minimum). Ink on Cream = 14.2:1. Accent on Cream = 7.1:1.</li>
+    </ul>
+    <h4 style="margin-top:20px;">Never</h4>
+    <ul>
+      <li>Never use accent blue as a background color</li>
+      <li>Never use cream text on white backgrounds</li>
+      <li>Never introduce new colors outside this palette without owner approval</li>
+    </ul>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:20px;">Typography</h3>
+  <div class="type-specimens">
+    <div class="type-card">
+      <div class="type-sample" style="font-family:var(--font-display);font-weight:700;">Fraunces</div>
+      <h4>Display &amp; Headlines</h4>
+      <p>Variable optical size 9-144. Weight range 300-900. Used for all headings, hero text, and editorial display. The warmth of a serif, the confidence of a modern face.</p>
+      <p style="margin-top:12px;font-family:var(--font-mono);font-size:0.68rem;color:var(--ink-tertiary);">font-family: 'Fraunces', Georgia, serif</p>
+    </div>
+    <div class="type-card">
+      <div class="type-sample" style="font-family:var(--font-body);font-weight:500;">Plus Jakarta Sans</div>
+      <h4>Body &amp; Interface</h4>
+      <p>Geometric sans-serif for body copy, labels, navigation, and UI text. Weights 300-800. Clean, modern, and highly legible at small sizes.</p>
+      <p style="margin-top:12px;font-family:var(--font-mono);font-size:0.68rem;color:var(--ink-tertiary);">font-family: 'Plus Jakarta Sans', sans-serif</p>
+    </div>
+    <div class="type-card">
+      <div class="type-sample" style="font-family:var(--font-mono);font-weight:400;">JetBrains Mono</div>
+      <h4>Monospace &amp; Technical</h4>
+      <p>Used for code references, hex values, technical metadata, and file paths. Weights 400-500. Reserved for contexts that require precision.</p>
+      <p style="margin-top:12px;font-family:var(--font-mono);font-size:0.68rem;color:var(--ink-tertiary);">font-family: 'JetBrains Mono', monospace</p>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY HIERARCHY -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:20px;">Typography Hierarchy</h3>
+  <div class="type-hierarchy">
+    <div class="type-hierarchy-row">
+      <span class="label">H1 — Fraunces 800 / clamp(2.5rem, 5vw, 4.5rem) / line-height 1.05 / letter-spacing -0.02em</span>
+      <div style="font-family:var(--font-display);font-weight:800;font-size:clamp(2.5rem,5vw,4.5rem);line-height:1.05;letter-spacing:-0.02em;">Page heroes and section openers</div>
+      <span class="usage">Used for page heroes and section openers</span>
+    </div>
+    <div class="type-hierarchy-row">
+      <span class="label">H2 — Fraunces 700 / 2rem / line-height 1.15</span>
+      <div style="font-family:var(--font-display);font-weight:700;font-size:2rem;line-height:1.15;">Section titles and major headings</div>
+      <span class="usage">Section titles</span>
+    </div>
+    <div class="type-hierarchy-row">
+      <span class="label">H3 — Plus Jakarta Sans 700 / 1.25rem / line-height 1.3</span>
+      <div style="font-family:var(--font-body);font-weight:700;font-size:1.25rem;line-height:1.3;">Subsection headers and card titles</div>
+      <span class="usage">Subsection headers</span>
+    </div>
+    <div class="type-hierarchy-row">
+      <span class="label">Body — Plus Jakarta Sans 400 / 1rem / line-height 1.6</span>
+      <div style="font-family:var(--font-body);font-weight:400;font-size:1rem;line-height:1.6;">Body copy and descriptions sit at this level, comfortable and highly legible.</div>
+      <span class="usage">Body copy, descriptions</span>
+    </div>
+    <div class="type-hierarchy-row">
+      <span class="label">Caption — Plus Jakarta Sans 500 / 0.78rem / line-height 1.5 / color var(--ink-tertiary)</span>
+      <div style="font-family:var(--font-body);font-weight:500;font-size:0.78rem;line-height:1.5;color:var(--ink-tertiary);">Photo credits, metadata, and supporting labels</div>
+      <span class="usage">Photo credits, metadata</span>
+    </div>
+    <div class="type-hierarchy-row">
+      <span class="label">Mono — JetBrains Mono 400 / 0.82rem</span>
+      <div style="font-family:var(--font-mono);font-weight:400;font-size:0.82rem;">/brand/assets/spiral-hq.png — 400x400 — 24KB</div>
+      <span class="usage">Technical specs, file paths, code</span>
+    </div>
+  </div>
+
+  <div class="guideline-callout">
+    <h4>Typography Rules</h4>
+    <ul>
+      <li>Never use Fraunces below 1.5rem — it loses legibility at small sizes</li>
+      <li>Never use Plus Jakarta Sans for hero headlines — that is Fraunces territory</li>
+      <li>JetBrains Mono is reserved for technical contexts only — never use for body copy or headlines</li>
+    </ul>
+  </div>
+
+  <!-- SPACING -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:20px;">Spacing Scale</h3>
+  <div class="spacing-scale">
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:4px;"></div>
+      <span class="spacing-label">4px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:8px;"></div>
+      <span class="spacing-label">8px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:12px;"></div>
+      <span class="spacing-label">12px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:16px;"></div>
+      <span class="spacing-label">16px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:24px;"></div>
+      <span class="spacing-label">24px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:32px;"></div>
+      <span class="spacing-label">32px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:48px;"></div>
+      <span class="spacing-label">48px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:64px;"></div>
+      <span class="spacing-label">64px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:96px;"></div>
+      <span class="spacing-label">96px</span>
+    </div>
+    <div class="spacing-unit">
+      <div class="spacing-block" style="height:120px;"></div>
+      <span class="spacing-label">120px</span>
+    </div>
+  </div>
+  <p style="font-size:0.78rem;color:var(--ink-tertiary);max-width:480px;line-height:1.6;">
+    Base unit: 4px. All spacing, padding, and margin values derive from this scale. Generous whitespace communicates editorial confidence.
+  </p>
+
+  <!-- LAYOUT & SPACING SYSTEM -->
+  <div class="guideline-callout" style="margin-top:48px;">
+    <h4>Layout &amp; Spacing System</h4>
+    <ul>
+      <li><strong>Max Content Width:</strong> 1200px</li>
+      <li><strong>Section Padding:</strong> 120px vertical, 64px horizontal (desktop) — scales to 80px/24px on mobile</li>
+      <li><strong>Card Radius:</strong> 14px standard, 999px for pill buttons</li>
+      <li><strong>Spacing Scale:</strong> 4, 8, 12, 16, 24, 32, 48, 64, 96, 120 (px)</li>
+      <li><strong>Grid:</strong> 12-column, 24px gutter, collapses to 4-column on mobile</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 03 — LOGO & MARKS                                                -->
+<!-- ================================================================ -->
+<section class="section" id="logos">
+  <span class="section-number">03</span>
+  <h2 class="section-title">Logo &amp; Marks</h2>
+  <p class="section-subtitle">Official Content Co-op wordmarks and lockups. Use the toggle to preview on light or dark backgrounds.</p>
+
+  <div class="logos-grid">
+    <div class="logo-card">
+      <div class="logo-preview light-bg" data-logo="lockup-3408">
+        <img src="/logos/lockup-3408.png" alt="Content Co-op Primary Lockup">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left">
+          <h4>Primary Lockup</h4>
+          <p>Full lockup, hi-res</p>
+        </div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/lockup-3408.png" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview light-bg" data-logo="spiral-hq">
+        <img src="/logos/spiral-hq.png" alt="Content Co-op Spiral Mark">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left">
+          <h4>Spiral Mark</h4>
+          <p>Hi-res spiral</p>
+        </div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/spiral-hq.png" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview light-bg">
+        <img src="/logos/LockUp_Long.png" alt="Content Co-op Long Lockup">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Long Lockup</h4><p>Horizontal lockup</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/LockUp_Long.png" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview light-bg">
+        <img src="/logos/LockUp400px.png" alt="Content Co-op 400px Lockup">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Lockup 400px</h4><p>Small-format lockup</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/LockUp400px.png" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview light-bg">
+        <img src="/logos/LockUp_Large.jpg" alt="Content Co-op Large Lockup">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Lockup Large</h4><p>High-res lockup JPG</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/LockUp_Large.jpg" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview dark-bg">
+        <img src="/logos/spiral-hq.png" alt="Spiral Blue Transparent">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Spiral Blue — Transparent</h4><p>Blue spiral, no BG</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Light</button>
+          <a href="/logos/spiral-hq.png" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview light-bg">
+        <img src="/logos/spiral-hq.png" alt="Spiral Blue with Background">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Spiral Blue — BG</h4><p>Blue spiral on blue</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/spiral-hq.png" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview dark-bg">
+        <img src="/logos/Spiral_White_NoBG.png" alt="Spiral White Transparent">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Spiral White — Transparent</h4><p>White spiral, no BG</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Light</button>
+          <a href="/logos/Spiral_White_NoBG.png" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview light-bg">
+        <img src="/logos/Spiral_White_BG.jpg" alt="Spiral White with Background">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Spiral White — BG</h4><p>White spiral on white</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/Spiral_White_BG.jpg" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview light-bg">
+        <img src="/logos/Spiral_GApps.png" alt="Spiral Google Apps">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Spiral — Google Apps</h4><p>Optimized for Workspace</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/Spiral_GApps.png" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <div class="logo-preview light-bg">
+        <img src="/logos/Spiral_Emails.jpg" alt="Spiral Email Signature">
+      </div>
+      <div class="logo-meta">
+        <div class="logo-meta-left"><h4>Spiral — Email</h4><p>Optimized for email sigs</p></div>
+        <div class="logo-actions">
+          <button class="toggle-bg-btn" onclick="toggleLogoBg(this)">Dark</button>
+          <a href="/logos/Spiral_Emails.jpg" download class="download-btn">Download</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGO USAGE RULES -->
+  <div class="guideline-callout" style="margin-top:40px;">
+    <h4>Clear Space</h4>
+    <p>Minimum clear space around any logo = 1x the height of the spiral mark on all sides. This space must remain free of text, graphics, and page edges.</p>
+  </div>
+
+  <div class="guideline-callout">
+    <h4>Minimum Size</h4>
+    <ul>
+      <li><strong>Digital:</strong> 40px height minimum</li>
+      <li><strong>Print:</strong> 0.5" height minimum</li>
+    </ul>
+  </div>
+
+  <div class="guideline-callout">
+    <h4>Approved Backgrounds</h4>
+    <ul>
+      <li>Warm Cream (#f0ebe0)</li>
+      <li>White (#ffffff)</li>
+      <li>Dark Ink (#0b1928)</li>
+      <li>Photography with sufficient contrast (test at 50% opacity overlay)</li>
+    </ul>
+  </div>
+
+  <div class="guideline-callout">
+    <h4>Logo Don'ts</h4>
+    <ul>
+      <li>Never rotate or skew the logo</li>
+      <li>Never apply drop shadows or outer glow</li>
+      <li>Never alter the colors</li>
+      <li>Never place on busy photography without a clear space overlay</li>
+      <li>Never stretch or compress — always maintain original proportions</li>
+      <li>Never outline or add strokes</li>
+    </ul>
+  </div>
+
+  <!-- CO-APP WORDMARKS -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin:48px 0 12px;">Co-App Wordmarks</h3>
+  <p style="color:var(--ink-secondary);margin-bottom:24px;">Each Co-App uses its typographic wordmark as its logo. The "Co-" prefix is set in Fraunces italic at the product accent color. The product name follows in Fraunces bold white (on dark) or dark ink (on light). These wordmarks are the canonical product identity — no separate icon or symbol is used.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;">
+    <div style="background:#0b1928;border-radius:var(--radius);padding:32px 24px;text-align:center;">
+      <span style="font-family:var(--font-display);font-size:2rem;font-weight:700;letter-spacing:-0.04em;">
+        <span style="color:#6b8afd;font-style:italic;">Co-</span><span style="color:#edf3ff;">Script</span>
+      </span>
+      <p style="font-family:var(--font-body);font-size:0.68rem;color:#7a9bc4;margin-top:12px;letter-spacing:0.1em;text-transform:uppercase;">Pre-Production</p>
+    </div>
+    <div style="background:#0b1928;border-radius:var(--radius);padding:32px 24px;text-align:center;">
+      <span style="font-family:var(--font-display);font-size:2rem;font-weight:700;letter-spacing:-0.04em;">
+        <span style="color:#8b5cf6;font-style:italic;">Co-</span><span style="color:#edf3ff;">Cut</span>
+      </span>
+      <p style="font-family:var(--font-body);font-size:0.68rem;color:#7a9bc4;margin-top:12px;letter-spacing:0.1em;text-transform:uppercase;">Post-Production</p>
+    </div>
+    <div style="background:#0b1928;border-radius:var(--radius);padding:32px 24px;text-align:center;">
+      <span style="font-family:var(--font-display);font-size:2rem;font-weight:700;letter-spacing:-0.04em;">
+        <span style="color:#34d399;font-style:italic;">Co-</span><span style="color:#edf3ff;">Deliver</span>
+      </span>
+      <p style="font-family:var(--font-body);font-size:0.68rem;color:#7a9bc4;margin-top:12px;letter-spacing:0.1em;text-transform:uppercase;">Delivery</p>
+    </div>
+  </div>
+
+  <div class="guideline-callout">
+    <h4>Co-App Wordmark Rules</h4>
+    <ul>
+      <li><strong>Font:</strong> Fraunces — "Co-" italic, product name regular weight 700</li>
+      <li><strong>On dark:</strong> "Co-" in sapphire blue (#4c8ef5), name in #edf3ff</li>
+      <li><strong>On light/cream:</strong> "Co-" in deep sapphire (#1e4d8c), name in #0b1928</li>
+      <li><strong>Minimum size:</strong> 1.2rem for UI, 2rem for marketing surfaces</li>
+      <li><strong>Never:</strong> Use a separate icon, add a border/box, or change the font pairing</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 03b — VIDEO PLAYBACK & USER EXPERIENCE PLATFORM                   -->
+<!-- ================================================================ -->
+<section class="section" id="visual-essence">
+  <span class="section-number">03b</span>
+  <h2 class="section-title">Video Playback &amp; User Experience Platform</h2>
+  <p class="section-subtitle">Complete portfolio of delivered client work with AI-enriched metadata. Each project links to its preview asset and includes production context.</p>
+
+  <style>
+    #portfolio-platform img {
+      filter: contrast(1.08) saturate(1.12) brightness(1.02);
+      transition: filter 0.3s ease;
+    }
+    #portfolio-platform > div:hover img {
+      filter: contrast(1.12) saturate(1.2) brightness(1.05);
+    }
+  </style>
+  <div id="portfolio-platform" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;"></div>
+  <script>
+  (function(){
+    var CDN = '/cc/portfolio-cdn';
+    var projects = [
+      // CITGO Life Critical Rules — all 9 episodes
+      {title:'LCR Ep. 1 — A Valid Permit',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'2:41',thumb:'thumb_citgo_ep1.jpg',file:'preview_citgo_ep1.mp4',desc:'Animated safety training: permit work procedures and verification.',tags:['Animation','Safety']},
+      {title:'LCR Ep. 2 — Energy Isolation',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'2:42',thumb:'thumb_citgo_ep2.jpg',file:'preview_citgo_ep2.mp4',desc:'Lockout/tagout and energy isolation procedures.',tags:['Animation','Safety']},
+      {title:'LCR Ep. 3 — Confined Spaces',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'2:03',thumb:'thumb_citgo_ep3.jpg',file:'preview_citgo_ep3.mp4',desc:'Confined space entry protocols and atmospheric monitoring.',tags:['Animation','Safety']},
+      {title:'LCR Ep. 4 — Required PPE',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'2:09',thumb:'thumb_citgo_ep4.jpg',file:'preview_citgo_ep4.mp4',desc:'Personal protective equipment standards and compliance.',tags:['Animation','Safety']},
+      {title:'LCR Ep. 5 — Working at Heights',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'1:48',thumb:'thumb_citgo_ep5.jpg',file:'preview_citgo_ep5.mp4',desc:'Fall protection, harness systems, and elevated work.',tags:['Animation','Safety']},
+      {title:'LCR Ep. 6 — Lifting Operations',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'2:01',thumb:'thumb_citgo_ep6.jpg',file:'preview_citgo_ep6.mp4',desc:'Crane operations, rigging, and load management.',tags:['Animation','Safety']},
+      {title:'LCR Ep. 7 — Permit Overriding',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'1:49',thumb:'thumb_citgo_ep7.jpg',file:'preview_citgo_ep7.mp4',desc:'When and how permits can be overridden safely.',tags:['Animation','Safety']},
+      {title:'LCR Ep. 8 — Abandoning Hazards',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'2:16',thumb:'thumb_citgo_ep8.jpg',file:'preview_citgo_ep8.mp4',desc:'Hazard abandonment and emergency response protocols.',tags:['Animation','Safety']},
+      {title:'LCR Ep. 9 — Line of Fire',client:'CITGO Petroleum',category:'Energy',year:'2024',duration:'2:47',thumb:'thumb_citgo_ep9.jpg',file:'preview_citgo_ep9.mp4',desc:'Positioning awareness and line-of-fire hazard prevention.',tags:['Animation','Safety']},
+      // BP / HLSR / NRG — all pieces
+      {title:'HLSR 2025 Spot',client:'BP',category:'Event',year:'2025',duration:'0:30',thumb:'thumb_hlsr_2025.jpg',file:'preview_hlsr_2025.mp4',desc:'Cinematic broadcast spot for BP at Houston Livestock Show & Rodeo 2025.',tags:['Event','Broadcast']},
+      {title:'HLSR 2024 — Volunteers',client:'BP',category:'Event',year:'2024',duration:'0:30',thumb:'thumb_hlsr_2024.jpg',file:'preview_hlsr_2024.mp4',desc:'Volunteer spotlight for BP\'s 2024 HLSR presence.',tags:['Event','Community']},
+      {title:'Rodeo Recap',client:'BP',category:'Event',year:'2024',duration:'0:49',thumb:'thumb_rodeo_recap.jpg',file:'preview_rodeo_recap.mp4',desc:'Full recap of BP\'s on-site rodeo activation.',tags:['Event','Recap']},
+      {title:'NRG Jumbotron Grid',client:'BP',category:'Event',year:'2024',duration:'0:20',thumb:'thumb_jumbotron.jpg',file:'preview_jumbotron.mp4',desc:'Large-format jumbotron piece mastered for NRG Stadium\'s main screen.',tags:['Jumbotron','Broadcast']},
+      {title:'NRG Wide Promo',client:'BP',category:'Event',year:'2024',duration:'0:37',thumb:'thumb_title_promo.jpg',file:'preview_title_promo.mp4',desc:'Wide-format promotional content for NRG Stadium.',tags:['Broadcast','Wide Format']},
+      // CERAWeek / Energy Conference
+      {title:'Schneider Electric — EAE 2024',client:'Schneider Electric',category:'Energy',year:'2024',duration:'2:18',thumb:'thumb_schneider.jpg',file:'preview_schneider.mp4',desc:'Executive recap for Schneider Electric at CERAWeek energy conference.',tags:['Conference','B2B','Energy']},
+      {title:'ABB at CERAWeek',client:'ABB',category:'Energy',year:'2024',duration:'1:36',thumb:'thumb_abb.jpg',file:'preview_abb.mp4',desc:'Brand coverage and executive interviews for ABB at CERAWeek.',tags:['Conference','B2B']},
+      {title:'ABB — #HerStory',client:'ABB',category:'Energy',year:'2024',duration:'1:17',thumb:'thumb_abb_herstory.jpg',file:'preview_abb_herstory.mp4',desc:'Women in energy leadership spotlight produced for ABB.',tags:['Conference','Diversity']},
+      // Standalone projects
+      {title:'Adaptive Stainless',client:'Adaptive Stainless',category:'Industrial',year:'2024',duration:'1:45',thumb:'thumb_adaptive.jpg',file:'preview_adaptive.mp4',desc:'Industrial brand film — shop floor, fabrication process, and team.',tags:['Fabrication','Industrial']},
+      {title:'Kodiak Gas Services',client:'Kodiak Gas Services',category:'Energy',year:'2022',duration:'3:30',thumb:'thumb_kodiak.jpg',file:'preview_kodiak.mp4',desc:'Recruitment video highlighting field operations and team culture.',tags:['Recruitment','Oil & Gas']},
+      {title:'ICA — Energy Corridor',client:'Industrial Contractors of Arkansas',category:'Energy',year:'2023',duration:'0:30',thumb:'thumb_ica_aerial.jpg',file:'preview_ica_aerial.mp4',desc:'Aerial and ground-level production featuring refinery operations.',tags:['Aerial','Refinery']},
+      {title:'ICA — CEO Interview',client:'Industrial Contractors of Arkansas',category:'Energy',year:'2023',duration:'1:30',thumb:'thumb_ica_ceo.jpg',file:'preview_ica_ceo.mp4',desc:'Executive interview with CEO Michael Kirkland.',tags:['Interview','Corporate']},
+      {title:'BP STEM Education',client:'BP',category:'B2B',year:'2024',duration:'1:00',thumb:'thumb_bp_stem.jpg',file:'preview_bp_stem.mp4',desc:'Animated content for BP\'s youth STEM education initiative.',tags:['Animation','Education']},
+      {title:'Swimming',client:'Athletics',category:'Sports',year:'2024',duration:'1:00',thumb:'thumb_swimming.jpg',file:'preview_swimming.mp4',desc:'Competition swimming coverage with slow-motion underwater sequences.',tags:['Sports','Swimming']},
+      {title:'Gymnastics',client:'Athletics',category:'Sports',year:'2024',duration:'0:57',thumb:'thumb_gymnastics.jpg',file:'preview_gymnastics.mp4',desc:'Gymnastics competition — floor routines, apparatus, slow-motion.',tags:['Sports','Gymnastics']},
+      {title:'Basketball',client:'Athletics',category:'Sports',year:'2024',duration:'1:12',thumb:'thumb_basketball.jpg',file:'preview_basketball.mp4',desc:'Multi-camera basketball game coverage with cinematic angles.',tags:['Sports','Basketball']}
+    ];
+    var grid = document.getElementById('portfolio-platform');
+    projects.forEach(function(p){
+      var card = document.createElement('div');
+      card.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:transform 0.2s;cursor:pointer;';
+      card.onmouseenter = function(){ this.style.transform='translateY(-2px)'; };
+      card.onmouseleave = function(){ this.style.transform='none'; };
+      card.innerHTML =
+        '<div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#0b1928;">' +
+          '<img src="' + CDN + '/' + p.thumb + '" alt="' + p.title + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;">' +
+          '<span style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);color:#fff;font-size:0.68rem;padding:2px 8px;border-radius:4px;font-family:var(--font-mono);">' + p.duration + '</span>' +
+          '<span style="position:absolute;top:8px;left:8px;background:rgba(30,77,140,0.85);color:#fff;font-size:0.62rem;font-weight:600;padding:3px 10px;border-radius:var(--pill);letter-spacing:0.06em;text-transform:uppercase;">' + p.category + '</span>' +
+        '</div>' +
+        '<div style="padding:14px 16px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">' +
+            '<h4 style="font-family:var(--font-body);font-size:0.88rem;font-weight:700;color:var(--ink);margin:0;">' + p.title + '</h4>' +
+            '<span style="font-family:var(--font-mono);font-size:0.66rem;color:var(--ink-tertiary);">' + p.year + '</span>' +
+          '</div>' +
+          '<p style="font-size:0.74rem;color:var(--ink-secondary);margin:0 0 8px;line-height:1.45;">' + p.client + '</p>' +
+          '<p style="font-size:0.72rem;color:var(--ink-tertiary);margin:0 0 10px;line-height:1.5;">' + p.desc + '</p>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+            p.tags.map(function(t){ return '<span style="font-size:0.62rem;font-weight:600;color:var(--ink-secondary);border:1px solid var(--border);border-radius:var(--pill);padding:3px 10px;">' + t + '</span>'; }).join('') +
+          '</div>' +
+        '</div>';
+      grid.appendChild(card);
+    });
+  })();
+  </script>
+</section>
+
+<!-- ================================================================ -->
+<!-- 04 — PHOTOGRAPHY & FILM                                          -->
+<!-- ================================================================ -->
+<section class="section" id="photography">
+  <span class="section-number">04</span>
+  <h2 class="section-title">Photography &amp; Film</h2>
+  <p class="section-subtitle">Real editorial photography from Content Co-op productions. Every image is from an actual shoot — never stock, never AI-generated.</p>
+
+  <!-- PHOTOGRAPHY ART DIRECTION -->
+  <div class="guideline-callout" style="margin-bottom:48px;">
+    <h4>Visual Mood</h4>
+    <p>Industrial elegance — the beauty in heavy work. Golden hour warmth, natural light preferred. Compositions that find poetry in steel, cable, concrete, and craft.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px;">
+    <div class="guideline-callout" style="margin:0;">
+      <h4>Composition Rules</h4>
+      <ul>
+        <li>Rule of thirds, leading lines toward subjects</li>
+        <li>Workers in action, never posed — candid captures of expertise</li>
+        <li>Environmental context — show the scale of the site, the scope of the project</li>
+        <li>Eye-level or slightly low angle — workers as heroes, not subjects</li>
+      </ul>
+    </div>
+    <div class="guideline-callout" style="margin:0;">
+      <h4>Color Treatment</h4>
+      <ul>
+        <li>Warm grade, never cold or clinical</li>
+        <li>Slight desaturation of background, subject warmth preserved</li>
+        <li>No HDR, no extreme contrast</li>
+        <li>Consistent across the full shoot — grade the set, not individual frames</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="guideline-callout" style="margin-bottom:48px;">
+    <h4>Subjects</h4>
+    <p>Real crews, real equipment, real sites. Never stock photography. Always with permission and safety clearance. Subjects should be engaged in actual work, not performing for camera.</p>
+  </div>
+
+  <div class="dos-donts" style="margin-bottom:48px;">
+    <div class="dos-col">
+      <h4><span style="color:#2d8a5e;">&#9679;</span> Do</h4>
+      <ul>
+        <li>Wide establishing shots showing scale</li>
+        <li>Medium shots of hands at work</li>
+        <li>Detail shots of equipment and craft</li>
+        <li>Golden hour and natural light</li>
+        <li>Candid captures of expertise in action</li>
+      </ul>
+    </div>
+    <div class="donts-col">
+      <h4><span style="color:#c44a2a;">&#9679;</span> Don't</h4>
+      <ul>
+        <li>Posed group photos</li>
+        <li>Stock-style pointing at clipboards</li>
+        <li>Empty facilities without people</li>
+        <li>Logos-only shots with no context</li>
+        <li>Cold, clinical color grades</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:20px;">Photo Library</h3>
+  <div class="photo-grid">
+    <div class="photo-item">
+      <img src="/cc/photos/fowler-wind-turbine.jpg" alt="Wind turbine at Fowler site" loading="lazy">
+      <div class="photo-caption">Wind turbine, Fowler site</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-aerial-solar.jpg" alt="Aerial view of solar installation" loading="lazy">
+      <div class="photo-caption">Aerial solar installation</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-bp-tower-drone.jpg" alt="BP tower captured by drone" loading="lazy">
+      <div class="photo-caption">BP tower, drone capture</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-campus-sunflare.jpg" alt="Campus with sun flare" loading="lazy">
+      <div class="photo-caption">Campus, sun flare</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-ceraweek-speaker.jpg" alt="CERAWeek speaker on stage" loading="lazy">
+      <div class="photo-caption">CERAWeek speaker on stage</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-control-room.jpg" alt="Control room operations" loading="lazy">
+      <div class="photo-caption">Control room operations</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-crew-field-shoot.jpg" alt="Crew on field shoot" loading="lazy">
+      <div class="photo-caption">Crew on field shoot</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-crew-refinery.jpg" alt="Crew at refinery location" loading="lazy">
+      <div class="photo-caption">Crew at refinery location</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-desert-tanks.jpg" alt="Desert tank installations" loading="lazy">
+      <div class="photo-caption">Desert tank installations</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-drone-platform.jpg" alt="Drone shot of platform" loading="lazy">
+      <div class="photo-caption">Drone shot, platform</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-fire-gear-rack.jpg" alt="Fire gear rack detail" loading="lazy">
+      <div class="photo-caption">Fire gear rack detail</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-gas-station-sunset.jpg" alt="Gas station at sunset" loading="lazy">
+      <div class="photo-caption">Gas station at sunset</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-helipad-sunset.jpg" alt="Helipad at sunset" loading="lazy">
+      <div class="photo-caption">Helipad at sunset</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-kodiak-crew.jpg" alt="Kodiak crew on location" loading="lazy">
+      <div class="photo-caption">Kodiak crew on location</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-lineman-boom.jpg" alt="Lineman on boom" loading="lazy">
+      <div class="photo-caption">Lineman on boom</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-machinist-cnc.jpg" alt="Machinist operating CNC" loading="lazy">
+      <div class="photo-caption">Machinist operating CNC</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-refinery-mountains.jpg" alt="Refinery with mountain backdrop" loading="lazy">
+      <div class="photo-caption">Refinery, mountain backdrop</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-refinery-pink-sunset.jpg" alt="Refinery at pink sunset" loading="lazy">
+      <div class="photo-caption">Refinery at pink sunset</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/gallery-wind-turbine-crane.jpg" alt="Wind turbine crane operation" loading="lazy">
+      <div class="photo-caption">Wind turbine crane operation</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/seagull-rope-access.jpg" alt="Rope access technician" loading="lazy">
+      <div class="photo-caption">Rope access technician</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/solar-panel-workers.jpg" alt="Workers installing solar panels" loading="lazy">
+      <div class="photo-caption">Solar panel installation crew</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/whiting-refinery-sunset.jpg" alt="Whiting refinery at sunset" loading="lazy">
+      <div class="photo-caption">Whiting refinery at sunset</div>
+    </div>
+    <div class="photo-item">
+      <img src="/cc/photos/bailey-red-camera.jpg" alt="Bailey Eubanks with RED cinema camera" loading="lazy">
+      <div class="photo-caption">Bailey Eubanks, RED cinema rig</div>
+    </div>
+  </div>
+</section>
+
+<!-- Case studies data merged into Video Playback Platform above -->
+
+<!-- ================================================================ -->
+<!-- 06 — MOTION                                                      -->
+<!-- ================================================================ -->
+<section class="section" id="motion">
+  <span class="section-number">06</span>
+  <h2 class="section-title">Motion</h2>
+  <p class="section-subtitle">Hero motion should be built from real production clips in rotation, not a single slowed loop. The edit and the headline need to describe the same reality on screen.</p>
+
+  <div class="motion-grid" id="hero-reel-grid"></div>
+  <script>
+  (function(){
+    var grid = document.getElementById('hero-reel-grid');
+    for (var i = 1; i <= 19; i++) {
+      var card = document.createElement('div');
+      card.className = 'motion-card';
+      card.innerHTML = '<video muted loop playsinline preload="metadata"><source src="/cc/video/hero-' + i + '.mp4" type="video/mp4"></video>' +
+        '<div class="motion-meta"><div><h4>Hero ' + i + '</h4><p>Selected production clip</p></div>' +
+        '<button class="btn-pill btn-secondary" style="font-size:0.72rem;padding:6px 14px;" onclick="var v=this.closest(\'.motion-card\').querySelector(\'video\');v.paused?v.play():v.pause();this.textContent=v.paused?\'Play\':\'Pause\';">Play</button></div>';
+      grid.appendChild(card);
+    }
+  })();
+  </script>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 32px;margin-top:32px">
+    <h4 style="font-family:var(--font-display);font-size:1rem;letter-spacing:-0.02em;margin-bottom:12px">Motion Guidelines</h4>
+    <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px">
+      <li style="font-size:0.85rem;color:var(--ink-secondary);padding:8px 0;border-bottom:1px solid var(--border)"><strong style="color:var(--ink)">Pacing:</strong> Use real clip cadence at native speed. Do not slow footage down for hero playback or the reel will stutter and lose credibility.</li>
+      <li style="font-size:0.85rem;color:var(--ink-secondary);padding:8px 0;border-bottom:1px solid var(--border)"><strong style="color:var(--ink)">Rotation:</strong> Hero reels should rotate through at least 20 clips so the page feels alive and archival, not like a single repeated moment.</li>
+      <li style="font-size:0.85rem;color:var(--ink-secondary);padding:8px 0;border-bottom:1px solid var(--border)"><strong style="color:var(--ink)">Story alignment:</strong> Hero headlines must match the footage. If the clips show crews, control rooms, equipment, and field conditions, the copy should say that plainly.</li>
+      <li style="font-size:0.85rem;color:var(--ink-secondary);padding:8px 0;border-bottom:1px solid var(--border)"><strong style="color:var(--ink)">Color grading:</strong> Warm midtones, lifted shadows, muted highlights. Match the cream/navy palette.</li>
+      <li style="font-size:0.85rem;color:var(--ink-secondary);padding:8px 0;border-bottom:1px solid var(--border)"><strong style="color:var(--ink)">Audio:</strong> Minimal ambient score or silent for loops. Voiceover only when client-directed.</li>
+      <li style="font-size:0.85rem;color:var(--ink-secondary);padding:8px 0;border-bottom:1px solid var(--border)"><strong style="color:var(--ink)">Typography:</strong> Fraunces for titles, Plus Jakarta Sans for lower-thirds. White on dark.</li>
+      <li style="font-size:0.85rem;color:var(--ink-secondary);padding:8px 0"><strong style="color:var(--ink)">Loop points:</strong> All ambient assets have seamless loop points. Test before deployment.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 07 — EXPORTS                                                     -->
+<!-- ================================================================ -->
+<section class="section" id="exports">
+  <span class="section-number">07</span>
+  <h2 class="section-title">Exports</h2>
+  <p class="section-subtitle">Pre-built brand assets ready for immediate use across platforms and collateral.</p>
+
+  <div class="exports-grid">
+    <div class="export-card">
+      <h4>Primary Lockup</h4>
+      <p>Full Content Co-op lockup for external use, presentations, and collateral.</p>
+      <a href="/logos/lockup-3408.png" download class="btn-pill btn-secondary">Download PNG</a>
+    </div>
+    <div class="export-card">
+      <h4>Spiral Mark</h4>
+      <p>Hi-res spiral mark for avatars, favicons, and compact applications.</p>
+      <a href="/logos/spiral-hq.png" download class="btn-pill btn-secondary">Download PNG</a>
+    </div>
+    <div class="export-card">
+      <h4>Hero Reels (1–19)</h4>
+      <p>19 selected hero clips from production work. Curated quality cuts only.</p>
+      <span style="font-family:var(--font-mono);font-size:0.68rem;color:var(--ink-tertiary);">/cc/video/hero-1.mp4 through hero-19.mp4</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 08 — VOICE & VERBAL                                              -->
+<!-- ================================================================ -->
+<section class="section" id="voice">
+  <span class="section-number">08</span>
+  <h2 class="section-title">Voice &amp; Verbal</h2>
+  <p class="section-subtitle">How Content Co-op speaks, writes, and communicates. These pillars guide every piece of copy we produce.</p>
+
+  <!-- BRAND PERSONALITY -->
+  <div class="positioning-block" style="margin-bottom:48px;">
+    <h3>Brand Personality</h3>
+    <p>Confident but not boastful. Technical but accessible. Warm but not casual. We speak from a place of earned expertise — our work speaks for itself, and our words support that work without overselling it.</p>
+  </div>
+
+  <!-- MESSAGING PILLARS -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:20px;">Messaging Pillars</h3>
+  <div class="pillars-grid">
+    <div class="pillar-card">
+      <div class="pillar-accent" style="background:linear-gradient(90deg,#c4722a,#d4a574);"></div>
+      <h3>Warm</h3>
+      <p>We speak like a trusted partner, not a vendor. Our tone is approachable, human, and grounded. We avoid jargon and corporate distance. Every interaction should feel like a conversation between collaborators who respect each other's time.</p>
+    </div>
+    <div class="pillar-card">
+      <div class="pillar-accent" style="background:linear-gradient(90deg,#1e4d8c,#b3c8f0);"></div>
+      <h3>Crafted</h3>
+      <p>Every word earns its place. We are precise without being cold, concise without being curt. Our writing reflects the same care we bring to our productions — nothing accidental, nothing wasted. If a sentence doesn't add value, it doesn't ship.</p>
+    </div>
+    <div class="pillar-card">
+      <div class="pillar-accent" style="background:linear-gradient(90deg,#2d6b4a,#7cb89e);"></div>
+      <h3>Collaborative</h3>
+      <p>We frame every project as a partnership. "We" over "I." Credit shared generously. We ask questions before we assume. Our language centers the client's goals, not our capabilities. The best work happens when both sides bring something to the table.</p>
+    </div>
+  </div>
+
+  <!-- WRITING RULES -->
+  <div class="guideline-callout" style="margin-bottom:32px;">
+    <h4>Writing Rules</h4>
+    <ul>
+      <li>Lead with the work, not with us. "We captured 47 hours of refinery footage" becomes "47 hours of refinery footage, captured at shift change."</li>
+      <li>Short sentences. Active voice. Present tense for case studies.</li>
+      <li>Numbers over adjectives. "Award-winning" becomes "3x Telly Award, 2024."</li>
+      <li>Never use: "innovative", "cutting-edge", "state-of-the-art", "solutions", "synergy"</li>
+    </ul>
+  </div>
+
+  <!-- TONE SPECTRUM -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin-bottom:20px;">Tone Spectrum</h3>
+  <div class="tone-grid">
+    <div class="tone-card">
+      <h4>Website</h4>
+      <p>Confident, concise. "Minimal stage, maximum signal." Let the visuals do the heavy lifting. Copy is sparse and precise.</p>
+    </div>
+    <div class="tone-card">
+      <h4>Client Proposals</h4>
+      <p>Warm, specific, evidence-based. Reference past work by name. Include timelines, deliverables, and concrete outcomes.</p>
+    </div>
+    <div class="tone-card">
+      <h4>Social Media</h4>
+      <p>Behind-the-scenes, crew-centric, authentic. Show the process, not just the product. Tag the team. Keep it human.</p>
+    </div>
+    <div class="tone-card">
+      <h4>Internal</h4>
+      <p>Direct, technical, efficient. Skip the pleasantries when speed matters. Use shorthand the team understands.</p>
+    </div>
+  </div>
+
+  <!-- DO'S AND DON'TS -->
+  <h3 style="font-family:var(--font-display);font-size:1.15rem;font-weight:700;margin:48px 0 20px;">Do's and Don'ts</h3>
+  <div class="dos-donts">
+    <div class="dos-col">
+      <h4><span style="color:#2d8a5e;">&#9679;</span> Do</h4>
+      <ul>
+        <li>Use "we" and "our" to signal partnership</li>
+        <li>Lead with the client's outcome, not your process</li>
+        <li>Write in active voice with concrete details</li>
+        <li>Keep sentences under 25 words when possible</li>
+        <li>Use Title Case for headlines and section headers</li>
+        <li>Reference real work — name projects, cite results</li>
+        <li>End emails with a clear next action</li>
+        <li>Say "I'll follow up by Thursday" instead of "I'll circle back"</li>
+      </ul>
+    </div>
+    <div class="donts-col">
+      <h4><span style="color:#c44a2a;">&#9679;</span> Don't</h4>
+      <ul>
+        <li>Use buzzwords: "synergy," "leverage," "disrupt," "pivot"</li>
+        <li>Over-promise timelines or scope in writing</li>
+        <li>Use passive voice to avoid accountability</li>
+        <li>Write paragraphs when a bullet list works better</li>
+        <li>Use exclamation points in professional copy (one per email max)</li>
+        <li>Say "touching base" or "just checking in" without substance</li>
+        <li>Use industry jargon with non-production audiences</li>
+        <li>Start sentences with "Actually," "Basically," or "Obviously"</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 09 — TEMPLATES                                                   -->
+<!-- ================================================================ -->
+<section class="section" id="templates">
+  <span class="section-number">09</span>
+  <h2 class="section-title">Templates</h2>
+  <p class="section-subtitle">Ready-to-use templates for common Content Co-op deliverables. Maintain brand consistency across every touchpoint.</p>
+
+  <div class="templates-grid">
+    <div class="template-card">
+      <div class="template-icon">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2Z"/><path d="m22 6-10 7L2 6"/></svg>
+      </div>
+      <h4>Email Signature</h4>
+      <p>HTML email signature with brand colors, wordmark, and social links. Compatible with Gmail, Outlook, and Apple Mail.</p>
+      <span class="template-specs">HTML — 600px wide</span>
+    </div>
+    <div class="template-card">
+      <div class="template-icon">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <h4>Social Media Sizes</h4>
+      <p>Pre-configured artboard templates for Instagram (1080x1080), Stories (1080x1920), LinkedIn (1200x627), and YouTube (2560x1440).</p>
+      <span class="template-specs">PSD / Figma — Multiple sizes</span>
+    </div>
+    <div class="template-card">
+      <div class="template-icon">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+      </div>
+      <h4>Document Template</h4>
+      <p>Branded Google Docs and Word template with correct fonts, header styles, and margin settings for proposals and deliverables.</p>
+      <span class="template-specs">DOCX / Google Docs</span>
+    </div>
+    <div class="template-card">
+      <div class="template-icon">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+      <h4>Presentation Deck</h4>
+      <p>Keynote and PowerPoint deck with title, section, content, and closing slides. Includes speaker notes formatting.</p>
+      <span class="template-specs">KEY / PPTX — 16:9</span>
+    </div>
+    <div class="template-card">
+      <div class="template-icon">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      </div>
+      <h4>Invoice Template</h4>
+      <p>Branded invoice layout with payment terms, project line items, and Content Co-op footer. PDF-ready.</p>
+      <span class="template-specs">XLSX / Google Sheets</span>
+    </div>
+    <div class="template-card">
+      <div class="template-icon">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      </div>
+      <h4>Video Title Card</h4>
+      <p>Lower-third and title card templates for Premiere Pro and DaVinci Resolve. Includes branded motion graphics.</p>
+      <span class="template-specs">MOGRT / DRX — 1920x1080</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<!-- 10 — GOVERNANCE                                                  -->
+<!-- ================================================================ -->
+<section class="section" id="governance">
+  <span class="section-number">10</span>
+  <h2 class="section-title">Governance</h2>
+  <p class="section-subtitle">Brand ownership, approval workflows, and usage guidelines. When in doubt, ask before publishing.</p>
+
+  <div class="governance-grid">
+    <div class="governance-card">
+      <h4>Brand Ownership</h4>
+      <ul>
+        <li>
+          <strong>Bailey Eubanks</strong>
+          <span class="owner-badge" style="margin-left:8px;">Owner</span>
+          <br><span style="font-size:0.78rem;color:var(--ink-tertiary);">Final authority on all brand decisions</span>
+        </li>
+        <li>All brand assets are proprietary to Content Co-op LLC</li>
+        <li>Modifications to core identity elements (logo, colors, typography) require owner approval</li>
+      </ul>
+    </div>
+
+    <div class="governance-card">
+      <h4>Brand Approval Chain</h4>
+      <ul>
+        <li>All external-facing creative requires Bailey Eubanks' approval before publication</li>
+        <li><strong>Tier 1 — Self-serve:</strong> Using approved templates, selecting from the photo library, applying brand colors to existing layouts</li>
+        <li><strong>Tier 2 — Review required:</strong> New creative executions, co-branded materials, press or media usage</li>
+        <li><strong>Tier 3 — Owner approval:</strong> Logo modifications, new color introductions, brand voice exceptions, external licensing</li>
+      </ul>
+    </div>
+
+    <div class="governance-card">
+      <h4>Co-Branding Rules</h4>
+      <ul>
+        <li>CC logo always appears at equal or greater size to partner logos</li>
+        <li>CC spiral mark may be used alone only when the full lockup has been established in the same context</li>
+        <li>Never alter logo proportions, colors, or orientation</li>
+        <li>Maintain minimum clear space equal to the height of the spiral mark on all sides</li>
+        <li>Never place the logo on busy or low-contrast backgrounds without an overlay</li>
+      </ul>
+    </div>
+
+    <div class="governance-card">
+      <h4>Contact &amp; Asset Requests</h4>
+      <p>For brand questions, logo files, co-branding requests, or approval submissions:</p>
+      <ul>
+        <li><strong>Email:</strong> bailey@contentco-op.com</li>
+        <li><strong>Response time:</strong> Within 1 business day for Tier 2, same-day for urgent requests</li>
+        <li><strong>Asset requests:</strong> Specify intended use, placement, and audience</li>
+        <li>Photography must be from actual CC productions — no stock imagery</li>
+        <li>External partners must use provided assets only — no recreations</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- -- FOOTER -- -->
+<footer class="footer">
+  <div class="footer-top">
+    <div>
+      <div class="footer-brand">Content Co-op</div>
+      <div class="footer-powered">Powered by Root</div>
+    </div>
+    <div class="portal-links">
+      <a href="/brandcentral" class="portal-link active">Content Co-op</a>
+      <a href="https://astrocleanings.com/brandcentral" class="portal-link">Astro Cleaning</a>
+      <a href="/brandcentral/root" class="portal-link">Root</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    &copy; 2026 Content Co-op. All rights reserved. All brand assets are proprietary and may not be used without permission.
+  </div>
+</footer>
+
+<!-- -- TOAST -- -->
+<div class="copy-toast" id="copyToast">Copied!</div>
+
+<script>
+/* -- Copy hex to clipboard -- */
+function copyHex(hex, name) {
+  navigator.clipboard.writeText(hex).then(function() {
+    var toast = document.getElementById('copyToast');
+    toast.textContent = name + ' ' + hex + ' copied';
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 1800);
+  });
+}
+
+/* -- Logo background toggle -- */
+function toggleLogoBg(btn) {
+  var preview = btn.closest('.logo-card').querySelector('.logo-preview');
+  if (preview.classList.contains('light-bg')) {
+    preview.classList.remove('light-bg');
+    preview.classList.add('dark-bg');
+    btn.textContent = 'Light';
+  } else {
+    preview.classList.remove('dark-bg');
+    preview.classList.add('light-bg');
+    btn.textContent = 'Dark';
+  }
+}
+
+/* -- IntersectionObserver for entrance animation -- */
+(function() {
+  var sections = document.querySelectorAll('.section');
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('observed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    sections.forEach(function(s) { observer.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>

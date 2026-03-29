@@ -1,0 +1,402 @@
+.page {
+  min-height: 100vh;
+}
+
+.shell {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.hero {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1.5fr 1fr;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--root-accent) 16%, transparent);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--root-accent) 14%, transparent), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+
+.heroText {
+  display: grid;
+  gap: 12px;
+}
+
+.installRow {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.installCard {
+  display: grid;
+  gap: 6px;
+}
+
+.installLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--root-accent);
+}
+
+.installCopy {
+  max-width: 52ch;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.installActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  color: var(--root-accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.copy {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.heroStats,
+.metrics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.statCard,
+.metricPanel,
+.card {
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+.statCard,
+.metricPanel {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.statCard span,
+.metricLabel,
+.sectionMeta,
+.scenarioMeta,
+.artifactType,
+.ledgerMeta,
+.runMeta,
+.detailLabel {
+  color: var(--muted);
+}
+
+.statCard strong,
+.metricValue {
+  font-size: 1.7rem;
+  font-weight: 800;
+}
+
+.banner {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--root-accent) 12%, rgba(255,255,255,0.03));
+  border: 1px solid color-mix(in srgb, var(--root-accent) 18%, transparent);
+}
+
+.grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 0.95fr 1.25fr;
+}
+
+.column,
+.card,
+.scenarioList,
+.runLedger,
+.noteList,
+.artifactList {
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  padding: 18px;
+}
+
+.sectionTop {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
+}
+
+.refreshButton,
+.runButton,
+.installButton,
+.secondaryAction,
+.scenarioButton {
+  cursor: pointer;
+}
+
+.refreshButton,
+.runButton,
+.installButton,
+.secondaryAction {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.refreshButton {
+  background: rgba(255,255,255,0.06);
+  color: inherit;
+}
+
+.runButton {
+  background: var(--root-accent);
+  color: #08110f;
+}
+
+.installButton {
+  background: #d9ff72;
+  color: #0b0d12;
+}
+
+.secondaryAction {
+  background: rgba(255,255,255,0.06);
+  color: inherit;
+}
+
+.runButton:disabled,
+.refreshButton:disabled,
+.installButton:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.scenarioList {
+  max-height: 72vh;
+  overflow: auto;
+}
+
+.scenarioButton {
+  text-align: left;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255,255,255,0.02);
+  color: inherit;
+}
+
+.scenarioButton[data-active="true"] {
+  border-color: color-mix(in srgb, var(--root-accent) 32%, transparent);
+  background: color-mix(in srgb, var(--root-accent) 10%, rgba(255,255,255,0.02));
+}
+
+.scenarioTop,
+.runTop,
+.artifactRow,
+.ledgerRow,
+.summaryItem,
+.detailGrid {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scenarioName,
+.ledgerTitle,
+.artifactKey {
+  font-weight: 700;
+}
+
+.scenarioTrigger,
+.blockedReason,
+.emptyState,
+.noteItem {
+  line-height: 1.6;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pill[data-tone="healthy"] {
+  background: rgba(74, 222, 128, 0.15);
+  color: #7df4a9;
+}
+
+.pill[data-tone="attention"] {
+  background: rgba(245, 158, 11, 0.16);
+  color: #ffd37c;
+}
+
+.pill[data-tone="critical"] {
+  background: rgba(248, 113, 113, 0.16);
+  color: #ff9f9f;
+}
+
+.pill[data-tone="neutral"] {
+  background: rgba(255,255,255,0.08);
+  color: var(--muted);
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 0;
+}
+
+.detailValue {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.blockedReason,
+.runCard,
+.emptyState {
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.subsection {
+  display: grid;
+  gap: 10px;
+}
+
+.subsectionTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summaryItem {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+}
+
+.artifactStatus {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.artifactStatus[data-tone="healthy"] {
+  color: #7df4a9;
+}
+
+.artifactStatus[data-tone="attention"] {
+  color: #ffd37c;
+}
+
+.artifactStatus[data-tone="critical"] {
+  color: #ff9f9f;
+}
+
+.runLedger {
+  max-height: 28rem;
+  overflow: auto;
+}
+
+.ledgerRow {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.ledgerRow:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 1100px) {
+  .hero,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .installRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .heroStats,
+  .metrics,
+  .detailGrid,
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .shell {
+    padding: 16px;
+  }
+
+  .heroStats,
+  .metrics,
+  .detailGrid,
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionTop,
+  .scenarioTop,
+  .runTop,
+  .artifactRow,
+  .ledgerRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

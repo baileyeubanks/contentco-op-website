@@ -1,0 +1,35 @@
+.git
+.github
+.claude
+.env
+.env.*
+!.env.local.example
+.turbo
+node_modules
+dist
+coverage
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Next/Turbo caches
+apps/**/.next
+apps/**/.turbo
+apps/**/node_modules
+packages/**/node_modules
+services/**/node_modules
+
+# Unrelated app surfaces when building the home/root app image
+apps/cocut
+apps/coscript
+apps/codeliver
+apps/home/media
+
+# Local-only research, docs, and generated files
+tmp_research
+design-options
+docs/brand
+2026-02-24-205554-let-me-dig-through-every-photo-folder-in-your-driv.txt
+supabase/.temp
+
+# OS/editor noise
+.DS_Store

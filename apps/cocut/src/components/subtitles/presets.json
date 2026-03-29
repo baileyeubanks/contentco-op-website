@@ -1,0 +1,86 @@
+{
+  "lowerThirds": [
+    {
+      "style": "minimal",
+      "label": "Minimal",
+      "description": "Clean white text on semi-transparent bar",
+      "defaults": { "color": "#ffffff", "accentColor": "rgba(0,0,0,0.5)" }
+    },
+    {
+      "style": "bold",
+      "label": "Bold",
+      "description": "Full-width colored bar with large text",
+      "defaults": { "color": "#ffffff", "accentColor": "#4285F4" }
+    },
+    {
+      "style": "news",
+      "label": "News",
+      "description": "Two-line broadcast style with name and title",
+      "defaults": { "color": "#ffffff", "accentColor": "#cc0000" }
+    },
+    {
+      "style": "social",
+      "label": "Social",
+      "description": "Rounded corners for Instagram/TikTok",
+      "defaults": { "color": "#ffffff", "accentColor": "#E1306C" }
+    },
+    {
+      "style": "cinematic",
+      "label": "Cinematic",
+      "description": "Letterbox style with thin elegant text",
+      "defaults": { "color": "#e0e0e0", "accentColor": "rgba(0,0,0,0.7)" }
+    }
+  ],
+  "subtitleStyles": [
+    {
+      "style": "default",
+      "label": "Default",
+      "description": "Clean white text on dark background",
+      "fontSize": 32,
+      "fontFamily": "sans-serif",
+      "color": "#ffffff",
+      "backgroundColor": "rgba(0,0,0,0.6)",
+      "position": "bottom",
+      "animation": "fadeIn",
+      "animDuration": 0.3
+    },
+    {
+      "style": "karaoke",
+      "label": "Karaoke",
+      "description": "Word-by-word highlight as audio plays",
+      "fontSize": 36,
+      "fontFamily": "sans-serif",
+      "color": "rgba(255,255,255,0.5)",
+      "backgroundColor": "rgba(0,0,0,0.7)",
+      "position": "bottom",
+      "animation": "none",
+      "animDuration": 0,
+      "highlightColor": "#FBBC04"
+    },
+    {
+      "style": "typewriter",
+      "label": "Typewriter",
+      "description": "Appears letter by letter",
+      "fontSize": 30,
+      "fontFamily": "'Courier New', monospace",
+      "color": "#ffffff",
+      "backgroundColor": "transparent",
+      "position": "bottom",
+      "animation": "typewriter",
+      "animDuration": 0.05,
+      "letterDelay": 50
+    },
+    {
+      "style": "bounce",
+      "label": "Bounce",
+      "description": "Pops in with bounce animation",
+      "fontSize": 40,
+      "fontFamily": "sans-serif",
+      "color": "#ffffff",
+      "backgroundColor": "rgba(0,0,0,0.5)",
+      "position": "center",
+      "animation": "bounceIn",
+      "animDuration": 0.6
+    }
+  ]
+}

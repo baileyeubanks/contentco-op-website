@@ -1,0 +1,12 @@
+{
+  "name": "@contentco-op/media-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "hero:transcode": "bash scripts/transcode-hero.sh",
+    "thumb:extract": "node scripts/thumbnail-extract.mjs",
+    "thumb:approve": "node scripts/thumbnail-approve.mjs"
+  }
+}
+

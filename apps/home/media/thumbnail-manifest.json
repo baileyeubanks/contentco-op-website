@@ -1,0 +1,29 @@
+{
+  "approved": [
+    {
+      "asset_id": "bpms150-drone-finishline1",
+      "frame_timecode": "00:02.14",
+      "role_tag": "context",
+      "image_path": "/media/thumb-context.jpg",
+      "approved_by": "content-ops",
+      "approved_at": "2026-02-24T15:00:00.000Z"
+    },
+    {
+      "asset_id": "accurate-meter-t2",
+      "frame_timecode": "00:11.22",
+      "role_tag": "trust",
+      "image_path": "/media/thumb-trust.jpg",
+      "approved_by": "content-ops",
+      "approved_at": "2026-02-24T15:00:00.000Z"
+    },
+    {
+      "asset_id": "kodiak-team-trust",
+      "frame_timecode": "00:17.08",
+      "role_tag": "process",
+      "image_path": "/media/thumb-process.jpg",
+      "approved_by": "content-ops",
+      "approved_at": "2026-02-24T15:00:00.000Z"
+    }
+  ]
+}
+

@@ -1,0 +1,50 @@
+{
+  "name": "contentco-op-monorepo",
+  "version": "0.2.0",
+  "private": true,
+  "packageManager": "npm@11.9.0",
+  "engines": {
+    "node": "20.x"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "dev:home": "npm run dev -w @contentco-op/home",
+    "dev:cocut": "npm run dev -w co-cut",
+    "dev:coscript": "npm run dev -w co-script",
+    "dev:codeliver": "npm run dev -w co-deliver",
+    "build": "turbo run build",
+    "build:home:docker": "docker build -t contentco-op-home-preview .",
+    "build:cocut": "npm run build -w co-cut",
+    "build:coscript": "npm run build -w co-script",
+    "build:codeliver": "npm run build -w co-deliver",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "ops:portfolio": "node scripts/validate-portfolio-manifest.mjs",
+    "ops:routes": "node scripts/check-public-routes.mjs",
+    "ops:intake": "node scripts/check-intake-readiness.mjs",
+    "ops:drift": "node scripts/check-repo-drift.mjs",
+    "ops:audit": "node scripts/run-cco-ops-audit.mjs",
+    "ops:github:blockers": "bash scripts/audit-github-push-blockers.sh",
+    "ops:publish": "node scripts/check-public-domains.mjs",
+    "publish:image:home": "bash scripts/publish-home-image.sh",
+    "publish:github:home-mirror": "bash scripts/push-github-clean-mirror.sh",
+    "preview:home:docker": "docker build -t contentco-op-home-preview . && docker run --rm -p 4100:4100 contentco-op-home-preview",
+    "verify:cco-nav": "node scripts/verify-cco-nav.mjs",
+    "verify:platform": "node scripts/verify-platform-contract.mjs",
+    "verify": "npm run verify:cco-nav && npm run verify:platform"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.16",
+    "eslint": "^9.39.0",
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "stripe": "^20.4.1"
+  }
+}

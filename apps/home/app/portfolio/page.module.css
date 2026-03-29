@@ -1,0 +1,392 @@
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(47, 93, 169, 0.12), transparent 30rem),
+    radial-gradient(circle at 88% 8%, rgba(47, 93, 169, 0.08), transparent 24rem),
+    linear-gradient(180deg, #f4ece0 0%, #ece2d2 100%);
+  color: #455268;
+}
+
+.main {
+  width: min(1360px, calc(100vw - 3rem));
+  margin: 0 auto;
+  padding: 7.25rem 0 5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.6fr);
+  gap: 2rem;
+  align-items: end;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(47, 93, 169, 0.16);
+}
+
+.heroCopy {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 40rem;
+}
+
+.eyebrow,
+.signalLabel,
+.modalMeta,
+.stageLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(47, 93, 169, 0.72);
+}
+
+.heroTitle,
+.cardTitle,
+.modalTitle {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.05em;
+}
+
+.heroTitle {
+  max-width: 13ch;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 0.92;
+  color: #2f5da9;
+}
+
+.heroRule {
+  width: 72px;
+  height: 1px;
+  background: rgba(47, 93, 169, 0.55);
+}
+
+.heroSub,
+.signalText,
+.modalHeadline,
+.modalCopy p {
+  margin: 0;
+  color: rgba(69, 82, 104, 0.82);
+  line-height: 1.65;
+}
+
+.heroSub {
+  max-width: 32ch;
+  font-size: 0.98rem;
+}
+
+.heroSignal {
+  display: grid;
+  gap: 0.6rem;
+  align-content: end;
+  padding-left: 1.25rem;
+  border-left: 1px solid rgba(47, 93, 169, 0.16);
+}
+
+.signalTitle {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: #2a4d88;
+}
+
+.filtersSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.95rem;
+}
+
+.filterChip {
+  padding: 0 0 0.35rem;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: rgba(69, 82, 104, 0.72);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.filterChip:hover,
+.filterChipActive {
+  color: #2f5da9;
+  border-bottom-color: rgba(47, 93, 169, 0.42);
+}
+
+.libraryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.15rem;
+}
+
+.libraryCard {
+  overflow: hidden;
+  border: 0;
+  border-top: 1px solid rgba(47, 93, 169, 0.18);
+  background: rgba(255, 252, 247, 0.5);
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.libraryCard:hover {
+  transform: translateY(-2px);
+  border-top-color: rgba(47, 93, 169, 0.4);
+  background: rgba(255, 252, 247, 0.72);
+}
+
+.cardMedia,
+.modalImageWrap,
+.galleryThumb {
+  position: relative;
+  overflow: hidden;
+}
+
+.cardMedia {
+  aspect-ratio: 4 / 5;
+  background: #d8d1c7;
+}
+
+.coverImage,
+.previewVideo,
+.modalVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coverImage,
+.previewVideo {
+  position: absolute;
+  inset: 0;
+}
+
+.previewVideo {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms ease;
+}
+
+.previewVideoActive {
+  opacity: 1;
+}
+
+.cardBody {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem 0 0.2rem;
+}
+
+.cardTopline,
+.tagCluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.cardTopline {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(69, 82, 104, 0.58);
+}
+
+.cardTitle {
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  line-height: 0.96;
+  color: #21334f;
+}
+
+.cardMeta {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(47, 93, 169, 0.72);
+}
+
+.primaryAction,
+.secondaryAction,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.primaryAction {
+  border: 1px solid rgba(47, 93, 169, 0.4);
+  background: #2f5da9;
+  color: #fffaf3;
+}
+
+.secondaryAction,
+.secondaryLink {
+  border: 0;
+  border-bottom: 1px solid rgba(47, 93, 169, 0.26);
+  background: transparent;
+  color: #2f5da9;
+  cursor: pointer;
+}
+
+.primaryAction:hover,
+.secondaryAction:hover,
+.secondaryLink:hover {
+  transform: translateY(-1px);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(6, 12, 22, 0.86);
+  backdrop-filter: blur(14px);
+}
+
+.modal {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  width: min(1380px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: hidden;
+  background: #f7f1e6;
+  border: 1px solid rgba(47, 93, 169, 0.18);
+}
+
+.modalStage {
+  background: #061121;
+}
+
+.modalVideo,
+.modalImageWrap {
+  display: block;
+  min-height: 100%;
+  background: #061121;
+}
+
+.modalBody {
+  display: grid;
+  align-content: start;
+  gap: 1.2rem;
+  overflow-y: auto;
+  padding: 1.5rem;
+  border-left: 1px solid rgba(47, 93, 169, 0.12);
+}
+
+.modalHeader {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.modalTitle {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 0.94;
+  color: #21334f;
+}
+
+.modalCopy {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.stageLabel {
+  margin: 0 0 0.45rem;
+}
+
+.tag {
+  padding: 0 0.65rem 0 0;
+  border-right: 1px solid rgba(47, 93, 169, 0.16);
+  color: rgba(33, 51, 79, 0.74);
+  font-size: 0.74rem;
+}
+
+.galleryStrip {
+  display: flex;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.galleryThumb {
+  flex: 0 0 6.4rem;
+  aspect-ratio: 4 / 3;
+  border-top: 1px solid rgba(47, 93, 169, 0.18);
+}
+
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+@media (max-width: 1180px) {
+  .hero,
+  .modal {
+    grid-template-columns: 1fr;
+  }
+
+  .heroSignal {
+    padding-left: 0;
+    border-left: 0;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(47, 93, 169, 0.16);
+  }
+
+  .libraryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modalBody {
+    border-left: 0;
+    border-top: 1px solid rgba(47, 93, 169, 0.12);
+  }
+}
+
+@media (max-width: 780px) {
+  .main {
+    width: min(100vw - 1.25rem, 100%);
+    padding-top: 9rem;
+  }
+
+  .libraryGrid,
+  .modalCopy {
+    grid-template-columns: 1fr;
+  }
+
+  .filtersSection {
+    align-items: flex-start;
+  }
+
+  .heroTitle,
+  .modalTitle {
+    max-width: none;
+  }
+}

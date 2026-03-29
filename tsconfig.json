@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [],
+  "exclude": ["node_modules"],
+  "references": [
+    { "path": "apps/home" },
+    { "path": "apps/cocut" },
+    { "path": "apps/coscript" },
+    { "path": "apps/codeliver" },
+    { "path": "packages/brand" },
+    { "path": "packages/ui" },
+    { "path": "packages/types" },
+    { "path": "packages/api-client" }
+  ]
+}
