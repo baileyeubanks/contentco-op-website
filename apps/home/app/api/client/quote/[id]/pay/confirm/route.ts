@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
+import { applyInvoicePayment } from "@/lib/root-commercial-pipeline";
 
 /**
  * POST /api/client/quote/[id]/pay/confirm
  *
  * Called after the client-side payment succeeds.
- * Verifies with Stripe and updates the quote + creates records.
+ * Verifies with Stripe and applies payment to the canonical deposit invoice.
  */
 export async function POST(
   req: Request,
@@ -83,92 +84,56 @@ export async function POST(
   }
 
   const amountCents = paymentIntent.amount;
-  const now = new Date().toISOString();
+  const invoiceId = paymentIntent.metadata.invoice_id;
+  const estimateId = paymentIntent.metadata.estimate_id;
 
-  /* Update quote */
+  if (!invoiceId) {
+    return NextResponse.json(
+      { error: "invoice_id_missing_from_payment_intent" },
+      { status: 400 }
+    );
+  }
+
+  const paymentResult = await applyInvoicePayment({
+    invoiceId,
+    amountCents,
+    method: "stripe",
+    provider: "stripe",
+    providerReferenceId: paymentIntentId,
+    status: "completed",
+    estimateId: estimateId || null,
+    quoteId: id,
+    payload: {
+      payment_intent_id: paymentIntentId,
+      quote_id: id,
+    },
+  });
+
+  if (paymentResult.error || !paymentResult.invoice) {
+    return NextResponse.json(
+      { error: paymentResult.error || "invoice_payment_apply_failed" },
+      { status: 500 }
+    );
+  }
+
   await sb
     .from("quotes")
     .update({
-      deposit_status: "paid",
-      deposit_amount_cents: amountCents,
+      deposit_status: paymentResult.invoice.payment_status === "paid" ? "paid" : "partial",
+      deposit_amount_cents: Number(paymentResult.invoice.amount_due_cents || amountCents),
       status: "accepted",
     })
     .eq("id", id);
 
-  /* Create payment record */
-  await sb.from("payments").insert({
-    business_unit: quote.business_unit ?? "ACS",
-    quote_id: id,
-    contact_id: quote.contact_id ?? null,
-    amount_cents: amountCents,
-    currency: "usd",
-    method: "stripe",
-    status: "completed",
-    reference_number: paymentIntentId,
-    paid_at: now,
-  });
-
-  /* Create job record */
-  const { data: job } = await sb
-    .from("jobs")
-    .insert({
-      business_unit: quote.business_unit ?? "ACS",
-      quote_id: id,
-      contact_id: quote.contact_id ?? null,
-      client_name: quote.client_name,
-      client_email: quote.client_email,
-      client_phone: quote.client_phone,
-      service_address: quote.service_address,
-      service_type: quote.service_type,
-      frequency: quote.frequency,
-      estimated_total: quote.estimated_total,
-      deposit_paid_cents: amountCents,
-      status: "scheduled",
-    })
-    .select("id")
-    .maybeSingle();
-
-  /* Log event */
-  await sb
-    .from("events")
-    .insert({
-      type: "quote.deposit_paid",
-      payload: {
-        quote_id: id,
-        quote_number: quote.quote_number,
-        amount_cents: amountCents,
-        payment_intent_id: paymentIntentId,
-        job_id: job?.id ?? null,
-        client_name: quote.client_name,
-        timestamp: now,
-      },
-    })
-    .then(() => {});
-
-  /* Emit deposit_paid event for event_bridge → OpenClaw notification */
-  await sb
-    .from("events")
-    .insert({
-      type: "deposit_paid",
-      business_unit: quote.business_unit ?? "ACS",
-      payload: {
-        quote_id: id,
-        quote_number: quote.quote_number,
-        client_name: quote.client_name,
-        client_email: quote.client_email,
-        deposit_amount_cents: amountCents,
-        job_id: job?.id ?? null,
-      },
-    })
-    .then(() => {});
-
   console.log(
-    `[client/quote/pay/confirm] Deposit $${(amountCents / 100).toFixed(2)} received for quote #${quote.quote_number}. Job ${job?.id ?? "N/A"} created.`
+    `[client/quote/pay/confirm] Deposit $${(amountCents / 100).toFixed(2)} received for quote #${quote.quote_number}. Ready state: ${paymentResult.workflow?.readiness_status ?? "deposit_pending"}.`
   );
 
   return NextResponse.json({
     ok: true,
-    job_id: job?.id ?? null,
+    invoice_id: invoiceId,
+    workflow_status: paymentResult.workflow?.current_status ?? null,
+    readiness_status: paymentResult.workflow?.readiness_status ?? null,
     amount_cents: amountCents,
   });
 }

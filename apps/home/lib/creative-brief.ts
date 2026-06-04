@@ -212,6 +212,27 @@ export const EMPTY_CREATIVE_BRIEF_FORM: CreativeBriefFormData = {
   booking_intent: "decide_after_brief",
 };
 
+type CreativeBriefSectionedFormInput = {
+  full_name?: unknown;
+  company?: unknown;
+  email?: unknown;
+  phone?: unknown;
+  project_name?: unknown;
+  main_goal?: unknown;
+  primary_platform?: unknown;
+  target_length?: unknown;
+  launch_date?: unknown;
+  core_message?: unknown;
+  target_audience?: unknown;
+  existing_assets?: unknown;
+  on_location?: unknown;
+  past_project_reference?: unknown;
+  tone?: unknown;
+  production_needs?: unknown;
+  budget_range?: unknown;
+  constraints?: unknown;
+};
+
 export type CreativeBriefValidationErrors = Partial<Record<string, string>>;
 
 export type NormalizedCreativeBriefSubmission = {
@@ -1153,6 +1174,201 @@ function normalizeContactInput(input: Partial<CreativeDiagnosticContactInput>): 
   };
 }
 
+function textHasAny(value: string, keywords: string[]) {
+  const normalized = value.toLowerCase();
+  return keywords.some((keyword) => normalized.includes(keyword));
+}
+
+function inferGoalFromText(value: string): CreativeDiagnosticGoal {
+  if (textHasAny(value, ["trust", "brand", "credibility"])) return "Build trust";
+  if (textHasAny(value, ["explain", "overview", "clarify", "walkthrough"])) return "Explain clearly";
+  if (textHasAny(value, ["sales", "pipeline", "proposal", "close", "capabilities"])) return "Support sales";
+  if (textHasAny(value, ["train", "training", "onboard", "instruction"])) return "Train people";
+  if (textHasAny(value, ["recruit", "hiring", "hire", "talent", "culture"])) return "Recruit talent";
+  if (textHasAny(value, ["event", "conference", "summit", "recap", "launch event"])) return "Capture an event";
+  if (textHasAny(value, ["leadership", "executive", "founder", "ceo"])) return "Leadership message";
+  if (textHasAny(value, ["product", "service", "showcase", "demo"])) return "Product/service showcase";
+  return "Not sure yet";
+}
+
+function inferPlacementFromText(value: string): CreativeDiagnosticPlacement {
+  if (textHasAny(value, ["linkedin", "instagram", "tiktok", "youtube short", "social", "facebook"])) return "Social";
+  if (textHasAny(value, ["email", "newsletter"])) return "Email";
+  if (textHasAny(value, ["sales deck", "deck", "proposal", "pitch"])) return "Sales deck";
+  if (textHasAny(value, ["event", "screen", "tradeshow", "conference"])) return "Event screen";
+  if (textHasAny(value, ["recruit", "career", "hiring"])) return "Recruiting page";
+  if (textHasAny(value, ["training", "lms", "portal", "internal training"])) return "Training portal";
+  return "Website";
+}
+
+function inferRuntimeFromText(value: string): (typeof TARGET_RUNTIME_OPTIONS)[number] {
+  const normalized = value.toLowerCase();
+  if (!normalized) return "60-90 sec";
+  if (textHasAny(normalized, ["15", "20", "30 sec", "under 30"])) return "Under 30 sec";
+  if (textHasAny(normalized, ["30-60", "30 to 60", "45 sec", "60 sec", "1 min"])) return "30-60 sec";
+  if (textHasAny(normalized, ["60-90", "90 sec", "1:30"])) return "60-90 sec";
+  if (textHasAny(normalized, ["2 min", "2-3", "2 to 3", "three minute"])) return "2-3 min";
+  if (textHasAny(normalized, ["3-5", "3 to 5", "4 min", "5 min"])) return "3-5 min";
+  return "Not sure";
+}
+
+function inferAudienceFromText(value: string): CreativeDiagnosticAudience[] {
+  const normalized = value.toLowerCase();
+  const matches = AUDIENCE_OPTIONS.filter((option) => normalized.includes(option.toLowerCase()));
+  if (matches.length > 0) return matches;
+  if (textHasAny(normalized, ["buyer", "lead", "prospect"])) return ["Prospects"];
+  if (textHasAny(normalized, ["customer", "client"])) return ["Customers"];
+  if (textHasAny(normalized, ["employee", "internal", "team", "staff"])) return ["Internal team"];
+  if (textHasAny(normalized, ["hire", "candidate", "recruit"])) return ["New hires"];
+  if (textHasAny(normalized, ["executive", "leadership", "board"])) return ["Leadership"];
+  if (textHasAny(normalized, ["event", "attendee", "guest"])) return ["Event attendees"];
+  return normalized ? ["Public"] : ["Public"];
+}
+
+function inferProductionNeedsFromText(value: string): CreativeDiagnosticProductionNeed[] {
+  const normalized = value.toLowerCase();
+  const needs: CreativeDiagnosticProductionNeed[] = [];
+  if (textHasAny(normalized, ["interview", "testimonial"])) needs.push("Interviews");
+  if (textHasAny(normalized, ["voiceover", "voice over", "narration"])) needs.push("Voiceover");
+  if (textHasAny(normalized, ["motion", "graphic", "animation", "animated"])) needs.push("Motion graphics");
+  if (textHasAny(normalized, ["drone", "aerial"])) needs.push("Drone");
+  if (textHasAny(normalized, ["b-roll", "b roll"])) needs.push("B-roll only");
+  if (textHasAny(normalized, ["script", "messaging", "copy"])) needs.push("Script help");
+  if (textHasAny(normalized, ["location sound", "sound mix", "audio capture"])) needs.push("Location sound");
+  if (textHasAny(normalized, ["subtitle", "caption"])) needs.push("Subtitles");
+  if (textHasAny(normalized, ["vertical", "reel", "short-form", "short form"])) needs.push("Vertical versions");
+  return Array.from(new Set(needs));
+}
+
+function inferPolishFromText(value: string): CreativeDiagnosticPolish {
+  const normalized = value.toLowerCase();
+  if (textHasAny(normalized, ["cinematic", "premium", "editorial", "elevated", "high-end"])) return "Cinematic and premium";
+  if (textHasAny(normalized, ["polished", "professional", "clean", "confident", "modern"])) return "Polished and professional";
+  return "Simple and direct";
+}
+
+function inferEditingStyleFromText(value: string): CreativeDiagnosticEditingStyle {
+  const normalized = value.toLowerCase();
+  if (textHasAny(normalized, ["advanced motion", "heavy motion", "animation system", "kinetic"])) {
+    return "Edit with advanced motion design";
+  }
+  if (textHasAny(normalized, ["motion", "graphic", "titles", "caption", "lower third"])) {
+    return "Edit with graphics";
+  }
+  return "Basic clean edit";
+}
+
+function inferBudgetComfortFromText(value: string): CreativeDiagnosticBudgetComfort {
+  const normalized = value.toLowerCase();
+  if (!normalized) return "Figuring it out";
+  if (textHasAny(normalized, ["under 5", "<5", "below 5"])) return "Under $5,000";
+  if (textHasAny(normalized, ["5-10", "5k-10k", "$5,000-$10,000"])) return "$5,000-$10,000";
+  if (textHasAny(normalized, ["10-20", "10k-20k", "$10,000-$20,000"])) return "$10,000-$20,000";
+  if (textHasAny(normalized, ["20+", "20k+", "best approach", "open budget"])) return "$20,000+ / best approach";
+  return "Figuring it out";
+}
+
+function normalizeSectionedBriefForm(
+  form: CreativeBriefSectionedFormInput,
+  bookingIntent: CreativeBriefBookingIntent,
+): {
+  diagnostic: CreativeDiagnosticInput;
+  contact: CreativeDiagnosticContactInput;
+  legacyForm: CreativeBriefFormData;
+} {
+  const fullName = cleanString(form.full_name);
+  const company = cleanString(form.company);
+  const email = cleanString(form.email).toLowerCase();
+  const phone = cleanString(form.phone);
+  const projectName = cleanString(form.project_name);
+  const mainGoal = cleanString(form.main_goal);
+  const primaryPlatform = cleanString(form.primary_platform);
+  const targetLength = cleanString(form.target_length);
+  const launchDate = cleanDate(form.launch_date);
+  const coreMessage = cleanString(form.core_message);
+  const targetAudience = cleanString(form.target_audience);
+  const existingAssets = cleanString(form.existing_assets);
+  const onLocation = cleanString(form.on_location);
+  const pastProjectReference = cleanString(form.past_project_reference);
+  const tone = cleanString(form.tone);
+  const productionNeeds = cleanString(form.production_needs);
+  const budgetRange = cleanString(form.budget_range);
+  const hardConstraints = cleanString(form.constraints);
+
+  const diagnostic = normalizeDiagnosticInput({
+    goal: inferGoalFromText(`${mainGoal} ${coreMessage}`),
+    audiences: inferAudienceFromText(targetAudience),
+    placement: inferPlacementFromText(primaryPlatform),
+    primary_placement: "",
+    main_video_count: "1",
+    need_cutdowns: false,
+    cutdown_volume: "",
+    target_runtime: inferRuntimeFromText(targetLength),
+    production_needs: inferProductionNeedsFromText(`${productionNeeds} ${existingAssets}`),
+    multiple_shoot_days: false,
+    shoot_day_count: "",
+    need_message_shaping: Boolean(coreMessage),
+    filming_locations: "1",
+    travel_needed: false,
+    travel_scope: "",
+    timeline: launchDate ? (daysUntil(launchDate) !== null && daysUntil(launchDate)! <= 28 ? "ASAP" : "1-2 months") : "Flexible",
+    hard_deadline: launchDate,
+    engagement_model: "One-time",
+    comfort_on_camera: "",
+    additional_context: [existingAssets, hardConstraints].filter(Boolean).join(" | "),
+    reference_link: /^https?:\/\//i.test(pastProjectReference) ? pastProjectReference : "",
+    polish_level: inferPolishFromText(tone),
+    editing_style: inferEditingStyleFromText(productionNeeds),
+    revision_expectation: "2 rounds",
+    budget_comfort: inferBudgetComfortFromText(budgetRange),
+    need_fast_quote: null,
+  });
+
+  const contact = normalizeContactInput({
+    name: fullName,
+    company,
+    email,
+    confirm_email: email,
+    phone,
+    confirm_phone: phone,
+    best_contact_method: "Email",
+    notes: [projectName, hardConstraints].filter(Boolean).join(" | "),
+    reference_link: /^https?:\/\//i.test(pastProjectReference) ? pastProjectReference : "",
+    attachments: [],
+  });
+
+  const legacyForm: CreativeBriefFormData = {
+    contact_name: fullName,
+    contact_email: email,
+    phone: formatPhoneForDisplay(phone),
+    company,
+    role: projectName,
+    location: onLocation,
+    content_type: mainGoal || primaryPlatform || "Content Co-op video project",
+    deliverables: [
+      primaryPlatform ? `Primary platform: ${primaryPlatform}` : "",
+      targetLength ? `Target length: ${targetLength}` : "",
+      productionNeeds ? `Production needs: ${productionNeeds}` : "",
+    ].filter(Boolean),
+    audience: targetAudience,
+    tone,
+    deadline: launchDate,
+    objective: mainGoal,
+    key_messages: coreMessage,
+    references: [pastProjectReference, existingAssets].filter(Boolean).join(" | "),
+    constraints: [
+      primaryPlatform ? `Platform: ${primaryPlatform}` : "",
+      targetLength ? `Length: ${targetLength}` : "",
+      onLocation ? `On-location: ${onLocation}` : "",
+      budgetRange ? `Budget: ${budgetRange}` : "",
+      hardConstraints,
+    ].filter(Boolean).join(" | "),
+    booking_intent: bookingIntent,
+  };
+
+  return { diagnostic, contact, legacyForm };
+}
+
 function normalizeLegacyIntoDiagnostic(
   input: Partial<CreativeBriefSubmissionPayload> & Partial<CreativeBriefFormData>,
 ): { diagnostic: CreativeDiagnosticInput; contact: CreativeDiagnosticContactInput } {
@@ -1230,7 +1446,8 @@ function normalizeLegacyIntoDiagnostic(
 export function normalizeCreativeBriefPayload(
   input: Partial<CreativeBriefSubmissionPayloadV3> &
     Partial<CreativeBriefSubmissionPayload> &
-    Partial<CreativeBriefFormData>,
+    Partial<CreativeBriefFormData> &
+    { form?: CreativeBriefSectionedFormInput | Record<string, unknown> },
 ): NormalizedCreativeBriefSubmission {
   const bookingIntent = isCreativeBriefBookingIntent(input.intake?.booking_intent)
     ? input.intake.booking_intent
@@ -1238,15 +1455,37 @@ export function normalizeCreativeBriefPayload(
       ? input.booking_intent
       : "decide_after_brief";
   const submissionMode: CreativeBriefSubmissionMode = input.intake?.submission_mode === "voice" ? "voice" : "form";
-  const diagnostic = input.diagnostic
-    ? normalizeDiagnosticInput(input.diagnostic)
-    : normalizeLegacyIntoDiagnostic(input).diagnostic;
-  const contactInput = input.contact
-    ? normalizeContactInput(input.contact)
-    : normalizeLegacyIntoDiagnostic(input).contact;
+  const sectionedForm = input.form && typeof input.form === "object"
+    ? (input.form as CreativeBriefSectionedFormInput)
+    : null;
+
+  let diagnostic: CreativeDiagnosticInput;
+  let contactInput: CreativeDiagnosticContactInput;
+  let legacyForm: CreativeBriefFormData;
+
+  if (sectionedForm) {
+    const normalized = normalizeSectionedBriefForm(sectionedForm, bookingIntent);
+    diagnostic = normalized.diagnostic;
+    contactInput = normalized.contact;
+    legacyForm = normalized.legacyForm;
+  } else {
+    const normalizedLegacy = normalizeLegacyIntoDiagnostic(input);
+    diagnostic = input.diagnostic
+      ? normalizeDiagnosticInput(input.diagnostic)
+      : normalizedLegacy.diagnostic;
+    contactInput = input.contact
+      ? normalizeContactInput(input.contact)
+      : normalizedLegacy.contact;
+    legacyForm = buildLegacyFormData(contactInput, diagnostic, evaluateCreativeBriefDiagnostic(diagnostic).recommendation, evaluateCreativeBriefDiagnostic(diagnostic).quoteSignal, bookingIntent);
+  }
+
   const attachments = contactInput.attachments;
   const { recommendation, quoteSignal, summaryCard } = evaluateCreativeBriefDiagnostic(diagnostic);
   const readiness = computeReadiness(diagnostic, contactInput, summaryCard);
+
+  if (!sectionedForm) {
+    legacyForm = buildLegacyFormData(contactInput, diagnostic, recommendation, quoteSignal, bookingIntent);
+  }
 
   return {
     version: "cco.home.creative-brief.v3",
@@ -1260,7 +1499,7 @@ export function normalizeCreativeBriefPayload(
     contact_input: contactInput,
     diagnostic,
     attachments,
-    legacy_form: buildLegacyFormData(contactInput, diagnostic, recommendation, quoteSignal, bookingIntent),
+    legacy_form: legacyForm,
     recommendation,
     quote_signal: quoteSignal,
     summary_card: summaryCard,

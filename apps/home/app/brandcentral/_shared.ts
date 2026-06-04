@@ -28,6 +28,9 @@ export function readBrandcentralHtml(relativePath: string) {
 
 export function htmlResponse(html: string) {
   return new Response(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "X-Robots-Tag": "noindex, nofollow",
+    },
   });
 }

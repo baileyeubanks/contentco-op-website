@@ -1,0 +1,7 @@
+#!/bin/sh
+# Prevent committing .env.local and other secret files
+if git diff --cached --name-only | grep -qE '\.env\.local$|\.env\.production$|service-account.*\.json$'; then
+  echo "❌ Blocked: Attempting to commit secret files (.env.local, service accounts)"
+  echo "   Add them to .gitignore and remove from staging: git reset HEAD <file>"
+  exit 1
+fi

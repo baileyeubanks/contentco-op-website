@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
-import { CREATIVE_BRIEF_PATH } from "@/lib/public-booking";
+import { permanentRedirect } from "next/navigation";
+import { BOOKING_PAGE_PATH } from "@/lib/public-booking";
 
 export default function CoCreatePage() {
-  redirect(CREATIVE_BRIEF_PATH);
+  permanentRedirect(BOOKING_PAGE_PATH);
 }

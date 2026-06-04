@@ -7,8 +7,8 @@ const SLIDES = [
   {
     src: "/cc/photos/seagull-rope-access-deep-water-orange.jpg",
     alt: "Offshore rope access crew",
-    line1: "We build content systems",
-    line2: "that survive the boardroom.",
+    line1: "We make",
+    line2: "the work visible.",
   },
   {
     src: "/cc/photos/4G9A4069.jpg",

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Nav, ProductLoginShell } from "@contentco-op/ui";
+import { PublicPageLayout } from "@/app/components/public-page-layout";
+import { ProductLoginShell } from "@contentco-op/ui";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
@@ -33,10 +34,7 @@ export default function LoginPage() {
   }
 
   return (
-    <>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 30 }}>
-        <Nav surface="login" />
-      </div>
+    <PublicPageLayout surface="login" theme="dark" showFooter={false}>
       <ProductLoginShell
         productLabel="Root"
         description="Internal access for the shared ACS and Content Co-op operating system."
@@ -49,6 +47,6 @@ export default function LoginPage() {
         signupLabel="Return home"
         homeHref="/"
       />
-    </>
+    </PublicPageLayout>
   );
 }

@@ -10,6 +10,36 @@ export const metadata: Metadata = {
   description: "Review and accept your cleaning service quote",
 };
 
+interface QuoteItemRow {
+  id: string;
+  name?: string | null;
+  description?: string | null;
+  quantity?: number | string | null;
+  unit_price?: number | string | null;
+  subtotal?: number | string | null;
+  sort_order?: number | null;
+  service_type?: string | null;
+  metadata?: Record<string, unknown> | null;
+  phase_name?: string | null;
+}
+
+function normalizeClientItem(item: QuoteItemRow, fallbackServiceType: string | null) {
+  return {
+    id: item.id,
+    name: item.name ?? item.description ?? "Line item",
+    description: item.description ?? "",
+    quantity: Number(item.quantity ?? 0),
+    unit_price: Number(item.unit_price ?? 0),
+    subtotal:
+      item.subtotal == null
+        ? Number(item.quantity ?? 0) * Number(item.unit_price ?? 0)
+        : Number(item.subtotal),
+    sort_order: item.sort_order ?? null,
+    service_type: item.service_type ?? fallbackServiceType,
+    metadata: item.metadata ?? null,
+  };
+}
+
 export default async function ClientQuotePage({
   params,
 }: {
@@ -85,20 +115,9 @@ export default async function ClientQuotePage({
     created_at: quote.created_at,
   };
 
-  const clientItems = (items ?? []).map((item: any) => ({
-    id: item.id,
-    name: item.name ?? item.description ?? "Line item",
-    description: item.description,
-    quantity: item.quantity,
-    unit_price: item.unit_price,
-    subtotal:
-      item.subtotal ??
-      Number(item.quantity ?? 0) * Number(item.unit_price ?? 0),
-    sort_order: item.sort_order ?? null,
-    service_type: item.service_type ?? quote.service_type ?? null,
-    metadata: item.metadata ?? null,
-    phase_name: item.phase_name,
-  }));
+  const clientItems = (items ?? []).map((item: QuoteItemRow) =>
+    normalizeClientItem(item, quote.service_type ?? null),
+  );
 
   return <QuoteClientView quote={clientQuote} items={clientItems} />;
 }

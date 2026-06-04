@@ -2,16 +2,19 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
 
 const config = [
-  ...nextVitals,
-  ...nextTypescript,
   {
     ignores: [
       "**/.next/**",
       "**/node_modules/**",
       "**/out/**",
       "**/dist/**",
-      "**/coverage/**"
-    ],
+      "**/coverage/**",
+      "**/public/ffmpeg-core/**"
+    ]
+  },
+  ...nextVitals,
+  ...nextTypescript,
+  {
     rules: {
       "@typescript-eslint/ban-ts-comment": "warn",
       "@typescript-eslint/no-explicit-any": "warn",

@@ -145,6 +145,7 @@ function InvoicesPageInner() {
   const activeTab = params.get("status") ?? "all";
   const buFilter  = params.get("bu")     ?? "ALL";
   const searchQ   = params.get("q")      ?? "";
+  const contactId = params.get("contact_id") ?? "";
   const sortKey   = params.get("sort")   ?? "created_at";
   const sortDir   = (params.get("dir")   ?? "desc") as "asc" | "desc";
   const page      = Number(params.get("page") ?? "1");
@@ -154,6 +155,10 @@ function InvoicesPageInner() {
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [pdpId, setPdpId] = useState<string | null>(null);
+  const [runningRecurring, setRunningRecurring] = useState(false);
+  const [recurringCount, setRecurringCount] = useState(0);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -164,7 +169,41 @@ function InvoicesPageInner() {
         setAllInvoices(raw.map((inv) => ({ ...inv, display_status: deriveStatus(inv) })));
       })
       .finally(() => setLoading(false));
+
+    fetch("/api/root/invoices/recurring")
+      .then((response) => response.json())
+      .then((data) => setRecurringCount(Array.isArray(data.schedules) ? data.schedules.length : 0))
+      .catch(() => {});
   }, []);
+
+  async function runRecurringInvoices() {
+    setRunningRecurring(true);
+    setActionError(null);
+    setActionNotice(null);
+    try {
+      const response = await fetch("/api/root/invoices/recurring", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate_now" }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(data.error || "recurring_generation_failed"));
+      setActionNotice(`Generated ${Number(data.generated || 0)} recurring draft invoices.`);
+
+      const invoicesResponse = await fetch("/api/root/invoices?limit=200");
+      const invoicesData = await invoicesResponse.json();
+      const raw: Invoice[] = invoicesData.invoices ?? [];
+      setAllInvoices(raw.map((inv) => ({ ...inv, display_status: deriveStatus(inv) })));
+
+      const recurringResponse = await fetch("/api/root/invoices/recurring");
+      const recurringData = await recurringResponse.json();
+      setRecurringCount(Array.isArray(recurringData.schedules) ? recurringData.schedules.length : 0);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "recurring_generation_failed");
+    } finally {
+      setRunningRecurring(false);
+    }
+  }
 
   /* URL param updater */
   function setParam(key: string, val: string) {
@@ -178,6 +217,7 @@ function InvoicesPageInner() {
   const filtered = useMemo(() => {
     let inv = allInvoices;
     if (buFilter !== "ALL") inv = inv.filter((r) => r.business_unit === buFilter);
+    if (contactId) inv = inv.filter((r) => r.contact_id === contactId);
     if (activeTab !== "all") inv = inv.filter((r) => r.display_status === activeTab);
     if (searchQ) {
       const lq = searchQ.toLowerCase();
@@ -197,7 +237,7 @@ function InvoicesPageInner() {
           : String(aVal ?? "").localeCompare(String(bVal ?? ""));
       return sortDir === "asc" ? cmp : -cmp;
     });
-  }, [allInvoices, buFilter, activeTab, searchQ, sortKey, sortDir]);
+  }, [allInvoices, buFilter, contactId, activeTab, searchQ, sortKey, sortDir]);
 
   const totalPages = Math.ceil(filtered.length / perPage);
   const pageData = filtered.slice((page - 1) * perPage, page * perPage);
@@ -362,6 +402,7 @@ function InvoicesPageInner() {
     { label: "Overdue", value: `${fmtAmount(overdueAmt)} (${overdueCount})`, color: overdueCount > 0 ? "var(--at-red)" : "" },
     { label: "Paid This Month", value: fmtAmount(paidThisMonth), color: "var(--at-green)" },
     { label: "Average Invoice", value: fmtAmount(avgInvoice), color: "" },
+    { label: "Recurring Schedules", value: String(recurringCount), color: recurringCount > 0 ? "var(--at-blue)" : "" },
   ];
 
   return (
@@ -375,7 +416,7 @@ function InvoicesPageInner() {
       }
     >
       {/* Metric cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-5 gap-4 mb-6">
         {metrics.map((m) => (
           <Card key={m.label}>
             <Card.Body>
@@ -481,6 +522,14 @@ function InvoicesPageInner() {
           <Button
             variant="secondary"
             size="sm"
+            onClick={() => void runRecurringInvoices()}
+            disabled={runningRecurring}
+          >
+            {runningRecurring ? "Generating..." : "Run recurring"}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => {
               const rows = filtered;
               const csv = ["Invoice #,Client,Due,Amount,Paid,Balance,Status", ...rows.map((r) =>
@@ -494,6 +543,22 @@ function InvoicesPageInner() {
           </Button>
         </div>
       </div>
+
+      {actionNotice ? (
+        <Card>
+          <Card.Body>
+            <div className="text-sm font-medium text-[var(--at-green)]">{actionNotice}</div>
+          </Card.Body>
+        </Card>
+      ) : null}
+
+      {actionError ? (
+        <Card>
+          <Card.Body>
+            <div className="text-sm font-medium text-[var(--at-red)]">{actionError}</div>
+          </Card.Body>
+        </Card>
+      ) : null}
 
       {/* Data table */}
       <Card>

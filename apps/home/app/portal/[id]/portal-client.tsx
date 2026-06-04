@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useEffectEvent } from "react";
 import s from "./page.module.css";
 
 interface Brief {
@@ -111,10 +111,18 @@ export function PortalClient({
     } catch { /* silent */ }
   }, [apiBase, token]);
 
+  const loadActiveTab = useEffectEvent(() => {
+    if (tab === "messages") {
+      void fetchMessages();
+    }
+    if (tab === "files") {
+      void fetchFiles();
+    }
+  });
+
   useEffect(() => {
-    if (tab === "messages") fetchMessages();
-    if (tab === "files") fetchFiles();
-  }, [tab, fetchMessages, fetchFiles]);
+    loadActiveTab();
+  }, [tab]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

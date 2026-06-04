@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useEffectEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { DT } from "@/app/root/components/dt";
@@ -66,6 +66,7 @@ function QuotesPageInner() {
   const activeTab  = params.get("status")  ?? "all";
   const buFilter   = params.get("bu")      ?? "ALL";
   const searchQ    = params.get("q")       ?? "";
+  const contactId  = params.get("contact_id") ?? "";
   const sortKey    = params.get("sort")    ?? "created_at";
   const sortDir    = (params.get("dir")    ?? "desc") as "asc" | "desc";
   const page       = Number(params.get("page") ?? "1");
@@ -76,15 +77,29 @@ function QuotesPageInner() {
   const [loading, setLoading] = useState(true);
   const [pdpId, setPdpId] = useState<string | null>(null);
 
+  async function fetchQuotes(showSpinner = false) {
+    if (showSpinner) {
+      setLoading(true);
+    }
+
+    try {
+      const res = await fetch("/api/root/quotes?limit=200");
+      const data = await res.json();
+      const raw: Quote[] = data.quotes ?? [];
+      setAllQuotes(raw.map((q) => ({ ...q, display_status: deriveStatus(q) })));
+    } finally {
+      if (showSpinner) {
+        setLoading(false);
+      }
+    }
+  }
+
+  const initialFetchQuotes = useEffectEvent(() => {
+    void fetchQuotes(true);
+  });
+
   useEffect(() => {
-    setLoading(true);
-    fetch("/api/root/quotes?limit=200")
-      .then((r) => r.json())
-      .then((d) => {
-        const raw: Quote[] = d.quotes ?? [];
-        setAllQuotes(raw.map((q) => ({ ...q, display_status: deriveStatus(q) })));
-      })
-      .finally(() => setLoading(false));
+    initialFetchQuotes();
   }, []);
 
   /* URL param updater */
@@ -99,6 +114,7 @@ function QuotesPageInner() {
   const filtered = useMemo(() => {
     let q = allQuotes;
     if (buFilter !== "ALL") q = q.filter((r) => r.business_unit === buFilter);
+    if (contactId) q = q.filter((r) => r.contact_id === contactId);
     if (activeTab !== "all") q = q.filter((r) => r.display_status === activeTab);
     if (searchQ) {
       const lq = searchQ.toLowerCase();
@@ -118,7 +134,7 @@ function QuotesPageInner() {
           : String(aVal ?? "").localeCompare(String(bVal ?? ""));
       return sortDir === "asc" ? cmp : -cmp;
     });
-  }, [allQuotes, buFilter, activeTab, searchQ, sortKey, sortDir]);
+  }, [allQuotes, buFilter, contactId, activeTab, searchQ, sortKey, sortDir]);
 
   const pageData = filtered.slice((page - 1) * perPage, page * perPage);
 
@@ -237,10 +253,15 @@ function QuotesPageInner() {
         }
       },
       { label: "Duplicate",            icon: "📋", onClick: () => {
-          fetch(`/api/root/quotes/${row.id}/duplicate`, { method: "POST" })
-            .then(() => { setLoading(true); return fetch("/api/root/quotes?limit=200"); })
-            .then((r) => r.json())
-            .then((d) => setAllQuotes((d.quotes ?? []).map((q: Quote) => ({ ...q, display_status: deriveStatus(q) }))));
+          void (async () => {
+            setLoading(true);
+            try {
+              await fetch(`/api/root/quotes/${row.id}/duplicate`, { method: "POST" });
+              await fetchQuotes(false);
+            } finally {
+              setLoading(false);
+            }
+          })();
         }
       },
       { label: "Delete",               icon: "🗑", danger: true, dividerBefore: true, onClick: () => {

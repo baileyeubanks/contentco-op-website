@@ -1,6 +1,9 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
+const VERSIONED_MEDIA_CACHE = "public, max-age=31536000, immutable";
+const EDGE_STATIC_CACHE = "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800";
+
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
@@ -12,12 +15,40 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/media/:path*",
+        headers: [{ key: "Cache-Control", value: VERSIONED_MEDIA_CACHE }],
+      },
+      {
+        source: "/cc/video/:path*",
+        headers: [{ key: "Cache-Control", value: VERSIONED_MEDIA_CACHE }],
+      },
+      {
+        source: "/cc/photos/:path*",
+        headers: [{ key: "Cache-Control", value: EDGE_STATIC_CACHE }],
+      },
+      {
+        source: "/cc/portfolio-cdn/:path*",
+        headers: [{ key: "Cache-Control", value: EDGE_STATIC_CACHE }],
+      },
+      {
+        source: "/cc/logos/:path*",
+        headers: [{ key: "Cache-Control", value: EDGE_STATIC_CACHE }],
+      },
+      {
+        source: "/logos/:path*",
+        headers: [{ key: "Cache-Control", value: EDGE_STATIC_CACHE }],
+      },
+      {
+        source: "/brand/:path*",
+        headers: [{ key: "Cache-Control", value: EDGE_STATIC_CACHE }],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Permissions-Policy", value: "autoplay=(self), camera=(), microphone=(), geolocation=()" },
           {
             key: "Content-Security-Policy",
             value: [
@@ -33,6 +64,13 @@ const nextConfig: NextConfig = {
               "form-action 'self'",
             ].join("; "),
           },
+        ],
+      },
+      {
+        source: "/root/co-cut/:path*",
+        headers: [
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
         ],
       },
     ];

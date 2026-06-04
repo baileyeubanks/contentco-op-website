@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 type Claim = {
   id: string;
@@ -24,14 +24,19 @@ export default function WorkClaimsPage() {
   const [notes, setNotes] = useState("");
   const [taskKey, setTaskKey] = useState("");
 
-  async function load() {
+  async function loadClaims() {
     const res = await fetch("/api/root/work-claims");
+    if (!res.ok) return;
     const data = await res.json();
-    setClaims(data.work_claims || []);
+    setClaims(Array.isArray(data.work_claims) ? data.work_claims : []);
   }
 
+  const initialLoadClaims = useEffectEvent(async () => {
+    await loadClaims();
+  });
+
   useEffect(() => {
-    load();
+    void initialLoadClaims();
   }, []);
 
   async function claim(e: React.FormEvent) {
@@ -52,7 +57,7 @@ export default function WorkClaimsPage() {
       setTitle("");
       setNotes("");
       setTaskKey("");
-      load();
+      await loadClaims();
     }
   }
 
@@ -60,7 +65,7 @@ export default function WorkClaimsPage() {
     const res = await fetch(`/api/root/work-claims/${id}/release`, {
       method: "POST",
     });
-    if (res.ok) load();
+    if (res.ok) await loadClaims();
   }
 
   return (

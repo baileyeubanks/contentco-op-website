@@ -2,7 +2,8 @@
 
 This route map documents the current deploy artifact at
 `/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo/apps/home`.
-It is the current shared Coolify artifact for both `CCO HOME` and `ROOT`.
+It is the current shared M4 runtime artifact for `CCO HOME` and the public
+`contentco-op.com/root/*` surface.
 
 Verified on March 10, 2026 by running:
 
@@ -16,17 +17,19 @@ npm run build -w @contentco-op/home
 - Canonical repo for the shared app artifact: `contentco-op/monorepo`
 - Canonical app artifact: `apps/home`
 - Public product surface: `CCO HOME`
-- Protected operator surface: `ROOT`
+- Protected operator surface on the CCO host: `ROOT`
 - Transitional legacy aliases: `/dashboard/*` redirects into `/root/*`
+
+The ACS host does not serve public Root from this repo directly. ACS owns the local
+Root login bridge and proxies protected Root paths into the shared runtime after
+session bootstrap.
 
 ## Delivery Contract
 
-- Current live deploy mode: Coolify GitHub/Dockerfile source build on the NAS
-- Preferred next deploy mode: GitHub Actions builds and publishes `ghcr.io/baileyeubanks/contentco-op-home`
-- Tracking tag: `ghcr.io/baileyeubanks/contentco-op-home:main`
-- Immutable tag pattern: `ghcr.io/baileyeubanks/contentco-op-home:sha-<git sha>`
-- Local fallback publisher: `npm run publish:image:home`
-- Builder workflow: `.github/workflows/publish-home-image.yml`
+- Live publish authority: M4 bare repos only
+- Live runtime plane: M4 shared home/runtime bundle on `:4100`, mounted Root proxy on `:4101`
+- Publish path: edit -> commit -> push to M4 bare repo -> targeted publish/restart on M4 -> health verify
+- GitHub is archive/history only and is not on the live publish path
 
 ## Public Routes (CCO HOME)
 
@@ -57,7 +60,7 @@ npm run build -w @contentco-op/home
 
 | Route | Purpose | Notes |
 | --- | --- | --- |
-| `/root` | ROOT login and operator entry | Public entry, redirects authorized users to `/root/overview` |
+| `/root` | ROOT login and operator entry | Public entry on `contentco-op.com`, redirects authorized users to `/root/overview` |
 | `/root/overview` | Overview dashboard | Protected |
 | `/root/contacts` | Contact intelligence | Protected |
 | `/root/dispatch` | Dispatch / operations | Protected |
@@ -107,9 +110,10 @@ compatibility aliases, not the canonical operator URL scheme.
 
 ## Merged ROOT Decision
 
-- `apps/home` is the canonical live web runtime for both `CCO HOME` and `ROOT`.
-- `ROOT` is one system with one live web runtime. Do not model `root/` as a
-  second live app.
+- `apps/home` is the canonical live web runtime for `CCO HOME` and the public
+  `contentco-op.com/root/*` surface.
+- ACS Root login is a separate bridge entry in `acs/acs-website`; do not model that
+  host entry as proof that `root/` is a second live app.
 - `root/` remains the contract authority repo for governance, modules, tests,
   and control-plane contracts.
 - Route truth for the live merged HOME/ROOT web artifact lives here and should

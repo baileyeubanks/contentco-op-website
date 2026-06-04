@@ -1,11 +1,173 @@
 import { headers } from "next/headers";
 import { getSupabase } from "@/lib/supabase";
 import { resolveRootBrand } from "@/lib/root-brand";
+import {
+  getPublicSitesAuditReport,
+  getPublishAlignmentReport,
+} from "@/lib/root-runtime-certification";
 
 type MaybeRecord = Record<string, unknown> | null;
-export type WorkClaimRecord = Record<string, any>;
-export type HandoffRecord = Record<string, any>;
-export type DocumentArtifactRecord = Record<string, any>;
+export type WorkClaimRecord = {
+  id: string;
+  owner: string;
+  machine: string;
+  title: string;
+  task_key: string;
+  repo: string;
+  notes: string;
+  created_at: string | null;
+  claimed_at: string | null;
+  released_at?: string | null;
+  [key: string]: unknown;
+};
+export type HandoffRecord = {
+  id: string;
+  owner: string;
+  machine: string;
+  title: string;
+  summary: string;
+  blockers: string[];
+  next_actions: string[];
+  task_key: string;
+  repo: string;
+  created_at: string | null;
+  [key: string]: unknown;
+};
+export type BlazeLaneRecord = Record<string, unknown>;
+export type BlazePhoneActionRecord = Record<string, unknown>;
+export type BlazePhoneReceiptRecord = Record<string, unknown>;
+export type BlazePhoneTestCampaignRecord = Record<string, unknown>;
+export type ArtifactAdvisoryRecord = {
+  status: "withheld";
+  reason: string;
+  detail: string;
+  checked_at: string | null;
+};
+
+const BLAZE_ENV_ALIASES = ["BLAZE_API_URL", "BLAZE_API_BASE_URL"] as const;
+
+function isPrivateRuntimeTarget(value: string) {
+  try {
+    const { hostname } = new URL(value);
+    return (
+      hostname === "localhost"
+      || hostname === "127.0.0.1"
+      || hostname.startsWith("10.")
+      || hostname.startsWith("192.168.")
+      || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function allowPrivateRuntimeTargets() {
+  return process.env.ALLOW_PRIVATE_RUNTIME_TARGETS === "true";
+}
+
+function resolveBlazeBaseUrl() {
+  const raw = BLAZE_ENV_ALIASES.reduce<string>((found, key) => found || process.env[key] || "", "");
+  if (!raw) return "";
+  const trimmed = raw.replace(/\/$/, "");
+  if (trimmed.endsWith("/health")) return trimmed.slice(0, -"/health".length);
+  if (trimmed.endsWith("/ready")) return trimmed.slice(0, -"/ready".length);
+  return trimmed;
+}
+
+async function fetchBlazeJson(path: string) {
+  const baseUrl = resolveBlazeBaseUrl();
+  if (!baseUrl) return { data: null as MaybeRecord, error: "missing_blaze_api_url" };
+  if (isPrivateRuntimeTarget(baseUrl) && !allowPrivateRuntimeTargets()) {
+    return { data: null as MaybeRecord, error: "private_blaze_target_unreachable_from_runtime" };
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}${path}`, {
+      method: "GET",
+      headers: { accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      return { data: null as MaybeRecord, error: `blaze_http_${response.status}` };
+    }
+    const payload = (await response.json()) as MaybeRecord;
+    return { data: payload, error: null };
+  } catch (error) {
+    return {
+      data: null as MaybeRecord,
+      error: error instanceof Error ? error.message : "blaze_request_failed",
+    };
+  }
+}
+
+function asRecord(value: unknown) {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+function extractFollowUps(meta: Record<string, unknown> | undefined) {
+  const followUps = (meta as { followUps?: unknown } | undefined)?.followUps;
+  return Array.isArray(followUps) ? followUps : [];
+}
+
+async function getBlazeOperatorSnapshot() {
+  const [operatorContextRes, readinessRes, laneStatusRes] = await Promise.all([
+    fetchBlazeJson("/api/system/operator-context"),
+    fetchBlazeJson("/api/system/readiness"),
+    fetchBlazeJson("/api/system/lane-status"),
+  ]);
+
+  const operatorContext = asRecord(operatorContextRes.data);
+  const readiness = asRecord(readinessRes.data);
+  const laneStatus = asRecord(laneStatusRes.data);
+  const readinessCustomerService = asRecord(readiness.customer_service);
+  const certification = asRecord(readiness.certification);
+  const systemStateHealth = asRecord(operatorContext.system_state_health || certification.system_state_health);
+  const phoneCall = asRecord(operatorContext.phone_call || certification.phone_call);
+  const claudeRuntime = asRecord(operatorContext.claude_runtime || certification.claude_runtime);
+  const openclawRuntime = asRecord(operatorContext.openclaw_runtime || certification.openclaw_runtime);
+  const googleWorkspace = asRecord(operatorContext.google_workspace || certification.google_workspace);
+  const difyRuntime = asRecord(operatorContext.dify_runtime || certification.dify);
+  const certifiedLanes = asRecord(laneStatus.certified_lanes);
+  const errors = [operatorContextRes.error, readinessRes.error, laneStatusRes.error].filter(Boolean) as string[];
+
+  return {
+    status: errors.length === 0 ? "ok" : operatorContextRes.error && readinessRes.error && laneStatusRes.error ? "missing" : "degraded",
+    base_url: resolveBlazeBaseUrl() || null,
+    errors,
+    fetched_at: new Date().toISOString(),
+    operator_context_ok: Boolean(operatorContext.ok ?? Object.keys(operatorContext).length > 0),
+    system_state_health: systemStateHealth,
+    claude_runtime: claudeRuntime,
+    openclaw_runtime: openclawRuntime,
+    google_workspace: googleWorkspace,
+    dify_runtime: difyRuntime,
+    phone_call: {
+      ...phoneCall,
+      status: String(phoneCall.status || asRecord(certifiedLanes.phone_call).state || "missing"),
+      lane_state: asRecord(certifiedLanes.phone_call).state || null,
+      pending_actions: Array.isArray(phoneCall.pending_actions) ? phoneCall.pending_actions : [],
+      recent_receipts: Array.isArray(phoneCall.recent_receipts) ? phoneCall.recent_receipts : [],
+      blocked_reasons: Array.isArray(phoneCall.blocked_reasons) ? phoneCall.blocked_reasons : [],
+      test_gate: asRecord(phoneCall.test_gate),
+      evals: asRecord(phoneCall.evals || readinessCustomerService.voice_agent_evals),
+    },
+    customer_service: {
+      evals: asRecord(operatorContext.customer_service_evals || readinessCustomerService.evals),
+      voice_agent_evals: asRecord(operatorContext.voice_agent_evals || readinessCustomerService.voice_agent_evals),
+    },
+    lane_status: certifiedLanes,
+    latest_phone_call_receipts: Array.isArray(operatorContext.latest_phone_call_receipts)
+      ? operatorContext.latest_phone_call_receipts
+      : [],
+    recent_voice_sessions: Array.isArray(operatorContext.recent_voice_sessions)
+      ? operatorContext.recent_voice_sessions
+      : [],
+    latest_phone_test_campaign: asRecord(operatorContext.latest_phone_test_campaign),
+    recent_phone_test_campaigns: Array.isArray(operatorContext.recent_phone_test_campaigns)
+      ? operatorContext.recent_phone_test_campaigns
+      : [],
+  };
+}
 
 async function safeTable<T = MaybeRecord[]>(
   query: { then: (onfulfilled?: (value: { data: T | null; error: { message: string } | null }) => unknown) => unknown },
@@ -14,13 +176,40 @@ async function safeTable<T = MaybeRecord[]>(
   return { data, error: error?.message || null };
 }
 
-export async function getRootRuntimeSnapshot() {
-  const headerStore = await headers();
-  const host = headerStore.get("host");
-  const brand = resolveRootBrand(host, headerStore.get("x-root-brand"));
+type RootRuntimeSnapshotOptions = {
+  host?: string | null;
+  brandHint?: string | null;
+};
+
+async function resolveRuntimeRequestContext(options?: RootRuntimeSnapshotOptions) {
+  if (options && ("host" in options || "brandHint" in options)) {
+    const host = options.host || null;
+    return {
+      host,
+      brand: resolveRootBrand(host, options.brandHint || null),
+    };
+  }
+
+  try {
+    const headerStore = await headers();
+    const host = headerStore.get("host");
+    return {
+      host,
+      brand: resolveRootBrand(host, headerStore.get("x-root-brand")),
+    };
+  } catch {
+    return {
+      host: null,
+      brand: resolveRootBrand(null, options?.brandHint || null),
+    };
+  }
+}
+
+export async function getRootRuntimeSnapshot(options?: RootRuntimeSnapshotOptions) {
+  const { host, brand } = await resolveRuntimeRequestContext(options);
   const sb = getSupabase();
 
-  const [claimsRes, handoffRes, documentsRes] = await Promise.all([
+  const [claimsRes, handoffRes, blazeOperator, publishAlignment, publicSitesAudit] = await Promise.all([
     safeTable(
       sb
         .from("work_claims")
@@ -36,18 +225,38 @@ export async function getRootRuntimeSnapshot() {
         .order("created_at", { ascending: false })
         .limit(10),
     ),
-    safeTable(
-      sb
-        .from("document_artifacts")
-        .select(
-          "id, source_document_id, business_unit, document_type, version_label, render_status, outcome_status, storage_path, created_at",
-        )
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ),
+    getBlazeOperatorSnapshot(),
+    getPublishAlignmentReport(false).catch((error) => ({
+      name: "Publish Alignment Audit",
+      surface: "latest feedback publish path",
+      generatedAt: new Date().toISOString(),
+      severity: "critical" as const,
+      summary: "publish alignment unavailable",
+      checks: [],
+      recommendedNextAction: error instanceof Error ? error.message : "publish_alignment_unavailable",
+      meta: {},
+    })),
+    getPublicSitesAuditReport(false).catch((error) => ({
+      name: "Public Sites Audit",
+      surface: "public websites",
+      generatedAt: new Date().toISOString(),
+      severity: "attention" as const,
+      summary: "public sites audit unavailable",
+      checks: [],
+      recommendedNextAction: error instanceof Error ? error.message : "public_sites_audit_unavailable",
+      meta: { followUps: [] },
+    })),
   ]);
 
-  const warnings = [claimsRes.error, handoffRes.error, documentsRes.error].filter(Boolean);
+  const publishWarnings = (publishAlignment.checks || [])
+    .filter((check) => check.status === "fail" || check.status === "warn")
+    .map((check) => `${check.label}: ${check.detail}`);
+  const warnings = [
+    claimsRes.error,
+    handoffRes.error,
+    ...(blazeOperator.errors || []),
+    ...(publishAlignment.severity === "healthy" ? [] : publishWarnings.slice(0, 3)),
+  ].filter(Boolean);
   const workClaims = ((claimsRes.data || []) as WorkClaimRecord[]).map((claim) => ({
     ...claim,
     id: String(claim.id || ""),
@@ -73,18 +282,12 @@ export async function getRootRuntimeSnapshot() {
     repo: String(handoff.repo || "contentco-op/monorepo"),
     created_at: handoff.created_at || null,
   }));
-  const documentArtifacts = ((documentsRes.data || []) as DocumentArtifactRecord[]).map((artifact) => ({
-    ...artifact,
-    id: String(artifact.id || ""),
-    document_type: String(artifact.document_type || "document"),
-    business_unit: String(artifact.business_unit || "UNKNOWN"),
-    source_document_id: typeof artifact.source_document_id === "string" ? artifact.source_document_id : null,
-    version_label: String(artifact.version_label || ""),
-    storage_path: typeof artifact.storage_path === "string" ? artifact.storage_path : null,
-    render_status: String(artifact.render_status || "unknown"),
-    outcome_status: String(artifact.outcome_status || "pending"),
-    created_at: artifact.created_at || null,
-  }));
+  const artifactAdvisory: ArtifactAdvisoryRecord = {
+    status: "withheld",
+    reason: "shared_authority_not_promoted",
+    detail: "Shared document artifact visibility is withheld in CCO HOME until the contract becomes promoted shared authority again.",
+    checked_at: null,
+  };
   const activeOwnership = Array.from(
     workClaims.reduce((map, claim) => {
       const key = String(claim.owner || "Bailey");
@@ -131,11 +334,45 @@ export async function getRootRuntimeSnapshot() {
     status: warnings.length ? "attention" : "healthy",
     warnings,
   };
+  const publicSitesFollowUps = extractFollowUps(publicSitesAudit.meta);
+  const publishAuthority = {
+    status:
+      publishAlignment.severity === "healthy"
+        ? "green"
+        : publishAlignment.severity === "attention"
+          ? "amber"
+          : "red",
+    severity: publishAlignment.severity,
+    summary: publishAlignment.summary,
+    generated_at: publishAlignment.generatedAt || null,
+    blocker_count: (publishAlignment.checks || []).filter((check) => check.status === "fail").length,
+    follow_up_count: publicSitesFollowUps.length,
+    recommended_next_action:
+      publishAlignment.recommendedNextAction ||
+      publicSitesAudit.recommendedNextAction ||
+      "Clean publish blockers before treating runtime as certified.",
+    checks: publishAlignment.checks || [],
+    follow_ups: publicSitesFollowUps,
+  };
   const summary = {
     active_claims: workClaims.length,
     recent_handoffs: handoffs.length,
-    document_artifacts: documentArtifacts.length,
+    artifact_advisory: artifactAdvisory.status,
     warnings: warnings.length,
+    publish_authority_status: publishAuthority.status,
+    publish_blockers: publishAuthority.blocker_count,
+    pending_phone_actions: Array.isArray(blazeOperator.phone_call.pending_actions)
+      ? blazeOperator.phone_call.pending_actions.length
+      : 0,
+    recent_call_receipts: Array.isArray(blazeOperator.phone_call.recent_receipts)
+      ? blazeOperator.phone_call.recent_receipts.length
+      : 0,
+    latest_campaign_ok:
+      blazeOperator.latest_phone_test_campaign
+      && typeof blazeOperator.latest_phone_test_campaign === "object"
+      && typeof (blazeOperator.latest_phone_test_campaign as Record<string, unknown>).evaluation === "object"
+        ? Boolean(asRecord((blazeOperator.latest_phone_test_campaign as Record<string, unknown>).evaluation).ok)
+        : null,
   };
 
   return {
@@ -144,7 +381,7 @@ export async function getRootRuntimeSnapshot() {
     machine: {
       authoring: "M2",
       runtime: "M4",
-      public_apps: "NAS",
+      public_apps: "M4",
       node_version: process.version,
     },
     deployment: {
@@ -169,16 +406,18 @@ export async function getRootRuntimeSnapshot() {
         fallback: "openai/gpt-4.1",
       },
       machine_roles: {
-        m2: "authoring + deer",
-        m4: "blaze runtime",
-        nas: "public apps + root",
+        m2: "authoring + staging",
+        m4: "live runtime + root + public surfaces",
+        nas: "storage + archive + media support",
       },
     },
     work_claims: workClaims,
     handoffs,
     active_ownership: activeOwnership,
     recent_releases: recentReleases,
-    document_artifacts: documentArtifacts,
+    artifact_advisory: artifactAdvisory,
+    publish_authority: publishAuthority,
+    blaze_operator: blazeOperator,
     warnings,
   };
 }

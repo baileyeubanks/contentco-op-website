@@ -20,6 +20,9 @@ export type RootModuleId =
   | "finance"
   | "marketing"
   | "work-claims"
+  | "workspace"
+  | "goals"
+  | "agents"
   | "system"
   | "lab"
   | "co-script"
@@ -126,6 +129,39 @@ const ROOT_MODULES: RootModuleDef[] = [
     icon: "◍",
     shortcut: "W",
     description: "ownership, blockers, and execution claims",
+  },
+  {
+    id: "workspace",
+    label: "workspace",
+    href: "/root/workspace",
+    engine: "control",
+    navTier: "advanced",
+    hostVisibility: ["acs", "cc"],
+    icon: "▣",
+    shortcut: "G",
+    description: "google files, imports, and workspace projections",
+  },
+  {
+    id: "goals",
+    label: "goals",
+    href: "/root/goals",
+    engine: "control",
+    navTier: "advanced",
+    hostVisibility: ["acs", "cc"],
+    icon: "◰",
+    shortcut: "A",
+    description: "bounded swarm goals, priorities, and execution lanes",
+  },
+  {
+    id: "agents",
+    label: "agents",
+    href: "/root/agents",
+    engine: "control",
+    navTier: "advanced",
+    hostVisibility: ["acs", "cc"],
+    icon: "◫",
+    shortcut: "Z",
+    description: "agent roster, assignments, and authority boundaries",
   },
   {
     id: "system",

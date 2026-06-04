@@ -28,9 +28,12 @@ export type RootOperatorRole =
 
 function getRootAuthConfigPathCandidates() {
   const cwd = process.cwd();
+  const home = process.env.HOME?.trim() || "";
   return [
     process.env.ROOT_AUTH_BRIDGE_CONFIG_PATH?.trim() || "",
     "/Users/baileyeubanks/Desktop/Projects/acs/acs-website/.root-operator-auth.json",
+    home ? path.join(home, "Projects", "acs", "acs-website", ".root-operator-auth.json") : "",
+    home ? path.join(home, "Desktop", "Projects", "acs", "acs-website", ".root-operator-auth.json") : "",
     path.join(cwd, ".root-operator-auth.json"),
     path.resolve(cwd, "../../../../acs/acs-website/.root-operator-auth.json"),
     path.resolve(cwd, "../../../acs/acs-website/.root-operator-auth.json"),
@@ -171,6 +174,10 @@ function parseAuthorityEmails(raw: string | null | undefined) {
     .filter(Boolean);
 }
 
+function dedupeEmails(values: string[]) {
+  return Array.from(new Set(values.map((value) => normalizeEmail(value)).filter(Boolean)));
+}
+
 function parseOperatorRole(raw: string | null | undefined): RootOperatorRole | null {
   const value = String(raw || "").trim();
   if (
@@ -196,19 +203,19 @@ export function getAllowedRootOperatorEmailsForHost(hostname?: string | null) {
       ? parseAuthorityEmails(process.env.ROOT_ALLOWED_EMAILS_ACS)
       : parseAuthorityEmails(process.env.ROOT_ALLOWED_EMAILS_CC);
 
-  if (envSpecific.length > 0) {
-    return envSpecific;
-  }
-
   const fileSpecific = fileConfig?.authorities?.[authority] || [];
-  if (fileSpecific.length > 0) {
-    return fileSpecific;
-  }
-
   const configured = getAllowedRootOperatorEmails();
-  return configured.filter((email) =>
+  const authorityScopedConfigured = configured.filter((email) =>
     authority === "acs" ? email.endsWith("@astrocleanings.com") : email.endsWith("@contentco-op.com"),
   );
+
+  // Treat host-specific env/file configuration as additive so stale overrides
+  // cannot silently lock the canonical operator out of the active host.
+  return dedupeEmails([
+    ...envSpecific,
+    ...fileSpecific,
+    ...authorityScopedConfigured,
+  ]);
 }
 
 export function isEmailAuthorizedForRootHost(email: string, hostname?: string | null) {

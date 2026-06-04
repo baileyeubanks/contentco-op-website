@@ -5,6 +5,28 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+type QuoteCommentBody = {
+  message?: unknown;
+  sender?: unknown;
+};
+
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : value == null ? fallback : String(value);
+}
+
+function asNullableString(value: unknown) {
+  const normalized = asString(value).trim();
+  return normalized || null;
+}
+
+async function parseBody(req: Request): Promise<QuoteCommentBody | null> {
+  const body = await req.json().catch(() => null);
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    return body as QuoteCommentBody;
+  }
+  return null;
+}
+
 /**
  * GET /api/share/quote/[id]/comment — list comments
  * POST /api/share/quote/[id]/comment — add a client comment
@@ -32,16 +54,15 @@ export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
   const sb = getSupabase();
 
-  let body: Record<string, any>;
-  try {
-    body = await req.json();
-  } catch {
+  const body = await parseBody(req);
+  if (!body) {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
 
-  const { message, sender = "client" } = body;
+  const message = asNullableString(body.message);
+  const sender = asString(body.sender, "client");
 
-  if (!message || typeof message !== "string" || !message.trim()) {
+  if (!message) {
     return NextResponse.json({ error: "message_required" }, { status: 400 });
   }
 
@@ -50,7 +71,7 @@ export async function POST(req: Request, { params }: Props) {
     .insert({
       quote_id: id,
       sender: sender === "team" ? "team" : "client",
-      body: message.trim(),
+      body: message,
     })
     .select("id, sender, body, created_at")
     .single();

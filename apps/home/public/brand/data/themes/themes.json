@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "version": "1.0.0"
+  },
+  "themes": {
+    "root": {
+      "document": {
+        "brand.eyebrow": "ROOT canonical document engine",
+        "brand.footer": "ROOT shared document artifact",
+        "surface.background": "#f7f6f3",
+        "surface.sheet": "#ffffff",
+        "surface.sheetAlt": "#efede7",
+        "content.primary": "#171310",
+        "content.secondary": "#5f5342",
+        "border.default": "#ddd8cd",
+        "border.strong": "#c6bca9",
+        "accent.primary": "#245ac0",
+        "accent.strong": "#193f88",
+        "accent.soft": "#e7effb",
+        "type.display": "\"Plus Jakarta Sans\", Inter, -apple-system, sans-serif",
+        "type.body": "\"Plus Jakarta Sans\", Inter, -apple-system, sans-serif",
+        "type.mono": "\"JetBrains Mono\", \"SF Mono\", \"Fira Code\", monospace",
+        "type.caseDisplay": "none",
+        "type.caseLabel": "uppercase",
+        "type.trackingDisplay": "-0.015em",
+        "type.trackingLabel": "0.14em",
+        "layout.pageInset": "2rem",
+        "layout.sheetRadius": "1.5rem",
+        "layout.cardRadius": "0.75rem"
+      }
+    },
+    "acs": {
+      "document": {
+        "brand.eyebrow": "Astro Cleanings on ROOT",
+        "brand.footer": "Astro Cleanings document rendered by ROOT",
+        "surface.background": "#f3f7fb",
+        "surface.sheet": "#ffffff",
+        "surface.sheetAlt": "#e4edf7",
+        "content.primary": "#142033",
+        "content.secondary": "#415067",
+        "border.default": "#d8e3f0",
+        "border.strong": "#b9cae0",
+        "accent.primary": "#0f2747",
+        "accent.strong": "#16365f",
+        "accent.soft": "#e4edf7",
+        "type.display": "\"Gotham Condensed\", \"Arial Narrow\", \"Franklin Gothic Medium\", sans-serif",
+        "type.body": "\"Space Grotesk\", \"Segoe UI\", sans-serif",
+        "type.mono": "\"JetBrains Mono\", \"SF Mono\", \"Fira Code\", monospace",
+        "type.caseDisplay": "uppercase",
+        "type.caseLabel": "uppercase",
+        "type.trackingDisplay": "0.03em",
+        "type.trackingLabel": "0.18em",
+        "layout.pageInset": "2rem",
+        "layout.sheetRadius": "1.5rem",
+        "layout.cardRadius": "0.75rem"
+      }
+    },
+    "cco-home": {
+      "document": {
+        "brand.eyebrow": "Content Co-op on ROOT",
+        "brand.footer": "Content Co-op document rendered by ROOT",
+        "surface.background": "#f0ebe0",
+        "surface.sheet": "#faf6ef",
+        "surface.sheetAlt": "#f7f3eb",
+        "content.primary": "#0b1928",
+        "content.secondary": "#485670",
+        "border.default": "#d8cfc0",
+        "border.strong": "#b7c5da",
+        "accent.primary": "#1e4d8c",
+        "accent.strong": "#112540",
+        "accent.soft": "#deeaff",
+        "type.display": "\"Fraunces\", Georgia, \"Times New Roman\", serif",
+        "type.body": "\"Plus Jakarta Sans\", Inter, -apple-system, sans-serif",
+        "type.mono": "\"JetBrains Mono\", \"SF Mono\", \"Fira Code\", monospace",
+        "type.caseDisplay": "none",
+        "type.caseLabel": "uppercase",
+        "type.trackingDisplay": "-0.03em",
+        "type.trackingLabel": "0.18em",
+        "layout.pageInset": "2rem",
+        "layout.sheetRadius": "1.5rem",
+        "layout.cardRadius": "0.75rem"
+      }
+    }
+  }
+}

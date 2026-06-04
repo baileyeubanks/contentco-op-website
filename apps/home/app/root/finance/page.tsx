@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useEffectEvent, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Page } from "@contentco-op/ui/src/atlantis/Page";
@@ -70,14 +70,22 @@ function FinancePageInner() {
   const [finance, setFinance] = useState<FinanceRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  async function fetchFinance() {
+    try {
+      const response = await fetch("/api/root/finance");
+      const data = await response.json().catch(() => ({}));
+      setFinance(Array.isArray(data.finance) ? data.finance : []);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const initialFetchFinance = useEffectEvent(async () => {
+    await fetchFinance();
+  });
+
   useEffect(() => {
-    setLoading(true);
-    fetch("/api/root/finance")
-      .then((res) => res.json())
-      .then((data) => {
-        setFinance(data.finance || []);
-      })
-      .finally(() => setLoading(false));
+    void initialFetchFinance();
   }, []);
 
   /* URL param updater */

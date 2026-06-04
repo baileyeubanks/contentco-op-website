@@ -35,7 +35,7 @@ const BRAND = {
     company: "Astro Cleaning Services LLC",
     address: "Houston, TX",
     phone: "(832) 752-1050",
-    email: "hello@astrocleanings.com",
+    email: "service@astrocleanings.com",
     website: "astrocleanings.com",
     accent: "#1B4F72",
     logoUrl: "/brand/assets/acs/exports/logo-dark.png",

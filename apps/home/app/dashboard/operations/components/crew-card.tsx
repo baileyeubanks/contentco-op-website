@@ -43,6 +43,10 @@ const etaSourceLabels: Record<string, { label: string; color: string }> = {
   estimate: { label: "EST", color: "#e4ad5b" },
 };
 
+function isRecentlyActive(iso: string): boolean {
+  return (Date.now() - new Date(iso).getTime()) < 15 * 60000;
+}
+
 export function CrewCard({
   name,
   color,
@@ -57,7 +61,7 @@ export function CrewCard({
   onOverride,
 }: CrewCardProps) {
   const initial = (name || "?").charAt(0).toUpperCase();
-  const isActive = last_ping && (Date.now() - new Date(last_ping).getTime()) < 15 * 60000;
+  const isActive = Boolean(last_ping && isRecentlyActive(last_ping));
   const dotColor = isActive ? (statusColors[status] || "#e4ad5b") : "var(--muted)";
 
   return (

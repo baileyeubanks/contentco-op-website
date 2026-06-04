@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export interface BuyerInfo {
   name: string;
@@ -13,6 +13,31 @@ export interface BuyerInfo {
 interface BuyerFormProps {
   buyer: BuyerInfo;
   onChange: (buyer: BuyerInfo) => void;
+}
+
+interface ContactSuggestion {
+  id: string;
+  full_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  company?: string | null;
+}
+
+function normalizeSuggestions(value: unknown): ContactSuggestion[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const suggestion = entry as Record<string, unknown>;
+    const id = typeof suggestion.id === "string" ? suggestion.id : null;
+    if (!id) return [];
+    return [{
+      id,
+      full_name: typeof suggestion.full_name === "string" ? suggestion.full_name : null,
+      email: typeof suggestion.email === "string" ? suggestion.email : null,
+      phone: typeof suggestion.phone === "string" ? suggestion.phone : null,
+      company: typeof suggestion.company === "string" ? suggestion.company : null,
+    }];
+  });
 }
 
 const inputStyle: React.CSSProperties = {
@@ -37,15 +62,21 @@ const labelStyle: React.CSSProperties = {
 };
 
 export function BuyerForm({ buyer, onChange }: BuyerFormProps) {
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<ContactSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<any>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, []);
 
   function handleNameChange(value: string) {
     onChange({ ...buyer, name: value });
 
     // Debounced contact search
-    if (searchTimeout) clearTimeout(searchTimeout);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     if (value.length >= 2) {
       const timeout = setTimeout(async () => {
         try {
@@ -61,22 +92,22 @@ export function BuyerForm({ buyer, onChange }: BuyerFormProps) {
             }
           );
           if (res.ok) {
-            const data = await res.json();
-            setSuggestions(data || []);
+            const data = normalizeSuggestions(await res.json());
+            setSuggestions(data);
             setShowSuggestions(data.length > 0);
           }
         } catch {
           // silent
         }
       }, 300);
-      setSearchTimeout(timeout);
+      searchTimeoutRef.current = timeout;
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
     }
   }
 
-  function selectContact(contact: any) {
+  function selectContact(contact: ContactSuggestion) {
     onChange({
       name: contact.full_name || "",
       email: contact.email || "",

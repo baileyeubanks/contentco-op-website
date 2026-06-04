@@ -5,6 +5,18 @@ interface Props {
   params: Promise<{ token: string }>;
 }
 
+type ClientMessageRequestBody = {
+  message?: unknown;
+  quote_id?: unknown;
+  invoice_id?: unknown;
+};
+
+function asNullableString(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized || null;
+}
+
 /**
  * GET /api/client/[token]/messages — list messages for this contact
  * POST /api/client/[token]/messages — send a message from the client
@@ -45,15 +57,15 @@ export async function POST(req: Request, { params }: Props) {
     return NextResponse.json({ error: "invalid_token" }, { status: 404 });
   }
 
-  let body: Record<string, any>;
-  try {
-    body = await req.json();
-  } catch {
+  const body = await req.json().catch(() => null) as ClientMessageRequestBody | null;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
 
-  const { message, quote_id, invoice_id } = body;
-  if (!message || typeof message !== "string" || !message.trim()) {
+  const message = asNullableString(body.message);
+  const quoteId = asNullableString(body.quote_id);
+  const invoiceId = asNullableString(body.invoice_id);
+  if (!message) {
     return NextResponse.json({ error: "message_required" }, { status: 400 });
   }
 
@@ -62,10 +74,10 @@ export async function POST(req: Request, { params }: Props) {
     .from("client_messages")
     .insert({
       contact_id: contact.id,
-      quote_id: quote_id || null,
-      invoice_id: invoice_id || null,
+      quote_id: quoteId,
+      invoice_id: invoiceId,
       sender: "client",
-      body: message.trim(),
+      body: message,
     })
     .select("id, sender, body, created_at")
     .single();

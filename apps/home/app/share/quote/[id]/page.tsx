@@ -4,6 +4,28 @@ import { QuoteShareClient } from "./quote-share-client";
 
 export const dynamic = "force-dynamic";
 
+interface TermSection {
+  title: string;
+  body: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeTerms(value: unknown): TermSection[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!isRecord(entry)) return [];
+    const titleSource = entry.title ?? entry.label;
+    const bodySource = entry.body ?? entry.text ?? entry.content;
+    return [{
+      title: typeof titleSource === "string" ? titleSource : "",
+      body: typeof bodySource === "string" ? bodySource : "",
+    }];
+  });
+}
+
 export default async function ShareQuotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const sb = getSupabase();
@@ -18,19 +40,16 @@ export default async function ShareQuotePage({ params }: { params: Promise<{ id:
   if (!quote) notFound();
 
   /* Extract terms from payload if available */
-  let terms: { title: string; body: string }[] = [];
+  let terms: TermSection[] = [];
   try {
-    const payload = quote.payload as Record<string, any> | null;
-    if (payload?.doc?.terms_sections && Array.isArray(payload.doc.terms_sections)) {
-      terms = payload.doc.terms_sections.map((s: any) => ({
-        title: String(s.title || ""),
-        body: String(s.body || ""),
-      }));
-    } else if (payload?.doc?.notes_terms && Array.isArray(payload.doc.notes_terms)) {
-      terms = payload.doc.notes_terms.map((t: any) => ({
-        title: String(t.title || t.label || ""),
-        body: String(t.body || t.text || t.content || ""),
-      }));
+    const payload = isRecord(quote.payload) ? quote.payload : null;
+    const doc = payload && isRecord(payload.doc) ? payload.doc : null;
+    const termsSections = doc ? normalizeTerms(doc.terms_sections) : [];
+    const notesTerms = doc ? normalizeTerms(doc.notes_terms) : [];
+    if (termsSections.length > 0) {
+      terms = termsSections;
+    } else if (notesTerms.length > 0) {
+      terms = notesTerms;
     }
   } catch {
     /* silent */

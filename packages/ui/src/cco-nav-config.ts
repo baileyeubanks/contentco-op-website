@@ -8,7 +8,9 @@ export type CcoNavSurface =
   | "suite"
   | "cocut"
   | "coscript"
-  | "codeliver";
+  | "codeliver"
+  | "terms"
+  | "privacy";
 
 export type CcoUrls = {
   monorepo: string;

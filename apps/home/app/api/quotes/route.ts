@@ -1,6 +1,78 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+type QuoteCreateBody = {
+  contact_id?: unknown;
+  business_id?: unknown;
+  business_unit?: unknown;
+  status?: unknown;
+  internal_status?: unknown;
+  client_status?: unknown;
+  issue_date?: unknown;
+  valid_until?: unknown;
+  payment_terms?: unknown;
+  client_name?: unknown;
+  client_email?: unknown;
+  client_phone?: unknown;
+  service_address?: unknown;
+  estimated_total?: unknown;
+  notes?: unknown;
+  payload?: unknown;
+  items?: unknown;
+};
+
+type QuoteItemInput = {
+  name: string;
+  description: string | null;
+  quantity: number;
+  unit_price: number;
+  phase_name: string | null;
+};
+
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : value == null ? fallback : String(value);
+}
+
+function asNullableString(value: unknown) {
+  const normalized = asString(value).trim();
+  return normalized || null;
+}
+
+function asNumber(value: unknown, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function asObject(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+async function parseBody(req: Request): Promise<QuoteCreateBody | null> {
+  const body = await req.json().catch(() => null);
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    return body as QuoteCreateBody;
+  }
+  return null;
+}
+
+function normalizeQuoteItems(value: unknown): QuoteItemInput[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => {
+    const row = item && typeof item === "object" && !Array.isArray(item)
+      ? (item as Record<string, unknown>)
+      : {};
+    return {
+      name: asString(row.name || row.description, ""),
+      description: asNullableString(row.description),
+      quantity: asNumber(row.quantity, 1),
+      unit_price: asNumber(row.unit_price ?? row.price, 0),
+      phase_name: asNullableString(row.phase_name),
+    };
+  });
+}
+
 /**
  * GET /api/quotes — List quotes with optional filters.
  * Query params: business_unit, status, limit, offset
@@ -34,35 +106,30 @@ export async function GET(req: Request) {
  * POST /api/quotes — Create a new quote with items.
  */
 export async function POST(req: Request) {
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
+  const body = await parseBody(req);
+  if (!body) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const {
-    contact_id,
-    business_id,
-    business_unit = "ACS",
-    status = "pending",
-    internal_status = "pending_internal",
-    client_status = "not_sent",
-    issue_date,
-    valid_until,
-    payment_terms,
-    client_name,
-    client_email,
-    client_phone,
-    service_address,
-    estimated_total,
-    notes,
-    payload,
-    items,
-  } = body as Record<string, any>;
-
   // Allocate document number via sequence RPC
-  const bu = String(business_unit).toUpperCase();
+  const businessUnit = asString(body.business_unit, "ACS").toUpperCase();
+  const contactId = asNullableString(body.contact_id);
+  const businessId = asNullableString(body.business_id);
+  const quoteStatus = asString(body.status, "pending");
+  const internalStatus = asString(body.internal_status, "pending_internal");
+  const clientStatus = asString(body.client_status, "not_sent");
+  const issueDate = asNullableString(body.issue_date) || new Date().toISOString().slice(0, 10);
+  const validUntil = asNullableString(body.valid_until);
+  const paymentTerms = asNullableString(body.payment_terms);
+  const clientName = asNullableString(body.client_name);
+  const clientEmail = asNullableString(body.client_email);
+  const clientPhone = asNullableString(body.client_phone);
+  const serviceAddress = asNullableString(body.service_address);
+  const estimatedTotal = asNumber(body.estimated_total, 0);
+  const notes = asNullableString(body.notes);
+  const payload = asObject(body.payload);
+  const items = normalizeQuoteItems(body.items);
+  const bu = businessUnit;
   let quoteNumber: string | null = null;
   try {
     const { data: seqData } = await supabase.rpc("next_doc_number", {
@@ -78,23 +145,23 @@ export async function POST(req: Request) {
   const { data: quote, error: quoteError } = await supabase
     .from("quotes")
     .insert({
-      contact_id: contact_id || null,
-      business_id: business_id || null,
+      contact_id: contactId,
+      business_id: businessId,
       business_unit: bu,
       quote_number: quoteNumber,
-      status,
-      internal_status,
-      client_status,
-      issue_date: issue_date || new Date().toISOString().slice(0, 10),
-      valid_until: valid_until || null,
-      payment_terms: payment_terms || null,
-      client_name: client_name || null,
-      client_email: client_email || null,
-      client_phone: client_phone || null,
-      service_address: service_address || null,
-      estimated_total: estimated_total || 0,
-      notes: notes || null,
-      payload: payload || null,
+      status: quoteStatus,
+      internal_status: internalStatus,
+      client_status: clientStatus,
+      issue_date: issueDate,
+      valid_until: validUntil,
+      payment_terms: paymentTerms,
+      client_name: clientName,
+      client_email: clientEmail,
+      client_phone: clientPhone,
+      service_address: serviceAddress,
+      estimated_total: estimatedTotal,
+      notes,
+      payload,
     })
     .select("id, quote_number, estimated_total, status, internal_status, client_status, created_at")
     .single();
@@ -108,14 +175,14 @@ export async function POST(req: Request) {
 
   // Insert items if provided
   if (Array.isArray(items) && items.length > 0) {
-    const quoteItems = items.map((item: any, index: number) => ({
+    const quoteItems = items.map((item, index) => ({
       quote_id: quote.id,
       sort_order: index + 1,
-      name: item.name || item.description || "",
-      description: item.description || null,
-      quantity: item.quantity || 1,
-      unit_price: item.unit_price || item.price || 0,
-      phase_name: item.phase_name || null,
+      name: item.name,
+      description: item.description,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      phase_name: item.phase_name,
     }));
 
     const { error: itemsError } = await supabase.from("quote_items").insert(quoteItems);
@@ -127,13 +194,13 @@ export async function POST(req: Request) {
   // Fire event
   try {
     await supabase.from("events").insert({
-      type: `${String(business_unit).toLowerCase()}_quote_created`,
-      business_id: business_id || null,
-      contact_id: contact_id || null,
+      type: `${bu.toLowerCase()}_quote_created`,
+      business_id: businessId,
+      contact_id: contactId,
       payload: {
         quote_id: quote.id,
-        estimated_total: estimated_total || 0,
-        business_unit: String(business_unit).toUpperCase(),
+        estimated_total: estimatedTotal,
+        business_unit: bu,
       },
     });
   } catch {

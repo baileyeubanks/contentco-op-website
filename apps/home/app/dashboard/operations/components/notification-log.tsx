@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 interface NotificationEntry {
   id: string;
@@ -49,13 +49,7 @@ export function NotificationLog({ maxItems = 50 }: NotificationLogProps) {
   const [channelFilter, setChannelFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [channelFilter]);
-
-  async function fetchNotifications() {
+  const fetchNotifications = useCallback(async () => {
     try {
       const params = new URLSearchParams({ limit: String(maxItems) });
       if (channelFilter !== "all") params.set("channel", channelFilter);
@@ -69,7 +63,15 @@ export function NotificationLog({ maxItems = 50 }: NotificationLogProps) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [channelFilter, maxItems]);
+
+  useEffect(() => {
+    void fetchNotifications();
+    const interval = setInterval(() => {
+      void fetchNotifications();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   const channels = ["all", "telegram", "imessage", "whatsapp", "email"];
 

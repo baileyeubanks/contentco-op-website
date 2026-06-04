@@ -1,7 +1,17 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { resolveRootBrand } from "@/lib/root-brand";
 import { RootShell } from "@/app/root/components/root-shell";
 import "@contentco-op/ui/src/atlantis/tokens.css";
+import "@xyflow/react/dist/style.css";
+
+export const metadata: Metadata = {
+  title: "Operations Workspace",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function RootAppLayout({
   children,

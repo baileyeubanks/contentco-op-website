@@ -1,40 +1,70 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Nav } from "@contentco-op/ui";
-import { PublicFooter } from "@/app/components/public-footer";
-import { BOOKING_PAGE_PATH } from "@/lib/public-booking";
-import { portfolioPublicStudies } from "@/lib/content/portfolio";
+import type { Metadata } from "next";
+import { PublicPageLayout } from "@/app/components/public-page-layout";
+import { AnimatedSuite } from "@/app/components/animated-suite";
+import { SeoJsonLd } from "@/app/components/seo-json-ld";
+import { buildBreadcrumbJsonLd, buildSoftwareSuiteJsonLd } from "@/lib/seo";
 import styles from "./page.module.css";
 
+export const metadata: Metadata = {
+  title: "Production Workflow Software for Content Teams",
+  description:
+    "Explore the Co-Apps Suite from Content Co-op: planning, review, and delivery tools for production workflows.",
+  alternates: {
+    canonical: "https://contentco-op.com/suite",
+  },
+  openGraph: {
+    title: "Production Workflow Software for Content Teams | Content Co-op",
+    description:
+      "Explore the Co-Apps Suite from Content Co-op: planning, review, and delivery tools for production workflows.",
+    url: "https://contentco-op.com/suite",
+  },
+  twitter: {
+    title: "Production Workflow Software for Content Teams | Content Co-op",
+    description:
+      "Explore the Co-Apps Suite from Content Co-op: planning, review, and delivery tools for production workflows.",
+  },
+};
+
 const APP_URLS = {
-  coscript: "https://script.contentco-op.com",
-  cocut: "https://cut.contentco-op.com",
-  codeliver: "https://deliver.contentco-op.com",
+  coscript: "/co-script",
+  cocut: "/co-cut",
+  codeliver: "/co-deliver",
+} as const;
+
+const APP_CANONICAL_URLS = {
+  coscript: "https://contentco-op.com/co-script",
+  cocut: "https://contentco-op.com/co-cut",
+  codeliver: "https://contentco-op.com/co-deliver",
 } as const;
 
 const CARDS = [
   {
+    id: "co-script",
     name: "Script",
     prefix: "Co-",
-    tagline: "Plan the story.",
+    tagline: "Align the story.",
+    description:
+      "Co-Script turns a brief into production intelligence: client language, research, interview targets, shot lists, constraints, and script drafts in one place. AI helps surface angles and gaps, while the human team keeps the message accurate and on brand.",
     accent: "#4c8ef5",
     href: APP_URLS.coscript,
     icon: (
       <svg viewBox="0 0 40 40" fill="none" width={44} height={44}>
-        <rect x="4" y="14" width="32" height="22" rx="2.5" stroke="currentColor" strokeWidth={1.4} />
-        <path d="M4 14 L10 6 L30 6 L36 14" stroke="currentColor" strokeWidth={1.4} strokeLinejoin="round" />
-        <line x1="10" y1="6" x2="14" y2="14" stroke="currentColor" strokeWidth={1.4} />
-        <line x1="20" y1="6" x2="24" y2="14" stroke="currentColor" strokeWidth={1.4} />
-        <line x1="30" y1="6" x2="34" y2="14" stroke="currentColor" strokeWidth={1.4} />
-        <line x1="10" y1="25" x2="30" y2="25" stroke="currentColor" strokeWidth={1} opacity={0.4} />
-        <line x1="10" y1="30" x2="24" y2="30" stroke="currentColor" strokeWidth={1} opacity={0.4} />
+        <path d="M10 4.5h14l6 6V35.5H10z" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
+        <path d="M24 4.5v7h6" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
+        <path d="M15 16h12M15 21h9M15 26h12M15 31h7" stroke="currentColor" strokeWidth={1.3} strokeLinecap="round" opacity={0.62} />
+        <path d="M7 10.5h6M10 7.5v6" stroke="currentColor" strokeWidth={1.35} strokeLinecap="round" />
+        <path d="M29 24.5l1.2 2.6 2.8 1.1-2.8 1.1-1.2 2.7-1.2-2.7-2.8-1.1 2.8-1.1z" fill="currentColor" opacity={0.9} />
       </svg>
     ),
   },
   {
+    id: "co-cut",
     name: "Cut",
     prefix: "Co-",
     tagline: "Shape the film.",
+    description:
+      "Co-Cut keeps post-production legible: media ingest, transcript-driven selects, edit versions, captions, exports, and frame-specific feedback. AI supports transcripts and selects so the editor can spend more time shaping the film, not chasing notes.",
     accent: "#a78bf5",
     href: APP_URLS.cocut,
     icon: (
@@ -50,42 +80,69 @@ const CARDS = [
     ),
   },
   {
+    id: "co-deliver",
     name: "Deliver",
     prefix: "Co-",
-    tagline: "Ship the work.",
+    tagline: "Control the handoff.",
+    description:
+      "Co-Deliver is the client-ready review and delivery layer: approval gates, comments, share links, downloads, final versions, and archive trails. AI helps summarize decisions and flag loose ends so the final handoff stays clean.",
     accent: "#2dd4bf",
     href: APP_URLS.codeliver,
     icon: (
       <svg viewBox="0 0 40 40" fill="none" width={44} height={44}>
-        <circle cx="18" cy="22" r="12" stroke="currentColor" strokeWidth={1.4} />
-        <polyline points="12,22 16,26 24,18" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M28 8 L36 8 L36 16" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
-        <line x1="26" y1="18" x2="36" y2="8" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" />
+        <rect x="7" y="12" width="26" height="18" rx="3" stroke="currentColor" strokeWidth={1.5} />
+        <path d="M12 12l8 7 8-7" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
+        <path d="M20 19v10" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" opacity={0.5} />
+        <path d="M14 25h7.5" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" opacity={0.5} />
+        <circle cx="29" cy="28.5" r="6" fill="#f3ede2" stroke="currentColor" strokeWidth={1.4} />
+        <path d="M26.6 28.5l1.6 1.6 3.2-3.3" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
 ] as const;
 
-const PRODUCTS = [
-  { id: "co-script", name: "Co-Script", accent: "#4c8ef5", href: APP_URLS.coscript },
-  { id: "co-cut", name: "Co-Cut", accent: "#a78bf5", href: APP_URLS.cocut },
-  { id: "co-deliver", name: "Co-Deliver", accent: "#2dd4bf", href: APP_URLS.codeliver },
-];
-
 export default function SuitePage() {
   return (
-    <main className={`page page-dark ${styles.page}`}>
-      <Nav surface="home" />
+    <PublicPageLayout surface="suite" theme="cream">
+      <AnimatedSuite>
+      <main className={`page ${styles.page}`}>
+        <SeoJsonLd
+          data={[
+            buildBreadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Product Suite", path: "/suite" }]),
+            ...buildSoftwareSuiteJsonLd([
+              {
+                name: "Co-Script",
+                url: APP_CANONICAL_URLS.coscript,
+                description: "AI-assisted pre-production intelligence for briefs, research, scripts, and shot lists.",
+              },
+              {
+                name: "Co-Cut",
+                url: APP_CANONICAL_URLS.cocut,
+                description: "Transcript-driven editing, review, and version control for production teams.",
+              },
+              {
+                name: "Co-Deliver",
+                url: APP_CANONICAL_URLS.codeliver,
+                description: "Review links, approval gates, downloads, version management, and client handoff.",
+              },
+            ]),
+          ]}
+        />
 
-      {/* ─── Hero: Cards ARE the visual ─── */}
       <section className={styles.hero}>
         <p className={styles.kicker}>The Co-Apps Suite</p>
-        <h1 className={styles.heroTitle}>Brief to boardroom.</h1>
+        <h1 className={styles.heroTitle}>Brief to <em>boardroom.</em></h1>
+        <div className={styles.heroDivider} aria-hidden="true" />
+        <p className={styles.heroIntro}>
+          These are not side quests. Every project moves through the same three rooms:
+          plan the story, shape the film, and deliver the work without losing the thread.
+        </p>
 
         <div className={styles.cardsRow}>
           {CARDS.map((card) => (
             <Link
               key={card.name}
+              id={card.id}
               href={card.href}
               className={styles.card}
               style={{ "--card-accent": card.accent } as React.CSSProperties}
@@ -96,83 +153,15 @@ export default function SuitePage() {
                 <span className={styles.cardPrefix}>{card.prefix}</span>{card.name}
               </h2>
               <p className={styles.cardTagline}>{card.tagline}</p>
-            </Link>
-          ))}
-        </div>
-
-        <div className={styles.heroCtas}>
-          <Link href="/brief" className={styles.primaryBtn}>Start a brief</Link>
-          <Link href={BOOKING_PAGE_PATH} className={styles.ghostBtn}>Book a demo</Link>
-        </div>
-      </section>
-
-      <div className={styles.divider} />
-
-      {/* ─── Suite montage video slot ─── */}
-      <section className={styles.montageSection}>
-        <div className={styles.montageSlot}>
-          <svg viewBox="0 0 48 48" fill="none" width={56} height={56}>
-            <circle cx="24" cy="24" r="22" stroke="currentColor" strokeWidth={1} opacity={0.25} />
-            <polygon points="19,15 35,24 19,33" fill="currentColor" opacity={0.35} />
-          </svg>
-          <span className={styles.montageLabel}>Suite montage — coming soon</span>
-        </div>
-      </section>
-
-      <div className={styles.divider} />
-
-      {/* ─── Individual product sections ─── */}
-      <section className={styles.productsSection}>
-        {PRODUCTS.map((product) => (
-          <article
-            key={product.id}
-            id={product.id}
-            className={styles.productBlock}
-            style={{ "--product-accent": product.accent } as React.CSSProperties}
-          >
-            <div className={styles.productInfo}>
-              <h2 className={styles.productName}>{product.name}</h2>
-              <div className={styles.productActions}>
-                <a href={product.href} className={styles.primaryBtn}>Open {product.name}</a>
-                <Link href={BOOKING_PAGE_PATH} className={styles.ghostBtn}>Demo</Link>
-              </div>
-            </div>
-            <div className={styles.productVideo}>
-              <div className={styles.videoPlaceholder}>
-                <svg viewBox="0 0 48 48" fill="none" width={44} height={44}>
-                  <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth={1} opacity={0.3} />
-                  <polygon points="20,16 34,24 20,32" fill="currentColor" opacity={0.4} />
-                </svg>
-              </div>
-            </div>
-          </article>
-        ))}
-      </section>
-
-      <div className={styles.divider} />
-
-      {/* ─── Portfolio reel ─── */}
-      <section className={styles.reelSection}>
-        <p className={styles.kicker}>The work</p>
-        <div className={styles.reelGrid}>
-          {portfolioPublicStudies.map((study) => (
-            <Link key={study.id} href={`/portfolio?v=${study.id}`} className={styles.reelCard}>
-              <div className={styles.reelThumb}>
-                <Image
-                  src={study.thumbnail}
-                  alt={study.title}
-                  fill
-                  sizes="(max-width: 720px) 50vw, 25vw"
-                  quality={75}
-                  style={{ objectFit: "cover" }}
-                />
-              </div>
+              <p className={styles.cardDescription}>{card.description}</p>
+              <span className={styles.cardStatus}>Request access</span>
             </Link>
           ))}
         </div>
       </section>
 
-      <PublicFooter />
-    </main>
+      </main>
+      </AnimatedSuite>
+    </PublicPageLayout>
   );
 }

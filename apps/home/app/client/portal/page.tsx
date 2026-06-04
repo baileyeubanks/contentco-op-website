@@ -26,7 +26,7 @@ async function fetchPortalData(
   const cEmail = contact.email;
   const cId = contact.id;
 
-  const [quotesRes, jobsRes, invoicesRes, paymentsRes] = await Promise.all([
+  const [quotesRes, jobsRes, invoicesRes, paymentsRes, conversationsRes] = await Promise.all([
     sb
       .from("quotes")
       .select("*")
@@ -50,6 +50,12 @@ async function fetchPortalData(
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50),
+    sb
+      .from("conversations")
+      .select("id, channel, last_message_at, resolved, messages_json")
+      .eq("contact_id", cId)
+      .order("last_message_at", { ascending: false })
+      .limit(20),
   ]);
 
   const quoteIds = new Set(
@@ -69,6 +75,7 @@ async function fetchPortalData(
     jobs: jobsRes.data ?? [],
     invoices: invoicesRes.data ?? [],
     payments: clientPayments,
+    conversations: conversationsRes.data ?? [],
   };
 }
 

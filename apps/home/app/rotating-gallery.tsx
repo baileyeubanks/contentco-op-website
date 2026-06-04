@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
+import type { CSSProperties } from "react";
 
 interface GalleryImage {
   src: string;
@@ -13,20 +14,33 @@ interface GalleryImage {
 interface RotatingGalleryProps {
   images: readonly GalleryImage[];
   columns?: number;
+  rows?: number;
   interval?: number;
 }
 
-export function RotatingGallery({ images, columns = 3, interval = 5000 }: RotatingGalleryProps) {
+export function RotatingGallery({ images, columns = 8, rows = 4, interval = 5000 }: RotatingGalleryProps) {
   const [pools] = useState<GalleryImage[][]>(() => {
-    const slots: GalleryImage[][] = Array.from({ length: columns }, () => []);
-    images.forEach((img, i) => slots[i % columns].push(img));
+    const slotCount = rows * columns;
+    const slots: GalleryImage[][] = Array.from({ length: slotCount }, () => []);
+    images.forEach((img, i) => slots[i % slotCount].push(img));
+    slots.forEach((slot, i) => {
+      if (slot.length === 0 && images.length > 0) slot.push(images[i % images.length]);
+    });
     return slots;
   });
 
   return (
-    <section className="gallery">
+    <section
+      className="gallery"
+      style={{ "--gallery-columns": columns } as CSSProperties}
+    >
       {pools.map((pool, i) => (
-        <GallerySlot key={i} images={pool} delay={i * 2000} interval={interval} />
+        <GallerySlot
+          key={i}
+          images={pool}
+          delay={(i % columns) * 220 + Math.floor(i / columns) * 650}
+          interval={interval}
+        />
       ))}
     </section>
   );
@@ -85,7 +99,9 @@ function GallerySlot({ images, delay, interval }: { images: GalleryImage[]; dela
           src={layerA.src}
           alt={layerA.alt}
           fill
-          sizes="(max-width: 980px) 100vw, 33vw"
+          sizes="(max-width: 980px) 25vw, 12.5vw"
+          loading="lazy"
+          fetchPriority="low"
           quality={82}
         />
       </div>
@@ -94,7 +110,9 @@ function GallerySlot({ images, delay, interval }: { images: GalleryImage[]; dela
           src={layerB.src}
           alt={layerB.alt}
           fill
-          sizes="(max-width: 980px) 100vw, 33vw"
+          sizes="(max-width: 980px) 25vw, 12.5vw"
+          loading="lazy"
+          fetchPriority="low"
           quality={82}
         />
       </div>

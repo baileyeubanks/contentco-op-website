@@ -6,6 +6,56 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+type AgreementQuoteRow = {
+  id: string;
+  client_name: string | null;
+  client_email: string | null;
+  estimated_total: number | null;
+  business_unit: string | null;
+  valid_until: string | null;
+  created_at: string | null;
+  quote_number: string | null;
+  payload: unknown;
+};
+
+type AgreementPhase = {
+  name: string;
+  items: Array<{ description: string; quantity: number; unitPrice: number }>;
+};
+
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : value == null ? fallback : String(value);
+}
+
+function asNumber(value: unknown, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function asRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function asRecordArray(value: unknown) {
+  if (!Array.isArray(value)) return [] as Record<string, unknown>[];
+  return value
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
+}
+
+function extractAgreementPhases(payload: unknown): AgreementPhase[] {
+  const doc = asRecord(asRecord(payload).doc);
+  return asRecordArray(doc.phases).map((phase) => ({
+    name: asString(phase.name, ""),
+    items: asRecordArray(phase.items).map((item) => ({
+      description: asString(item.description, ""),
+      quantity: asNumber(item.quantity, 1),
+      unitPrice: asNumber(item.unit_price, 0),
+    })),
+  }));
+}
+
 /**
  * GET /api/root/quotes/[id]/agreement
  *
@@ -16,11 +66,12 @@ export async function GET(_req: Request, { params }: Props) {
   const { id } = await params;
   const sb = getSupabase();
 
-  const { data: quote, error } = await sb
+  const { data, error } = await sb
     .from("quotes")
     .select("id, client_name, client_email, estimated_total, business_unit, valid_until, created_at, quote_number, payload")
     .eq("id", id)
     .maybeSingle();
+  const quote = data as AgreementQuoteRow | null;
 
   if (error || !quote) {
     return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
@@ -30,24 +81,7 @@ export async function GET(_req: Request, { params }: Props) {
   const bu = String(quote.business_unit || "ACS").toUpperCase();
 
   /* Extract phases from payload if available */
-  let phases: { name: string; items: { description: string; quantity: number; unitPrice: number }[] }[] = [];
-  try {
-    const payload = quote.payload as Record<string, any> | null;
-    if (payload?.doc?.phases && Array.isArray(payload.doc.phases)) {
-      phases = payload.doc.phases.map((p: any) => ({
-        name: String(p.name || ""),
-        items: Array.isArray(p.items)
-          ? p.items.map((i: any) => ({
-              description: String(i.description || ""),
-              quantity: Number(i.quantity || 1),
-              unitPrice: Number(i.unit_price || 0),
-            }))
-          : [],
-      }));
-    }
-  } catch {
-    /* silent */
-  }
+  const phases = extractAgreementPhases(quote.payload);
 
   const sections = getAgreementTemplate(bu, {
     clientName: quote.client_name || "Client",

@@ -5,6 +5,29 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+type QuoteAcceptanceBody = {
+  action?: unknown;
+  signature_name?: unknown;
+  comment?: unknown;
+};
+
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : value == null ? fallback : String(value);
+}
+
+function asNullableString(value: unknown) {
+  const normalized = asString(value).trim();
+  return normalized || null;
+}
+
+async function parseBody(req: Request): Promise<QuoteAcceptanceBody> {
+  const body = await req.json().catch(() => null);
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    return body as QuoteAcceptanceBody;
+  }
+  return {};
+}
+
 /**
  * POST /api/share/quote/[id]/accept
  *
@@ -15,18 +38,10 @@ export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
   const sb = getSupabase();
 
-  let body: Record<string, any> = {};
-  try {
-    body = await req.json();
-  } catch {
-    /* empty body is fine for simple accept */
-  }
-
-  const {
-    action = "accept",
-    signature_name,
-    comment,
-  } = body;
+  const body = await parseBody(req);
+  const action = asString(body.action, "accept");
+  const signatureName = asNullableString(body.signature_name);
+  const comment = asNullableString(body.comment);
 
   /* Fetch quote */
   const { data: quote, error } = await sb
@@ -46,7 +61,7 @@ export async function POST(req: Request, { params }: Props) {
     "unknown";
   const userAgent = req.headers.get("user-agent") || "unknown";
   const acceptedAt = new Date().toISOString();
-  const signerName = signature_name || quote.client_name || "Client";
+  const signerName = signatureName || quote.client_name || "Client";
 
   if (action === "accept") {
     /* Build update payload — core fields first */
@@ -66,7 +81,8 @@ export async function POST(req: Request, { params }: Props) {
         accepted_at: acceptedAt,
         accepted_by_name: signerName,
         accepted_ip: ip,
-        acceptance_method: signature_name ? "signature" : "click",
+        accepted_user_agent: userAgent,
+        acceptance_method: signatureName ? "signature" : "click",
       })
       .eq("id", id);
 
@@ -118,12 +134,12 @@ export async function POST(req: Request, { params }: Props) {
     }
 
     /* Store the comment if provided */
-    if (comment) {
-      await sb.from("quote_comments").insert({
-        quote_id: id,
-        sender: "client",
-        body: comment,
-      }).then(() => {});
+      if (comment) {
+        await sb.from("quote_comments").insert({
+          quote_id: id,
+          sender: "client",
+          body: comment,
+        }).then(() => {});
     }
 
     return NextResponse.json({ ok: true, action: "changes_requested" });

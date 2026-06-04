@@ -4,6 +4,10 @@ import Image from "next/image";
 export const metadata: Metadata = {
   title: "Astro Cleaning Services",
   description: "Professional cleaning services in Houston, TX",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {

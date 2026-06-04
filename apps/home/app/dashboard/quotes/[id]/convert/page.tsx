@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useEffectEvent, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -20,6 +20,41 @@ interface QuoteItem {
   phase_name: string;
 }
 
+interface QuoteRecord {
+  id: string;
+  quote_number?: string | null;
+  client_name?: string | null;
+  client_email?: string | null;
+  client_status?: string | null;
+  business_unit?: string | null;
+  notes?: string | null;
+}
+
+interface QuoteItemRecord {
+  id?: string | null;
+  description?: string | null;
+  quantity?: number | string | null;
+  unit_price?: number | string | null;
+  unit?: string | null;
+  phase_name?: string | null;
+}
+
+interface QuoteResponse {
+  quote?: QuoteRecord | null;
+  items?: QuoteItemRecord[] | null;
+}
+
+function normalizeQuoteItem(item: QuoteItemRecord): QuoteItem {
+  return {
+    id: item.id || Math.random().toString(36).slice(2),
+    description: item.description || "",
+    quantity: Number(item.quantity || 1),
+    unit_price: Number(item.unit_price || 0),
+    unit: item.unit || "ea",
+    phase_name: item.phase_name || "",
+  };
+}
+
 export default function ConvertQuoteToInvoicePage() {
   const params = useParams();
   const router = useRouter();
@@ -27,7 +62,7 @@ export default function ConvertQuoteToInvoicePage() {
 
   const [loading, setLoading] = useState(true);
   const [converting, setConverting] = useState(false);
-  const [quote, setQuote] = useState<Record<string, any> | null>(null);
+  const [quote, setQuote] = useState<QuoteRecord | null>(null);
   const [items, setItems] = useState<QuoteItem[]>([]);
 
   /* Editable invoice fields */
@@ -35,46 +70,29 @@ export default function ConvertQuoteToInvoicePage() {
   const [invoiceNotes, setInvoiceNotes] = useState("");
   const [overrideAcceptance, setOverrideAcceptance] = useState(false);
 
-  useEffect(() => {
-    fetchQuote();
-  }, [quoteId]);
-
-  async function fetchQuote() {
+  const fetchQuote = useEffectEvent(async () => {
     try {
       const res = await fetch(`/api/quotes/${quoteId}`);
       if (!res.ok) throw new Error("Not found");
-      const data = await res.json();
-      setQuote(data.quote);
+      const data = (await res.json()) as QuoteResponse;
+      setQuote(data.quote ?? null);
+      setItems((data.items ?? []).map(normalizeQuoteItem));
 
-      const rawItems = data.items || [];
-      setItems(
-        rawItems.map((item: any) => ({
-          id: item.id || Math.random().toString(36).slice(2),
-          description: item.description || "",
-          quantity: Number(item.quantity || 1),
-          unit_price: Number(item.unit_price || 0),
-          unit: item.unit || "ea",
-          phase_name: item.phase_name || "",
-        })),
-      );
-
-      /* Default due date */
       const bu = String(data.quote?.business_unit || "ACS").toUpperCase();
       const days = bu === "ACS" ? 7 : 14;
       setDueDate(new Date(Date.now() + days * 86400000).toISOString().split("T")[0]);
       setInvoiceNotes(data.quote?.notes || "");
     } catch {
-      /* silent */
+      setQuote(null);
+      setItems([]);
     } finally {
       setLoading(false);
     }
-  }
+  });
 
-  function updateItem(idx: number, field: keyof QuoteItem, value: string | number) {
-    setItems((prev) =>
-      prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)),
-    );
-  }
+  useEffect(() => {
+    void fetchQuote();
+  }, [quoteId]);
 
   const grandTotal = items.reduce((s, i) => s + (i.quantity || 0) * (i.unit_price || 0), 0);
   const clientStatus = String(quote?.client_status || "").toLowerCase();
@@ -106,8 +124,9 @@ export default function ConvertQuoteToInvoicePage() {
       } else {
         router.push("/dashboard/invoices");
       }
-    } catch (err: any) {
-      alert(err.message || "Failed to convert quote to invoice");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to convert quote to invoice";
+      alert(message);
     } finally {
       setConverting(false);
     }

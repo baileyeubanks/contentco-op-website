@@ -50,23 +50,57 @@ export function SiteAssistantLoader({
       return;
     }
 
-    const script = document.createElement("script");
-    script.src = scriptUrl;
-    script.async = true;
-    script.defer = true;
-    script.dataset.ccoChatbot = "true";
+    let loaded = false;
+    const scriptName = scriptUrl.split("?")[0]?.split("#")[0] || scriptUrl;
+    const isWidgetScriptError = (value: unknown) => {
+      if (!(value instanceof ErrorEvent)) {
+        return false;
+      }
 
-    const load = () => {
-      document.body.appendChild(script);
+      return typeof value.filename === "string" && value.filename.includes(scriptName);
     };
 
-    if ("requestIdleCallback" in window) {
-      const idleId = window.requestIdleCallback(load);
-      return () => window.cancelIdleCallback(idleId);
-    }
+    const cleanup = () => {
+      for (const eventName of events) {
+        window.removeEventListener(eventName, onInteract);
+      }
+      window.removeEventListener("error", onGlobalError, true);
+      window.removeEventListener("unhandledrejection", onUnhandledRejection);
+    };
 
-    const timeoutId = setTimeout(load, 600);
-    return () => clearTimeout(timeoutId);
+    const load = () => {
+      if (loaded) return;
+      loaded = true;
+      const script = document.createElement("script");
+      script.src = scriptUrl;
+      script.async = true;
+      script.defer = true;
+      script.dataset.ccoChatbot = "true";
+      document.body.appendChild(script);
+      cleanup();
+    };
+
+    const onInteract = () => load();
+    const onGlobalError = (event: ErrorEvent) => {
+      if (isWidgetScriptError(event)) {
+        event.preventDefault();
+      }
+    };
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      if (isWidgetScriptError(event.reason)) {
+        event.preventDefault();
+      }
+    };
+    const eventOptions: AddEventListenerOptions = { passive: true, once: true };
+    const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "touchstart"];
+
+    for (const eventName of events) {
+      window.addEventListener(eventName, onInteract, eventOptions);
+    }
+    window.addEventListener("error", onGlobalError, true);
+    window.addEventListener("unhandledrejection", onUnhandledRejection);
+
+    return cleanup;
   }, [apiUrl, assistantName, domain, scriptUrl, siteKey, surface]);
 
   return null;

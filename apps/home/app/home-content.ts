@@ -1,3 +1,10 @@
+import {
+  CONTENT_VIDEO_VERSION,
+  heroVideo as currentHeroVideo,
+  heroVideoStream as currentHeroVideoStream,
+  isCurrentHeroMedia,
+} from "./hero-video-config";
+
 export type MosaicTile = {
   type: "photo" | "video";
   src: string;
@@ -15,30 +22,112 @@ export type GalleryImage = {
   tag: string;
 };
 
+export type HeroScene = {
+  id: string;
+  clip: string;
+  label: string;
+  kicker: string;
+  headlineLead: string;
+  headlineAccent: string;
+  lede: string;
+  subtitle: string;
+  emphasis: string;
+};
+
 const PUBLIC_MEDIA_BASE = "/media";
 const CC_VIDEO_BASE = "/cc/video";
-const CONTENT_VIDEO_VERSION = "20260328a";
 
 export function videoAsset(filename: string) {
-  if (
-    filename === "ambient-hero.mp4" ||
-    filename === "ambient-hero-poster.jpg" ||
-    filename === "ambient-products.mp4" ||
-    filename === "ambient-products-poster.jpg" ||
-    filename === "hero-loop-poster.jpg" ||
-    filename === "hero-lander.mp4"
-  ) {
+  if (isCurrentHeroMedia(filename)) {
     return `${PUBLIC_MEDIA_BASE}/${filename}?v=${CONTENT_VIDEO_VERSION}`;
   }
 
   return `${CC_VIDEO_BASE}/${filename}?v=${CONTENT_VIDEO_VERSION}`;
 }
 
-export const heroPoster = videoAsset("hero-loop-poster.jpg");
-// Keep the home hero on the tracked deploy-safe clip until any replacement
-// binary is published through a durable media path instead of a local-only file.
-export const heroVideo = videoAsset("ambient-hero.mp4");
-export const productsAmbientPoster = videoAsset("ambient-products-poster.jpg");
+export const heroVideo = currentHeroVideo;
+export const heroVideoStream = currentHeroVideoStream;
+
+const heroClipIds = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+  11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+  21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+  31, 32, 33, 35, 36, 37, 38,
+] as const;
+
+const heroNarratives = [
+  {
+    kicker: "Industrial Storytelling",
+    headlineLead: "Crews, control rooms,",
+    headlineAccent: "and the real work.",
+    lede:
+      "From refinery floors to field teams, the work starts with footage that already feels true under scrutiny.",
+    subtitle:
+      "Operators. assets. environments. production-ready footage that carries the story from first impression to final approval.",
+    emphasis: "Field credibility",
+  },
+  {
+    kicker: "Field-To-Boardroom Flow",
+    headlineLead: "Field capture,",
+    headlineAccent: "without the fluff.",
+    lede:
+      "The strongest industrial work starts with believable footage, not staged atmosphere. Every scene is built to feel operationally honest.",
+    subtitle:
+      "No stock-feeling gloss. No generic energy montage. Just signal-rich scenes that land with weight.",
+    emphasis: "Operational honesty",
+  },
+  {
+    kicker: "Real Operating Context",
+    headlineLead: "Plants, people,",
+    headlineAccent: "and operating reality.",
+    lede:
+      "This reel is built from environments where the message has to stay accurate under pressure, not just look cinematic for three seconds.",
+    subtitle:
+      "Infrastructure. energy. heavy industry. The work only earns trust when the screen feels true to the environment.",
+    emphasis: "Built for trust",
+  },
+  {
+    kicker: "Narrative Discipline",
+    headlineLead: "Capture first,",
+    headlineAccent: "then shape the signal.",
+    lede:
+      "Strategy, production, edit, approvals, and delivery all get easier when the footage already contains the right signal.",
+    subtitle:
+      "The homepage should feel like the same production system that later produces scripts, edits, reviews, and delivery.",
+    emphasis: "End-to-end system",
+  },
+  {
+    kicker: "Production Credibility",
+    headlineLead: "Access, pressure,",
+    headlineAccent: "and polished output.",
+    lede:
+      "The point is not just visual style. It is turning complex environments into footage that survives executive review and client approvals.",
+    subtitle:
+      "This is brand work that can hold up in real operating environments, not a disconnected mood piece.",
+    emphasis: "Production-grade",
+  },
+  {
+    kicker: "Content Co-Op",
+    headlineLead: "Real crews,",
+    headlineAccent: "clearer signal.",
+    lede:
+      "The home page now leads with the same archive, discipline, and visual confidence that drives the actual work.",
+    subtitle:
+      "Industrial stories shaped for teams who need clarity, credibility, and speed at the same time.",
+    emphasis: "Maximum signal",
+  },
+] as const;
+
+export const heroScenes: readonly HeroScene[] = heroClipIds.map((id, index) => {
+  const narrative = heroNarratives[index % heroNarratives.length];
+  return {
+    id: `hero-${id}`,
+    clip: videoAsset(`hero-${id}.mp4`),
+    label: `Archive ${String(id).padStart(2, "0")}`,
+    ...narrative,
+  };
+});
+
 export const boardroomBleedImages: readonly string[] = [
   "/cc/photos/gallery-control-room.jpg",
   "/cc/photos/gallery-machinist-cnc.jpg",
@@ -137,5 +226,15 @@ function buildMosaic(): MosaicTile[] {
 
 export const mosaicTiles: readonly MosaicTile[] = buildMosaic();
 
+const HOME_WALL_PHOTOS: readonly GalleryImage[] = Array.from({ length: 59 }, (_, index) => {
+  const number = String(index + 1).padStart(2, "0");
+  return {
+    src: `/cc/photos/home-wall/cco-new-${number}.jpg`,
+    alt: `Content Co-op field production photo ${number}`,
+    label: `Field Archive ${number}`,
+    tag: "Field",
+  };
+});
+
 // Legacy export for backward compat
-export const galleryImages = PHOTOS;
+export const galleryImages = [...PHOTOS, ...HOME_WALL_PHOTOS] as const;

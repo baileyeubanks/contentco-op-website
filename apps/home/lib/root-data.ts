@@ -1,10 +1,11 @@
 import type { RootBusinessScope } from "@/lib/root-request-scope";
 import { getSupabase } from "@/lib/supabase";
 
-type RootInvoiceRow = Record<string, any>;
-type RootContactRow = Record<string, any>;
-type RootQuoteRow = Record<string, any>;
-type RootPaymentRow = Record<string, any>;
+type RootGenericRow = Record<string, unknown>;
+type RootInvoiceRow = RootGenericRow;
+type RootContactRow = RootGenericRow;
+type RootQuoteRow = RootGenericRow;
+type RootPaymentRow = RootGenericRow;
 
 export type RootContactListRecord = {
   id: string;
@@ -16,11 +17,37 @@ export type RootContactListRecord = {
   open_invoice_count: number;
   accepted_quotes: number;
   segment: "supplier" | "customer";
+  business_memberships: Array<{
+    business_id: string;
+    code: "ACS" | "CC";
+    name: string;
+  }>;
+  workspace_memberships: Array<"ACS" | "CC">;
+  preferred_channel: string | null;
+  source: string | null;
+  orbit_tier: string | null;
+  tags: string[];
+  lead_score: number;
+  lead_status: string | null;
+  priority_score: number;
+  relationship_score: number;
+  total_revenue: number;
+  total_jobs: number;
+  paid_invoice_count: number;
+  open_quote_count: number;
+  quote_count: number;
+  outstanding_balance: number;
+  relationship_rank: number;
+  relationship_band: "priority" | "active" | "warming" | "monitor";
+  last_conversation_at: string | null;
+  open_conversation_count: number;
+  conversation_channels: string[];
+  sentiment_trend: string | null;
+  client_code: string | null;
+  account_code: string | null;
+  preferences_summary: string | null;
+  next_best_action: string;
 };
-
-function normalizeScope(scope: RootBusinessScope) {
-  return scope ? String(scope).trim().toUpperCase() : null;
-}
 
 function coerceText(value: unknown) {
   if (value == null) return null;
@@ -28,13 +55,36 @@ function coerceText(value: unknown) {
   return normalized || null;
 }
 
+function normalizeScope(scope: RootBusinessScope | unknown) {
+  return coerceText(scope)?.toUpperCase() || null;
+}
+
 function coerceNumber(value: unknown) {
   const amount = Number(value || 0);
   return Number.isFinite(amount) ? amount : 0;
 }
 
-function toStatus(value: unknown, fallback: string) {
-  return coerceText(value)?.toLowerCase() || fallback;
+function coerceBoolean(value: unknown) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes"].includes(normalized)) return true;
+    if (["false", "0", "no"].includes(normalized)) return false;
+  }
+  if (typeof value === "number") return value !== 0;
+  return false;
+}
+
+function coerceArrayText(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => coerceText(item))
+    .filter((item): item is string => Boolean(item));
+}
+
+function coerceObject(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
 }
 
 function toBusinessUnit(value: unknown, fallback: "ACS" | "CC" = "ACS") {
@@ -42,10 +92,367 @@ function toBusinessUnit(value: unknown, fallback: "ACS" | "CC" = "ACS") {
   return normalized === "CC" ? "CC" : normalized === "ACS" ? "ACS" : fallback;
 }
 
+function toBusinessUnitOrNull(value: unknown) {
+  const normalized = coerceText(value)?.toUpperCase();
+  return normalized === "CC" || normalized === "ACS" ? normalized : null;
+}
+
+function inferBusinessCode(value: unknown): "ACS" | "CC" | null {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (!normalized) return null;
+  if (normalized === "acs" || normalized.includes("astro")) return "ACS";
+  if (normalized === "cc" || normalized.includes("content") || normalized.includes("co-op")) return "CC";
+  return null;
+}
+
+function pushTimestamp(timestamps: number[], value: unknown) {
+  const text = coerceText(value);
+  if (!text) return;
+  const parsed = Date.parse(text);
+  if (!Number.isNaN(parsed)) timestamps.push(parsed);
+}
+
+function normalizeScore(value: unknown) {
+  const amount = coerceNumber(value);
+  if (amount <= 1) return Math.round(amount * 100);
+  return Math.round(amount);
+}
+
+function deriveRelationshipBand(rank: number): RootContactListRecord["relationship_band"] {
+  if (rank >= 85) return "priority";
+  if (rank >= 65) return "active";
+  if (rank >= 40) return "warming";
+  return "monitor";
+}
+
+function derivePreferencesSummary(contact: RootContactRow) {
+  const metadata = coerceObject(contact.metadata);
+  const explicit =
+    coerceText(metadata.preferences_summary) ||
+    coerceText(metadata.preference_summary) ||
+    coerceText(metadata.client_preferences) ||
+    coerceText(metadata.service_preferences) ||
+    coerceText(metadata.access_notes);
+  if (explicit) return explicit;
+
+  const parts = [
+    coerceText(contact.preferred_channel || metadata.preferred_channel),
+    coerceText(metadata.preferred_time),
+    coerceText(metadata.tone),
+    coerceText(metadata.cleaning_notes),
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+type RootContactIntelligenceContext = {
+  membershipMap: Map<
+    string,
+    Array<{
+      business_id: string;
+      code: "ACS" | "CC";
+      name: string;
+    }>
+  >;
+  quoteMap: Map<
+    string,
+    {
+      count: number;
+      accepted: number;
+      open: number;
+      lastAt: string | null;
+    }
+  >;
+  invoiceMap: Map<
+    string,
+    {
+      open: number;
+      paid: number;
+      totalRevenue: number;
+      outstanding: number;
+      lastAt: string | null;
+    }
+  >;
+  conversationMap: Map<
+    string,
+    {
+      open: number;
+      lastAt: string | null;
+      channels: string[];
+    }
+  >;
+  eventMap: Map<string, string | null>;
+};
+
+async function loadRootContactIntelligence(contactIds: string[], scope: RootBusinessScope = null): Promise<RootContactIntelligenceContext> {
+  const sb = getSupabase();
+  const ids = Array.from(new Set(contactIds.filter(Boolean)));
+
+  if (ids.length === 0) {
+    return {
+      membershipMap: new Map(),
+      quoteMap: new Map(),
+      invoiceMap: new Map(),
+      conversationMap: new Map(),
+      eventMap: new Map(),
+    };
+  }
+
+  const [businessMapResult, businessResult, quoteResult, invoiceResult, conversationResult, eventResult] = await Promise.all([
+    sb.from("contact_business_map").select("contact_id,business_id").in("contact_id", ids),
+    sb.from("businesses").select("id,name"),
+    buildScopeQuery(
+      sb
+        .from("quotes")
+        .select("id,contact_id,business_unit,estimated_total,total,internal_status,client_status,created_at")
+        .in("contact_id", ids),
+      scope,
+    ),
+    buildScopeQuery(
+      sb
+        .from("invoices")
+        .select("id,contact_id,business_unit,total,amount,balance_due,paid_amount,amount_paid,payment_status,status,created_at")
+        .in("contact_id", ids),
+      scope,
+    ),
+    sb
+      .from("conversations")
+      .select("contact_id,channel,last_message_at,resolved")
+      .in("contact_id", ids),
+    sb
+      .from("events")
+      .select("contact_id,created_at")
+      .in("contact_id", ids)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const businessNameMap = new Map(
+    ((businessResult.data as RootGenericRow[] | null) || []).map((business) => [String(business.id), String(business.name || "")]),
+  );
+
+  const membershipMap = new Map<string, Array<{ business_id: string; code: "ACS" | "CC"; name: string }>>();
+  for (const row of (businessMapResult.data as RootGenericRow[] | null) || []) {
+    const contactId = String(row.contact_id || "");
+    const businessId = String(row.business_id || "");
+    if (!contactId || !businessId) continue;
+    const name = businessNameMap.get(businessId) || businessId;
+    const code = inferBusinessCode(name);
+    if (!code) continue;
+    const existing = membershipMap.get(contactId) || [];
+    existing.push({ business_id: businessId, code, name });
+    membershipMap.set(contactId, existing);
+  }
+
+  const quoteMap = new Map<string, { count: number; accepted: number; open: number; lastAt: string | null }>();
+  for (const quote of (quoteResult.data as RootQuoteRow[] | null) || []) {
+    const contactId = coerceText(quote.contact_id);
+    if (!contactId) continue;
+    const existing = quoteMap.get(contactId) || { count: 0, accepted: 0, open: 0, lastAt: null };
+    const internal = String(quote.internal_status || "").toLowerCase();
+    const client = String(quote.client_status || "").toLowerCase();
+    const accepted = internal === "accepted" || internal === "ready_to_invoice" || client === "accepted";
+    const closed = accepted || client === "declined" || internal === "converted_to_invoice" || internal === "expired";
+    existing.count += 1;
+    if (accepted) existing.accepted += 1;
+    if (!closed) existing.open += 1;
+    const createdAt = coerceText(quote.created_at);
+    if (createdAt && (!existing.lastAt || Date.parse(createdAt) > Date.parse(existing.lastAt))) existing.lastAt = createdAt;
+    quoteMap.set(contactId, existing);
+  }
+
+  const invoiceMap = new Map<string, { open: number; paid: number; totalRevenue: number; outstanding: number; lastAt: string | null }>();
+  for (const invoice of (invoiceResult.data as RootInvoiceRow[] | null) || []) {
+    const contactId = coerceText(invoice.contact_id);
+    if (!contactId) continue;
+    const existing = invoiceMap.get(contactId) || { open: 0, paid: 0, totalRevenue: 0, outstanding: 0, lastAt: null };
+    const total = coerceNumber(invoice.total || invoice.amount);
+    const paidAmount = coerceNumber(invoice.paid_amount || invoice.amount_paid);
+    const balance = coerceNumber(invoice.balance_due || Math.max(total - paidAmount, 0));
+    const paymentStatus = String(invoice.payment_status || invoice.status || "").toLowerCase();
+    if (paymentStatus === "paid" || (total > 0 && balance <= 0)) existing.paid += 1;
+    else existing.open += 1;
+    existing.totalRevenue += total;
+    existing.outstanding += balance;
+    const createdAt = coerceText(invoice.created_at);
+    if (createdAt && (!existing.lastAt || Date.parse(createdAt) > Date.parse(existing.lastAt))) existing.lastAt = createdAt;
+    invoiceMap.set(contactId, existing);
+  }
+
+  const conversationMap = new Map<string, { open: number; lastAt: string | null; channels: string[] }>();
+  for (const conversation of (conversationResult.data as RootGenericRow[] | null) || []) {
+    const contactId = coerceText(conversation.contact_id);
+    if (!contactId) continue;
+    const existing = conversationMap.get(contactId) || { open: 0, lastAt: null, channels: [] };
+    const channel = coerceText(conversation.channel);
+    if (channel && !existing.channels.includes(channel)) existing.channels.push(channel);
+    if (!coerceBoolean(conversation.resolved)) existing.open += 1;
+    const lastMessageAt = coerceText(conversation.last_message_at);
+    if (lastMessageAt && (!existing.lastAt || Date.parse(lastMessageAt) > Date.parse(existing.lastAt))) existing.lastAt = lastMessageAt;
+    conversationMap.set(contactId, existing);
+  }
+
+  const eventMap = new Map<string, string | null>();
+  for (const event of (eventResult.data as RootGenericRow[] | null) || []) {
+    const contactId = coerceText(event.contact_id);
+    if (!contactId || eventMap.has(contactId)) continue;
+    eventMap.set(contactId, coerceText(event.created_at));
+  }
+
+  return {
+    membershipMap,
+    quoteMap,
+    invoiceMap,
+    conversationMap,
+    eventMap,
+  };
+}
+
+function buildRootContactRecord(
+  contact: RootContactRow,
+  context: RootContactIntelligenceContext,
+): RootContactListRecord & RootContactRow {
+  const contactId = String(contact.id || "");
+  const metadata = coerceObject(contact.metadata);
+  const membershipEntries = [...(context.membershipMap.get(contactId) || [])];
+  const rowBusinessUnit = toBusinessUnitOrNull(contact.business_unit);
+  if (rowBusinessUnit && !membershipEntries.some((entry) => entry.code === rowBusinessUnit)) {
+    membershipEntries.push({
+      business_id: rowBusinessUnit,
+      code: rowBusinessUnit,
+      name: rowBusinessUnit === "ACS" ? "Astro Cleanings" : "Content Co-op",
+    });
+  }
+
+  const memberships = membershipEntries
+    .reduce<Array<{ business_id: string; code: "ACS" | "CC"; name: string }>>((acc, entry) => {
+      if (acc.some((existing) => existing.code === entry.code && existing.business_id === entry.business_id)) return acc;
+      acc.push(entry);
+      return acc;
+    }, [])
+    .sort((left, right) => left.code.localeCompare(right.code));
+
+  const workspaceMemberships = memberships.map((entry) => entry.code);
+  const quoteStats = context.quoteMap.get(contactId) || { count: 0, accepted: 0, open: 0, lastAt: null };
+  const invoiceStats = context.invoiceMap.get(contactId) || {
+    open: 0,
+    paid: 0,
+    totalRevenue: coerceNumber(contact.total_revenue),
+    outstanding: 0,
+    lastAt: null,
+  };
+  const conversationStats = context.conversationMap.get(contactId) || { open: 0, lastAt: null, channels: [] };
+  const eventAt = context.eventMap.get(contactId) || null;
+
+  const timestamps: number[] = [];
+  pushTimestamp(timestamps, contact.last_activity);
+  pushTimestamp(timestamps, contact.last_contacted);
+  pushTimestamp(timestamps, quoteStats.lastAt);
+  pushTimestamp(timestamps, invoiceStats.lastAt);
+  pushTimestamp(timestamps, conversationStats.lastAt);
+  pushTimestamp(timestamps, eventAt);
+  pushTimestamp(timestamps, contact.created_at);
+  const lastActivity = timestamps.length ? new Date(Math.max(...timestamps)).toISOString() : null;
+
+  const contactType = coerceText(contact.contact_type);
+  const lifecycle = coerceText((contact as RootContactRow).lifecycle) || contactType || "customer";
+  const priorityScore = Math.max(normalizeScore(contact.priority_score), normalizeScore(metadata.priority_score));
+  const leadScore = Math.max(normalizeScore(contact.lead_score), normalizeScore(metadata.lead_score), normalizeScore(contact.engagement_score));
+  const relationshipScore = Math.max(normalizeScore(contact.relationship_score), normalizeScore(metadata.relationship_score));
+  const revenueScore = Math.min(25, Math.round(invoiceStats.totalRevenue / 2000));
+  const freshnessScore = (() => {
+    if (!lastActivity) return 0;
+    const ageDays = Math.max(0, Math.round((Date.now() - Date.parse(lastActivity)) / 86400000));
+    if (ageDays <= 7) return 15;
+    if (ageDays <= 30) return 10;
+    if (ageDays <= 90) return 6;
+    return 2;
+  })();
+  const conversationScore = Math.min(10, conversationStats.open * 3 + conversationStats.channels.length * 2);
+  const quoteScore = Math.min(15, quoteStats.accepted * 5 + quoteStats.count);
+  const relationshipRank = Math.min(
+    100,
+    Math.max(
+      relationshipScore,
+      Math.round(relationshipScore * 0.35 + priorityScore * 0.2 + leadScore * 0.15 + revenueScore + freshnessScore + conversationScore + quoteScore),
+    ),
+  );
+  const relationshipBand = deriveRelationshipBand(relationshipRank);
+
+  const cadenceOverdue = coerceBoolean(contact.cadence_overdue || metadata.cadence_overdue);
+  const preferredChannel =
+    coerceText(contact.preferred_channel) ||
+    coerceText(metadata.preferred_channel) ||
+    (conversationStats.channels.includes("imessage") ? "imessage" : conversationStats.channels[0] || null);
+  const outstandingBalance = Math.round(invoiceStats.outstanding * 100) / 100;
+  const nextBestAction =
+    conversationStats.open > 0
+      ? "reply in active lane"
+      : outstandingBalance > 0
+        ? "collect payment"
+        : quoteStats.open > 0
+          ? "follow up quote"
+          : cadenceOverdue
+            ? "re-engage recurring client"
+            : ["lead", "prospect"].includes(String(contactType || "").toLowerCase())
+              ? "qualify lead"
+              : "review relationship";
+
+  return {
+    ...contact,
+    id: contactId,
+    name: coerceText(contact.name),
+    full_name: coerceText(contact.full_name) || coerceText(contact.name) || "unnamed contact",
+    lifecycle,
+    contact_type: contactType,
+    open_invoice_count: invoiceStats.open,
+    accepted_quotes: quoteStats.accepted,
+    last_activity: lastActivity,
+    segment: ["vendor", "supplier"].includes(lifecycle.toLowerCase()) ? "supplier" : "customer",
+    business_memberships: memberships,
+    workspace_memberships: workspaceMemberships,
+    preferred_channel: preferredChannel,
+    source: coerceText(contact.source) || coerceText(metadata.source),
+    orbit_tier: coerceText(contact.orbit_tier) || coerceText(metadata.orbit_tier),
+    tags: coerceArrayText(contact.tags).length ? coerceArrayText(contact.tags) : coerceArrayText(metadata.tags),
+    lead_score: leadScore,
+    lead_status: coerceText(contact.lead_status) || coerceText(metadata.lead_status),
+    priority_score: priorityScore,
+    relationship_score: relationshipScore,
+    total_revenue: Math.round(invoiceStats.totalRevenue * 100) / 100,
+    total_jobs: Math.max(coerceNumber(contact.total_jobs), coerceNumber(metadata.total_jobs)),
+    paid_invoice_count: invoiceStats.paid,
+    open_quote_count: quoteStats.open,
+    quote_count: quoteStats.count,
+    outstanding_balance: outstandingBalance,
+    relationship_rank: relationshipRank,
+    relationship_band: relationshipBand,
+    last_conversation_at: conversationStats.lastAt,
+    open_conversation_count: conversationStats.open,
+    conversation_channels: conversationStats.channels,
+    sentiment_trend: coerceText(contact.sentiment_trend) || coerceText(metadata.sentiment_trend),
+    client_code:
+      coerceText(contact.client_code) ||
+      coerceText(metadata.client_code) ||
+      coerceText(metadata.customer_code) ||
+      null,
+    account_code:
+      coerceText(contact.account_code) ||
+      coerceText(metadata.account_code) ||
+      coerceText(metadata.billing_code) ||
+      null,
+    preferences_summary: derivePreferencesSummary(contact),
+    next_best_action: nextBestAction,
+  };
+}
+
+type ScopeQueryable<T> = T & {
+  eq(column: string, value: string): unknown;
+};
+
 function buildScopeQuery<T>(query: T, scope: RootBusinessScope) {
   const normalized = normalizeScope(scope);
-  if (!normalized) return query as T;
-  return (query as any).eq("business_unit", normalized) as T;
+  if (!normalized) return query;
+  const scopedQuery = query as ScopeQueryable<T>;
+  return scopedQuery.eq("business_unit", normalized) as T;
 }
 
 const CONTACT_SELECT_WITH_ACTIVITY =
@@ -106,15 +513,20 @@ function deriveNextAction(invoice: RootInvoiceRow) {
 
 function normalizeLineItems(rawItems: unknown, fallbackPhase = "scope") {
   if (!Array.isArray(rawItems)) return [];
-  return rawItems.map((item: any, index) => ({
-    id: String(item?.id || `${fallbackPhase}-${index + 1}`),
-    description: coerceText(item?.description) || `line item ${index + 1}`,
-    phase_name: coerceText(item?.phase_name) || coerceText(item?.name) || fallbackPhase,
-    quantity: coerceNumber(item?.quantity || 1),
-    unit: coerceText(item?.unit) || "each",
-    unit_price: coerceNumber(item?.unit_price || item?.unitPrice),
-    line_total: coerceNumber(item?.line_total || item?.total || item?.lineTotal || coerceNumber(item?.quantity || 1) * coerceNumber(item?.unit_price || item?.unitPrice)),
-  }));
+  return rawItems.map((item, index) => {
+    const row = coerceObject(item);
+    const quantity = coerceNumber(row.quantity || 1);
+    const unitPrice = coerceNumber(row.unit_price || row.unitPrice);
+    return {
+      id: String(row.id || `${fallbackPhase}-${index + 1}`),
+      description: coerceText(row.description) || `line item ${index + 1}`,
+      phase_name: coerceText(row.phase_name) || coerceText(row.name) || fallbackPhase,
+      quantity,
+      unit: coerceText(row.unit) || "each",
+      unit_price: unitPrice,
+      line_total: coerceNumber(row.line_total || row.total || row.lineTotal || quantity * unitPrice),
+    };
+  });
 }
 
 function normalizeInvoiceListRow(invoice: RootInvoiceRow, contact?: RootContactRow | null, paymentCount = 0) {
@@ -158,39 +570,28 @@ function normalizeInvoiceListRow(invoice: RootInvoiceRow, contact?: RootContactR
 
 export async function getRootContacts(limit = 500, scope: RootBusinessScope = null) {
   const sb = getSupabase();
-  let query = sb.from("contacts").select(CONTACT_SELECT_WITH_ACTIVITY);
+  const cappedLimit = Math.min(Math.max(limit, 1), 750);
+  let query = sb.from("contacts").select("*");
 
   query = buildScopeQuery(query, scope);
 
-  const initialResult = await query.order("created_at", { ascending: false }).limit(limit);
+  const initialResult = await query.order("created_at", { ascending: false }).limit(cappedLimit);
   let data: RootContactRow[] | null = (initialResult.data as RootContactRow[] | null) ?? null;
   let error = initialResult.error;
   if (isMissingColumnError(error, "last_activity")) {
-    let fallbackQuery = sb.from("contacts").select(CONTACT_SELECT_FALLBACK);
+    let fallbackQuery = sb.from("contacts").select("*");
     fallbackQuery = buildScopeQuery(fallbackQuery, scope);
-    const fallbackResult = await fallbackQuery.order("created_at", { ascending: false }).limit(limit);
+    const fallbackResult = await fallbackQuery.order("created_at", { ascending: false }).limit(cappedLimit);
     data = (fallbackResult.data as RootContactRow[] | null) ?? null;
     error = fallbackResult.error;
   }
 
-  return {
-    contacts: (data || []).map((contact: RootContactRow): RootContactListRecord & RootContactRow => {
-      const contactType = coerceText(contact.contact_type);
-      const lifecycle = coerceText((contact as RootContactRow).lifecycle) || contactType || "customer";
+  const intelligence = await loadRootContactIntelligence((data || []).map((contact: RootContactRow) => String(contact.id || "")), scope);
 
-      return {
-        ...contact,
-        id: String(contact.id || ""),
-        name: coerceText(contact.name),
-        full_name: coerceText(contact.full_name) || coerceText(contact.name) || "unnamed contact",
-        lifecycle,
-        contact_type: contactType,
-        open_invoice_count: coerceNumber(contact.open_invoice_count),
-        accepted_quotes: coerceNumber(contact.accepted_quotes),
-        last_activity: coerceText(contact.last_activity) || coerceText(contact.last_contacted),
-        segment: ["vendor", "supplier"].includes(lifecycle.toLowerCase()) ? "supplier" : "customer",
-      };
-    }),
+  return {
+    contacts: (data || []).map((contact: RootContactRow): RootContactListRecord & RootContactRow =>
+      buildRootContactRecord(contact, intelligence),
+    ),
     error: error?.message || null,
   };
 }
@@ -235,16 +636,12 @@ export async function getRootContactDossier(id: string, scope: RootBusinessScope
   ]);
 
   const normalizedInvoices = (invoices || []).map((invoice: RootInvoiceRow) => normalizeInvoiceListRow(invoice, contact, 0));
+  const intelligence = await loadRootContactIntelligence([id], scope);
+  const contactRecord = buildRootContactRecord(contact, intelligence);
 
   return {
     dossier: {
-      ...contact,
-      full_name: coerceText(contact.full_name) || coerceText(contact.name) || "unnamed contact",
-      lifecycle: coerceText((contact as RootContactRow).lifecycle) || coerceText(contact.contact_type) || "customer",
-      segment:
-        ["vendor", "supplier"].includes(String(contact.contact_type || (contact as RootContactRow).lifecycle || "").toLowerCase())
-          ? "supplier"
-          : "customer",
+      ...contactRecord,
       open_invoice_count: normalizedInvoices.filter((invoice) => String(invoice.payment_status).toLowerCase() !== "paid").length,
       overdue_amount: normalizedInvoices
         .filter((invoice) => {
@@ -345,7 +742,7 @@ export async function getRootInvoiceDetail(id: string, scope: RootBusinessScope 
     amount: coerceNumber(payment.amount),
     method: coerceText(payment.method) || "manual",
     status: coerceText(payment.status) || "pending",
-    created_at: payment.created_at || null,
+    created_at: coerceText(payment.created_at),
   }));
 
   return {

@@ -41,11 +41,44 @@ export async function GET(
     .eq("quote_id", id)
     .order("sort_order", { ascending: true });
 
+  const { data: estimate } = await sb
+    .from("estimates")
+    .select("id, estimate_number, deposit_due_cents, internal_status, client_status")
+    .eq("legacy_quote_id", id)
+    .maybeSingle();
+
+  const [{ data: invoice }, { data: workflow }] = await Promise.all([
+    estimate?.id
+      ? sb
+          .from("invoices")
+          .select("id, invoice_number, payment_status, document_status")
+          .eq("estimate_id", estimate.id)
+          .eq("invoice_type", "deposit")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    estimate?.id
+      ? sb
+          .from("commercial_workflows")
+          .select("id, current_status, readiness_status")
+          .eq("estimate_id", estimate.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
   return NextResponse.json({
     quote: {
       ...quote,
       deposit_amount_cents: quote.deposit_amount_cents ?? 15000,
+      estimate_id: estimate?.id || null,
+      estimate_number: estimate?.estimate_number || null,
+      canonical_deposit_due_cents: estimate?.deposit_due_cents || (quote.deposit_amount_cents ?? 15000),
+      canonical_invoice_id: invoice?.id || null,
+      canonical_invoice_status: invoice?.payment_status || null,
+      workflow_status: workflow?.current_status || null,
+      readiness_status: workflow?.readiness_status || null,
     },
-    items: items ?? [],
+    items: itemsError ? [] : (items ?? []),
   });
 }

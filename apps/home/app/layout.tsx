@@ -1,7 +1,14 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
-import { SiteAssistantLoader } from "@contentco-op/ui";
+import { heroVideo } from "./hero-video-config";
+import {
+  SOCIAL_IMAGE_ALT,
+  SOCIAL_IMAGE_PATH,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+} from "@/lib/seo";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -21,46 +28,67 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://contentco-op.com"),
-  title: "Content Co-op - We make the work visible.",
-  description:
-    "Content Co-op embeds with energy, industrial, and construction teams to capture real operations and turn them into compelling stories.",
+  title: {
+    default: `${SITE_TITLE} | ${SITE_NAME}`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   icons: {
     icon: "/icon.png",
     shortcut: "/icon.png",
     apple: "/icon.png",
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
     type: "website",
-    siteName: "Content Co-op",
-    title: "Content Co-op - We make the work visible.",
-    description:
-      "We embed with energy, industrial, and construction teams to capture real operations and turn them into compelling stories.",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     url: "https://contentco-op.com",
     locale: "en_US",
+    images: [
+      {
+        url: SOCIAL_IMAGE_PATH,
+        width: 1200,
+        height: 630,
+        alt: SOCIAL_IMAGE_ALT,
+        type: "image/jpeg",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Content Co-op - We make the work visible.",
-    description:
-      "We embed with energy, industrial, and construction teams to capture real operations and turn them into compelling stories.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: SOCIAL_IMAGE_PATH,
+        alt: SOCIAL_IMAGE_ALT,
+      },
+    ],
   },
 };
-
-const assistantScriptUrl = process.env.NEXT_PUBLIC_CHATBOT_SCRIPT_URL || "/chat-widget.js";
-const assistantApiUrl = process.env.NEXT_PUBLIC_CHATBOT_API_URL || "/api/chat";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${fraunces.variable}`}>
+      <head>
+        <link rel="preload" as="video" href={heroVideo} type="video/mp4" fetchPriority="high" />
+      </head>
       <body data-surface="home">
         {children}
-        <SiteAssistantLoader
-          apiUrl={assistantApiUrl}
-          domain="contentco-op.com"
-          scriptUrl={assistantScriptUrl}
-          siteKey={process.env.NEXT_PUBLIC_CHATBOT_SITE_KEY}
-          surface="contentco-op-home"
-        />
       </body>
     </html>
   );

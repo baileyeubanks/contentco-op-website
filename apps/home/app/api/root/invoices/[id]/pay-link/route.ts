@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { createInvoicePaymentLink, isStripeConfigured } from "@/lib/stripe";
+import { emitTypedEvent } from "@/lib/root-event-log";
 
 /**
  * POST /api/root/invoices/[id]/pay-link
@@ -22,7 +23,7 @@ export async function POST(
   const sb = getSupabase();
   const { data: invoice, error } = await sb
     .from("invoices")
-    .select("id, invoice_number, client_name, client_email, total, amount, business_unit, stripe_payment_link")
+    .select("id, invoice_number, client_name, client_email, total, amount, amount_due_cents, business_unit, stripe_payment_link, payment_link_url, estimate_id, invoice_type, contact_id")
     .eq("id", id)
     .single();
 
@@ -31,8 +32,8 @@ export async function POST(
   }
 
   // Return existing link if already generated
-  if (invoice.stripe_payment_link) {
-    return NextResponse.json({ url: invoice.stripe_payment_link, cached: true });
+  if (invoice.payment_link_url || invoice.stripe_payment_link) {
+    return NextResponse.json({ url: invoice.payment_link_url || invoice.stripe_payment_link, cached: true });
   }
 
   const result = await createInvoicePaymentLink({
@@ -40,7 +41,7 @@ export async function POST(
     invoice_number: invoice.invoice_number,
     client_name: invoice.client_name,
     client_email: invoice.client_email,
-    total: Number(invoice.total || invoice.amount || 0),
+    total: Number(invoice.amount_due_cents || 0) > 0 ? Number(invoice.amount_due_cents || 0) / 100 : Number(invoice.total || invoice.amount || 0),
     business_unit: invoice.business_unit,
   });
 
@@ -51,8 +52,22 @@ export async function POST(
   // Store the payment link on the invoice
   await sb
     .from("invoices")
-    .update({ stripe_payment_link: result.url })
+    .update({ stripe_payment_link: result.url, payment_link_url: result.url })
     .eq("id", id);
+
+  await emitTypedEvent({
+    type: "deposit.requested",
+    objectType: "invoice",
+    objectId: id,
+    businessUnit: String(invoice.business_unit || "CC").toUpperCase() === "ACS" ? "ACS" : "CC",
+    contactId: invoice.contact_id ? String(invoice.contact_id) : null,
+    text: `Payment link generated for ${invoice.invoice_type || "invoice"} ${invoice.invoice_number}`,
+    payload: {
+      estimate_id: invoice.estimate_id || null,
+      invoice_type: invoice.invoice_type || null,
+      payment_link_url: result.url,
+    },
+  });
 
   return NextResponse.json({ url: result.url, cached: false }, { status: 201 });
 }

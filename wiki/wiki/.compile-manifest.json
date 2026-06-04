@@ -1,0 +1,26 @@
+{
+  "sources": [
+    {
+      "name": "architecture.md",
+      "path": "/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo/wiki/raw/architecture.md"
+    },
+    {
+      "name": "components.md",
+      "path": "/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo/wiki/raw/components.md"
+    },
+    {
+      "name": "deployment.md",
+      "path": "/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo/wiki/raw/deployment.md"
+    },
+    {
+      "name": "index.md",
+      "path": "/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo/wiki/raw/index.md"
+    },
+    {
+      "name": "creative-brief.md",
+      "path": "/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo/wiki/raw/creative-brief.md"
+    }
+  ],
+  "existing_pages": [],
+  "timestamp": "2026-05-01T07:27:18.735657+00:00"
+}

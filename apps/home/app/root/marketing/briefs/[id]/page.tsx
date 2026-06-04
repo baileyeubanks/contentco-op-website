@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ModuleHeader } from "@/app/dashboard/components/module-header";
 import { BriefOpsPanel } from "./brief-ops-panel";
+import { ProposalReviewPanel } from "./proposal-review-panel";
 import { getRootMarketingBriefDetail } from "@/lib/root-marketing";
 import { resolveRootBrand } from "@/lib/root-brand";
 
@@ -149,6 +150,7 @@ export default async function RootMarketingBriefDetailPage({
           <div style={card}>
             <div style={sectionTitle}>Commercial Handoff</div>
             <BriefOpsPanel briefId={detail.id} existingQuoteId={detail.relatedQuotes[0]?.id || null} />
+            <ProposalReviewPanel briefId={id} />
           </div>
         </section>
 

@@ -1,4 +1,4 @@
-import { BOOKING_CALENDAR_URL, PRIMARY_DISCOVERY_PATH, CREATIVE_BRIEF_PATH } from "@/lib/public-booking";
+import { PRIMARY_DISCOVERY_PATH, CREATIVE_BRIEF_PATH } from "@/lib/public-booking";
 
 export const HOME_PAGE_CONTENT = {
   hero: {
@@ -43,18 +43,18 @@ export const HOME_PAGE_CONTENT = {
   ],
   startCards: [
     {
-      label: "Start with a call",
-      title: "Book a strategy call",
-      body: "Best when timing, scope, stakeholders, or production constraints still need live framing.",
-      href: BOOKING_CALENDAR_URL,
-      cta: "Book a call",
+      label: "Start with the story",
+      title: "Send the creative brief",
+      body: "Best when timing, scope, stakeholders, or production constraints need a clear production shape before the first conversation.",
+      href: CREATIVE_BRIEF_PATH,
+      cta: "Open creative brief",
     },
     {
-      label: "Start with scope",
-      title: "Send the creative brief",
-      body: "Best when you already know the project shape and want structured intake before the first call.",
-      href: CREATIVE_BRIEF_PATH,
-      cta: "Send creative brief",
+      label: "Start with proof",
+      title: "Watch the work",
+      body: "Best when you want to see how Content Co-op handles field stories, executive review, and finished delivery.",
+      href: "/portfolio",
+      cta: "Open portfolio",
     },
     {
       label: "Already active?",

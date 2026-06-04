@@ -2,17 +2,17 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    id: "/scenario-lab",
-    name: "FSM Control Room",
-    short_name: "FSM Lab",
+    id: "/",
+    name: "Content Co-op",
+    short_name: "Content Co-op",
     description:
-      "Installable control room for watching live scenario-certified FSM runs, mobile replay signals, and operator-ready workflow truth.",
-    start_url: "/scenario-lab",
+      "Minimal disruption, maximum signal. Houston-based industrial video production for energy, manufacturing, construction, safety, and field operations teams.",
+    start_url: "/",
     scope: "/",
     display: "standalone",
     display_override: ["window-controls-overlay", "standalone"],
-    background_color: "#0b0d12",
-    theme_color: "#d9ff72",
+    background_color: "#f3ede2",
+    theme_color: "#0b1928",
     orientation: "portrait",
     icons: [
       {
@@ -30,26 +30,26 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: "Scenario Lab",
-        short_name: "Lab",
-        description: "Open the public live scenario control room.",
-        url: "/scenario-lab",
+        name: "Portfolio",
+        short_name: "Work",
+        description: "Open selected Content Co-op video production work.",
+        url: "/portfolio",
         icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }],
       },
       {
-        name: "Operator Lab",
-        short_name: "Operator",
-        description: "Open the protected operator surface for running live scenarios.",
-        url: "/root/lab/fsm",
+        name: "Creative Brief",
+        short_name: "Brief",
+        description: "Start a Content Co-op production brief.",
+        url: "/brief",
         icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }],
       },
     ],
     screenshots: [
       {
-        src: "/pwa/screenshot-scenario-lab.png",
-        sizes: "1274x674",
-        type: "image/png",
-        label: "Scenario-certified FSM control room",
+        src: "/cc/photos/social-industrial-video-production-v2.jpg",
+        sizes: "1200x630",
+        type: "image/jpeg",
+        label: "Content Co-op field production crew",
         form_factor: "wide",
       },
     ],

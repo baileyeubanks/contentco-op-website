@@ -270,6 +270,11 @@ declare module "@contentco-op/types" {
     booking_url: string;
     summary?: CreativeBriefSummaryCard;
     warnings?: string[];
+    workflow?: {
+      ok?: boolean;
+      status_code?: number;
+    };
+    email_queued?: boolean;
     persistence?: {
       structured_fields: "full" | "legacy_only";
     };
@@ -282,11 +287,20 @@ declare module "@contentco-op/types" {
       blockers?: string[];
       requested_actions?: CreativeBriefRootAction[];
       channels?: string[];
-      openclaw?: {
+      orchestrator?: {
+        ok?: boolean;
+        status_code?: number;
+      };
+      hermes?: {
         ok?: boolean;
         skipped?: boolean;
         status_code?: number | null;
       };
+    };
+    hermes?: {
+      ok?: boolean;
+      skipped?: boolean;
+      status_code?: number | null;
     };
   }
 

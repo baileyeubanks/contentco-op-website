@@ -16,16 +16,38 @@ const REPORT_PATHS: Record<string, string | null> = {
   status: "/Users/baileyeubanks/Desktop/Projects/platform/STATUS_REPORT.md",
   health: "/Users/baileyeubanks/Desktop/Projects/platform/HEALTH_REPORT.md",
   audit: "/Users/baileyeubanks/Desktop/Projects/platform/AUDIT_REPORT.md",
+  "network-doctor": "/Users/baileyeubanks/Desktop/Projects/platform/run/network-doctor-latest.json",
+  "publish-alignment": null,
+  "public-sites": null,
   "ensure-running": "/Users/baileyeubanks/Desktop/Projects/platform/STATUS_REPORT.md",
   restart: "/Users/baileyeubanks/Desktop/Projects/platform/STATUS_REPORT.md",
   logs: null,
 };
 
-type ActionName = "env" | "status" | "health" | "audit" | "ensure-running" | "restart" | "logs";
+type ActionName =
+  | "env"
+  | "status"
+  | "health"
+  | "audit"
+  | "network-doctor"
+  | "publish-alignment"
+  | "public-sites"
+  | "ensure-running"
+  | "restart"
+  | "logs";
 type ScopeName = "full" | "home" | "acs" | "root";
 
 function isActionName(value: unknown): value is ActionName {
-  return value === "env" || value === "status" || value === "health" || value === "audit" || value === "ensure-running" || value === "restart" || value === "logs";
+  return value === "env"
+    || value === "status"
+    || value === "health"
+    || value === "audit"
+    || value === "network-doctor"
+    || value === "publish-alignment"
+    || value === "public-sites"
+    || value === "ensure-running"
+    || value === "restart"
+    || value === "logs";
 }
 
 function isScopeName(value: unknown): value is ScopeName {
@@ -37,6 +59,15 @@ function defaultScopeForHost(host: string): ScopeName {
 }
 
 function commandForAction(action: ActionName, scope: ScopeName) {
+  if (action === "network-doctor") {
+    return ["scripts/network_doctor.mjs"];
+  }
+  if (action === "publish-alignment") {
+    return ["scripts/publish_alignment_audit.mjs"];
+  }
+  if (action === "public-sites") {
+    return ["scripts/public_sites_check.mjs"];
+  }
   if (action === "ensure-running" || action === "restart") {
     return ["scripts/platform_ops.py", action, "--scope", scope];
   }
@@ -68,7 +99,11 @@ export async function POST(request: Request) {
   const args = commandForAction(action, scope);
 
   try {
-    const result = await execFileAsync("python3", args, {
+    const command =
+      action === "network-doctor" || action === "publish-alignment" || action === "public-sites"
+        ? "node"
+        : "python3";
+    const result = await execFileAsync(command, args, {
       cwd: PROJECT_ROOT,
       timeout: 120_000,
       maxBuffer: 1024 * 1024,

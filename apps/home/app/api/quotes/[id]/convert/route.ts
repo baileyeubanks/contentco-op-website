@@ -6,26 +6,85 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+type QuoteRow = Record<string, unknown> & {
+  id: string;
+  contact_id?: string | null;
+  customer_id?: string | null;
+  business_id?: string | null;
+  business_unit?: string | null;
+  valid_until?: string | null;
+  notes?: string | null;
+  status?: string | null;
+  internal_status?: string | null;
+  client_status?: string | null;
+  final_total?: number | null;
+  estimated_total?: number | null;
+  payload?: unknown;
+  quote_items?: QuoteItemRow[] | null;
+};
+
+type QuoteItemRow = Record<string, unknown> & {
+  id?: unknown;
+  description?: unknown;
+  name?: unknown;
+  quantity?: unknown;
+  unit_price?: unknown;
+  unit?: unknown;
+  phase_name?: unknown;
+};
+
+type PayloadPhase = Record<string, unknown> & {
+  items?: unknown;
+};
+
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : value == null ? fallback : String(value);
+}
+
+function asNullableString(value: unknown) {
+  const normalized = asString(value).trim();
+  return normalized || null;
+}
+
+function asNumber(value: unknown, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function asRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function asRecordArray(value: unknown) {
+  if (!Array.isArray(value)) return [] as Record<string, unknown>[];
+  return value
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry));
+}
+
+function extractPayloadItems(payload: unknown) {
+  const doc = asRecord(asRecord(payload).doc);
+  const phases = asRecordArray(doc.phases) as PayloadPhase[];
+  return phases.flatMap((phase) => asRecordArray(phase.items));
+}
+
 function computeQuoteTotal(
-  quote: Record<string, any>,
-  items: Array<Record<string, any>>,
+  quote: QuoteRow,
+  items: QuoteItemRow[],
 ) {
-  const explicit = Number(quote.final_total || quote.estimated_total || 0);
+  const explicit = asNumber(quote.final_total ?? quote.estimated_total, 0);
   if (Number.isFinite(explicit) && explicit > 0) return explicit;
 
-  const itemTotal = (items || []).reduce((sum, item) => {
-    return sum + Number(item.quantity || 0) * Number(item.unit_price || 0);
+  const itemTotal = items.reduce((sum, item) => {
+    return sum + asNumber(item.quantity, 0) * asNumber(item.unit_price, 0);
   }, 0);
   if (itemTotal > 0) return Number(itemTotal.toFixed(2));
 
-  const payloadItems = Array.isArray(quote?.payload?.doc?.phases)
-    ? quote.payload.doc.phases.flatMap((phase: Record<string, any>) =>
-        Array.isArray(phase?.items) ? phase.items : [],
-      )
-    : [];
+  const payloadItems = extractPayloadItems(quote.payload);
 
-  const payloadTotal = payloadItems.reduce((sum: number, item: Record<string, any>) => {
-    return sum + Number(item.quantity || 0) * Number(item.unit_price || 0);
+  const payloadTotal = payloadItems.reduce((sum, item) => {
+    return sum + asNumber(item.quantity, 0) * asNumber(item.unit_price, 0);
   }, 0);
 
   return Number(payloadTotal.toFixed(2));
@@ -54,11 +113,13 @@ export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
   const requestScope = getRootBusinessScopeFromRequest(req);
 
-  const { data: quote, error } = await supabase
+  const { data, error } = await supabase
     .from("quotes")
     .select("*, quote_items(*)")
     .eq("id", id)
     .single();
+
+  const quote = (data as QuoteRow | null);
 
   if (error || !quote) {
     return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
@@ -99,21 +160,21 @@ export async function POST(req: Request, { params }: Props) {
 
   const invoiceNumber = await maybeAllocateInvoiceNumber(quote.business_unit || "CC");
   const dueDate = quote.valid_until || addDays(7);
-  const lineItems = (quote.quote_items || []).map((item: Record<string, any>) => ({
-    id: item.id,
-    description: item.description || item.name || "",
-    quantity: Number(item.quantity || 1),
-    unit_price: Number(item.unit_price || 0),
-    unit_label: item.unit || "ea",
+  const lineItems = (quote.quote_items || []).map((item) => ({
+    id: asNullableString(item.id),
+    description: asString(item.description || item.name, ""),
+    quantity: asNumber(item.quantity, 1),
+    unit_price: asNumber(item.unit_price, 0),
+    unit_label: asString(item.unit, "ea"),
     note: null,
   }));
-  const customerId = quote.contact_id || quote.customer_id || quote.id;
+  const customerId = asNullableString(quote.contact_id) || asNullableString(quote.customer_id) || quote.id;
   const insertPayload = {
     customer_id: customerId,
     quote_id: quote.id,
-    contact_id: quote.contact_id || null,
-    business_id: quote.business_id || null,
-    business_unit: requestScope || String(quote.business_unit || "ACS").toUpperCase(),
+    contact_id: asNullableString(quote.contact_id),
+    business_id: asNullableString(quote.business_id),
+    business_unit: requestScope || asString(quote.business_unit, "ACS").toUpperCase(),
     invoice_number: invoiceNumber,
     amount_cents: Math.round(total * 100),
     amount: total,
@@ -123,7 +184,7 @@ export async function POST(req: Request, { params }: Props) {
     due_date: dueDate,
     due_at: dueDate,
     line_items: lineItems,
-    notes: quote.notes || null,
+    notes: asNullableString(quote.notes),
     stripe_payment_link: null,
     stripe_invoice_id: null,
     reminder_count: 0,

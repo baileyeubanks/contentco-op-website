@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-04-12T03:56:07.224Z",
+  "authorityRoot": "/Users/baileyeubanks/Desktop/Projects/brand/docs/brand-central",
+  "brandRoot": "/Users/baileyeubanks/Desktop/Projects/brand",
+  "target": "home",
+  "sources": {
+    "ccCentral": "/Users/baileyeubanks/Desktop/Projects/brand/docs/brand-central/cc.html",
+    "acsCentral": "/Users/baileyeubanks/Desktop/Projects/brand/docs/brand-central/acs.html",
+    "rootCentral": "/Users/baileyeubanks/Desktop/Projects/brand/docs/brand-central/root.html",
+    "ccRules": "/Users/baileyeubanks/Desktop/Projects/brand/docs/brand-os/BRAND_OS_CC.md",
+    "acsRules": "/Users/baileyeubanks/Desktop/Projects/brand/docs/brand-os/BRAND_OS_ACS.md",
+    "rootRules": "/Users/baileyeubanks/Desktop/Projects/brand/docs/brand-os/BRAND_OS_ROOT.md",
+    "assets": "/Users/baileyeubanks/Desktop/Projects/brand/assets",
+    "adapters": "/Users/baileyeubanks/Desktop/Projects/brand/adapters",
+    "themes": "/Users/baileyeubanks/Desktop/Projects/brand/themes",
+    "tokens": "/Users/baileyeubanks/Desktop/Projects/brand/tokens"
+  }
+}

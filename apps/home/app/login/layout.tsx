@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Client Login | Content Co-op",
+  title: "Client Login",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {

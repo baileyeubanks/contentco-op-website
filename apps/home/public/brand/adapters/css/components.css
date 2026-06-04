@@ -1,0 +1,631 @@
+/* ============================================================
+   components.css — Component-level design tokens
+   Extends tokens.css with opinionated component patterns.
+   Usage: <link rel="stylesheet" href="/brand/adapters/css/components.css">
+   Requires: tokens.css loaded first + data-brand attribute on root.
+   ============================================================ */
+
+/* ── ROOT (light, professional operator) ───────────────────── */
+
+:root,
+[data-brand="root"] {
+  /* Input */
+  --input-bg: #ffffff;
+  --input-border: var(--brand-border-default);
+  --input-border-hover: var(--brand-border-strong);
+  --input-border-focus: var(--brand-action-fill);
+  --input-border-error: var(--brand-status-danger);
+  --input-text: var(--brand-content-primary);
+  --input-placeholder: rgba(88, 97, 116, 0.5);
+  --input-radius: var(--brand-radius-button);
+  --input-padding: 0.6rem 0.75rem;
+  --input-font: var(--brand-font-body);
+  --input-font-size: var(--brand-size-body-sm);
+  --input-disabled-bg: var(--brand-surface-elevated);
+  --input-disabled-text: var(--brand-content-secondary);
+
+  /* Select */
+  --select-bg: #ffffff;
+  --select-border: var(--brand-border-default);
+  --select-border-focus: var(--brand-action-fill);
+  --select-text: var(--brand-content-primary);
+  --select-radius: var(--brand-radius-button);
+  --select-padding: 0.6rem 2rem 0.6rem 0.75rem;
+  --select-arrow-color: var(--brand-content-secondary);
+
+  /* Checkbox / Radio */
+  --check-size: 18px;
+  --check-border: var(--brand-border-strong);
+  --check-border-checked: var(--brand-action-fill);
+  --check-fill-checked: var(--brand-action-fill);
+  --check-mark-color: #ffffff;
+  --check-radius: 4px;
+  --radio-radius: 50%;
+
+  /* Label */
+  --label-font: var(--brand-font-body);
+  --label-font-size: var(--brand-size-label);
+  --label-color: var(--brand-content-secondary);
+  --label-tracking: var(--brand-tracking-label);
+  --label-transform: uppercase;
+  --label-weight: 600;
+  --label-margin-bottom: var(--brand-space-2);
+
+  /* Helper / Error text */
+  --helper-font-size: 0.78rem;
+  --helper-color: var(--brand-content-secondary);
+  --error-color: var(--brand-status-danger);
+
+  /* Button */
+  --btn-primary-bg: var(--brand-action-fill);
+  --btn-primary-text: var(--brand-action-text);
+  --btn-primary-border: var(--brand-action-border);
+  --btn-primary-hover-bg: #3b78e0;
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: var(--brand-action-fill);
+  --btn-ghost-border: var(--brand-action-border);
+  --btn-ghost-hover-bg: rgba(66, 133, 244, 0.06);
+  --btn-danger-bg: var(--brand-status-danger);
+  --btn-danger-text: #ffffff;
+  --btn-danger-border: var(--brand-status-danger);
+  --btn-success-bg: var(--brand-status-success);
+  --btn-success-text: #ffffff;
+  --btn-success-border: var(--brand-status-success);
+  --btn-warn-bg: var(--brand-status-warning);
+  --btn-warn-text: #07111f;
+  --btn-warn-border: var(--brand-status-warning);
+  --btn-radius: var(--brand-radius-button);
+  --btn-padding: 0.55rem 1.2rem;
+  --btn-font: var(--brand-font-body);
+  --btn-font-size: var(--brand-size-body-sm);
+  --btn-font-weight: 600;
+
+  /* Table */
+  --table-header-bg: var(--brand-surface-elevated);
+  --table-header-text: var(--brand-content-secondary);
+  --table-header-font-size: var(--brand-size-label);
+  --table-header-tracking: var(--brand-tracking-label);
+  --table-header-transform: uppercase;
+  --table-header-weight: 600;
+  --table-row-bg: var(--brand-surface-panel);
+  --table-row-alt-bg: var(--brand-surface-elevated);
+  --table-row-hover-bg: rgba(24, 59, 107, 0.04);
+  --table-border: var(--brand-border-default);
+  --table-cell-padding: 0.65rem 0.85rem;
+  --table-font-size: var(--brand-size-body-sm);
+
+  /* Card */
+  --card-bg: var(--brand-surface-panel);
+  --card-border: var(--brand-border-default);
+  --card-radius: var(--brand-radius-card);
+  --card-shadow: var(--brand-shadow-card);
+  --card-padding: var(--brand-space-6);
+  --card-header-font: var(--brand-font-body);
+  --card-header-size: var(--brand-size-body);
+  --card-header-weight: 600;
+  --card-header-color: var(--brand-content-primary);
+
+  /* Stat card */
+  --stat-value-size: 1.8rem;
+  --stat-value-weight: 700;
+  --stat-value-color: var(--brand-content-primary);
+  --stat-label-size: var(--brand-size-label);
+  --stat-label-color: var(--brand-content-secondary);
+  --stat-accent-border: var(--brand-action-fill);
+
+  /* Sidebar */
+  --sidebar-bg: var(--brand-surface-app);
+  --sidebar-width: 240px;
+  --sidebar-border: var(--brand-border-default);
+  --sidebar-item-padding: 0.5rem 0.85rem;
+  --sidebar-item-radius: 8px;
+  --sidebar-item-text: var(--brand-content-secondary);
+  --sidebar-item-hover-bg: rgba(66, 133, 244, 0.06);
+  --sidebar-item-hover-text: var(--brand-content-primary);
+  --sidebar-item-active-bg: rgba(66, 133, 244, 0.1);
+  --sidebar-item-active-text: var(--brand-action-fill);
+  --sidebar-item-active-border: var(--brand-action-fill);
+  --sidebar-section-label-color: var(--brand-content-secondary);
+  --sidebar-section-label-size: var(--brand-size-label);
+  --sidebar-section-label-tracking: var(--brand-tracking-label);
+  --sidebar-section-label-transform: uppercase;
+  --sidebar-divider: var(--brand-border-default);
+
+  /* Badge / Status */
+  --badge-radius: var(--brand-radius-pill);
+  --badge-padding: 0.2rem 0.6rem;
+  --badge-font-size: 0.72rem;
+  --badge-font-weight: 600;
+  --badge-success-bg: rgba(52, 168, 83, 0.1);
+  --badge-success-text: #34a853;
+  --badge-success-border: rgba(52, 168, 83, 0.25);
+  --badge-warning-bg: rgba(251, 188, 5, 0.1);
+  --badge-warning-text: #b48a04;
+  --badge-warning-border: rgba(251, 188, 5, 0.25);
+  --badge-danger-bg: rgba(234, 67, 53, 0.1);
+  --badge-danger-text: #ea4335;
+  --badge-danger-border: rgba(234, 67, 53, 0.25);
+  --badge-info-bg: rgba(66, 133, 244, 0.08);
+  --badge-info-text: #4285f4;
+  --badge-info-border: rgba(66, 133, 244, 0.18);
+  --badge-neutral-bg: var(--brand-surface-elevated);
+  --badge-neutral-text: var(--brand-content-secondary);
+  --badge-neutral-border: var(--brand-border-default);
+
+  /* Modal */
+  --modal-overlay-bg: rgba(24, 32, 43, 0.45);
+  --modal-bg: var(--brand-surface-panel);
+  --modal-border: var(--brand-border-default);
+  --modal-radius: var(--brand-radius-panel);
+  --modal-shadow: var(--brand-shadow-overlay);
+  --modal-padding: var(--brand-space-8);
+  --modal-header-font: var(--brand-font-body);
+  --modal-header-size: var(--brand-size-title);
+  --modal-header-weight: 700;
+
+  /* Tabs */
+  --tab-text: var(--brand-content-secondary);
+  --tab-text-active: var(--brand-action-fill);
+  --tab-border-active: var(--brand-action-fill);
+  --tab-hover-bg: rgba(24, 59, 107, 0.04);
+  --tab-padding: 0.6rem 1rem;
+  --tab-font-size: var(--brand-size-body-sm);
+  --tab-font-weight: 600;
+  --tab-radius: 0;
+  --tab-pill-radius: var(--brand-radius-pill);
+  --tab-pill-active-bg: var(--brand-action-fill);
+  --tab-pill-active-text: var(--brand-action-text);
+
+  /* Toast / Alert */
+  --toast-radius: var(--brand-radius-button);
+  --toast-padding: 0.75rem 1rem;
+  --toast-shadow: var(--brand-shadow-card);
+  --toast-font-size: var(--brand-size-body-sm);
+  --toast-success-bg: rgba(52, 168, 83, 0.06);
+  --toast-success-border: rgba(52, 168, 83, 0.25);
+  --toast-success-text: #34a853;
+  --toast-error-bg: rgba(234, 67, 53, 0.06);
+  --toast-error-border: rgba(234, 67, 53, 0.25);
+  --toast-error-text: #ea4335;
+  --toast-warning-bg: rgba(251, 188, 5, 0.06);
+  --toast-warning-border: rgba(251, 188, 5, 0.25);
+  --toast-warning-text: #b48a04;
+  --toast-info-bg: rgba(66, 133, 244, 0.06);
+  --toast-info-border: rgba(66, 133, 244, 0.18);
+  --toast-info-text: #4285f4;
+}
+
+
+/* ── ACS (dark, navy, clean) ───────────────────────────────── */
+
+[data-brand="acs"] {
+  /* Input */
+  --input-bg: var(--brand-surface-panel);
+  --input-border: rgba(90, 142, 196, 0.2);
+  --input-border-hover: rgba(90, 142, 196, 0.35);
+  --input-border-focus: #3d7dd8;
+  --input-border-error: var(--brand-status-danger);
+  --input-text: var(--brand-content-primary);
+  --input-placeholder: rgba(154, 177, 207, 0.5);
+  --input-radius: 8px;
+  --input-padding: 0.65rem 0.75rem;
+  --input-font: var(--brand-font-body);
+  --input-font-size: var(--brand-size-body-sm);
+  --input-disabled-bg: rgba(255, 255, 255, 0.03);
+  --input-disabled-text: rgba(154, 177, 207, 0.4);
+
+  /* Select */
+  --select-bg: var(--brand-surface-panel);
+  --select-border: rgba(90, 142, 196, 0.2);
+  --select-border-focus: #3d7dd8;
+  --select-text: var(--brand-content-primary);
+  --select-radius: 8px;
+  --select-padding: 0.65rem 2rem 0.65rem 0.75rem;
+  --select-arrow-color: var(--brand-content-secondary);
+
+  /* Checkbox / Radio */
+  --check-border: rgba(90, 142, 196, 0.3);
+  --check-border-checked: var(--brand-accent-secondary);
+  --check-fill-checked: var(--brand-accent-secondary);
+  --check-mark-color: #ffffff;
+
+  /* Label */
+  --label-color: var(--brand-content-secondary);
+  --label-transform: uppercase;
+  --label-weight: 500;
+
+  /* Helper / Error */
+  --helper-color: rgba(154, 177, 207, 0.6);
+  --error-color: var(--brand-status-danger);
+
+  /* Button */
+  --btn-primary-bg: var(--brand-action-fill);
+  --btn-primary-text: var(--brand-action-text);
+  --btn-primary-border: var(--brand-action-border);
+  --btn-primary-hover-bg: #224f8a;
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: var(--brand-accent-soft);
+  --btn-ghost-border: var(--brand-action-border);
+  --btn-ghost-hover-bg: rgba(42, 90, 160, 0.15);
+  --btn-danger-bg: rgba(239, 68, 68, 0.15);
+  --btn-danger-text: #ef4444;
+  --btn-danger-border: rgba(239, 68, 68, 0.3);
+  --btn-radius: 8px;
+
+  /* Table */
+  --table-header-bg: var(--brand-surface-elevated);
+  --table-header-text: var(--brand-content-secondary);
+  --table-row-bg: var(--brand-surface-panel);
+  --table-row-alt-bg: rgba(255, 255, 255, 0.02);
+  --table-row-hover-bg: rgba(124, 198, 255, 0.05);
+  --table-border: rgba(90, 142, 196, 0.12);
+
+  /* Card */
+  --card-bg: var(--brand-surface-panel);
+  --card-border: rgba(90, 142, 196, 0.12);
+  --card-shadow: var(--brand-shadow-card);
+
+  /* Stat card */
+  --stat-value-color: var(--brand-content-primary);
+  --stat-label-color: var(--brand-content-secondary);
+  --stat-accent-border: var(--brand-accent-secondary);
+
+  /* Sidebar */
+  --sidebar-bg: var(--brand-surface-app);
+  --sidebar-border: rgba(90, 142, 196, 0.1);
+  --sidebar-item-text: var(--brand-content-secondary);
+  --sidebar-item-hover-bg: rgba(124, 198, 255, 0.06);
+  --sidebar-item-hover-text: var(--brand-content-primary);
+  --sidebar-item-active-bg: rgba(124, 198, 255, 0.1);
+  --sidebar-item-active-text: var(--brand-accent-soft);
+  --sidebar-item-active-border: var(--brand-accent-secondary);
+  --sidebar-section-label-color: rgba(154, 177, 207, 0.5);
+  --sidebar-divider: rgba(90, 142, 196, 0.1);
+
+  /* Badge / Status */
+  --badge-success-bg: rgba(52, 211, 153, 0.12);
+  --badge-success-text: #34d399;
+  --badge-success-border: rgba(52, 211, 153, 0.25);
+  --badge-warning-bg: rgba(255, 215, 0, 0.1);
+  --badge-warning-text: #ffd700;
+  --badge-warning-border: rgba(255, 215, 0, 0.2);
+  --badge-danger-bg: rgba(239, 68, 68, 0.12);
+  --badge-danger-text: #ef4444;
+  --badge-danger-border: rgba(239, 68, 68, 0.25);
+  --badge-info-bg: rgba(124, 198, 255, 0.1);
+  --badge-info-text: var(--brand-accent-soft);
+  --badge-info-border: rgba(124, 198, 255, 0.2);
+  --badge-neutral-bg: rgba(255, 255, 255, 0.05);
+  --badge-neutral-text: var(--brand-content-secondary);
+  --badge-neutral-border: rgba(255, 255, 255, 0.1);
+
+  /* Modal */
+  --modal-overlay-bg: rgba(6, 12, 23, 0.7);
+  --modal-bg: var(--brand-surface-elevated);
+  --modal-border: rgba(90, 142, 196, 0.15);
+  --modal-shadow: var(--brand-shadow-overlay);
+
+  /* Tabs */
+  --tab-text: var(--brand-content-secondary);
+  --tab-text-active: var(--brand-accent-soft);
+  --tab-border-active: var(--brand-accent-secondary);
+  --tab-hover-bg: rgba(124, 198, 255, 0.05);
+  --tab-pill-active-bg: var(--brand-action-fill);
+  --tab-pill-active-text: var(--brand-action-text);
+
+  /* Toast */
+  --toast-success-bg: rgba(52, 211, 153, 0.1);
+  --toast-success-border: rgba(52, 211, 153, 0.2);
+  --toast-success-text: #34d399;
+  --toast-error-bg: rgba(239, 68, 68, 0.1);
+  --toast-error-border: rgba(239, 68, 68, 0.2);
+  --toast-error-text: #ef4444;
+  --toast-warning-bg: rgba(255, 215, 0, 0.08);
+  --toast-warning-border: rgba(255, 215, 0, 0.15);
+  --toast-warning-text: #ffd700;
+  --toast-info-bg: rgba(124, 198, 255, 0.08);
+  --toast-info-border: rgba(124, 198, 255, 0.15);
+  --toast-info-text: var(--brand-accent-soft);
+}
+
+
+/* ── CCO-HOME (warm cream, editorial) ──────────────────────── */
+
+[data-brand="cco-home"] {
+  /* Input */
+  --input-bg: #faf6ef;
+  --input-border: var(--brand-border-default);
+  --input-border-hover: #c4b9a8;
+  --input-border-focus: var(--brand-accent-secondary);
+  --input-border-error: var(--brand-status-danger);
+  --input-text: var(--brand-content-primary);
+  --input-placeholder: rgba(72, 86, 112, 0.45);
+  --input-radius: 12px;
+  --input-padding: 0.7rem 0.9rem;
+  --input-font: var(--brand-font-body);
+  --input-font-size: var(--brand-size-body-sm);
+  --input-disabled-bg: #f0ebe0;
+  --input-disabled-text: rgba(72, 86, 112, 0.4);
+
+  /* Select */
+  --select-bg: #faf6ef;
+  --select-border: var(--brand-border-default);
+  --select-border-focus: var(--brand-accent-secondary);
+  --select-text: var(--brand-content-primary);
+  --select-radius: 12px;
+  --select-padding: 0.7rem 2rem 0.7rem 0.9rem;
+  --select-arrow-color: var(--brand-content-secondary);
+
+  /* Checkbox / Radio */
+  --check-border: var(--brand-border-default);
+  --check-border-checked: var(--brand-accent-secondary);
+  --check-fill-checked: var(--brand-accent-secondary);
+  --check-mark-color: #ffffff;
+
+  /* Label */
+  --label-color: var(--brand-content-secondary);
+  --label-transform: uppercase;
+  --label-weight: 600;
+
+  /* Helper / Error */
+  --helper-color: rgba(72, 86, 112, 0.6);
+
+  /* Button */
+  --btn-primary-bg: var(--brand-action-fill);
+  --btn-primary-text: var(--brand-action-text);
+  --btn-primary-border: var(--brand-action-fill);
+  --btn-primary-hover-bg: #1a3350;
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: var(--brand-action-fill);
+  --btn-ghost-border: var(--brand-action-border);
+  --btn-ghost-hover-bg: rgba(17, 37, 64, 0.06);
+  --btn-danger-bg: rgba(222, 118, 118, 0.1);
+  --btn-danger-text: #a03030;
+  --btn-danger-border: rgba(222, 118, 118, 0.25);
+  --btn-radius: var(--brand-radius-pill);
+
+  /* Table */
+  --table-header-bg: #f5f0e6;
+  --table-header-text: var(--brand-content-secondary);
+  --table-row-bg: #faf6ef;
+  --table-row-alt-bg: #f5f0e6;
+  --table-row-hover-bg: rgba(30, 77, 140, 0.04);
+  --table-border: var(--brand-border-default);
+
+  /* Card */
+  --card-bg: #faf6ef;
+  --card-border: var(--brand-border-default);
+  --card-shadow: var(--brand-shadow-card);
+
+  /* Stat card */
+  --stat-value-color: var(--brand-content-primary);
+  --stat-label-color: var(--brand-content-secondary);
+  --stat-accent-border: var(--brand-accent-secondary);
+
+  /* Sidebar */
+  --sidebar-bg: #f0ebe0;
+  --sidebar-border: var(--brand-border-default);
+  --sidebar-item-text: var(--brand-content-secondary);
+  --sidebar-item-hover-bg: rgba(30, 77, 140, 0.05);
+  --sidebar-item-hover-text: var(--brand-content-primary);
+  --sidebar-item-active-bg: rgba(30, 77, 140, 0.08);
+  --sidebar-item-active-text: var(--brand-accent-secondary);
+  --sidebar-item-active-border: var(--brand-accent-secondary);
+  --sidebar-section-label-color: rgba(72, 86, 112, 0.5);
+  --sidebar-divider: var(--brand-border-default);
+
+  /* Badge / Status */
+  --badge-success-bg: rgba(62, 201, 131, 0.1);
+  --badge-success-text: #1a7a4e;
+  --badge-success-border: rgba(62, 201, 131, 0.2);
+  --badge-warning-bg: rgba(228, 173, 91, 0.1);
+  --badge-warning-text: #8c6030;
+  --badge-warning-border: rgba(228, 173, 91, 0.2);
+  --badge-danger-bg: rgba(222, 118, 118, 0.1);
+  --badge-danger-text: #a03030;
+  --badge-danger-border: rgba(222, 118, 118, 0.2);
+  --badge-info-bg: rgba(30, 77, 140, 0.07);
+  --badge-info-text: var(--brand-accent-secondary);
+  --badge-info-border: rgba(30, 77, 140, 0.15);
+  --badge-neutral-bg: #f5f0e6;
+  --badge-neutral-text: var(--brand-content-secondary);
+  --badge-neutral-border: var(--brand-border-default);
+
+  /* Modal */
+  --modal-overlay-bg: rgba(11, 25, 40, 0.35);
+  --modal-bg: #faf6ef;
+  --modal-border: var(--brand-border-default);
+  --modal-shadow: var(--brand-shadow-overlay);
+
+  /* Tabs */
+  --tab-text: var(--brand-content-secondary);
+  --tab-text-active: var(--brand-accent-secondary);
+  --tab-border-active: var(--brand-accent-secondary);
+  --tab-hover-bg: rgba(30, 77, 140, 0.04);
+  --tab-pill-active-bg: var(--brand-action-fill);
+  --tab-pill-active-text: var(--brand-action-text);
+
+  /* Toast */
+  --toast-success-bg: rgba(62, 201, 131, 0.08);
+  --toast-success-border: rgba(62, 201, 131, 0.2);
+  --toast-success-text: #1a7a4e;
+  --toast-error-bg: rgba(222, 118, 118, 0.08);
+  --toast-error-border: rgba(222, 118, 118, 0.2);
+  --toast-error-text: #a03030;
+  --toast-warning-bg: rgba(228, 173, 91, 0.08);
+  --toast-warning-border: rgba(228, 173, 91, 0.2);
+  --toast-warning-text: #8c6030;
+  --toast-info-bg: rgba(30, 77, 140, 0.06);
+  --toast-info-border: rgba(30, 77, 140, 0.12);
+  --toast-info-text: var(--brand-accent-secondary);
+}
+
+
+/* ── CO-PRODUCTS shared base (dark suite) ──────────────────── */
+
+[data-brand="co-script"],
+[data-brand="co-cut"],
+[data-brand="co-deliver"] {
+  /* Input */
+  --input-bg: var(--brand-surface-elevated);
+  --input-border: var(--brand-border-default);
+  --input-border-hover: var(--brand-border-strong);
+  --input-border-focus: var(--brand-accent-primary);
+  --input-border-error: var(--brand-status-danger);
+  --input-text: var(--brand-content-primary);
+  --input-placeholder: rgba(122, 156, 192, 0.4);
+  --input-radius: 10px;
+  --input-padding: 0.6rem 0.8rem;
+  --input-font: var(--brand-font-body);
+  --input-font-size: var(--brand-size-body-sm);
+  --input-disabled-bg: rgba(255, 255, 255, 0.02);
+  --input-disabled-text: rgba(122, 156, 192, 0.3);
+
+  /* Select */
+  --select-bg: var(--brand-surface-elevated);
+  --select-border: var(--brand-border-default);
+  --select-border-focus: var(--brand-accent-primary);
+  --select-text: var(--brand-content-primary);
+  --select-radius: 10px;
+  --select-padding: 0.6rem 2rem 0.6rem 0.8rem;
+  --select-arrow-color: var(--brand-content-secondary);
+
+  /* Checkbox / Radio */
+  --check-border: var(--brand-border-strong);
+  --check-border-checked: var(--brand-accent-primary);
+  --check-fill-checked: var(--brand-accent-primary);
+  --check-mark-color: #ffffff;
+
+  /* Label */
+  --label-color: var(--brand-content-secondary);
+  --label-transform: uppercase;
+  --label-weight: 600;
+
+  /* Helper / Error */
+  --helper-color: rgba(122, 156, 192, 0.5);
+
+  /* Button */
+  --btn-primary-bg: var(--brand-action-fill);
+  --btn-primary-text: var(--brand-action-text);
+  --btn-primary-border: var(--brand-action-border);
+  --btn-primary-hover-bg: #1a3350;
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: var(--brand-accent-primary);
+  --btn-ghost-border: var(--brand-action-border);
+  --btn-ghost-hover-bg: rgba(76, 142, 245, 0.08);
+  --btn-danger-bg: rgba(222, 118, 118, 0.12);
+  --btn-danger-text: var(--brand-status-danger);
+  --btn-danger-border: rgba(222, 118, 118, 0.25);
+  --btn-radius: var(--brand-radius-pill);
+
+  /* Table */
+  --table-header-bg: rgba(255, 255, 255, 0.03);
+  --table-header-text: var(--brand-content-secondary);
+  --table-row-bg: transparent;
+  --table-row-alt-bg: rgba(255, 255, 255, 0.02);
+  --table-row-hover-bg: rgba(76, 142, 245, 0.05);
+  --table-border: var(--brand-border-default);
+
+  /* Card */
+  --card-bg: var(--brand-surface-panel);
+  --card-border: var(--brand-border-default);
+  --card-shadow: var(--brand-shadow-card);
+
+  /* Stat card */
+  --stat-value-color: var(--brand-content-primary);
+  --stat-label-color: var(--brand-content-secondary);
+  --stat-accent-border: var(--brand-accent-primary);
+
+  /* Sidebar */
+  --sidebar-bg: var(--brand-surface-app);
+  --sidebar-border: var(--brand-border-default);
+  --sidebar-item-text: var(--brand-content-secondary);
+  --sidebar-item-hover-bg: rgba(76, 142, 245, 0.06);
+  --sidebar-item-hover-text: var(--brand-content-primary);
+  --sidebar-item-active-bg: rgba(76, 142, 245, 0.1);
+  --sidebar-item-active-text: var(--brand-accent-primary);
+  --sidebar-item-active-border: var(--brand-accent-primary);
+  --sidebar-section-label-color: rgba(122, 156, 192, 0.4);
+  --sidebar-divider: var(--brand-border-default);
+
+  /* Badge / Status */
+  --badge-success-bg: rgba(62, 201, 131, 0.12);
+  --badge-success-text: #3ec983;
+  --badge-success-border: rgba(62, 201, 131, 0.25);
+  --badge-warning-bg: rgba(228, 173, 91, 0.12);
+  --badge-warning-text: #e4ad5b;
+  --badge-warning-border: rgba(228, 173, 91, 0.25);
+  --badge-danger-bg: rgba(222, 118, 118, 0.12);
+  --badge-danger-text: #de7676;
+  --badge-danger-border: rgba(222, 118, 118, 0.25);
+  --badge-info-bg: rgba(76, 142, 245, 0.1);
+  --badge-info-text: var(--brand-accent-primary);
+  --badge-info-border: rgba(76, 142, 245, 0.2);
+  --badge-neutral-bg: rgba(255, 255, 255, 0.05);
+  --badge-neutral-text: var(--brand-content-secondary);
+  --badge-neutral-border: rgba(255, 255, 255, 0.08);
+
+  /* Modal */
+  --modal-overlay-bg: rgba(7, 15, 28, 0.7);
+  --modal-bg: var(--brand-surface-elevated);
+  --modal-border: var(--brand-border-default);
+  --modal-shadow: var(--brand-shadow-overlay);
+
+  /* Tabs */
+  --tab-text: var(--brand-content-secondary);
+  --tab-text-active: var(--brand-accent-primary);
+  --tab-border-active: var(--brand-accent-primary);
+  --tab-hover-bg: rgba(76, 142, 245, 0.05);
+  --tab-pill-active-bg: var(--brand-action-fill);
+  --tab-pill-active-text: var(--brand-action-text);
+
+  /* Toast */
+  --toast-success-bg: rgba(62, 201, 131, 0.1);
+  --toast-success-border: rgba(62, 201, 131, 0.2);
+  --toast-success-text: #3ec983;
+  --toast-error-bg: rgba(222, 118, 118, 0.1);
+  --toast-error-border: rgba(222, 118, 118, 0.2);
+  --toast-error-text: #de7676;
+  --toast-warning-bg: rgba(228, 173, 91, 0.08);
+  --toast-warning-border: rgba(228, 173, 91, 0.15);
+  --toast-warning-text: #e4ad5b;
+  --toast-info-bg: rgba(76, 142, 245, 0.08);
+  --toast-info-border: rgba(76, 142, 245, 0.15);
+  --toast-info-text: var(--brand-accent-primary);
+}
+
+
+/* ── Per-product accent overrides ──────────────────────────── */
+
+[data-brand="co-script"] {
+  --input-border-focus: #4c8ef5;
+  --btn-ghost-text: #4c8ef5;
+  --btn-ghost-hover-bg: rgba(76, 142, 245, 0.08);
+  --stat-accent-border: #4c8ef5;
+  --sidebar-item-active-text: #4c8ef5;
+  --sidebar-item-active-border: #4c8ef5;
+  --tab-text-active: #4c8ef5;
+  --tab-border-active: #4c8ef5;
+}
+
+[data-brand="co-cut"] {
+  --input-border-focus: #6b7cff;
+  --btn-ghost-text: #6b7cff;
+  --btn-ghost-hover-bg: rgba(107, 124, 255, 0.08);
+  --stat-accent-border: #6b7cff;
+  --sidebar-item-active-text: #6b7cff;
+  --sidebar-item-active-border: #6b7cff;
+  --tab-text-active: #6b7cff;
+  --tab-border-active: #6b7cff;
+}
+
+[data-brand="co-deliver"] {
+  --input-border-focus: #39a5d9;
+  --btn-ghost-text: #39a5d9;
+  --btn-ghost-hover-bg: rgba(57, 165, 217, 0.08);
+  --stat-accent-border: #39a5d9;
+  --sidebar-item-active-text: #39a5d9;
+  --sidebar-item-active-border: #39a5d9;
+  --tab-text-active: #39a5d9;
+  --tab-border-active: #39a5d9;
+}

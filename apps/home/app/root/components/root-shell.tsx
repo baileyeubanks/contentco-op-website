@@ -19,7 +19,7 @@ const SIDEBAR_COLLAPSED_W = 30;
 const TOPBAR_H = 26;
 
 /* Pages that should NOT show the shell chrome */
-const BARE_PATHS = ["/root", "/root/login"];
+const BARE_PATHS = ["/root", "/root/login", "/root/system/map"];
 
 /* ─── Types ─── */
 type BuScope = "ALL" | "ACS" | "CC";

@@ -141,7 +141,7 @@ export async function getContactRelationships(contactId: string) {
 export async function getContactTimeline(contactId: string, limit = 50) {
   const sb = getSupabase();
 
-  const [{ data: events }, { data: invoices }, { data: quotes }] = await Promise.all([
+  const [{ data: events }, { data: invoices }, { data: quotes }, { data: conversations }] = await Promise.all([
     sb.from("events")
       .select("id, type, text, payload, created_at, object_type, object_id, event_category")
       .eq("contact_id", contactId)
@@ -156,6 +156,11 @@ export async function getContactTimeline(contactId: string, limit = 50) {
       .select("id, quote_number, total, internal_status, client_status, created_at")
       .eq("contact_id", contactId)
       .order("created_at", { ascending: false })
+      .limit(20),
+    sb.from("conversations")
+      .select("id, channel, resolved, last_message_at, messages_json")
+      .eq("contact_id", contactId)
+      .order("last_message_at", { ascending: false })
       .limit(20),
   ]);
 
@@ -186,6 +191,16 @@ export async function getContactTimeline(contactId: string, limit = 50) {
       detail: `Status: ${q.internal_status || q.client_status || "draft"}`,
       created_at: q.created_at,
       source: "quote" as const,
+    })),
+    ...(conversations || []).map((conversation) => ({
+      id: conversation.id,
+      type: "conversation",
+      label: `${String(conversation.channel || "message").toUpperCase()} lane activity`,
+      detail: `${Array.isArray(conversation.messages_json) ? conversation.messages_json.length : 0} messages · ${
+        conversation.resolved ? "resolved" : "active"
+      }`,
+      created_at: conversation.last_message_at || new Date().toISOString(),
+      source: "conversation" as const,
     })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
@@ -270,6 +285,34 @@ export async function batchComputeLeadScores(scope: RootBusinessScope = null, li
 export async function mergeContacts(sourceId: string, targetId: string) {
   const sb = getSupabase();
 
+  if (sourceId === targetId) {
+    return { ok: false, error: "source_and_target_match" };
+  }
+
+  const [{ data: sourceContact }, { data: sourceMappings }] = await Promise.all([
+    sb.from("contacts").select("id, metadata").eq("id", sourceId).maybeSingle(),
+    sb.from("contact_business_map").select("business_id, role").eq("contact_id", sourceId),
+  ]);
+
+  if (!sourceContact?.id) {
+    return { ok: false, error: "source_contact_not_found" };
+  }
+
+  if (Array.isArray(sourceMappings) && sourceMappings.length > 0) {
+    await Promise.all(
+      sourceMappings.map((mapping) =>
+        sb.from("contact_business_map").upsert(
+          {
+            contact_id: targetId,
+            business_id: mapping.business_id,
+            role: mapping.role || "client",
+          },
+          { onConflict: "contact_id,business_id" },
+        ),
+      ),
+    );
+  }
+
   // Reassign all related records from source to target
   await Promise.all([
     sb.from("relationships").update({ contact_id: targetId }).eq("contact_id", sourceId),
@@ -279,10 +322,26 @@ export async function mergeContacts(sourceId: string, targetId: string) {
     sb.from("opportunities").update({ contact_id: targetId }).eq("contact_id", sourceId),
     sb.from("campaign_contacts").update({ contact_id: targetId }).eq("contact_id", sourceId),
     sb.from("events").update({ contact_id: targetId }).eq("contact_id", sourceId),
+    sb.from("conversations").update({ contact_id: targetId }).eq("contact_id", sourceId),
+    sb.from("jobs").update({ contact_id: targetId }).eq("contact_id", sourceId),
   ]);
 
+  await sb.from("contact_business_map").delete().eq("contact_id", sourceId);
+
   // Soft-delete source contact
-  await sb.from("contacts").update({ status: "merged", metadata: { merged_into: targetId } }).eq("id", sourceId);
+  await sb
+    .from("contacts")
+    .update({
+      status: "merged",
+      metadata: {
+        ...((sourceContact.metadata && typeof sourceContact.metadata === "object" && !Array.isArray(sourceContact.metadata))
+          ? sourceContact.metadata
+          : {}),
+        merged_into: targetId,
+        merged_at: new Date().toISOString(),
+      },
+    })
+    .eq("id", sourceId);
 
   await emitTypedEvent({
     type: "contact.merged",

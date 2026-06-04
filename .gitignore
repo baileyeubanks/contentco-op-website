@@ -41,3 +41,5 @@ apps/home/output/
 # Internal canonical media inventory metadata only
 apps/home/media/portfolio-masters-canonical/*.mp4
 apps/home/media/portfolio-masters-canonical/*.mov
+.env.production
+*service-account*.json

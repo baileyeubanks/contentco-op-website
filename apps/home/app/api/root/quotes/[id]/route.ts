@@ -9,13 +9,13 @@ function derivePhaseCount(items: Array<Record<string, unknown>>) {
   ).size;
 }
 
-function deriveDocumentReadiness(quote: Record<string, any>, items: Array<Record<string, unknown>>) {
+function deriveDocumentReadiness(quote: Record<string, unknown>, items: Array<Record<string, unknown>>) {
   if (items.length === 0) return "not_ready";
   if (!quote.client_name || !quote.valid_until) return "needs_review";
   return "preview_ready";
 }
 
-function deriveNextAction(quote: Record<string, any>, items: Array<Record<string, unknown>>) {
+function deriveNextAction(quote: Record<string, unknown>, items: Array<Record<string, unknown>>) {
   const internalStatus = String(quote.internal_status || "").toLowerCase();
   const clientStatus = String(quote.client_status || "").toLowerCase();
 

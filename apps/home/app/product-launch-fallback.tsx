@@ -30,14 +30,6 @@ export function ProductLaunchFallback({ product, probe }: ProductLaunchFallbackP
                 <Link className={styles.secondaryAction} href={CCO_URLS.brief}>
                   Send creative brief
                 </Link>
-                <a
-                  className={styles.secondaryAction}
-                  href={CCO_URLS.booking}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Book strategy call
-                </a>
               </div>
             </div>
 

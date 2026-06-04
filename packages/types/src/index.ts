@@ -406,6 +406,11 @@ export interface CreativeBriefSubmissionResponse {
   booking_url: string;
   summary?: CreativeBriefSummaryCard;
   warnings?: string[];
+  workflow?: {
+    ok: boolean;
+    status_code: number;
+  };
+  email_queued?: boolean;
   persistence?: {
     structured_fields: "full" | "legacy_only";
   };
@@ -417,12 +422,21 @@ export interface CreativeBriefSubmissionResponse {
     quote_ready: boolean;
     blockers: string[];
     requested_actions: CreativeBriefRootAction[];
-    channels: Array<"supabase_event" | "orchestrator" | "openclaw">;
-    openclaw: {
+    channels: Array<"supabase_event" | "orchestrator" | "hermes" | "email">;
+    orchestrator?: {
+      ok: boolean;
+      status_code: number;
+    };
+    hermes: {
       ok: boolean;
       skipped: boolean;
       status_code: number | null;
     };
+  };
+  hermes?: {
+    ok: boolean;
+    skipped: boolean;
+    status_code: number | null;
   };
 }
 

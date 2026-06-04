@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense } from "react";
+import React, { useState, useEffect, useEffectEvent, useMemo, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Page } from "@contentco-op/ui/src/atlantis/Page";
@@ -149,15 +149,25 @@ function QuotesPageInner() {
   const [loading, setLoading] = useState(true);
   const [pdpId, setPdpId] = useState<string | null>(null);
 
+  async function fetchQuotes(showSpinner = false) {
+    if (showSpinner) setLoading(true);
+
+    try {
+      const response = await fetch("/api/root/quotes?limit=200");
+      const data = await response.json().catch(() => ({}));
+      const raw = Array.isArray(data.quotes) ? (data.quotes as Quote[]) : [];
+      setAllQuotes(raw.map((quote) => ({ ...quote, display_status: deriveStatus(quote) })));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const initialFetchQuotes = useEffectEvent(async () => {
+    await fetchQuotes(false);
+  });
+
   useEffect(() => {
-    setLoading(true);
-    fetch("/api/root/quotes?limit=200")
-      .then((r) => r.json())
-      .then((d) => {
-        const raw: Quote[] = d.quotes ?? [];
-        setAllQuotes(raw.map((q) => ({ ...q, display_status: deriveStatus(q) })));
-      })
-      .finally(() => setLoading(false));
+    void initialFetchQuotes();
   }, []);
 
   /* URL param updater */
@@ -217,7 +227,7 @@ function QuotesPageInner() {
   }));
 
   /* Row action handler */
-  const handleRowAction = useCallback((action: string, row: Quote) => {
+  function handleRowAction(action: string, row: Quote) {
     switch (action) {
       case "view":
         router.push(`/root/quotes/${row.id}`);
@@ -229,23 +239,24 @@ function QuotesPageInner() {
         navigator.clipboard?.writeText(`${window.location.origin}/share/quote/${row.id}`);
         break;
       case "convert":
-        fetch(`/api/quotes/${row.id}/convert`, { method: "POST" })
+        void fetch(`/api/quotes/${row.id}/convert`, { method: "POST" })
           .then((r) => r.json())
           .then((d) => d.invoice?.id && router.push(`/root/invoices/${d.invoice.id}`));
         break;
       case "duplicate":
-        fetch(`/api/root/quotes/${row.id}/duplicate`, { method: "POST" })
-          .then(() => { setLoading(true); return fetch("/api/root/quotes?limit=200"); })
-          .then((r) => r.json())
-          .then((d) => setAllQuotes((d.quotes ?? []).map((q: Quote) => ({ ...q, display_status: deriveStatus(q) }))));
+        void (async () => {
+          setLoading(true);
+          await fetch(`/api/root/quotes/${row.id}/duplicate`, { method: "POST" });
+          await fetchQuotes(false);
+        })();
         break;
       case "delete":
         if (confirm(`Delete quote ${row.quote_number}?`))
-          fetch(`/api/root/quotes/${row.id}`, { method: "DELETE" })
+          void fetch(`/api/root/quotes/${row.id}`, { method: "DELETE" })
             .then(() => setAllQuotes((q) => q.filter((x) => x.id !== row.id)));
         break;
     }
-  }, [router]);
+  }
 
   /* DataTable columns */
   const columns = [

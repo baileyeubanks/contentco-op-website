@@ -37,8 +37,23 @@ export const ROOT_EVENT_TYPES = {
   "quote.rejected": { category: "finance", label: "Quote rejected" },
   "quote.expired": { category: "finance", label: "Quote expired" },
 
+  // ─── Estimate events ───
+  "estimate.created": { category: "finance", label: "Estimate created" },
+  "estimate.sent": { category: "finance", label: "Estimate sent" },
+  "estimate.viewed": { category: "finance", label: "Estimate viewed" },
+  "estimate.approved": { category: "finance", label: "Estimate approved" },
+  "estimate.rejected": { category: "finance", label: "Estimate rejected" },
+  "estimate.requested_changes": { category: "finance", label: "Estimate changes requested" },
+  "estimate.superseded": { category: "finance", label: "Estimate superseded" },
+
+  // ─── Approval events ───
+  "approval.requested": { category: "system", label: "Approval requested" },
+  "approval.approved": { category: "system", label: "Approval approved" },
+  "approval.rejected": { category: "system", label: "Approval rejected" },
+
   // ─── Invoice events ───
   "invoice.created": { category: "finance", label: "Invoice created" },
+  "invoice.issued": { category: "finance", label: "Invoice issued" },
   "invoice.sent": { category: "finance", label: "Invoice sent" },
   "invoice.paid": { category: "finance", label: "Invoice paid" },
   "invoice.partial_payment": { category: "finance", label: "Partial payment received" },
@@ -51,12 +66,15 @@ export const ROOT_EVENT_TYPES = {
   "payment.received": { category: "finance", label: "Payment received" },
   "payment.refunded": { category: "finance", label: "Payment refunded" },
   "payment.failed": { category: "finance", label: "Payment failed" },
+  "deposit.requested": { category: "finance", label: "Deposit requested" },
+  "deposit.paid": { category: "finance", label: "Deposit paid" },
 
   // ─── Project events ───
   "project.created": { category: "operations", label: "Project created" },
   "project.status_changed": { category: "operations", label: "Project status changed" },
   "project.completed": { category: "operations", label: "Project completed" },
   "project.cancelled": { category: "operations", label: "Project cancelled" },
+  "project.ready_to_schedule": { category: "operations", label: "Project ready to schedule" },
 
   // ─── Deliverable events ───
   "deliverable.created": { category: "operations", label: "Deliverable created" },
@@ -99,6 +117,8 @@ export const ROOT_EVENT_TYPES = {
   // ─── Brief events ───
   "brief.submitted": { category: "operations", label: "Creative brief submitted" },
   "brief.converted": { category: "operations", label: "Brief converted to project" },
+  "brief.ready_for_estimate": { category: "operations", label: "Brief ready for estimate" },
+  "operator.override_schedule_without_deposit": { category: "operations", label: "Operator schedule override without deposit" },
 } as const;
 
 export type RootEventType = keyof typeof ROOT_EVENT_TYPES;

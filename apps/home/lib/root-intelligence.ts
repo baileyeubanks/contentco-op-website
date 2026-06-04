@@ -2,7 +2,6 @@ import { getSupabase } from "@/lib/supabase";
 import { getRootHealthSnapshot, type RootHealthSnapshot } from "@/lib/root-health";
 import {
   getRootRuntimeSnapshot,
-  type DocumentArtifactRecord,
   type RootRuntimeSnapshot,
   type WorkClaimRecord,
 } from "@/lib/root-system";
@@ -18,6 +17,12 @@ type EventRecord = {
 
 type FreshnessStatus = "fresh" | "aging" | "stale" | "idle";
 type SignalTone = "healthy" | "attention" | "critical" | "neutral";
+
+type DocumentArtifactRecord = {
+  created_at: string | null;
+  render_status: string;
+  outcome_status?: string | null;
+};
 
 export type MemoryFreshnessRecord = {
   key: string;
@@ -36,7 +41,7 @@ export type LearningSnapshotRecord = {
   summary: string;
   blockers: string[];
   next_actions: string[];
-  created_at: string;
+  created_at: string | null;
   age_minutes: number;
 };
 
@@ -73,6 +78,11 @@ export type RootIntelligenceSnapshot = {
   document_artifacts: DocumentArtifactRecord[];
   warnings: string[];
   insights: RootInsightRecord[];
+};
+
+type RootIntelligenceSnapshotOptions = {
+  host?: string | null;
+  brandHint?: string | null;
 };
 
 type MaybeRecord = Record<string, unknown> | null;
@@ -249,10 +259,12 @@ function buildInsights(args: {
   return insights.slice(0, 4);
 }
 
-export async function getRootIntelligenceSnapshot(): Promise<RootIntelligenceSnapshot> {
+export async function getRootIntelligenceSnapshot(
+  options?: RootIntelligenceSnapshotOptions,
+): Promise<RootIntelligenceSnapshot> {
   const sb = getSupabase();
   const [runtime, health, eventsRes] = await Promise.all([
-    getRootRuntimeSnapshot(),
+    getRootRuntimeSnapshot(options),
     getRootHealthSnapshot("full"),
     safeTable(
       sb
@@ -264,11 +276,12 @@ export async function getRootIntelligenceSnapshot(): Promise<RootIntelligenceSna
   ]);
 
   const events = ((eventsRes.data || []) as EventRecord[]).filter((event) => Boolean(event?.created_at && event?.type));
+  const documentArtifacts: DocumentArtifactRecord[] = [];
   const latestHandoff = runtime.handoffs[0];
   const latestClaim = runtime.work_claims[0];
-  const latestArtifact = runtime.document_artifacts[0];
+  const latestArtifact = documentArtifacts[0];
   const latestEvent = events[0];
-  const pendingArtifacts = runtime.document_artifacts.filter(isPendingArtifact);
+  const pendingArtifacts = documentArtifacts.filter(isPendingArtifact);
   const eventMix = Array.from(
     events.reduce<Map<string, number>>((acc, event) => {
       acc.set(event.type, (acc.get(event.type) || 0) + 1);
@@ -327,7 +340,7 @@ export async function getRootIntelligenceSnapshot(): Promise<RootIntelligenceSna
       12 * 60,
       48 * 60,
       latestArtifact
-        ? `${runtime.document_artifacts.length} recent document artifacts are available for review.`
+        ? `${documentArtifacts.length} recent document artifacts are available for review.`
         : "No recent document artifacts were found.",
     ),
     buildFreshnessRecord(
@@ -367,7 +380,7 @@ export async function getRootIntelligenceSnapshot(): Promise<RootIntelligenceSna
     memory_freshness: memoryFreshness,
     learning_snapshots: learningSnapshots,
     queue_lag: queue,
-    document_artifacts: runtime.document_artifacts,
+    document_artifacts: documentArtifacts,
     warnings: warnings.filter((warning): warning is string => Boolean(warning)),
     insights: buildInsights({
       health,

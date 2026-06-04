@@ -1,0 +1,95 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function ccoAdmin() {
+      return signedIn() &&
+        request.auth.token.ccoRole in ['owner', 'admin', 'operator'];
+    }
+
+    function ccoOwnerOrAdmin() {
+      return signedIn() &&
+        request.auth.token.ccoRole in ['owner', 'admin'];
+    }
+
+    function publicCreateOnly(collectionName) {
+      return request.method == 'create' &&
+        request.resource.data.source.matches('contentco-op.com.*') &&
+        request.resource.data.createdAt is string;
+    }
+
+    match /people/{id} {
+      allow read, update, delete: if ccoAdmin();
+      allow create: if ccoAdmin();
+    }
+
+    match /organizations/{id} {
+      allow read, update, delete: if ccoAdmin();
+      allow create: if ccoAdmin();
+    }
+
+    match /relationships/{id} {
+      allow read, write: if ccoAdmin();
+    }
+
+    match /briefs/{id} {
+      allow read, update, delete: if ccoAdmin();
+      allow create: if ccoAdmin() || publicCreateOnly('briefs');
+    }
+
+    match /bookings/{id} {
+      allow read, update, delete: if ccoAdmin();
+      allow create: if ccoAdmin() || publicCreateOnly('bookings');
+    }
+
+    match /estimates/{id} {
+      allow read, write: if ccoAdmin();
+    }
+
+    match /proposalVersions/{id} {
+      allow read: if ccoAdmin();
+      allow create: if ccoOwnerOrAdmin();
+      allow update, delete: if false;
+    }
+
+    match /approvals/{id} {
+      allow read: if ccoAdmin();
+      allow create, update: if ccoOwnerOrAdmin();
+      allow delete: if false;
+    }
+
+    match /projects/{id} {
+      allow read, write: if ccoAdmin();
+    }
+
+    match /appHandoffs/{id} {
+      allow read, write: if ccoAdmin();
+    }
+
+    match /enrichmentRuns/{id} {
+      allow read, write: if ccoAdmin();
+    }
+
+    match /emailOutbox/{id} {
+      allow read, write: if ccoAdmin();
+    }
+
+    match /auditEvents/{id} {
+      allow read: if ccoOwnerOrAdmin();
+      allow create: if ccoAdmin();
+      allow update, delete: if false;
+    }
+
+    match /files/{id} {
+      allow read, write: if ccoAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

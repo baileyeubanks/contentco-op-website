@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "name": "brand-primitives",
+    "version": "1.0.0",
+    "description": "Canonical raw primitives for ACS, CCO HOME, ROOT, and Co-* products."
+  },
+  "color": {
+    "neutral": {
+      "0": "#ffffff",
+      "50": "#f8f6f2",
+      "100": "#f4f2ee",
+      "200": "#eef2f8",
+      "300": "#d7deea",
+      "400": "#d0d8e4",
+      "500": "#9ab1cf",
+      "600": "#7a9cc0",
+      "700": "#586174",
+      "800": "#485670",
+      "900": "#18202b"
+    },
+    "navy": {
+      "950": "#060c17",
+      "900": "#070f1c",
+      "850": "#0b1628",
+      "800": "#0d1420",
+      "750": "#0f1c31",
+      "700": "#111f36",
+      "650": "#1a3a6b",
+      "600": "#112540",
+      "550": "#1e2f47",
+      "500": "#183b6b",
+      "450": "#274e85",
+      "400": "#0d5487"
+    },
+    "blue": {
+      "700": "#1e4d8c",
+      "600": "#193f88",
+      "500": "#4c8ef5",
+      "450": "#39a5d9",
+      "400": "#1b99e8",
+      "350": "#3d7dd8",
+      "300": "#7cc6ff",
+      "250": "#b3cbf8",
+      "200": "#b3c8f0",
+      "150": "#deeaff"
+    },
+    "violet": {
+      "500": "#6b7cff",
+      "400": "#95a0ff",
+      "200": "#c6cdff"
+    },
+    "gold": {
+      "500": "#ffd700",
+      "400": "#e4ad5b",
+      "350": "#d4a060",
+      "300": "#8c6030"
+    },
+    "green": {
+      "500": "#34d399",
+      "450": "#3ec983"
+    },
+    "red": {
+      "500": "#ef4444",
+      "400": "#de7676"
+    }
+  },
+  "type": {
+    "family": {
+      "editorialDisplay": "\"Fraunces\", Georgia, \"Times New Roman\", serif",
+      "editorialBody": "\"Plus Jakarta Sans\", Inter, -apple-system, sans-serif",
+      "serviceDisplay": "\"Gotham Condensed\", \"Arial Narrow\", \"Franklin Gothic Medium\", sans-serif",
+      "serviceBody": "\"Space Grotesk\", \"Segoe UI\", sans-serif",
+      "opsDisplay": "\"Plus Jakarta Sans\", Inter, -apple-system, sans-serif",
+      "mono": "\"JetBrains Mono\", \"SF Mono\", \"Fira Code\", monospace",
+      "signature": "\"Caveat\", cursive"
+    },
+    "size": {
+      "label": "0.7rem",
+      "xs": "0.78rem",
+      "sm": "0.88rem",
+      "md": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.5rem",
+      "2xl": "2rem",
+      "3xl": "clamp(2.5rem, 6vw, 5.5rem)",
+      "4xl": "clamp(3rem, 8vw, 7rem)"
+    },
+    "lineHeight": {
+      "displayTight": 0.9,
+      "heading": 1.05,
+      "body": 1.6,
+      "bodyRelaxed": 1.62
+    },
+    "weight": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "extrabold": 800
+    },
+    "tracking": {
+      "editorial": "-0.02em",
+      "service": "0.05em",
+      "label": "0.18em",
+      "ui": "0.1em"
+    }
+  },
+  "space": {
+    "0": "0",
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px",
+    "20": "80px",
+    "24": "96px"
+  },
+  "radius": {
+    "none": "0",
+    "sm": "8px",
+    "md": "12px",
+    "lg": "16px",
+    "xl": "18px",
+    "2xl": "24px",
+    "pill": "999px"
+  },
+  "shadow": {
+    "soft": "0 10px 24px rgba(0, 0, 0, 0.12)",
+    "deep": "0 20px 42px rgba(0, 0, 0, 0.25)",
+    "serviceGlow": "0 8px 24px rgba(26, 58, 107, 0.4)",
+    "serviceGlass": "0 12px 32px rgba(0, 0, 0, 0.35)",
+    "opsPanel": "0 12px 28px rgba(24, 32, 43, 0.1)",
+    "focusBlue": "0 0 0 3px rgba(76, 142, 245, 0.28)"
+  },
+  "motion": {
+    "duration": {
+      "fast": "140ms",
+      "quick": "170ms",
+      "base": "200ms",
+      "slow": "300ms",
+      "slower": "500ms",
+      "ambient": "4s"
+    },
+    "easing": {
+      "editorial": "ease",
+      "standard": "cubic-bezier(0.2, 0, 0.2, 1)",
+      "ambient": "ease-in-out"
+    }
+  }
+}

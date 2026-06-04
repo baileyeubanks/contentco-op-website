@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "name": "brand-semantic-tokens",
+    "version": "1.0.0",
+    "description": "Shared semantic slots that every BRAND theme resolves."
+  },
+  "color": {
+    "surface.canvas": "Theme background for the page or app shell.",
+    "surface.app": "Primary shell surface when a product uses layered backgrounds.",
+    "surface.panel": "Default card, panel, or sheet surface.",
+    "surface.elevated": "Raised surface for nested cards, drawers, and overlays.",
+    "content.primary": "Primary readable text color.",
+    "content.secondary": "Secondary or metadata text color.",
+    "content.inverse": "High-contrast text for dark fills.",
+    "border.default": "Default border and divider color.",
+    "border.strong": "Higher-emphasis border or keyline.",
+    "accent.primary": "Primary brand accent used for highlights and key moments.",
+    "accent.secondary": "Supporting accent for hover, glow, or gradient anchors.",
+    "accent.soft": "Tinted accent background for subtle emphasis.",
+    "action.primary.fill": "Primary button or CTA fill.",
+    "action.primary.border": "Primary button border.",
+    "action.primary.text": "Primary button label color.",
+    "status.success": "Success semantic color.",
+    "status.warning": "Warning semantic color.",
+    "status.danger": "Danger semantic color.",
+    "effect.glass.fill": "Glassmorphism fill when a theme supports it.",
+    "effect.glass.border": "Glassmorphism border when a theme supports it.",
+    "effect.ring": "Focus ring or interactive halo."
+  },
+  "type": {
+    "font.display": "Headline family for the theme.",
+    "font.body": "Body and UI family for the theme.",
+    "font.mono": "Monospace family for code and token display.",
+    "font.signature": "Decorative signature family where supported.",
+    "size.hero": "Largest display headline size.",
+    "size.title": "Section or card title size.",
+    "size.body": "Default body size.",
+    "size.bodySm": "Small body and metadata size.",
+    "size.label": "Eyebrow, tag, and label size.",
+    "tracking.display": "Default display tracking.",
+    "tracking.label": "Label and UI tracking.",
+    "case.display": "Display casing rule.",
+    "case.label": "Label casing rule."
+  },
+  "space": {
+    "stack.xs": "{space.2}",
+    "stack.sm": "{space.4}",
+    "stack.md": "{space.6}",
+    "stack.lg": "{space.8}",
+    "stack.xl": "{space.12}",
+    "inset.sm": "{space.3}",
+    "inset.md": "{space.4}",
+    "inset.lg": "{space.6}",
+    "section": "{space.24}"
+  },
+  "radius": {
+    "button": "Primary interactive radius for buttons.",
+    "card": "Default card radius.",
+    "panel": "Large panel radius.",
+    "pill": "{radius.pill}"
+  },
+  "shadow": {
+    "card": "Default card shadow.",
+    "overlay": "Stronger overlay shadow.",
+    "emphasis": "Special glow or hover emphasis shadow.",
+    "focus": "Focus ring shadow."
+  },
+  "motion": {
+    "hover.duration": "Base hover duration.",
+    "enter.duration": "Default enter duration.",
+    "exit.duration": "Default exit duration.",
+    "ambient.duration": "Slow ambient loop duration.",
+    "standard.easing": "Primary interaction easing.",
+    "ambient.easing": "Ambient or decorative easing."
+  },
+  "document": {
+    "brand.eyebrow": "Document eyebrow copy.",
+    "brand.footer": "Document footer attribution copy.",
+    "surface.background": "Document page background.",
+    "surface.sheet": "Document sheet or panel background.",
+    "surface.sheetAlt": "Alternate document surface for chips, tables, and summary cards.",
+    "content.primary": "Document primary ink.",
+    "content.secondary": "Document muted text.",
+    "border.default": "Document lines and rule color.",
+    "border.strong": "Document higher-emphasis border color.",
+    "accent.primary": "Document accent color.",
+    "accent.strong": "Document darker accent or gradient anchor.",
+    "accent.soft": "Document tinted accent surface.",
+    "type.display": "Document display family.",
+    "type.body": "Document body family.",
+    "type.mono": "Document monospace family.",
+    "type.caseDisplay": "Document heading case rule.",
+    "type.caseLabel": "Document label case rule.",
+    "type.trackingDisplay": "Document display tracking.",
+    "type.trackingLabel": "Document label tracking.",
+    "layout.pageInset": "Document page inset or shell padding.",
+    "layout.sheetRadius": "Document page radius.",
+    "layout.cardRadius": "Document card/table radius."
+  }
+}

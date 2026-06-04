@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@contentco-op/ui/src/atlantis/Card";
@@ -59,12 +60,21 @@ export interface Payment {
   created_at: string;
 }
 
+export interface Conversation {
+  id: string;
+  channel: string;
+  last_message_at: string;
+  resolved: boolean;
+  messages_json: Array<{ role?: string; body?: string; text?: string }> | null;
+}
+
 export interface PortalData {
   contact: Contact;
   quotes: Quote[];
   jobs: Job[];
   invoices: Invoice[];
   payments: Payment[];
+  conversations: Conversation[];
 }
 
 /* ---------- Helpers ---------- */
@@ -580,7 +590,7 @@ function QuickActions() {
       <Card.Header title="Quick Actions" />
       <Card.Body>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <a
+          <Link
             href="/client/quote"
             className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-colors group"
           >
@@ -595,7 +605,7 @@ function QuickActions() {
               </p>
               <p className="text-xs text-gray-500">Get a free estimate</p>
             </div>
-          </a>
+          </Link>
 
           <a
             href="tel:+17275985314"
@@ -636,6 +646,55 @@ function QuickActions() {
   );
 }
 
+function MessagesAndUpdates({ conversations }: { conversations: Conversation[] }) {
+  return (
+    <Card>
+      <Card.Header
+        title="Messages & Updates"
+        action={<span className="text-xs text-gray-500">{conversations.length} lanes</span>}
+      />
+      <Card.Body className="p-0">
+        {conversations.length === 0 ? (
+          <div className="px-5 py-8 text-center">
+            <p className="text-sm text-gray-500">No conversation history linked yet</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {conversations.slice(0, 8).map((conversation) => {
+              const preview = Array.isArray(conversation.messages_json)
+                ? conversation.messages_json
+                    .slice(-1)
+                    .map((message) => message.body || message.text || "")
+                    .filter(Boolean)[0]
+                : "";
+              return (
+                <li key={conversation.id} className="px-5 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        {(conversation.channel || "message").toUpperCase()} lane
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {formatDateTime(conversation.last_message_at)}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-2">
+                        {preview || "Conversation activity recorded in Root."}
+                      </p>
+                    </div>
+                    <StatusLabel status={conversation.resolved ? "success" : "info"}>
+                      {conversation.resolved ? "Resolved" : "Active"}
+                    </StatusLabel>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card.Body>
+    </Card>
+  );
+}
+
 /* ---------- Main Component ---------- */
 
 interface PortalViewProps {
@@ -655,7 +714,7 @@ export function PortalView({ data, initialEmail }: PortalViewProps) {
   }
 
   // We have data — show the dashboard
-  const { contact, quotes, jobs, invoices, payments } = data!;
+  const { contact, quotes, jobs, invoices, payments, conversations } = data!;
   const firstName = (contact.name || "").split(" ")[0] || "there";
 
   return (
@@ -671,7 +730,7 @@ export function PortalView({ data, initialEmail }: PortalViewProps) {
       </div>
 
       {/* Summary stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="bg-white rounded-lg border border-gray-200 px-4 py-3 text-center">
           <p className="text-2xl font-bold text-gray-900">{quotes.length}</p>
           <p className="text-xs text-gray-500 mt-0.5">Quotes</p>
@@ -695,6 +754,10 @@ export function PortalView({ data, initialEmail }: PortalViewProps) {
           <p className="text-2xl font-bold text-gray-900">{payments.length}</p>
           <p className="text-xs text-gray-500 mt-0.5">Payments</p>
         </div>
+        <div className="bg-white rounded-lg border border-gray-200 px-4 py-3 text-center">
+          <p className="text-2xl font-bold text-gray-900">{conversations.length}</p>
+          <p className="text-xs text-gray-500 mt-0.5">Messages</p>
+        </div>
       </div>
 
       {/* Upcoming appointments */}
@@ -705,6 +768,9 @@ export function PortalView({ data, initialEmail }: PortalViewProps) {
 
       {/* Invoices & payments */}
       <InvoicesAndPayments invoices={invoices} payments={payments} />
+
+      {/* Messages */}
+      <MessagesAndUpdates conversations={conversations} />
 
       {/* Quick actions */}
       <QuickActions />

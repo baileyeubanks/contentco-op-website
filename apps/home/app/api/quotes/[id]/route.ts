@@ -5,6 +5,56 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+type QuotePatchBody = Record<string, unknown> & {
+  items?: unknown;
+};
+
+type QuoteItemInput = {
+  name: string;
+  description: string | null;
+  quantity: number;
+  unit_price: number;
+  phase_name: string | null;
+};
+
+function asString(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : value == null ? fallback : String(value);
+}
+
+function asNullableString(value: unknown) {
+  const normalized = asString(value).trim();
+  return normalized || null;
+}
+
+function asNumber(value: unknown, fallback = 0) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+async function parseBody(req: Request): Promise<QuotePatchBody | null> {
+  const body = await req.json().catch(() => null);
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    return body as QuotePatchBody;
+  }
+  return null;
+}
+
+function normalizeQuoteItems(value: unknown): QuoteItemInput[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => {
+    const row = item && typeof item === "object" && !Array.isArray(item)
+      ? (item as Record<string, unknown>)
+      : {};
+    return {
+      name: asString(row.name || row.description, ""),
+      description: asNullableString(row.description),
+      quantity: asNumber(row.quantity, 1),
+      unit_price: asNumber(row.unit_price ?? row.price, 0),
+      phase_name: asNullableString(row.phase_name),
+    };
+  });
+}
+
 /**
  * GET /api/quotes/[id] — Fetch single quote with items + contact.
  */
@@ -40,10 +90,8 @@ export async function GET(_req: Request, { params }: Props) {
  */
 export async function PATCH(req: Request, { params }: Props) {
   const { id } = await params;
-  let body: Record<string, any>;
-  try {
-    body = await req.json();
-  } catch {
+  const body = await parseBody(req);
+  if (!body) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
@@ -66,14 +114,14 @@ export async function PATCH(req: Request, { params }: Props) {
     await supabase.from("quote_items").delete().eq("quote_id", id);
 
     if (items.length > 0) {
-      const quoteItems = items.map((item: any, index: number) => ({
+      const quoteItems = normalizeQuoteItems(items).map((item, index) => ({
         quote_id: id,
         sort_order: index + 1,
-        name: item.name || item.description || "",
-        description: item.description || null,
-        quantity: item.quantity || 1,
-        unit_price: item.unit_price || item.price || 0,
-        phase_name: item.phase_name || null,
+        name: item.name,
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        phase_name: item.phase_name,
       }));
 
       const { error: itemsError } = await supabase.from("quote_items").insert(quoteItems);

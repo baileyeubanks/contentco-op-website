@@ -12,7 +12,7 @@ export const HERO = {
   ledeBold: "Industrial stories that hold up under scrutiny,",
   lede: "built for energy, industry, and live operations.",
   ctaPrimary: "Creative Brief",
-  ctaSecondary: "Book a Call",
+  ctaSecondary: "Start the Brief",
 } as const;
 
 export const HERO_VARIANTS = [
