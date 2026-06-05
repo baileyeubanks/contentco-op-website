@@ -141,6 +141,21 @@ const htmlChecks = [
     forbidden: ["BP Title Sponsor Promo", "BP title promo built around sports pacing", "A punchy event asset that reads quickly and feels polished."],
   },
   {
+    label: "citgo lessons learned case copy",
+    url: "https://contentco-op.com/portfolio/citgo-lessons-learned",
+    required: [
+      "Fall-protection systems",
+      "Tie-off and roof-access guidance",
+      "Competency verification",
+      "Mitigation-script support",
+      "OKC Lessons Learned",
+    ],
+    forbidden: [
+      "Incident-based safety training produced with the seriousness and clarity needed for real operational environments.",
+      "A training asset that holds attention and passes HSE scrutiny.",
+    ],
+  },
+  {
     label: "accurate meter case copy",
     url: "https://contentco-op.com/portfolio/accurate-meter",
     required: [
