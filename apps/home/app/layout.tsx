@@ -34,10 +34,22 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: "/icon.png",
     shortcut: "/icon.png",
-    apple: "/icon.png",
+    apple: "/apple-icon.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
   robots: {
     index: true,
@@ -85,6 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${fraunces.variable}`}>
       <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <link rel="preload" as="video" href={heroVideo} type="video/mp4" fetchPriority="high" />
       </head>
       <body data-surface="home">

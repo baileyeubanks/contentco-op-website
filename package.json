@@ -25,6 +25,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "ops:portfolio": "node scripts/validate-portfolio-manifest.mjs",
+    "ops:pwa": "node scripts/validate-pwa-assets.mjs",
     "ops:routes": "node scripts/check-public-routes.mjs",
     "ops:intake": "node scripts/check-intake-readiness.mjs",
     "ops:drift": "node scripts/check-repo-drift.mjs",
