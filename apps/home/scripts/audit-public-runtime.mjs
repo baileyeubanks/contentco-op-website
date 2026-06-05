@@ -472,7 +472,8 @@ const htmlChecks = [
     label: "tyler t1d warning signs case copy",
     url: "https://contentco-op.com/portfolio/tyler-t1d-foundation",
     required: [
-      "Tyler Type One Diabetes Foundation Story",
+      "Tyler Type One Diabetes Foundation",
+      "T1D Foundation Story",
       "Before It's Too Late PSA",
       "TylerTypeOne.org end card",
       "Support...for life! CTA",
