@@ -209,8 +209,8 @@ function GalleryLightbox({ image, closeHref }: { image: GalleryImage; closeHref:
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="gallery-lightbox-image" src={image.src} alt={image.alt} loading="eager" decoding="async" />
           <div className="gallery-lightbox-caption">
-            <span className="gallery-lightbox-tag">{image.tag}</span>
-            <span className="gallery-lightbox-label">{image.label}</span>
+            <span className="gallery-lightbox-tag">{image.tag} </span>
+            <span className="gallery-lightbox-label">{image.label} </span>
             <span className="gallery-lightbox-alt">{image.alt}</span>
           </div>
         </div>

@@ -184,7 +184,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           />
           <div className="hero-content">
             <h1>
-              <span className="hero-thin">Minimal disruption,</span>
+              <span className="hero-thin">Minimal disruption, </span>
               <em>maximum signal.</em>
             </h1>
             <p className="hero-lede">
