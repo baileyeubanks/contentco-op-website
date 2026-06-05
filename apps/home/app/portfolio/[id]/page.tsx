@@ -69,6 +69,7 @@ const LOCATION_BY_ID: Record<string, string> = {
   "bp-title-promo": "Houston, TX",
   "bp-first-time-riders": "Texas MS150 route",
   "bp-first-responders": "Houston, TX",
+  "accurate-meter": "Katy, TX",
   "accurate-meter-splicing": "Katy, TX",
   "ato-fraternity": "Baylor / Sam Houston State",
   "baylor-strategic-plan": "Baylor University, Waco",
