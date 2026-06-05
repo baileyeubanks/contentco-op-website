@@ -349,6 +349,21 @@ const htmlChecks = [
     ],
   },
   {
+    label: "accurate meter splicing case copy",
+    url: "https://contentco-op.com/portfolio/accurate-meter-splicing",
+    required: [
+      "Cable-splicing training",
+      "IR verification workflow",
+      "Badger-approved splice kit",
+      "Color-to-color wiring",
+      "Warranty and callback context",
+      "Reusable graphics system",
+      "Client-approved technical edits",
+      "4:20 technical tutorial",
+    ],
+    forbidden: ["cheap how-to", "Fiber splicing tutorial produced with enough polish", "Sales + training"],
+  },
+  {
     label: "kodiak recruitment case copy",
     url: "https://contentco-op.com/portfolio/kodiak",
     required: [
