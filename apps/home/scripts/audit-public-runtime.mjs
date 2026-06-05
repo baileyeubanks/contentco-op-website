@@ -91,6 +91,13 @@ const htmlChecks = [
     forbidden: ["Start a brief", "Book a Demo"],
   },
   {
+    label: "terms copy",
+    url: "https://contentco-op.com/terms",
+    required: [],
+    normalizedRequired: ["Terms of Service"],
+    forbidden: ["Terms ofService"],
+  },
+  {
     label: "llms product links",
     url: "https://contentco-op.com/llms.txt",
     required: [],
@@ -182,6 +189,21 @@ function curlStatus(url, family) {
     wait(500);
   }
   return lastProbe;
+}
+
+function normalizeHtmlText(html) {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function validateHealthBody(bodyText) {
@@ -321,8 +343,16 @@ for (const host of ["contentco-op.com", "www.contentco-op.com"]) {
 for (const check of htmlChecks) {
   try {
     const body = curlText(check.url, "-4");
+    const normalizedBody = check.normalizedRequired?.length ? normalizeHtmlText(body) : "";
     for (const marker of check.required) {
       if (body.includes(marker)) {
+        add("ok", `${check.label}: ${marker}`, "present");
+      } else {
+        add("fail", `${check.label}: ${marker}`, "missing");
+      }
+    }
+    for (const marker of check.normalizedRequired || []) {
+      if (normalizedBody.includes(marker)) {
         add("ok", `${check.label}: ${marker}`, "present");
       } else {
         add("fail", `${check.label}: ${marker}`, "missing");

@@ -66,7 +66,7 @@ export default function TermsPage() {
         <header className={styles.hero}>
           <p className={styles.eyebrow}>Content Co-op Legal</p>
           <h1 className={styles.title}>
-            Terms of
+            Terms of{" "}
             <br />
             <span className={styles.titleAccent}>Service</span>
           </h1>
