@@ -29,7 +29,9 @@ function escapeRegExp(value: string) {
 
 export function formatPortfolioStudyDisplayTitle(study: Pick<PortfolioCaseStudy, "client" | "title">) {
   const normalizedTitle = study.title.trim();
-  const prefixes = [study.client, study.client.split(/[&\s]/)[0] ?? ""]
+  const clientShortName = study.client.split(/\s*&\s*/)[0] ?? "";
+  const clientFirstWord = study.client.split(/\s+/)[0] ?? "";
+  const prefixes = [study.client, clientShortName, clientFirstWord]
     .map((prefix) => prefix.trim())
     .filter(Boolean);
 

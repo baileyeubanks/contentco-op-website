@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { PortfolioCaseStudy } from "@contentco-op/types";
 import { portfolioPublicStudies } from "@/lib/content/portfolio";
+import { formatPortfolioStudyDisplayTitle, formatPortfolioStudyName } from "@/lib/seo";
 import s from "./portfolio.module.css";
 
 type PortfolioCategory = "Energy" | "Industrial" | "Event" | "B2B";
@@ -19,6 +20,8 @@ type PortfolioUseCase =
 interface PortfolioItem {
   id: string;
   title: string;
+  displayTitle: string;
+  studyName: string;
   client: string;
   category: PortfolioCategory;
   description: string;
@@ -95,6 +98,8 @@ function toPortfolioItem(study: PortfolioCaseStudy): PortfolioItem | null {
   return {
     id: study.id,
     title: study.title,
+    displayTitle: formatPortfolioStudyDisplayTitle(study),
+    studyName: formatPortfolioStudyName(study),
     client: study.client,
     category: classifyStudy(study),
     description: study.summary,
@@ -232,7 +237,7 @@ function PortfolioCard({
         type="button"
         className={s.cardBtn}
         onClick={() => onSelect(item)}
-        aria-label={`Quick view ${item.client} ${item.title}`}
+        aria-label={`Quick view ${item.studyName}`}
         onMouseEnter={() => {
           setHovered(true);
           videoRef.current?.play().catch(() => {});
@@ -249,7 +254,7 @@ function PortfolioCard({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={item.thumb}
-            alt={item.title}
+            alt={item.studyName}
             loading={index < 3 ? "eager" : "lazy"}
             decoding="async"
             fetchPriority={index < 3 ? "high" : "low"}
@@ -280,7 +285,7 @@ function PortfolioCard({
             <span className={s.cardCategory}>{item.category}</span>
             <span className={s.cardYear}>{item.year}</span>
           </div>
-          <h3 className={s.cardTitle}>{item.title}</h3>
+          <h3 className={s.cardTitle}>{item.displayTitle}</h3>
           <p className={s.cardClient}>{item.client}</p>
           <p className={s.cardHeadline}>{item.headline}</p>
         </div>
@@ -378,7 +383,7 @@ function Lightbox({
                 <span className={s.lightboxMetaDot}>&middot;</span>
                 <span className={s.lightboxMetaItem} style={{ color: "#999" }}>{item.meta}</span>
               </div>
-              <h2 className={s.lightboxTitle}>{item.title}</h2>
+              <h2 className={s.lightboxTitle}>{item.displayTitle}</h2>
               <p className={s.lightboxClient}>{item.client}</p>
             </div>
             <div className={s.lightboxActions}>

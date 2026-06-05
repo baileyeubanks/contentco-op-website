@@ -211,7 +211,7 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
               />
             ) : posterUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={posterUrl} alt={`${study.client} ${study.title}`} />
+              <img src={posterUrl} alt={studyName} />
             ) : null}
           </div>
         </section>
@@ -289,7 +289,7 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
                     {entry.sector} &bull; {entry.year}
                   </p>
                   <p className={s.relatedTitle}>
-                    {entry.client} — {entry.title}
+                    {formatPortfolioStudyName(entry)}
                   </p>
                   <p className={s.relatedSummary}>{entry.summary}</p>
                 </Link>
