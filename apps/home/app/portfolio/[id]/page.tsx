@@ -92,6 +92,7 @@ function inferPlacement(study: NonNullable<ReturnType<typeof getPortfolioStudyBy
   const searchable = `${study.format} ${study.scope} ${study.deliverables.join(" ")}`.toLowerCase();
   if (searchable.includes("training") || searchable.includes("safety")) return "Training rollout, internal review, field communication";
   if (searchable.includes("jumbotron") || searchable.includes("stadium")) return "Stadium screen, live-event playback";
+  if (searchable.includes("sponsor") || searchable.includes("community communications")) return "Venue, web, social, community communications";
   if (searchable.includes("private-party") || searchable.includes("studio marketing")) return "Website, social ads, studio booking pages";
   if (searchable.includes("conference") || searchable.includes("event")) return "Event recap, website, social, internal comms";
   if (searchable.includes("recruit")) return "Recruiting, website, social, internal brand";

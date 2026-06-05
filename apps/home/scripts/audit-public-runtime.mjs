@@ -290,6 +290,19 @@ const htmlChecks = [
     forbidden: ["sponsor-safe HLSR spot with sunset energy", "Brand-safe pacing", "generic montage"],
   },
   {
+    label: "bp hlsr 2024 case copy",
+    url: "https://contentco-op.com/portfolio/bp-hlsr-2024",
+    required: [
+      "Volunteer spotlight sponsor spot",
+      "BP green-shirt volunteer footage",
+      "Industrial aerial and wind-farm visuals",
+      "Employee/community portrait collage",
+      "30-second 1080p sponsor spot",
+      "Venue, web, social, community communications",
+    ],
+    forbidden: ["Sponsor-safe", "Multiple display formats", "Rodeo energy cut into a sponsor spot", "CLIENT\\nHLSR", "Website, stakeholder meetings, sales enablement"],
+  },
+  {
     label: "pinots palette girls night out case copy",
     url: "https://contentco-op.com/portfolio/gno",
     required: [
