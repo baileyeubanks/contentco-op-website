@@ -41,6 +41,7 @@ const publicPaths = [
   "/portfolio/accurate-meter",
   "/portfolio/bp-differential-performance",
   "/portfolio/bp-first-responders",
+  "/portfolio/bp-early-careers",
   "/brief",
   "/book",
   "/suite",
@@ -122,6 +123,18 @@ const htmlChecks = [
       "Ribbon-board visual assets",
     ],
     forbidden: ["Corporate partnership that feels earned, not performative.", "A stakeholder-ready community asset with real credibility."],
+  },
+  {
+    label: "bp early careers case copy",
+    url: "https://contentco-op.com/portfolio/bp-early-careers",
+    required: [
+      "Early-career recruiting",
+      "associate interviews",
+      "hands-on work",
+      "BP Careers end card",
+      "Social recruiting cuts",
+    ],
+    forbidden: ["Recruitment messaging that lets the work speak louder than the pitch.", "A sharper recruiting front door for early-career talent at BP."],
   },
   {
     label: "suite copy",
