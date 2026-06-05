@@ -539,7 +539,7 @@ const htmlChecks = [
     required: [
       "Design-build stainless construction",
       "repair/service",
-      "new tank and vessel fabrication",
+      "New tank and vessel fabrication",
       "balance-of-plant process equipment",
       "Mueller field operations context",
       "bold service-chapter graphics",
