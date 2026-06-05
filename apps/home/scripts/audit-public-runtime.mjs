@@ -469,6 +469,27 @@ const htmlChecks = [
     ],
   },
   {
+    label: "tyler t1d warning signs case copy",
+    url: "https://contentco-op.com/portfolio/tyler-t1d-foundation",
+    required: [
+      "Tyler Type One Diabetes Foundation Story",
+      "Before It's Too Late PSA",
+      "TylerTypeOne.org end card",
+      "Support...for life! CTA",
+      "Type 1 diabetes warning-signs awareness",
+      "Glucose meter closeup",
+      "Insulin pump patch detail",
+      "KwikPen closeup",
+      "60-second 720p awareness spot",
+    ],
+    forbidden: [
+      "TV and online awareness campaign",
+      "Nonprofit messaging with broadcast-quality production.",
+      "broadcast-ready spot that earns attention",
+      "national-level production quality",
+    ],
+  },
+  {
     label: "kodiak recruitment case copy",
     url: "https://contentco-op.com/portfolio/kodiak",
     required: [
