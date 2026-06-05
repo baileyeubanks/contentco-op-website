@@ -381,7 +381,7 @@ const htmlChecks = [
     label: "baylor hankamer strategic plan case copy",
     url: "https://contentco-op.com/portfolio/baylor-strategic-plan",
     required: [
-      "Baylor Hankamer Strategic Plan",
+      "Baylor University Hankamer Strategic Plan",
       "Hankamer School of Business",
       "principled leaders",
       "Transformational learning language",
