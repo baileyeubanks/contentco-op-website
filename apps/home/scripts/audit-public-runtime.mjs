@@ -224,7 +224,7 @@ const htmlChecks = [
     required: [
       "Fall-protection systems",
       "Tie-off and roof-access guidance",
-      "Competency verification",
+      "competency verification",
       "Mitigation-script support",
       "OKC Lessons Learned",
       "4:47 720p safety training film",
