@@ -181,11 +181,20 @@ const htmlChecks = [
     required: [
       "Cheer America Championships",
       "The Title Event Promo",
+      "2250x1080 ultra-wide venue master",
+      "36.7-second high-bitrate promo",
+      "2 paid bids and 10 at-large message",
+      "ATL Cobb Galleria May 11-13 2018 boards",
+      "winthetitle.com vertical panels",
+      "Green stage-light and vortex motion",
+    ],
+    forbidden: [
+      "BP Title Sponsor Promo",
+      "BP title promo built around sports pacing",
+      "A punchy event asset that reads quickly and feels polished.",
       "2250x1080 venue master",
       "2 paid bids message",
-      "Cobb Galleria Atlanta",
     ],
-    forbidden: ["BP Title Sponsor Promo", "BP title promo built around sports pacing", "A punchy event asset that reads quickly and feels polished."],
   },
   {
     label: "citgo lessons learned case copy",
