@@ -393,6 +393,21 @@ const htmlChecks = [
     forbidden: ["Hamer School", "Handcamer", "Business school strategic vision", "Institutional vision that feels like leadership, not bureaucracy."],
   },
   {
+    label: "baylor admissions counselor case copy",
+    url: "https://contentco-op.com/portfolio/baylor-admissions",
+    required: [
+      "Baylor University Meet the Counselors",
+      "Ross Van Dyke",
+      "New Mexico, Arizona, and Nevada",
+      "Baylor Above. Beyond.",
+      "Documentaries abroad story beat",
+      "Sony experience mention",
+      "34-second admissions counselor profile",
+      "prospective students and families",
+    ],
+    forbidden: ["Counselor introductions for prospective students", "Admissions content that builds trust before the campus visit.", "Individual counselor profiles, casual tone, and campus context."],
+  },
+  {
     label: "kodiak recruitment case copy",
     url: "https://contentco-op.com/portfolio/kodiak",
     required: [
