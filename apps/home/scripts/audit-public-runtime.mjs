@@ -348,8 +348,13 @@ const htmlChecks = [
     required: [
       "Large-horsepower contract compression",
       "field technicians",
+      "warehouse specialists",
       "compressor-site context",
+      "Compressor-yard aerial context",
+      "Radio and phone dispatch moments",
+      "Labeled parts shelves and service-truck support",
       "control-panel checks",
+      "field walkdowns",
       "mechanical availability",
       "1:55 1080p recruitment film",
     ],

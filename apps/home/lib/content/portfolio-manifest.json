@@ -231,20 +231,35 @@
       "sector": "Recruitment",
       "year": "2022",
       "format": "Recruitment film",
-      "scope": "Large-horsepower contract compression recruiting and employee story",
+      "scope": "1:55 1080p recruitment film for a large-horsepower contract compression workforce, built from employee interviews, shop aisles, service trucks, field calls, compressor-yard coverage, parts shelves, and office-team scenes",
       "headline": "A recruitment film that makes contract compression work feel specific, supported, and worth joining.",
-      "summary": "Kodiak Gas Services' recruiting piece frames large-horsepower contract compression through the people who keep uptime real: field technicians, shop support, office leadership, service trucks, parts shelves, control panels, and compressor-site context across a major-basin service footprint.",
-      "mandate": "Recruit technical talent for a natural-gas compression business without turning specialized field work into generic culture copy; show the roles, environments, parts discipline, and team support candidates would actually step into.",
-      "execution": "The 1:55 edit pairs employee testimonials with warehouse aisles, compressor-station aerials, hard-hat field moments, control-panel checks, shop-floor work, office interviews, service-truck texture, and close-up mechanical detail.",
-      "outcome": "A hiring asset that makes Kodiak feel operationally serious and human at the same time: candidates see the compression ecosystem, the people around it, and the service structure behind reliability, mechanical availability, and total customer uptime.",
-      "proofPoints": ["Large-horsepower contract compression", "Field technician and shop support roles", "Compressor-station aerial context", "Parts inventory and service-truck support", "Reliability and uptime recruiting message"],
-      "deliverables": ["1:55 1080p recruitment film", "Employee testimonial coverage", "Field, shop, and office b-roll", "Candidate-facing hiring asset"],
+      "summary": "Kodiak Gas Services' recruiting piece frames large-horsepower contract compression through the people and systems that keep uptime real: field technicians, warehouse specialists, office leadership, service trucks, radio and phone dispatch moments, labeled parts shelves, control-panel checks, and compressor-site context across a major-basin service footprint.",
+      "mandate": "Recruit technical talent for a natural-gas compression business without flattening specialized work into culture copy; show candidates the environments, parts discipline, field communication, and reliability expectations they would actually step into.",
+      "execution": "The 1:55 edit pairs employee testimonials with warehouse aisles, compressor-yard aerials, hard-hat field walkdowns, control-panel checks, shop-floor work, office interviews, service-truck texture, parts-bin coverage, and small-team meeting scenes so the recruiting message feels built from the job itself.",
+      "outcome": "A hiring asset that makes Kodiak feel operationally serious and human at the same time: candidates see the compression ecosystem, the people around it, and the service structure behind reliability, mechanical availability, total customer uptime, and everyday field readiness.",
+      "proofPoints": [
+        "Large-horsepower contract compression",
+        "Field technician and warehouse specialist interviews",
+        "Compressor-yard aerial context",
+        "Radio and phone dispatch moments",
+        "Labeled parts shelves and service-truck support",
+        "Control-panel checks and field walkdowns",
+        "Reliability, mechanical availability, and uptime recruiting message"
+      ],
+      "deliverables": [
+        "1:55 1080p recruitment film",
+        "Employee testimonial coverage",
+        "Field, shop, office, and warehouse b-roll",
+        "Service-truck and parts-inventory sequences",
+        "Candidate-facing hiring asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_kodiak.jpg",
       "preview": "/cc/portfolio-cdn/preview_kodiak.mp4",
       "video": "/cc/portfolio-cdn/Kodiak_Recruitment_web.mp4",
       "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-13" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_kodiak.jpg", "alt": "Kodiak Gas Services" }
+        { "src": "/cc/portfolio-cdn/thumb_kodiak.jpg", "alt": "Kodiak Gas Services field recruitment film" },
+        { "src": "/cc/portfolio-cdn/thumb_kodiak_recruitment.jpg", "alt": "Kodiak Gas Services employee recruiting portrait" }
       ]
     },
     {
