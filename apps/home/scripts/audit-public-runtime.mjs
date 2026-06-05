@@ -378,6 +378,21 @@ const htmlChecks = [
     forbidden: ["2018", "usual fraternity stereotypes", "Multi-chapter", "Brotherhood told with honesty"],
   },
   {
+    label: "baylor hankamer strategic plan case copy",
+    url: "https://contentco-op.com/portfolio/baylor-strategic-plan",
+    required: [
+      "Baylor Hankamer Strategic Plan",
+      "Hankamer School of Business",
+      "principled leaders",
+      "Transformational learning language",
+      "Ten shared values",
+      "Character / Climate / Connections pillars",
+      "students, alumni, faculty, and staff",
+      "2:26 strategic-plan film",
+    ],
+    forbidden: ["Hamer School", "Handcamer", "Business school strategic vision", "Institutional vision that feels like leadership, not bureaucracy."],
+  },
+  {
     label: "kodiak recruitment case copy",
     url: "https://contentco-op.com/portfolio/kodiak",
     required: [
