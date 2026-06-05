@@ -38,6 +38,7 @@ const curlAttempts = 2;
 const publicPaths = [
   "/",
   "/portfolio",
+  "/portfolio/accurate-meter",
   "/brief",
   "/book",
   "/suite",
@@ -83,6 +84,18 @@ const htmlChecks = [
       "Economic Impact Film",
     ],
     forbidden: ["Industrial video production built for energy, manufacturing, and safety teams."],
+  },
+  {
+    label: "accurate meter case copy",
+    url: "https://contentco-op.com/portfolio/accurate-meter",
+    required: [
+      "Utility supply brand",
+      "waterworks supplier",
+      "Warehouse inventory scale",
+      "Field service coverage",
+      "Technical animation",
+    ],
+    forbidden: ["Energy brand", "Precision measurement framed as premium capability."],
   },
   {
     label: "suite copy",
