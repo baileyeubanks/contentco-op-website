@@ -105,6 +105,19 @@ const htmlChecks = [
     forbidden: ["Turnaround work framed for the field and the boardroom.", "Disciplined field coverage, process clarity, and controlled pacing."],
   },
   {
+    label: "bp red zone case copy",
+    url: "https://contentco-op.com/portfolio/bp-red-zone",
+    required: [
+      "Offshore red-zone safety film",
+      "Line of Fire guidance",
+      "Helix Well Enhancer red-zone monitoring",
+      "Device warning-zone alerts",
+      "Labeled equipment practices",
+      "4:23 1080p safety film",
+    ],
+    forbidden: ["Drops-prevention training that survives review-room scrutiny", "Review-room clarity", "Wipster-approved cut"],
+  },
+  {
     label: "kappa rap case copy",
     url: "https://contentco-op.com/portfolio/kappa-rap",
     required: [
