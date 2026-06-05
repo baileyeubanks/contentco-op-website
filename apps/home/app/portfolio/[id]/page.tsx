@@ -10,6 +10,8 @@ import {
   absoluteUrl,
   buildBreadcrumbJsonLd,
   buildCaseStudyJsonLd,
+  formatPortfolioStudyDisplayTitle,
+  formatPortfolioStudyName,
   portfolioCaseStudyUrl,
 } from "@/lib/seo";
 import s from "./case-study.module.css";
@@ -89,25 +91,6 @@ function inferPlacement(study: NonNullable<ReturnType<typeof getPortfolioStudyBy
   return "Website, stakeholder meetings, sales enablement, internal communications";
 }
 
-function formatDisplayTitle(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
-  const normalizedTitle = study.title.trim();
-  const prefixes = [
-    study.client,
-    study.client.split(/[&\s]/)[0] ?? "",
-  ]
-    .map((prefix) => prefix.trim())
-    .filter(Boolean);
-
-  for (const prefix of prefixes) {
-    const pattern = new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s+`, "i");
-    if (pattern.test(normalizedTitle)) {
-      return normalizedTitle.replace(pattern, "");
-    }
-  }
-
-  return normalizedTitle;
-}
-
 export async function generateStaticParams() {
   return portfolioPublicStudies.map((study) => ({ id: study.id }));
 }
@@ -123,11 +106,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = `${study.client} ${study.title} Case Study | ${SITE_NAME}`;
+  const studyName = formatPortfolioStudyName(study);
+  const title = `${studyName} Case Study | ${SITE_NAME}`;
   const description = study.summary;
   const canonical = portfolioCaseStudyUrl(study.id);
   const images = study.thumbnail
-    ? [{ url: absoluteUrl(study.thumbnail), alt: `${study.client} ${study.title}` }]
+    ? [{ url: absoluteUrl(study.thumbnail), alt: studyName }]
     : undefined;
 
   return {
@@ -159,7 +143,8 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
 
   const videoUrl = study.video || study.remoteMediaUrl || study.preview;
   const posterUrl = study.thumbnail || study.gallery[0]?.src;
-  const displayTitle = formatDisplayTitle(study);
+  const displayTitle = formatPortfolioStudyDisplayTitle(study);
+  const studyName = formatPortfolioStudyName(study);
   const specRows = [
     { label: "Client", value: study.client },
     { label: "Runtime", value: RUNTIME_BY_ID[study.id] ?? "Project cut" },
@@ -198,7 +183,7 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
             buildBreadcrumbJsonLd([
               { name: "Home", path: "/" },
               { name: "Portfolio", path: "/portfolio" },
-              { name: `${study.client} ${study.title}`, path: `/portfolio/${study.id}` },
+              { name: studyName, path: `/portfolio/${study.id}` },
             ]),
             ...buildCaseStudyJsonLd(study),
           ]}

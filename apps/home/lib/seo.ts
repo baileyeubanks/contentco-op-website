@@ -23,6 +23,30 @@ export function portfolioCaseStudyUrl(id: string) {
   return absoluteUrl(portfolioCaseStudyPath(id));
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function formatPortfolioStudyDisplayTitle(study: Pick<PortfolioCaseStudy, "client" | "title">) {
+  const normalizedTitle = study.title.trim();
+  const prefixes = [study.client, study.client.split(/[&\s]/)[0] ?? ""]
+    .map((prefix) => prefix.trim())
+    .filter(Boolean);
+
+  for (const prefix of prefixes) {
+    const pattern = new RegExp(`^${escapeRegExp(prefix)}\\s+`, "i");
+    if (pattern.test(normalizedTitle)) {
+      return normalizedTitle.replace(pattern, "");
+    }
+  }
+
+  return normalizedTitle;
+}
+
+export function formatPortfolioStudyName(study: Pick<PortfolioCaseStudy, "client" | "title">) {
+  return `${study.client} ${formatPortfolioStudyDisplayTitle(study)}`.replace(/\s+/g, " ").trim();
+}
+
 export const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": ["Organization", "ProfessionalService"],
@@ -227,7 +251,7 @@ export function buildPortfolioCollectionJsonLd(studies: PortfolioCaseStudy[]) {
         "@type": "ListItem",
         position: index + 1,
         url: portfolioCaseStudyUrl(study.id),
-        name: `${study.client} — ${study.title}`,
+        name: formatPortfolioStudyName(study),
         description: study.summary,
       })),
     },
@@ -236,6 +260,7 @@ export function buildPortfolioCollectionJsonLd(studies: PortfolioCaseStudy[]) {
 
 export function buildCaseStudyJsonLd(study: PortfolioCaseStudy) {
   const videoUrl = study.video || study.remoteMediaUrl || study.preview || "";
+  const studyName = formatPortfolioStudyName(study);
   const thumbnailUrl = study.thumbnail
     ? [absoluteUrl(study.thumbnail)]
     : study.gallery.slice(0, 1).map((image) => absoluteUrl(image.src));
@@ -244,7 +269,7 @@ export function buildCaseStudyJsonLd(study: PortfolioCaseStudy) {
     {
       "@context": "https://schema.org",
       "@type": "VideoObject",
-      name: `${study.client} — ${study.title}`,
+      name: studyName,
       description: study.summary,
       url: portfolioCaseStudyUrl(study.id),
       contentUrl: videoUrl ? absoluteUrl(videoUrl) : undefined,
@@ -267,7 +292,7 @@ export function buildCaseStudyJsonLd(study: PortfolioCaseStudy) {
     {
       "@context": "https://schema.org",
       "@type": "CreativeWork",
-      name: `${study.client} — ${study.title}`,
+      name: studyName,
       description: study.summary,
       url: portfolioCaseStudyUrl(study.id),
       image: thumbnailUrl,
@@ -286,7 +311,7 @@ export function buildCaseStudyJsonLd(study: PortfolioCaseStudy) {
     buildBreadcrumbJsonLd([
       { name: "Home", path: "/" },
       { name: "Portfolio", path: "/portfolio" },
-      { name: `${study.client} — ${study.title}`, path: portfolioCaseStudyPath(study.id) },
+      { name: studyName, path: portfolioCaseStudyPath(study.id) },
     ]),
   ];
 }
