@@ -40,6 +40,7 @@ const publicPaths = [
   "/portfolio",
   "/portfolio/bp-turnarounds",
   "/portfolio/kappa-rap",
+  "/portfolio/bp-orlando-holiday",
   "/portfolio/accurate-meter",
   "/portfolio/bp-differential-performance",
   "/portfolio/bp-first-responders",
@@ -113,6 +114,18 @@ const htmlChecks = [
       "National convention playback",
     ],
     forbidden: ["Kappa Alpha Psi", "Campus-culture resonance"],
+  },
+  {
+    label: "bp orlando case copy",
+    url: "https://contentco-op.com/portfolio/bp-orlando-holiday",
+    required: [
+      "bp America chairman and president Orlando Alvarez",
+      "Westlake and field b-roll",
+      "Sentence-case captions",
+      "Wipster review cycle",
+      "Final x3 export",
+    ],
+    forbidden: ["Executive messaging produced with the polish a year-end moment deserves.", "A leadership communication asset for global distribution and internal pride."],
   },
   {
     label: "accurate meter case copy",
