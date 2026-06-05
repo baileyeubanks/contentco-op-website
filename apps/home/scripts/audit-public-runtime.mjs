@@ -88,7 +88,7 @@ const htmlChecks = [
       "Life Critical Rules",
       "Turnaround Readiness",
       "Red Zone Safety",
-      "Economic Impact Film",
+      "Economic Impact Report",
     ],
     forbidden: ["Industrial video production built for energy, manufacturing, and safety teams."],
   },
