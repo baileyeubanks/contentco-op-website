@@ -444,7 +444,7 @@ const htmlChecks = [
       "Interview-led sales summit film",
       "Dallas skyline context",
       "1280x720, 3:00 event film",
-      "Award-recognition moments",
+      "award-recognition plaques",
       "Branded ballroom keynote coverage",
       "Table-workshop note-taking",
       "2024 exceptional sales performance plaques",
