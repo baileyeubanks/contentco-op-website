@@ -180,6 +180,21 @@ const htmlChecks = [
     forbidden: ["ICA Leadership Interview", "ICA CEO interview", "Executive messaging shaped with clarity and confidence."],
   },
   {
+    label: "conexon workshop case copy",
+    url: "https://contentco-op.com/portfolio/conexon-workshop",
+    required: [
+      "Workshop agenda promo",
+      "Co-ops Connect workshop promo",
+      "Animated session cards",
+      "Sales and marketing themes",
+      "Member-services speaker tiles",
+      "51-second 720p event asset",
+      "Co-op broadband teams, marketers, member-services leaders",
+      "Event marketing, workshop launch, attendee communications",
+    ],
+    forbidden: ["Workshop knowledge captured with enough structure", "Serialized workshops", "Round table films", "Corporate", "Houston-led production"],
+  },
+  {
     label: "bp rodeo recap case copy",
     url: "https://contentco-op.com/portfolio/bp-rodeo-recap",
     required: [
