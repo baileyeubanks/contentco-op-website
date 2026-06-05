@@ -744,7 +744,7 @@ const htmlChecks = [
       "repair/service",
       "Mueller Field Operations legacy context",
       "New tank and vessel fabrication",
-      "balance-of-plant process equipment",
+      "balance-of-plant equipment",
       "Tank-top lift and active-yard coverage",
       "Mueller Field Operations lineage",
       "red service-category cards",
@@ -753,7 +753,7 @@ const htmlChecks = [
       "Control-panel and construction-drawing details",
       "Low-disruption field-work positioning",
       "phone-to-field coordination",
-      "expanded-scope turn-key projects",
+      "expanded-scope turn-key construction",
       "1:45 1080p capability film",
     ],
     forbidden: [
