@@ -93,6 +93,26 @@ const htmlChecks = [
     forbidden: ["Industrial video production built for energy, manufacturing, and safety teams."],
   },
   {
+    label: "citgo life critical rules case copy",
+    url: "https://contentco-op.com/portfolio/citgo-lcr",
+    required: [
+      "Life Critical Rules episode",
+      "9-part Life Critical Rules training rollout",
+      "hazard recognition and control",
+      "conduct hazard identification",
+      "joint site inspection",
+      "implement safety controls",
+      "Permit-to-work and sign-in context",
+      "2:41 1080p safety episode",
+    ],
+    forbidden: [
+      "Episode 1 from a safety training system built to survive operations scrutiny.",
+      "Representative episode from a serialized safety system",
+      "Organized, watchable, and usable across a real rollout.",
+      "Serialized training",
+    ],
+  },
+  {
     label: "bp turnarounds case copy",
     url: "https://contentco-op.com/portfolio/bp-turnarounds",
     required: [
