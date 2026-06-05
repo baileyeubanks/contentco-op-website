@@ -28,6 +28,12 @@ function publicAssetPath(urlPath) {
   return path.join(appRoot, "public", clean.slice(1));
 }
 
+function isPreviewVideoPath(urlPath) {
+  const clean = stripQuery(urlPath);
+  if (!clean) return false;
+  return path.basename(clean).startsWith("preview_");
+}
+
 function readBlockedPublicVideoPaths() {
   const source = fs.readFileSync(portfolioSourcePath, "utf8");
   const block = source.match(/const BLOCKED_PUBLIC_VIDEO_PATHS = new Set\(\[([\s\S]*?)\]\);/)?.[1] || "";
@@ -69,6 +75,10 @@ for (const entry of entries) {
   const isPublic = isApproved && videoPath && !blockedPublicVideos.has(videoPath);
 
   if (isPublic) {
+    if (isPreviewVideoPath(videoPath)) {
+      issues.push(`${entry.id} uses preview video as public full video: ${videoPath}`);
+    }
+
     if (!entry.thumbnail && !entry.gallery?.[0]?.src) {
       issues.push(`${entry.id} has public video but no thumbnail or gallery still`);
     }

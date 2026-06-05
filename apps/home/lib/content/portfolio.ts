@@ -9,6 +9,8 @@ const BLOCKED_PUBLIC_VIDEO_PATHS = new Set([
   "/cc/portfolio-cdn/schneider_eae_2025_final.mp4",
   "/cc/portfolio-cdn/kodiak_cares_v3.mp4",
   "/cc/portfolio-cdn/kodiak_green_beret_v2.mp4",
+  "/cc/portfolio-cdn/preview_abb.mp4",
+  "/cc/portfolio-cdn/preview_abb_herstory.mp4",
   "/cc/portfolio-cdn/abb_ceraweek_iwd_v5.mp4",
   "/cc/portfolio-cdn/wendys_final_four_v14.mp4",
   "/cc/portfolio-cdn/elements_chemical_di_final.mp4",
