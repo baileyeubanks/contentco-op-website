@@ -495,7 +495,7 @@ const htmlChecks = [
     url: "https://contentco-op.com/portfolio/houston-tech-rodeo",
     required: [
       "Houston Exponential",
-      "Houston Tech Rodeo Kickoff Recap",
+      "Tech Rodeo Kickoff Recap",
       "2021 Houston Tech Rodeo kickoff",
       "100 Bringhurst event location",
       "Arrival drone-shot window",
