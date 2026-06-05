@@ -345,6 +345,20 @@ const htmlChecks = [
     forbidden: ["Sponsor-safe", "Multiple display formats", "Rodeo energy cut into a sponsor spot", "CLIENT\\nHLSR", "Website, stakeholder meetings, sales enablement"],
   },
   {
+    label: "eog ms150 case copy",
+    url: "https://contentco-op.com/portfolio/eog-ms150",
+    required: [
+      "40th-annual Texas MS 150 recap",
+      "National Team Captain Woody Speer",
+      "$4 million raised since 2000",
+      "Texas A&M/Kyle Field finish",
+      "April 27-28, 2024 ride",
+      "San Antonio, Midland, and Denver teams",
+      "1:51 1080p MS150 recap film",
+    ],
+    forbidden: ["A 178-mile charity ride recap", "complex rider-and-volunteer archive", "generic event coverage"],
+  },
+  {
     label: "pinots palette girls night out case copy",
     url: "https://contentco-op.com/portfolio/gno",
     required: [
