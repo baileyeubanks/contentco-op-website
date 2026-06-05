@@ -373,6 +373,19 @@ const htmlChecks = [
     forbidden: ["A first-ride story built around nerves", "MS150 feel personal instead of institutional", "CSR rider recruitment"],
   },
   {
+    label: "adaptive stainless case copy",
+    url: "https://contentco-op.com/portfolio/adaptive-stainless",
+    required: [
+      "Design-build stainless construction",
+      "repair/service",
+      "new tank and vessel fabrication",
+      "balance-of-plant process equipment",
+      "expanded-scope turn-key projects",
+      "1:45 1080p company overview film",
+    ],
+    forbidden: ["specialized builds, shop detail, and turnkey project confidence", "Product/process visuals", "Turnkey project scope"],
+  },
+  {
     label: "pinots palette girls night out case copy",
     url: "https://contentco-op.com/portfolio/gno",
     required: [
