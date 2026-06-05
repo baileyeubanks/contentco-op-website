@@ -143,6 +143,7 @@ const CLIENT_LOGOS = [
 type HomePageSearchParams = {
   hero?: string | string[];
   logos?: string | string[];
+  photo?: string | string[];
 };
 
 type HomePageProps = {
@@ -150,11 +151,22 @@ type HomePageProps = {
 };
 
 const getParam = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
+const getDecodedParam = (value: string | string[] | undefined) => {
+  const param = getParam(value);
+  if (!param) return undefined;
+
+  try {
+    return decodeURIComponent(param);
+  } catch {
+    return param;
+  }
+};
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = searchParams ? await searchParams : {};
   const heroPreview = getParam(params.hero) === "vibrant" ? "vibrant" : "quiet";
   const logoPreview = getParam(params.logos) === "color" ? "color" : "neutral";
+  const galleryPhoto = getDecodedParam(params.photo);
 
   return (
     <PublicPageLayout surface="home" theme="cream">
@@ -216,7 +228,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         {/* ─── S2: Work Gallery ─── */}
         <div className="cream-section-flush">
-          <RotatingGallery images={galleryImages} columns={8} rows={4} interval={5200} />
+          <RotatingGallery
+            images={galleryImages}
+            columns={8}
+            rows={4}
+            interval={5200}
+            baseHref="/"
+            initialSelectedSrc={galleryPhoto}
+            closeHref="/"
+          />
         </div>
 
         {/* ─── S3: Products ─── */}

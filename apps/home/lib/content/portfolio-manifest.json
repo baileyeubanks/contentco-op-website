@@ -1257,25 +1257,25 @@
     },
     {
       "id": "kappa-rap",
-      "title": "Kappa Alpha Psi Music Video",
-      "client": "Kappa Alpha Psi",
-      "sector": "Music",
-      "year": "2018",
-      "format": "Music video",
-      "scope": "Fraternity music video production",
-      "headline": "Culture and energy captured with cinematic intent.",
-      "summary": "Music video production for Kappa Alpha Psi — energy, identity, and style shot with professional production values.",
-      "mandate": "Capture cultural pride and musical energy with production quality that elevates the content.",
-      "execution": "Multi-location shooting, choreography coverage, and a stylized visual approach.",
-      "outcome": "A music video that represents the organization with pride and professionalism.",
-      "proofPoints": ["Music video", "Cultural storytelling", "Stylized production"],
-      "deliverables": ["Music video"],
+      "title": "Kappa Rap 2",
+      "client": "Kappa Kappa Gamma",
+      "sector": "Recruitment",
+      "year": "2011",
+      "format": "Recruitment music video",
+      "scope": "Baylor recruitment music video",
+      "headline": "A campus recruitment video that became a public touchstone.",
+      "summary": "Kappa Kappa Gamma recruitment video from Baylor, later known publicly as Kappa Rap 2, which reached 1.4M+ YouTube views and kept resurfacing long after rush season.",
+      "mandate": "Capture the sorority's energy and identity in a piece students would share and remember.",
+      "execution": "Original song, campus framing, choreography, and a personality-forward edit built for recruitment-room playback and later public discovery.",
+      "outcome": "A recruitment asset that outgrew its original use and became part of Baylor and KKG lore.",
+      "proofPoints": ["1.4M public views", "Recruitment video", "Baylor legacy"],
+      "deliverables": ["Recruitment music video"],
       "thumbnail": "/cc/portfolio-cdn/thumb_kappa_rap.jpg",
       "preview": "/cc/portfolio-cdn/preview_kappa_rap.mp4",
       "video": "/cc/portfolio-cdn/kappa_rap.mp4",
       "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_kappa_rap.jpg", "alt": "Kappa Alpha Psi music video" }
+        { "src": "/cc/portfolio-cdn/thumb_kappa_rap.jpg", "alt": "Kappa Kappa Gamma Kappa Rap 2 music video" }
       ]
     }
   ]
