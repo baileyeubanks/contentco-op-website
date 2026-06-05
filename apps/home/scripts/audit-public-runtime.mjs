@@ -582,6 +582,22 @@ const htmlChecks = [
     forbidden: ["Girls Night Out Campaign Film", "Campaign velocity", "Short-form polish", "Houston-led production"],
   },
   {
+    label: "pinots palette black light night case copy",
+    url: "https://contentco-op.com/portfolio/pinots-palette",
+    required: [
+      "Pinot's Palette Black Light Night",
+      "30-second black-light event promo",
+      "neon logo animation",
+      "face-paint and glow-stick prep",
+      "black-light canvas reveals",
+      "Turn a regular night copy",
+      "30-second 720p social/web spot",
+      "Themed-night campaign asset",
+      "local studio pages, paid social, and in-venue promotion",
+    ],
+    forbidden: ["Event promotion for paint-and-sip venue", "Event promo", "Social-ready", "Booking driver"],
+  },
+  {
     label: "suite copy",
     url: "https://contentco-op.com/suite",
     required: ["Brief to", "boardroom", "Co-Script", "Co-Cut", "Co-Deliver", "Request access"],
