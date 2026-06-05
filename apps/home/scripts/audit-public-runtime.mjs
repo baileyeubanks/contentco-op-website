@@ -408,6 +408,27 @@ const htmlChecks = [
     forbidden: ["Counselor introductions for prospective students", "Admissions content that builds trust before the campus visit.", "Individual counselor profiles, casual tone, and campus context."],
   },
   {
+    label: "baylor black glasses festival case copy",
+    url: "https://contentco-op.com/portfolio/baylor-film-festival",
+    required: [
+      "Baylor University Black Glasses Film Festival",
+      "42-second 720p festival opener",
+      "Baylor Film & Digital Media context",
+      "Yellow-and-black identity system",
+      "Welcome to Black Glasses title card",
+      "3D shard-break animation",
+      "Cinematography category card",
+      "Student exhibition card",
+      "Enjoy the Show end cards",
+    ],
+    forbidden: [
+      "Film festival opening sequence",
+      "Festival energy with real production discipline.",
+      "setting the tone with cinematic craft",
+      "Cinematic pacing, visual texture, and a tone that respects the art form.",
+    ],
+  },
+  {
     label: "north little rock destination case copy",
     url: "https://contentco-op.com/portfolio/north-little-rock",
     required: [
