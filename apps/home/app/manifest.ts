@@ -76,10 +76,10 @@ export default function manifest(): MetadataRoute.Manifest {
         form_factor: "wide",
       },
       {
-        src: "/pwa/screenshot-scenario-lab.png",
+        src: "/pwa/screenshot-field-production.jpg",
         sizes: "1200x1440",
-        type: "image/png",
-        label: "Content Co-op production command surface",
+        type: "image/jpeg",
+        label: "Content Co-op field crew filming on location",
         form_factor: "narrow",
       },
     ],

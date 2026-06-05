@@ -17,7 +17,7 @@ const requiredImages = [
   { path: "public/pwa/icon-512.png", width: 512, height: 512 },
   { path: "public/pwa/icon-1204.png", width: 1204, height: 1204 },
   { path: "public/cc/photos/social-industrial-video-production-v2.jpg", width: 1200, height: 630 },
-  { path: "public/pwa/screenshot-scenario-lab.png", width: 1200, height: 1440 },
+  { path: "public/pwa/screenshot-field-production.jpg", width: 1200, height: 1440 },
 ];
 
 async function assertImage({ path: relativePath, width, height }) {
@@ -69,6 +69,11 @@ assertSourceContains("apps/home/app/layout.tsx", [
   /apple:\s*["']\/apple-icon\.png["']/,
   /appleWebApp:/,
   /apple-mobile-web-app-capable["']\s+content=["']yes/,
+]);
+
+assertSourceContains("apps/home/app/manifest.ts", [
+  /screenshot-field-production\.jpg/,
+  /Content Co-op field crew filming on location/,
 ]);
 
 if (issues.length === 0) {
