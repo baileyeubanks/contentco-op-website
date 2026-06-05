@@ -252,6 +252,19 @@ const htmlChecks = [
     forbidden: ["Recruitment messaging that lets the work speak louder than the pitch.", "A sharper recruiting front door for early-career talent at BP."],
   },
   {
+    label: "claritev sales summit case copy",
+    url: "https://contentco-op.com/portfolio/clartiv-sales-summit",
+    required: [
+      "Claritev",
+      "Sales Leadership Summit",
+      "Interview-led sales summit film",
+      "Dallas skyline context",
+      "1280x720, 3:00 event film",
+      "Award-recognition moments",
+    ],
+    forbidden: ["Clartiv Sales Leadership Summit", "Clartiv's Sales Leadership Summit", "Summit coverage that outlasts the keynote."],
+  },
+  {
     label: "suite copy",
     url: "https://contentco-op.com/suite",
     required: ["Brief to", "boardroom", "Co-Script", "Co-Cut", "Co-Deliver", "Request access"],

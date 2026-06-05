@@ -1119,25 +1119,25 @@
     },
     {
       "id": "clartiv-sales-summit",
-      "title": "Clartiv Sales Leadership Summit",
-      "client": "Clartiv",
-      "sector": "Events",
+      "title": "Claritev Sales Leadership Summit",
+      "client": "Claritev",
+      "sector": "Healthcare technology",
       "year": "2024",
-      "format": "Conference recap",
-      "scope": "Sales leadership summit coverage",
-      "headline": "Summit coverage that outlasts the keynote.",
-      "summary": "Clartiv's Sales Leadership Summit captured with the production quality the audience expects from a high-stakes internal event.",
-      "mandate": "Document a high-level internal summit in a way that's reusable for onboarding, comms, and future event promotion.",
-      "execution": "Multi-camera event coverage, speaker highlights, and attendee energy.",
-      "outcome": "A polished summit recap for internal distribution and future event buy-in.",
-      "proofPoints": ["Summit production", "Internal comms", "Multi-use recap"],
-      "deliverables": ["Summit recap film", "Speaker highlights"],
+      "format": "Interview-led sales summit film",
+      "scope": "Dallas skyline context, leadership interviews, ballroom sessions, attendee networking, award-recognition moments, and hospitality detail",
+      "headline": "A sales summit recap that makes internal momentum visible.",
+      "summary": "Claritev's Sales Leadership Summit film turns a 3-minute internal event recap into proof of a post-rebrand sales culture: Dallas skyline context, interview-led leadership perspective, ballroom keynote coverage, breakout-room energy, attendee networking, award-recognition moments, and hospitality detail that keeps the piece human.",
+      "mandate": "Create an internal communications asset that could reinforce sales alignment after the event while giving Claritev a clean record of the people, recognition, and leadership messages behind the summit.",
+      "execution": "Content Co-op shaped a 1280x720, 3:00 event film from leadership and attendee interviews, keynote coverage, candid networking, awards, meal-service texture, and branded room details, keeping the edit quick enough for internal distribution without losing the scale of the room.",
+      "outcome": "The finished summit film gives Claritev a reusable recap for sales communications, leadership follow-up, onboarding context, and future event buy-in: less generic conference montage, more visible proof that the organization gathered around a shared sales mission.",
+      "proofPoints": ["Claritev brand correction", "Dallas skyline opener", "Interview-led sales voices", "Ballroom keynote coverage", "Award-recognition moments"],
+      "deliverables": ["3-minute summit recap film", "Leadership interview coverage", "Event-room b-roll", "Internal communications cut"],
       "thumbnail": "/cc/portfolio-cdn/thumb_clartiv_sales_summit.jpg",
       "preview": "/cc/portfolio-cdn/preview_clartiv_sales_summit.mp4",
       "video": "/cc/portfolio-cdn/clartiv_sales_summit.mp4",
       "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_clartiv_sales_summit.jpg", "alt": "Clartiv Sales Leadership Summit" }
+        { "src": "/cc/portfolio-cdn/thumb_clartiv_sales_summit.jpg", "alt": "Claritev Sales Leadership Summit audience and speaker coverage" }
       ]
     },
     {
