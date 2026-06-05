@@ -66,7 +66,7 @@ export default function PrivacyPage() {
         <header className={styles.hero}>
           <p className={styles.eyebrow}>Content Co-op Legal</p>
           <h1 className={styles.title}>
-            Privacy
+            Privacy{" "}
             <br />
             <span className={styles.titleAccent}>Policy</span>
           </h1>

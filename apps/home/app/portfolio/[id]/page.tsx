@@ -207,7 +207,7 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
         <section className={s.header}>
           <p className={s.kicker}>Case study</p>
           <h1 className={s.title}>
-            {study.client}
+            {study.client}{" "}
             <br />
             <em>{displayTitle}</em>
           </h1>

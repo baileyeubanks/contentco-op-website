@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, X } from "lucide-react";
 import type { CSSProperties } from "react";
 
 interface GalleryImage {
@@ -148,9 +147,7 @@ function GallerySlot({
         className="gallery-open"
         aria-label={`Open full-size photo: ${currentImage.label}`}
       >
-        <span className="gallery-open-indicator" aria-hidden="true">
-          <ArrowUpRight size={13} strokeWidth={2.1} />
-        </span>
+        <span className="gallery-open-indicator" aria-hidden="true" />
         <span className="sr-only">Open full-size photo</span>
       </Link>
       <div className={`gallery-layer ${!showB ? "gallery-layer-visible" : ""}`}>
@@ -205,7 +202,7 @@ function GalleryLightbox({ image, closeHref }: { image: GalleryImage; closeHref:
     >
       <div className="gallery-lightbox-panel" onClick={(event) => event.stopPropagation()}>
         <Link href={closeHref} scroll={false} className="gallery-lightbox-close" aria-label="Close photo viewer">
-          <X size={18} strokeWidth={2.25} />
+          <span aria-hidden="true">&times;</span>
         </Link>
 
         <div className="gallery-lightbox-stage">
