@@ -278,6 +278,18 @@ const htmlChecks = [
     forbidden: ["Event campaign", "National event activation turned into a campaign asset with real velocity.", "Sponsor-safe pacing"],
   },
   {
+    label: "bp hlsr 2025 case copy",
+    url: "https://contentco-op.com/portfolio/hlsr-2025",
+    required: [
+      "Broadcast-style rodeo sponsor spot",
+      "1920x1080, 10-bit 4:2:2",
+      "Investing in America map end card",
+      "Companion venue-board package",
+      "Houston Livestock Show & Rodeo center spot",
+    ],
+    forbidden: ["sponsor-safe HLSR spot with sunset energy", "Brand-safe pacing", "generic montage"],
+  },
+  {
     label: "suite copy",
     url: "https://contentco-op.com/suite",
     required: ["Brief to", "boardroom", "Co-Script", "Co-Cut", "Co-Deliver", "Request access"],
