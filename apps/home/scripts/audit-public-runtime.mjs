@@ -258,6 +258,19 @@ const htmlChecks = [
     forbidden: ["Energy brand", "Precision measurement framed as premium capability."],
   },
   {
+    label: "kodiak recruitment case copy",
+    url: "https://contentco-op.com/portfolio/kodiak",
+    required: [
+      "Large-horsepower contract compression",
+      "field technicians",
+      "compressor-site context",
+      "control-panel checks",
+      "mechanical availability",
+      "1:55 1080p recruitment film",
+    ],
+    forbidden: ["Compression service context", "Team support system", "Recruitment film that lets Kodiak employees make the field feel knowable"],
+  },
+  {
     label: "bp differential case copy",
     url: "https://contentco-op.com/portfolio/bp-differential-performance",
     required: [
