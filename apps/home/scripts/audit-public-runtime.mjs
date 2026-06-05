@@ -40,6 +40,7 @@ const publicPaths = [
   "/portfolio",
   "/portfolio/accurate-meter",
   "/portfolio/bp-differential-performance",
+  "/portfolio/bp-first-responders",
   "/brief",
   "/book",
   "/suite",
@@ -109,6 +110,18 @@ const htmlChecks = [
       "SharePoint and Yammer-ready export",
     ],
     forbidden: ["Technical story that teams can actually follow.", "A more usable technical story for briefings and review meetings."],
+  },
+  {
+    label: "bp first responders case copy",
+    url: "https://contentco-op.com/portfolio/bp-first-responders",
+    required: [
+      "Community sponsorship",
+      "Houston first-responder recognition",
+      "Rodeo-adjacent delivery",
+      "Jumbotron-ready export",
+      "Ribbon-board visual assets",
+    ],
+    forbidden: ["Corporate partnership that feels earned, not performative.", "A stakeholder-ready community asset with real credibility."],
   },
   {
     label: "suite copy",
