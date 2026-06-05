@@ -408,6 +408,26 @@ const htmlChecks = [
     forbidden: ["Counselor introductions for prospective students", "Admissions content that builds trust before the campus visit.", "Individual counselor profiles, casual tone, and campus context."],
   },
   {
+    label: "north little rock destination case copy",
+    url: "https://contentco-op.com/portfolio/north-little-rock",
+    required: [
+      "North Little Rock Destination Film",
+      "NorthLittleRock.org",
+      "scenic riverfront",
+      "downtown arts district",
+      "live music, cuisine, and art",
+      "pedestrians, bike riders, and explorers",
+      "Food and entertainment texture",
+      "1:08 destination film",
+      "Rev transcript and local transcript match",
+    ],
+    forbidden: [
+      "City promotion and tourism",
+      "A city story that makes you want to visit, not just read about it.",
+      "Location coverage, local character, and a pacing that lets the city speak for itself.",
+    ],
+  },
+  {
     label: "kodiak recruitment case copy",
     url: "https://contentco-op.com/portfolio/kodiak",
     required: [
