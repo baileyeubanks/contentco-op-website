@@ -180,6 +180,30 @@ const htmlChecks = [
     forbidden: ["ICA Leadership Interview", "ICA CEO interview", "Executive messaging shaped with clarity and confidence."],
   },
   {
+    label: "bp rodeo recap case copy",
+    url: "https://contentco-op.com/portfolio/bp-rodeo-recap",
+    required: [
+      "Community recap film",
+      "Rodeo Run coverage",
+      "BP volunteer presence",
+      "First-responder recognition",
+      "BP Invest end card",
+    ],
+    forbidden: ["NRG Stadium energy kept moving, even in the recap.", "line-dancing energy", "A polished recap that makes the activation feel lively without losing brand control."],
+  },
+  {
+    label: "bp first responders venue boards case copy",
+    url: "https://contentco-op.com/portfolio/bp-nrg-jumbotron",
+    required: [
+      "Stadium screen and ribbon-board package",
+      "2772x524 jumbotron master",
+      "Ribbon-board caption space",
+      "End-zone panel delivery",
+      "59.94 progressive feedback",
+    ],
+    forbidden: ["BP NRG Stadium Feature", "A first-responder grid built for NRG Stadium scale.", "Create a stadium-scale asset that reads instantly from across the room."],
+  },
+  {
     label: "accurate meter case copy",
     url: "https://contentco-op.com/portfolio/accurate-meter",
     required: [
