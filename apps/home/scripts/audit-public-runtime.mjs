@@ -290,6 +290,22 @@ const htmlChecks = [
     forbidden: ["sponsor-safe HLSR spot with sunset energy", "Brand-safe pacing", "generic montage"],
   },
   {
+    label: "pinots palette girls night out case copy",
+    url: "https://contentco-op.com/portfolio/gno",
+    required: [
+      "Pinot's Palette Girls Night Out",
+      "Reservation-driving campaign film",
+      "paint-and-sip studio",
+      "Customer testimonial overlays",
+      "No-experience-needed messaging",
+      "Nationwide studio CTA",
+      "Franchise studio campaign",
+      "Private-party guests, studio owners, franchise marketers",
+      "Website, social ads, studio booking pages",
+    ],
+    forbidden: ["Girls Night Out Campaign Film", "Campaign velocity", "Short-form polish", "Houston-led production"],
+  },
+  {
     label: "suite copy",
     url: "https://contentco-op.com/suite",
     required: ["Brief to", "boardroom", "Co-Script", "Co-Cut", "Co-Deliver", "Request access"],

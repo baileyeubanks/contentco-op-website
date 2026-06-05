@@ -44,6 +44,7 @@ const RUNTIME_BY_ID: Record<string, string> = {
   "citgo-lessons-learned": "04:47",
   "ica-aerial-refinery": "00:30",
   "ica-ceo-interview": "02:04",
+  gno: "00:59",
 };
 
 const LOCATION_BY_ID: Record<string, string> = {
@@ -60,6 +61,7 @@ const LOCATION_BY_ID: Record<string, string> = {
   "bp-first-responders": "Houston, TX",
   "ica-aerial-refinery": "U.S. energy footprint",
   "ica-ceo-interview": "Ponte Vedra Beach, FL",
+  gno: "Franchise studio campaign",
 };
 
 function inferLocation(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
@@ -77,6 +79,9 @@ function inferAudience(study: NonNullable<ReturnType<typeof getPortfolioStudyByI
   if (searchable.includes("conference") || searchable.includes("executive")) {
     return "Executives, communications teams, event stakeholders";
   }
+  if (searchable.includes("paint-and-sip") || searchable.includes("franchise")) {
+    return "Private-party guests, studio owners, franchise marketers";
+  }
   if (searchable.includes("event") || searchable.includes("rodeo") || searchable.includes("stadium")) {
     return "Employees, partners, attendees, internal communications";
   }
@@ -87,6 +92,7 @@ function inferPlacement(study: NonNullable<ReturnType<typeof getPortfolioStudyBy
   const searchable = `${study.format} ${study.scope} ${study.deliverables.join(" ")}`.toLowerCase();
   if (searchable.includes("training") || searchable.includes("safety")) return "Training rollout, internal review, field communication";
   if (searchable.includes("jumbotron") || searchable.includes("stadium")) return "Stadium screen, live-event playback";
+  if (searchable.includes("private-party") || searchable.includes("studio marketing")) return "Website, social ads, studio booking pages";
   if (searchable.includes("conference") || searchable.includes("event")) return "Event recap, website, social, internal comms";
   if (searchable.includes("recruit")) return "Recruiting, website, social, internal brand";
   return "Website, stakeholder meetings, sales enablement, internal communications";

@@ -383,25 +383,25 @@
     },
     {
       "id": "gno",
-      "title": "Girls Night Out Campaign Film",
-      "client": "GNO",
-      "sector": "Events",
+      "title": "Pinot's Palette Girls Night Out",
+      "client": "Pinot's Palette",
+      "sector": "Experiential franchise marketing",
       "year": "2024",
-      "format": "Campaign film",
-      "scope": "Short-form brand campaign",
-      "headline": "A compact campaign cut built to move with speed, not feel disposable.",
-      "summary": "A shorter campaign asset where timing, transitions, and visual punch do the heavy lifting.",
-      "mandate": "Keep the piece energetic without sacrificing polish.",
-      "execution": "Short-form pacing and punchier editorial choices keep the cut alive.",
-      "outcome": "A campaign asset that feels fast, sharp, and reusable.",
-      "proofPoints": ["Campaign velocity", "Tight editorial", "Short-form polish"],
-      "deliverables": ["Campaign film", "Short-form promo"],
+      "format": "Reservation-driving campaign film",
+      "scope": "59-second paint-and-sip campaign cut for Pinot's Palette Girls Night Out, built from studio footage, customer testimonials, group painting moments, reservation prompts, and a nationwide studio CTA",
+      "headline": "A girls-night-out campaign that sells the room, not just the class.",
+      "summary": "Pinot's Palette's Girls Night Out cut turns a paint-and-sip studio into a social proof asset: wine-glass cheers, group photos, apron-and-canvas instruction, Tulsa and Somerville customer callouts, phone-shot UGC texture, reserved-seating graphics, and a national studio CTA all make the experience feel easy to book.",
+      "mandate": "Show why a private painting night feels low-pressure, social, and repeatable across franchise studios, while keeping the edit fast enough for web and social promotion.",
+      "execution": "Content Co-op paired upbeat studio b-roll with kinetic typography, handwritten testimonial overlays, bold objection-handling graphics, and close-up painting details so the campaign answers common hesitations: no experience required, clear instruction, music, party atmosphere, and enough seats for a group.",
+      "outcome": "The finished 59-second spot gives Pinot's Palette a booking-focused campaign asset for girls-night-out, private-party, franchise, and studio marketing without losing the color and looseness of the actual room.",
+      "proofPoints": ["Paint-and-sip studio footage", "Girls-night-out reservation prompt", "Customer testimonial overlays", "No-experience-needed messaging", "Nationwide studio CTA"],
+      "deliverables": ["59-second campaign film", "Private-party promo asset", "Studio marketing cut"],
       "thumbnail": "/cc/portfolio-cdn/thumb_gno.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/GNO_03.mp4",
       "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-17" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_gno.jpg", "alt": "Girls Night Out event" }
+        { "src": "/cc/portfolio-cdn/thumb_gno.jpg", "alt": "Pinot's Palette Girls Night Out paint-and-sip campaign" }
       ]
     },
     {
