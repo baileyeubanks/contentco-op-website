@@ -58,7 +58,8 @@ const LOCATION_BY_ID: Record<string, string> = {
   "bp-title-promo": "Houston, TX",
   "bp-first-time-riders": "Texas MS150 route",
   "bp-first-responders": "Houston, TX",
-  "ica-aerial-refinery": "Gulf Coast industrial corridor",
+  "ica-aerial-refinery": "U.S. energy footprint",
+  "ica-ceo-interview": "Ponte Vedra Beach, FL",
 };
 
 function inferLocation(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {

@@ -156,6 +156,30 @@ const htmlChecks = [
     ],
   },
   {
+    label: "bp economic impact case copy",
+    url: "https://contentco-op.com/portfolio/ica-aerial-refinery",
+    required: [
+      "BP",
+      "Economic Impact Report",
+      "$135 billion economic impact",
+      "190,000 American jobs",
+      "Committed to America map",
+    ],
+    forbidden: ["ICA Economic Impact Film", "ICA aerial refinery", "Aerial refinery footage cut into a short industrial proof piece"],
+  },
+  {
+    label: "conexon leadership case copy",
+    url: "https://contentco-op.com/portfolio/ica-ceo-interview",
+    required: [
+      "Conexon",
+      "Co-ops Connect Leadership Film",
+      "Michael Kirkland",
+      "Jarrod Campbell",
+      "Smart Grid round table",
+    ],
+    forbidden: ["ICA Leadership Interview", "ICA CEO interview", "Executive messaging shaped with clarity and confidence."],
+  },
+  {
     label: "accurate meter case copy",
     url: "https://contentco-op.com/portfolio/accurate-meter",
     required: [
