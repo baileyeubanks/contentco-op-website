@@ -39,6 +39,7 @@ const publicPaths = [
   "/",
   "/portfolio",
   "/portfolio/accurate-meter",
+  "/portfolio/bp-differential-performance",
   "/brief",
   "/book",
   "/suite",
@@ -96,6 +97,18 @@ const htmlChecks = [
       "Technical animation",
     ],
     forbidden: ["Energy brand", "Precision measurement framed as premium capability."],
+  },
+  {
+    label: "bp differential case copy",
+    url: "https://contentco-op.com/portfolio/bp-differential-performance",
+    required: [
+      "Executive performance communications",
+      "Gio Cristofoli",
+      "Logistics cash cost graphic",
+      "Q3 performance communications",
+      "SharePoint and Yammer-ready export",
+    ],
+    forbidden: ["Technical story that teams can actually follow.", "A more usable technical story for briefings and review meetings."],
   },
   {
     label: "suite copy",
