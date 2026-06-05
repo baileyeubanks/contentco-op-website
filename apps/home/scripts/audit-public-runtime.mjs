@@ -265,6 +265,19 @@ const htmlChecks = [
     forbidden: ["Clartiv Sales Leadership Summit", "Clartiv's Sales Leadership Summit", "Summit coverage that outlasts the keynote."],
   },
   {
+    label: "wendys final four case copy",
+    url: "https://contentco-op.com/portfolio/wendys-final-four",
+    required: [
+      "social approval pressure",
+      "Creator-led activation recap",
+      "NCAA Men's Final Four Tip-Off Tailgate",
+      "QCP creator workflow",
+      "Official Hamburger of March Madness",
+      "59-second activation recap",
+    ],
+    forbidden: ["Event campaign", "National event activation turned into a campaign asset with real velocity.", "Sponsor-safe pacing"],
+  },
+  {
     label: "suite copy",
     url: "https://contentco-op.com/suite",
     required: ["Brief to", "boardroom", "Co-Script", "Co-Cut", "Co-Deliver", "Request access"],
