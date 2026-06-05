@@ -39,6 +39,7 @@ const publicPaths = [
   "/",
   "/portfolio",
   "/portfolio/bp-turnarounds",
+  "/portfolio/kappa-rap",
   "/portfolio/accurate-meter",
   "/portfolio/bp-differential-performance",
   "/portfolio/bp-first-responders",
@@ -100,6 +101,18 @@ const htmlChecks = [
       "Downtime and shutdown context",
     ],
     forbidden: ["Turnaround work framed for the field and the boardroom.", "Disciplined field coverage, process clarity, and controlled pacing."],
+  },
+  {
+    label: "kappa rap case copy",
+    url: "https://contentco-op.com/portfolio/kappa-rap",
+    required: [
+      "Kappa Kappa Gamma",
+      "Baylor Kappa Kappa Gamma",
+      "Bailey Eubanks",
+      "1.4M+ public views",
+      "National convention playback",
+    ],
+    forbidden: ["Kappa Alpha Psi", "Campus-culture resonance"],
   },
   {
     label: "accurate meter case copy",
