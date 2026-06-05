@@ -41,6 +41,7 @@ const publicPaths = [
   "/portfolio/bp-turnarounds",
   "/portfolio/kappa-rap",
   "/portfolio/bp-orlando-holiday",
+  "/portfolio/bp-title-promo",
   "/portfolio/accurate-meter",
   "/portfolio/bp-differential-performance",
   "/portfolio/bp-first-responders",
@@ -126,6 +127,18 @@ const htmlChecks = [
       "Final x3 export",
     ],
     forbidden: ["Executive messaging produced with the polish a year-end moment deserves.", "A leadership communication asset for global distribution and internal pride."],
+  },
+  {
+    label: "the title promo case copy",
+    url: "https://contentco-op.com/portfolio/bp-title-promo",
+    required: [
+      "Cheer America Championships",
+      "The Title Event Promo",
+      "2250x1080 venue master",
+      "2 paid bids message",
+      "Cobb Galleria Atlanta",
+    ],
+    forbidden: ["BP Title Sponsor Promo", "BP title promo built around sports pacing", "A punchy event asset that reads quickly and feels polished."],
   },
   {
     label: "accurate meter case copy",
