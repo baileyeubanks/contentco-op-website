@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Maximize2, X } from "lucide-react";
+import { ArrowUpRight, X } from "lucide-react";
 import type { CSSProperties } from "react";
 
 interface GalleryImage {
@@ -149,7 +149,7 @@ function GallerySlot({
         aria-label={`Open full-size photo: ${currentImage.label}`}
       >
         <span className="gallery-open-indicator" aria-hidden="true">
-          <Maximize2 size={14} strokeWidth={2.2} />
+          <ArrowUpRight size={13} strokeWidth={2.1} />
         </span>
         <span className="sr-only">Open full-size photo</span>
       </Link>

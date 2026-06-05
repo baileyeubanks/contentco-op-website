@@ -2226,20 +2226,18 @@ h1, h2, h3, h4 {
 
 .gallery-open-indicator {
   position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
+  top: 0.45rem;
+  right: 0.45rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.45rem;
-  height: 1.45rem;
-  border-radius: 999px;
-  background: rgba(7, 12, 20, 0.46);
-  color: rgba(247, 251, 255, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  width: 1rem;
+  height: 1rem;
+  color: rgba(247, 251, 255, 0.82);
   opacity: 0;
   transform: scale(0.94);
-  transition: opacity 180ms ease, transform 180ms ease, background 180ms ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  transition: opacity 180ms ease, transform 180ms ease, color 180ms ease;
   pointer-events: none;
 }
 
@@ -2250,12 +2248,12 @@ h1, h2, h3, h4 {
 }
 
 .gallery-item:hover .gallery-open-indicator {
-  background: rgba(7, 12, 20, 0.62);
+  color: rgba(247, 251, 255, 0.98);
 }
 
 @media (hover: none) and (pointer: coarse) {
   .gallery-open-indicator {
-    opacity: 0.88;
+    opacity: 0.24;
     transform: scale(1);
   }
 }
@@ -2337,34 +2335,39 @@ h1, h2, h3, h4 {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(0.9rem, 2vw, 2rem);
-  background: rgba(6, 10, 18, 0.84);
-  backdrop-filter: blur(14px) saturate(1.15);
+  padding: clamp(0.6rem, 1.6vw, 1.5rem);
+  background: rgba(6, 10, 18, 0.9);
+  backdrop-filter: blur(16px) saturate(1.12);
 }
 
 .gallery-lightbox-panel {
   position: relative;
-  width: min(96vw, 1460px);
-  height: min(92vh, 920px);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .gallery-lightbox-stage {
   position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #050a12;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  width: min(96vw, 1460px);
+  max-height: calc(100vh - 2rem);
 }
 
 .gallery-lightbox-image {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: calc(100vh - 2rem);
   object-fit: contain;
   object-position: center center;
-  background: #050a12;
+  background: transparent;
+  border-radius: 12px;
+}
+
+.gallery-lightbox-image::selection {
+  background: transparent;
 }
 
 .gallery-lightbox-caption {
@@ -2374,13 +2377,14 @@ h1, h2, h3, h4 {
   z-index: 2;
   display: grid;
   gap: 0.25rem;
-  max-width: min(28rem, calc(100% - 1.6rem));
-  padding: 0.75rem 0.85rem;
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(5, 10, 18, 0.08), rgba(5, 10, 18, 0.78));
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  max-width: min(20rem, calc(100% - 1.6rem));
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
   color: rgba(247, 251, 255, 0.96);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  box-shadow: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
 }
 
 .gallery-lightbox-tag {
@@ -2392,31 +2396,31 @@ h1, h2, h3, h4 {
 }
 
 .gallery-lightbox-label {
-  font-size: 0.98rem;
+  font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.12;
 }
 
 .gallery-lightbox-alt {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   line-height: 1.45;
   color: rgba(247, 251, 255, 0.78);
 }
 
 .gallery-lightbox-close {
   position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
+  top: 0.15rem;
+  right: 0.15rem;
   z-index: 3;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.15rem;
-  height: 2.15rem;
+  width: 1.9rem;
+  height: 1.9rem;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(5, 10, 18, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 10, 18, 0.44);
   color: rgba(247, 251, 255, 0.96);
   text-decoration: none;
   cursor: pointer;
@@ -2435,24 +2439,18 @@ h1, h2, h3, h4 {
 }
 
 @media (max-width: 700px) {
-  .gallery-lightbox-panel {
-    width: 100%;
-    height: min(88vh, 760px);
-  }
-
   .gallery-lightbox-caption {
     max-width: calc(100% - 1.2rem);
     left: 0.6rem;
     bottom: 0.6rem;
-    padding: 0.68rem 0.75rem;
   }
 
   .gallery-lightbox-label {
-    font-size: 0.92rem;
+    font-size: 0.84rem;
   }
 
   .gallery-lightbox-alt {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
 }
 
