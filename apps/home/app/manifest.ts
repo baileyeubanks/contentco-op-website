@@ -13,8 +13,13 @@ export default function manifest(): MetadataRoute.Manifest {
     display_override: ["window-controls-overlay", "standalone"],
     background_color: "#f3ede2",
     theme_color: "#0b1928",
-    orientation: "portrait",
     icons: [
+      {
+        src: "/pwa/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
       {
         src: "/pwa/icon-192.png",
         sizes: "192x192",
@@ -24,6 +29,24 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         src: "/pwa/icon-512.png",
         sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/pwa/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/pwa/icon-1204.png",
+        sizes: "1204x1204",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/pwa/icon-1204.png",
+        sizes: "1204x1204",
         type: "image/png",
         purpose: "maskable",
       },
@@ -52,7 +75,14 @@ export default function manifest(): MetadataRoute.Manifest {
         label: "Content Co-op field production crew",
         form_factor: "wide",
       },
+      {
+        src: "/pwa/screenshot-scenario-lab.png",
+        sizes: "1200x1440",
+        type: "image/png",
+        label: "Content Co-op production command surface",
+        form_factor: "narrow",
+      },
     ],
-    categories: ["business", "productivity", "utilities"],
+    categories: ["business", "productivity", "photo", "video"],
   };
 }
