@@ -491,6 +491,29 @@ const htmlChecks = [
     ],
   },
   {
+    label: "houston tech rodeo kickoff case copy",
+    url: "https://contentco-op.com/portfolio/houston-tech-rodeo",
+    required: [
+      "Houston Exponential",
+      "Houston Tech Rodeo Kickoff Recap",
+      "2021 Houston Tech Rodeo kickoff",
+      "100 Bringhurst event location",
+      "Arrival drone-shot window",
+      "Doors-open crowd coverage",
+      "8:15 program start context",
+      "Master P appearance context",
+      "#HoustonTechRodeo lower-thirds",
+      "Sunset Houston skyline plates",
+      "1:54 720p event film",
+    ],
+    forbidden: [
+      "City of Houston",
+      "Houston startup ecosystem recap",
+      "Shareable civic recap",
+      "a polished artifact of startup momentum",
+    ],
+  },
+  {
     label: "kodiak recruitment case copy",
     url: "https://contentco-op.com/portfolio/kodiak",
     required: [
