@@ -389,7 +389,7 @@ const htmlChecks = [
     required: [
       "hands-on experience",
       "meaningful projects",
-      "conference-room mentorship",
+      "Conference-room mentorship scenes",
       "office-floor introductions",
       "Intern and graduate programme positioning",
       "BP Careers end card",
