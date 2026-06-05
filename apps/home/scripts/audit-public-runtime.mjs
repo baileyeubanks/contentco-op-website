@@ -396,7 +396,7 @@ const htmlChecks = [
     label: "baylor admissions counselor case copy",
     url: "https://contentco-op.com/portfolio/baylor-admissions",
     required: [
-      "Baylor University Meet the Counselors",
+      "Baylor University Admissions Meet the Counselors",
       "Ross Van Dyke",
       "New Mexico, Arizona, and Nevada",
       "Baylor Above. Beyond.",
