@@ -428,6 +428,26 @@ const htmlChecks = [
     ],
   },
   {
+    label: "school boy humor music video case copy",
+    url: "https://contentco-op.com/portfolio/school-boy-humor",
+    required: [
+      "School Boy Humor Music Video",
+      "3:29 720p music video",
+      "Magenta club-light performance look",
+      "Handheld crowd movement",
+      "Guitarist and vocalist setups",
+      "Smoke-backed drum-kit frames",
+      "Bright backlight silhouettes",
+      "Bailey Eubanks end mark",
+    ],
+    forbidden: [
+      "Full music video production",
+      "A music video that holds its own against any budget level.",
+      "Concept development, multi-location shooting, and a polished post workflow.",
+      "major label releases",
+    ],
+  },
+  {
     label: "kodiak recruitment case copy",
     url: "https://contentco-op.com/portfolio/kodiak",
     required: [
