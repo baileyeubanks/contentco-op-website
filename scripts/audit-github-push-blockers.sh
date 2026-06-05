@@ -66,6 +66,7 @@ for required in \
   ".github/workflows/ci.yml" \
   ".github/workflows/ci-security.yml" \
   ".github/workflows/publish-home-image.yml" \
+  "scripts/validate-pwa-assets.mjs" \
   "scripts/write-git-tracked-manifest.sh"
 do
   if [ ! -f "$required" ]; then

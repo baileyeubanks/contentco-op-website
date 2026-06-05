@@ -55,6 +55,7 @@ if (dirty && !allowDirty) {
 
 if (!skipBuild) {
   run("npm", ["run", "ops:portfolio"]);
+  run("npm", ["run", "ops:pwa"]);
   run("npm", ["run", "typecheck", "-w", "@contentco-op/home"]);
   run("npm", ["run", "build", "-w", "@contentco-op/home"]);
 }
