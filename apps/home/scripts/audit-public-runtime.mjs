@@ -364,6 +364,20 @@ const htmlChecks = [
     forbidden: ["cheap how-to", "Fiber splicing tutorial produced with enough polish", "Sales + training"],
   },
   {
+    label: "ato recruitment case copy",
+    url: "https://contentco-op.com/portfolio/ato-fraternity",
+    required: [
+      "Alpha Tau Omega",
+      "Baylor Theta Nu",
+      "Sam Houston State Zeta Nu",
+      "Leadership and attitude prompts",
+      "Recruitment and academics language",
+      "Chapter goal-setting message",
+      "1:47 testimonial edit",
+    ],
+    forbidden: ["2018", "usual fraternity stereotypes", "Multi-chapter", "Brotherhood told with honesty"],
+  },
+  {
     label: "kodiak recruitment case copy",
     url: "https://contentco-op.com/portfolio/kodiak",
     required: [
