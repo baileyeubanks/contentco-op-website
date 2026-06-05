@@ -359,6 +359,20 @@ const htmlChecks = [
     forbidden: ["A 178-mile charity ride recap", "complex rider-and-volunteer archive", "generic event coverage"],
   },
   {
+    label: "bp first-time riders case copy",
+    url: "https://contentco-op.com/portfolio/bp-first-time-riders",
+    required: [
+      "BP MS150 first-time rider portraits",
+      "Leah Brown",
+      "Christy Treat",
+      "Ryan Johnson",
+      "#whyiride social prompt",
+      "tell us why you ride",
+      "2:47 720p community impact film",
+    ],
+    forbidden: ["A first-ride story built around nerves", "MS150 feel personal instead of institutional", "CSR rider recruitment"],
+  },
+  {
     label: "pinots palette girls night out case copy",
     url: "https://contentco-op.com/portfolio/gno",
     required: [
