@@ -38,6 +38,7 @@ const curlAttempts = 2;
 const publicPaths = [
   "/",
   "/portfolio",
+  "/portfolio/bp-turnarounds",
   "/portfolio/accurate-meter",
   "/portfolio/bp-differential-performance",
   "/portfolio/bp-first-responders",
@@ -87,6 +88,18 @@ const htmlChecks = [
       "Economic Impact Film",
     ],
     forbidden: ["Industrial video production built for energy, manufacturing, and safety teams."],
+  },
+  {
+    label: "bp turnarounds case copy",
+    url: "https://contentco-op.com/portfolio/bp-turnarounds",
+    required: [
+      "Turnaround operations",
+      "TAR Performance",
+      "site-effectiveness workshops",
+      "Operations communications MP4",
+      "Downtime and shutdown context",
+    ],
+    forbidden: ["Turnaround work framed for the field and the boardroom.", "Disciplined field coverage, process clarity, and controlled pacing."],
   },
   {
     label: "accurate meter case copy",
