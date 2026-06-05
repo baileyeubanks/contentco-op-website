@@ -351,7 +351,7 @@ const htmlChecks = [
       "40th-annual Texas MS 150 recap",
       "National Team Captain Woody Speer",
       "$4 million raised since 2000",
-      "Texas A&M/Kyle Field finish",
+      "Kyle Field finish",
       "April 27-28, 2024 ride",
       "San Antonio, Midland, and Denver teams",
       "1:51 1080p MS150 recap film",
