@@ -346,7 +346,7 @@ const htmlChecks = [
     label: "accurate meter case copy",
     url: "https://contentco-op.com/portfolio/accurate-meter",
     required: [
-      "Accurate Meter Texas Waterworks Film",
+      "Texas Waterworks Film",
       "Utility supply capability film",
       "April 2018 initial meeting",
       "5445 Stockdick School Road production context",
