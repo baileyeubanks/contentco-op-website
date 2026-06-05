@@ -118,6 +118,20 @@ const htmlChecks = [
     forbidden: ["Drops-prevention training that survives review-room scrutiny", "Review-room clarity", "Wipster-approved cut"],
   },
   {
+    label: "schneider ceraweek case copy",
+    url: "https://contentco-op.com/portfolio/ceraweek",
+    required: [
+      "CERAWeek coverage built for executive energy conversations",
+      "Digital Transformation Impact visuals",
+      "March 18-22, 2024",
+      "Nathalie Marcotte",
+      "Ahmed Wafi",
+      "Barbara Frei",
+      "2:12 1080p conference recap film",
+    ],
+    forbidden: ["Conference coverage shaped to keep working after the week ends.", "Brand-safe internal use", "Follow-on event planning"],
+  },
+  {
     label: "kappa rap case copy",
     url: "https://contentco-op.com/portfolio/kappa-rap",
     required: [
