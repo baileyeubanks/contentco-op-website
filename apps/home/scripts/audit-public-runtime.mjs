@@ -181,6 +181,8 @@ const htmlChecks = [
       "Baylor Kappa Kappa Gamma",
       "Bailey Eubanks",
       "1.4M+ public views",
+      "Wall Street Journal outreach",
+      "Full-resolution archive retrieval",
       "National convention playback",
     ],
     forbidden: ["Kappa Alpha Psi", "Campus-culture resonance"],

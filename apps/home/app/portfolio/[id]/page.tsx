@@ -45,6 +45,7 @@ const RUNTIME_BY_ID: Record<string, string> = {
   "ica-aerial-refinery": "00:30",
   "ica-ceo-interview": "02:04",
   gno: "00:59",
+  "kappa-rap": "03:27",
 };
 
 const LOCATION_BY_ID: Record<string, string> = {
@@ -63,6 +64,7 @@ const LOCATION_BY_ID: Record<string, string> = {
   "ica-ceo-interview": "Ponte Vedra Beach, FL",
   gno: "Franchise studio campaign",
   "conexon-workshop": "Co-ops Connect event environment",
+  "kappa-rap": "Baylor University, Waco",
 };
 
 function inferLocation(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
