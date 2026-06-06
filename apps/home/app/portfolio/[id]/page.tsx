@@ -86,6 +86,16 @@ const LOCATION_BY_ID: Record<string, string> = {
   "kappa-rap": "Baylor University, Waco",
 };
 
+const AUDIENCE_BY_ID: Record<string, string> = {
+  "ato-fraternity": "Potential members, chapter leaders, national fraternity audiences",
+  "kappa-rap": "Potential new members, Baylor Kappas, national KKG audiences",
+};
+
+const PLACEMENT_BY_ID: Record<string, string> = {
+  "ato-fraternity": "Chapter recruitment, national fraternity communications, web",
+  "kappa-rap": "Rush-room playback, YouTube, social resurgence, convention archive",
+};
+
 function inferLocation(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
   if (LOCATION_BY_ID[study.id]) return LOCATION_BY_ID[study.id];
   if (study.client === "BP" || study.client === "CITGO Petroleum") return "Gulf Coast operations";
@@ -95,6 +105,7 @@ function inferLocation(study: NonNullable<ReturnType<typeof getPortfolioStudyByI
 }
 
 function inferAudience(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
+  if (AUDIENCE_BY_ID[study.id]) return AUDIENCE_BY_ID[study.id];
   const searchable = `${study.sector} ${study.format} ${study.scope}`.toLowerCase();
   if (searchable.includes("safety")) return "Field teams, HSE leaders, operations reviewers";
   if (searchable.includes("recruit")) return "Candidates, hiring teams, internal brand leaders";
@@ -114,6 +125,7 @@ function inferAudience(study: NonNullable<ReturnType<typeof getPortfolioStudyByI
 }
 
 function inferPlacement(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
+  if (PLACEMENT_BY_ID[study.id]) return PLACEMENT_BY_ID[study.id];
   const searchable = `${study.format} ${study.scope} ${study.deliverables.join(" ")}`.toLowerCase();
   if (searchable.includes("training") || searchable.includes("safety")) return "Training rollout, internal review, field communication";
   if (searchable.includes("jumbotron") || searchable.includes("stadium")) return "Stadium screen, live-event playback";

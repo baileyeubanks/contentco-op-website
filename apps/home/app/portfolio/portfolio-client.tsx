@@ -8,7 +8,7 @@ import { portfolioPublicStudies } from "@/lib/content/portfolio";
 import { formatPortfolioStudyDisplayTitle, formatPortfolioStudyName } from "@/lib/seo";
 import s from "./portfolio.module.css";
 
-type PortfolioCategory = "Energy" | "Industrial" | "Event" | "B2B";
+type PortfolioCategory = "Energy" | "Industrial" | "Event" | "Recruitment" | "B2B";
 type PortfolioUseCase =
   | "Brand Film"
   | "Safety / Training"
@@ -35,7 +35,7 @@ interface PortfolioItem {
   useCase: PortfolioUseCase;
 }
 
-const CATEGORY_ORDER: PortfolioCategory[] = ["Energy", "Industrial", "Event", "B2B"];
+const CATEGORY_ORDER: PortfolioCategory[] = ["Energy", "Industrial", "Event", "Recruitment", "B2B"];
 const USE_CASE_ORDER: PortfolioUseCase[] = [
   "Brand Film",
   "Safety / Training",
@@ -50,9 +50,11 @@ const ENERGY_CLIENT_HINTS = [
 
 function classifyStudy(study: PortfolioCaseStudy): PortfolioCategory {
   const sector = study.sector.toLowerCase();
+  const format = study.format.toLowerCase();
   const client = study.client.toLowerCase();
   if (sector.includes("industrial")) return "Industrial";
   if (sector.includes("event")) return "Event";
+  if (sector.includes("recruit") || format.includes("recruit")) return "Recruitment";
   if (sector.includes("energy")) return "Energy";
   if (ENERGY_CLIENT_HINTS.some((hint) => client.includes(hint))) return "Energy";
   return "B2B";

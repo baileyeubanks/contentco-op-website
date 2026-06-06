@@ -1568,12 +1568,12 @@
     },
     {
       "id": "kappa-rap",
-      "title": "Kappa Rap 2",
+      "title": "Kappa Rap 2 Recruitment Video",
       "client": "Kappa Kappa Gamma",
       "sector": "Recruitment",
       "year": "2011",
       "format": "Recruitment music video",
-      "scope": "3:27 Baylor Kappa Kappa Gamma recruitment music video with long-tail YouTube, RushTok, press, and national-convention afterlife",
+      "scope": "3:27 Baylor Kappa Kappa Gamma recruitment music video, publicly known as Kappa Rap 2, with long-tail YouTube, RushTok, press, and national-convention afterlife",
       "headline": "A rush-room video that kept finding new rooms 15 years later.",
       "summary": "Created in 2011 for Baylor's Kappa Kappa Gamma chapter, Kappa Rap 2 started as a recruitment-room music video and turned into a campus-culture artifact. The Baylor Lariat later traced its second life across YouTube, TikTok, Instagram, Baylor Greek life, and national KKG circles, while the original team still returned to Content Co-op for the high-resolution file when the video was requested for 2026 national convention playback.",
       "mandate": "Translate the Baylor Kappas' original song, chapter personality, and rush-week energy into a video that could make 100 potential new members in one room feel the humor, confidence, and memorability of the chapter immediately.",
@@ -1586,7 +1586,7 @@
       "video": "/cc/portfolio-cdn/kappa_rap.mp4",
       "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_kappa_rap.jpg", "alt": "Kappa Kappa Gamma Kappa Rap 2 music video" }
+        { "src": "/cc/portfolio-cdn/thumb_kappa_rap.jpg", "alt": "Kappa Kappa Gamma Kappa Rap 2 recruitment music video" }
       ]
     }
   ]
