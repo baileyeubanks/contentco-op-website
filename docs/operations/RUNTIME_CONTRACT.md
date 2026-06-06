@@ -33,6 +33,18 @@ npm run ops:audit
 npm run ops:publish
 ```
 
+Canonical live publish:
+
+```bash
+npm run publish:live
+```
+
+The GitHub `Publish CCO Home Image` workflow only builds and publishes the
+GHCR image. A green image workflow is not proof that `contentco-op.com` is
+running the commit. The live proof is `npm run publish:live` completing with
+`[cco-public-audit] ok=... warn=0 fail=0` and `/api/runtime-proof` reporting
+the expected full commit SHA on both apex and `www`.
+
 ## Required Runtime Env
 
 Required:
@@ -95,6 +107,8 @@ Repo-local checks cover:
 5. `https://co-cut.contentco-op.com/` resolves to the Co-Cut workspace.
 6. `https://co-script.contentco-op.com/` may resolve to `/login` but must stay on the Co-Script host.
 7. `https://co-deliver.contentco-op.com/` may resolve to `/login` but must stay on the Co-Deliver host.
+8. `https://contentco-op.com/api/runtime-proof` reports the current Git SHA.
+9. `https://www.contentco-op.com/api/runtime-proof` reports the same current Git SHA.
 
 ## Operational Artifacts
 

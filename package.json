@@ -35,6 +35,8 @@
     "ops:coolify:blockers": "bash scripts/audit-coolify-push-blockers.sh",
     "ops:beacon": "node scripts/m4-publish-beacon.mjs",
     "ops:publish": "node scripts/check-public-domains.mjs",
+    "publish:live": "npm run publish:m4 -w @contentco-op/home",
+    "publish:home": "npm run publish:m4 -w @contentco-op/home",
     "publish:image:home": "bash scripts/publish-home-image.sh",
     "publish:github:home-mirror": "bash scripts/push-github-clean-mirror.sh",
     "preview:home:docker": "docker build -t contentco-op-home-preview . && docker run --rm -p 4100:4100 contentco-op-home-preview",

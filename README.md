@@ -50,6 +50,18 @@ npm run ops:publish
 npm run ops:audit
 ```
 
+Live publish:
+
+```bash
+npm run publish:live
+```
+
+`publish:live` is the canonical production path for `contentco-op.com`: it
+builds the standalone home runtime, rsyncs a release to M4, preflights health
+and runtime proof, flips the active runtime symlink, restarts the LaunchAgent,
+and finishes with `ops:audit` against the new commit. `publish:image:home`
+only publishes the GHCR container image; it does not activate the M4 runtime.
+
 Repo-owned operations docs live in `docs/operations/`.
 Repo-local automation artifacts are written to `ops/reports/`.
 
