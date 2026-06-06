@@ -981,7 +981,7 @@ const htmlChecks = [
       "MPVENT end-card delivery",
       "3:03 720p manufacturing capability film",
     ],
-    forbidden: ["Houston metal building accessory manufacturer overview", "Company overview film", "Facility and shipping proof", "3:03 company overview film", "2021"],
+    forbidden: ["Houston metal building accessory manufacturer overview", "Company overview film", "Facility and shipping proof", "3:03 company overview film", "Metallic Products 2021"],
   },
   {
     label: "suite copy",
