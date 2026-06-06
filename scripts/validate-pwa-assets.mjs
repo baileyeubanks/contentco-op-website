@@ -18,6 +18,7 @@ const requiredImages = [
   { path: "public/pwa/icon-1204.png", width: 1204, height: 1204 },
   { path: "public/cc/photos/social-industrial-video-production-v2.jpg", width: 1200, height: 630 },
   { path: "public/pwa/screenshot-field-production.jpg", width: 1200, height: 1440 },
+  { path: "public/pwa/screenshot-scenario-lab.png", width: 1200, height: 1440 },
 ];
 
 async function assertImage({ path: relativePath, width, height }) {
@@ -72,8 +73,12 @@ assertSourceContains("apps/home/app/layout.tsx", [
 ]);
 
 assertSourceContains("apps/home/app/manifest.ts", [
+  /Scenario Lab/,
+  /\/scenario-lab/,
   /screenshot-field-production\.jpg/,
   /Content Co-op field crew filming on location/,
+  /screenshot-scenario-lab\.png/,
+  /Content Co-op scenario lab planning workspace/,
 ]);
 
 if (issues.length === 0) {
