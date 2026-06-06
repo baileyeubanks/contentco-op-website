@@ -1494,25 +1494,43 @@
     },
     {
       "id": "school-boy-humor",
-      "title": "School Boy Humor Music Video",
+      "title": "7 Minutes in Heaven Music Video",
       "client": "School Boy Humor",
       "sector": "Music",
       "year": "2017",
       "format": "Performance music video",
-      "scope": "3:29 School Boy Humor music video built around magenta club lighting, handheld crowd movement, guitarist and vocalist performance setups, bright backlight silhouettes, smoky drum-kit frames, and a Bailey Eubanks end mark",
-      "headline": "A low-budget music video cut with real concert velocity.",
-      "summary": "School Boy Humor's video is built like a compressed live night: dark-room crowd energy, arms in the air, vocalist and guitarist setups, harsh magenta backlight, smoky stage silhouettes, and quick handheld movement that keeps the independent production from feeling small.",
-      "mandate": "Turn a simple performance-and-party setup into a finished music video with enough pace, lighting contrast, and crowd texture to feel larger than the resources behind it.",
-      "execution": "Content Co-op leaned into the available ingredients instead of hiding them: saturated pink and blue lighting, tight performer coverage, sweaty crowd fragments, lens flare, smoke, and fast cuts between singer, guitar, drum-kit, and party-floor moments.",
-      "outcome": "The finished 720p music video gives the band a complete release asset with the speed and visual density of a concert clip, while preserving the raw independent energy of the room.",
-      "proofPoints": ["3:29 720p music video", "Magenta club-light performance look", "Handheld crowd movement", "Guitarist and vocalist setups", "Smoke-backed drum-kit frames", "Bright backlight silhouettes", "Bailey Eubanks end mark"],
-      "deliverables": ["Full music video", "Web-ready 720p release file"],
+      "scope": "3:28.68 School Boy Humor music video for 7 Minutes in Heaven, built around phone-call party texture, white-background band performance, magenta club lighting, handheld crowd movement, bright backlight silhouettes, smoky drum-kit frames, and a Bailey Eubanks Media end mark",
+      "headline": "A pop-rock music video cut with real club-night velocity.",
+      "summary": "School Boy Humor's 7 Minutes in Heaven video turns a lean performance-and-party setup into a finished release asset: phone-call opening texture, white-background vocalist/guitar/drum coverage, magenta club backlights, crowd singalong fragments, arms-in-the-air movement, smoky silhouettes, and a fast edit that gives the Little Rock pop-rock band more scale than the room itself.",
+      "mandate": "Make a compact independent music-video setup feel like a full release, with enough lighting contrast, crowd texture, and performance coverage to hold attention beyond the local scene.",
+      "execution": "Content Co-op leaned into the available ingredients instead of hiding them: saturated pink and blue club lighting, clean white-room band inserts, tight performer coverage, lens flare, smoke, party-floor fragments, and quick cuts between singer, guitar, drum-kit, and crowd moments.",
+      "outcome": "The finished 1280x720, 23.976fps music video gave School Boy Humor a complete web-release asset for 7 Minutes in Heaven while preserving the raw independent energy of the room.",
+      "proofPoints": [
+        "7 Minutes in Heaven title confirmed by Rev transcript order",
+        "3:28.68 1280x720 music video",
+        "23.976fps H.264/AAC delivery",
+        "Phone-call and party-floor opening texture",
+        "White-background vocalist, guitar, and drum-kit setup",
+        "Magenta club-light performance look",
+        "Handheld crowd movement",
+        "Crowd singalong and arms-in-the-air moments",
+        "Smoke-backed drum-kit frames",
+        "Bright backlight silhouettes",
+        "Bailey Eubanks Media end mark",
+        "Little Rock pop-rock band context"
+      ],
+      "deliverables": [
+        "3:28.68 full music video",
+        "Web-ready 720p release file",
+        "Performance and party coverage edit",
+        "Transcript-backed archive identification"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_school_boy_humor.jpg",
       "preview": "/cc/portfolio-cdn/preview_school_boy_humor.mp4",
       "video": "/cc/portfolio-cdn/school_boy_humor_7min.mp4",
       "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_school_boy_humor.jpg", "alt": "School Boy Humor music video" }
+        { "src": "/cc/portfolio-cdn/thumb_school_boy_humor.jpg", "alt": "School Boy Humor 7 Minutes in Heaven music video crowd and performance frame" }
       ]
     },
     {
