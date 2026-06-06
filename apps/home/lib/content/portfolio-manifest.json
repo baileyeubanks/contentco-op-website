@@ -1448,25 +1448,46 @@
     },
     {
       "id": "tyler-t1d-foundation",
-      "title": "Tyler T1D Foundation Story",
+      "title": "Before It's Too Late Awareness PSA",
       "client": "Tyler Type One Diabetes Foundation",
       "sector": "Nonprofit",
       "year": "2020",
       "format": "Warning-signs awareness PSA",
-      "scope": "60-second Tyler Type One Diabetes Foundation Before It's Too Late awareness PSA with children and teens on camera, outdoor school-and-sports texture, glucose meter and insulin-delivery closeups, survivor-centered warning-signs context, and a TylerTypeOne.org Support...for life! end card",
-      "headline": "A Type 1 diabetes warning-signs PSA built around urgency, not polish for its own sake.",
-      "summary": "Tyler Type One's Before It's Too Late PSA warns families about Type 1 diabetes symptoms that can be missed or mistaken for common illness. The spot keeps the message human: kids and teens in ordinary outdoor life, closeups of diabetes devices, quiet solo moments, and a final TylerTypeOne.org CTA that points viewers toward local support.",
-      "mandate": "Help parents, schools, and community members recognize the stakes of undiagnosed Type 1 diabetes before a child or young adult reaches crisis.",
-      "execution": "Content Co-op cut the PSA around direct youth portraits, school bleachers, bikes and sports details, a glucose meter, an insulin pump patch, a KwikPen closeup, and warm East Texas daylight so the medical message stays grounded in everyday childhood rather than clinical abstraction.",
-      "outcome": "The finished 720p awareness spot gives Tyler Type One a shareable warning-signs asset for web, social, community education, and donor/sponsor conversations.",
-      "proofPoints": ["Before It's Too Late PSA", "TylerTypeOne.org end card", "Support...for life! CTA", "Type 1 diabetes warning-signs awareness", "Children and teens on camera", "Glucose meter closeup", "Insulin pump patch detail", "KwikPen closeup", "60-second 720p awareness spot"],
-      "deliverables": ["Warning-signs awareness PSA", "Web and social education spot"],
+      "scope": "60.19-second Tyler Type One Diabetes Foundation television/online PSA for Before It's Too Late, built around survivor-centered warning-signs context, children and teens on camera, outdoor school and football-field texture, diabetes-device closeups, and a TylerTypeOne.org Support...for life! end card",
+      "headline": "A Type 1 diabetes warning-signs PSA built around urgency, recognition, and local support.",
+      "summary": "Tyler Type One's Before It's Too Late PSA translates a frightening awareness message into a human community spot. The foundation's own warning-signs page frames the PSA around children and young adults who can be misdiagnosed before Type 1 diabetes is recognized; the edit keeps that urgency grounded in ordinary life with youth portraits, school bleachers, football-field movement, bikes, closeups of insulin and glucose tools, and the TylerTypeOne.org support CTA.",
+      "mandate": "Help parents, schools, and community members recognize why warning-sign awareness matters before a child or young adult reaches crisis, while pointing viewers toward Tyler Type One's local support system.",
+      "execution": "Content Co-op cut the PSA around direct youth portraits, East Texas daylight, school and sports details, a glucose meter, an insulin pump patch, a KwikPen closeup, and quiet solo moments so the message feels immediate without becoming clinical or exploitative.",
+      "outcome": "The finished 60.19-second, 1280x720, 23.976fps television/online awareness spot gave Tyler Type One a shareable education asset for web, social, community outreach, and donor/sponsor conversations.",
+      "proofPoints": [
+        "Before It's Too Late PSA",
+        "Tyler Type One warning-signs page context",
+        "Survivors diagnosed hours from death public-page framing",
+        "TelevisionOnline Spot title confirmed by Rev transcript order",
+        "60.19-second 1280x720 awareness spot",
+        "23.976fps H.264/AAC delivery",
+        "TylerTypeOne.org end card",
+        "Support...for life! CTA",
+        "Children and teens on camera",
+        "Football-field and school-bleacher texture",
+        "Bike and outdoor childhood details",
+        "Glucose meter closeup",
+        "Insulin pump patch detail",
+        "KwikPen closeup",
+        "Local support system founded in 2009"
+      ],
+      "deliverables": [
+        "60.19-second television/online PSA",
+        "Web and social education spot",
+        "Warning-signs awareness asset",
+        "Transcript-backed archive identification"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_tyler_t1d_foundation.jpg",
       "preview": "/cc/portfolio-cdn/preview_tyler_t1d_foundation.mp4",
       "video": "/cc/portfolio-cdn/tyler_t1d_foundation.mp4",
       "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_tyler_t1d_foundation.jpg", "alt": "Tyler T1D Foundation TV spot" }
+        { "src": "/cc/portfolio-cdn/thumb_tyler_t1d_foundation.jpg", "alt": "Tyler Type One Before It's Too Late PSA youth portrait and support end-card frame" }
       ]
     },
     {
