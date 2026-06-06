@@ -1250,25 +1250,25 @@
     },
     {
       "id": "baylor-film-festival",
-      "title": "Baylor Black Glasses Film Festival",
+      "title": "Black Glasses Film Festival Opener",
       "client": "Baylor University",
       "sector": "Events",
       "year": "2018",
       "format": "Motion-graphics festival opener",
-      "scope": "42-second Baylor Black Glasses Film Festival opening sequence with yellow-and-black festival branding, Film and Digital Media presentation frames, 3D shard breaks, student exhibition and cinematography category cards, Welcome to Black Glasses title language, and Enjoy the Show end cards",
-      "headline": "A student-film festival opener with enough motion design to make the room feel official.",
-      "summary": "Baylor's Black Glasses Film Festival is an annual Baylor Film & Digital Media showcase for student filmmaking and screenwriting. This opener turns that context into a tight 42-second motion-graphics package: yellow-and-black identity, glasses iconography, kinetic 3D fragments, category language, and a clean handoff into the screening with Enjoy the Show.",
-      "mandate": "Give the festival a professional opening beat that could sit in front of student films without overshadowing them, while making the Baylor Film & Digital Media event feel curated, designed, and ready for an audience.",
-      "execution": "Content Co-op built the piece as a fast identity system rather than a generic montage: bold yellow panels, black negative space, broken-glass 3D motion, category cards for cinematography and student exhibition, Black Glasses logo moments, and blurred projection-style finishes.",
-      "outcome": "The finished 720p opener gives Baylor a reusable event asset that frames Black Glasses as a real festival experience before the first student film plays.",
-      "proofPoints": ["42-second 720p festival opener", "Baylor Film & Digital Media context", "Yellow-and-black identity system", "Welcome to Black Glasses title card", "3D shard-break animation", "Cinematography category card", "Student exhibition card", "Enjoy the Show end cards"],
-      "deliverables": ["Festival opening sequence", "Motion-graphics event package"],
+      "scope": "42.21-second, 1280x720 Baylor University Black Glasses Film Festival opening sequence with Film and Digital Media presentation frames, yellow-and-black festival branding, Cinema and Screenwriting title cards, 3D broken-glass logo motion, category language, and Enjoy the Show end cards",
+      "headline": "A student-film festival opener that makes the room feel official before the first screening starts.",
+      "summary": "Baylor's Black Glasses Film Festival began in 1999 and is now an annual Baylor Film & Digital Media showcase for student filmmaking and screenwriting. This opener turns that academic-festival context into a compact identity system: a yellow spotlight image, Cinema and Screenwriting cards, Film and Digital Media Presents, black negative space, dimensional glass shards, bold Black Glasses logo reveals, and a clean Enjoy the Show handoff.",
+      "mandate": "Give the festival a professional opening beat that could sit in front of student films without overwhelming them, while making the Baylor Film & Digital Media event feel curated, designed, and ready for an audience beyond the classroom.",
+      "execution": "Content Co-op built the piece as a fast motion-graphics package rather than a generic event bumper: high-contrast yellow panels, black negative space, 3D shard-break animation, category-card pacing, Black Glasses logo moments, and projection-like blur on the final end cards.",
+      "outcome": "The finished 42.21-second, 1280x720, 23.976fps H.264/AAC opener gave Baylor a reusable event asset that frames Black Glasses as a real festival experience before the first student film plays.",
+      "proofPoints": ["42.21-second 1280x720 festival opener", "23.976fps H.264/AAC delivery", "Annual Baylor Film & Digital Media showcase", "Student filmmaking and screenwriting context", "Festival originated in 1999", "Baylor Film & Digital Media context", "Yellow-and-black identity system", "Cinema title card", "Screenwriting title card", "Film and Digital Media Presents frame", "Welcome to Black Glasses title card", "3D shard-break animation", "Dimensional Black Glasses logo reveals", "Cinematography category card", "Student exhibition card", "Enjoy the Show end cards"],
+      "deliverables": ["42.21-second festival opening sequence", "Motion-graphics event identity package", "Screening-room opener", "Reusable Baylor Film & Digital Media event asset"],
       "thumbnail": "/cc/portfolio-cdn/thumb_baylor_film_festival.jpg",
       "preview": "/cc/portfolio-cdn/preview_baylor_film_festival.mp4",
       "video": "/cc/portfolio-cdn/baylor_film_festival.mp4",
       "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_baylor_film_festival.jpg", "alt": "Baylor Black Glasses Film Festival" }
+        { "src": "/cc/portfolio-cdn/thumb_baylor_film_festival.jpg", "alt": "Baylor Black Glasses Film Festival yellow-and-black motion opener frame" }
       ]
     },
     {
