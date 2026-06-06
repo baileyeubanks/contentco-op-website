@@ -230,7 +230,7 @@ const htmlChecks = [
     url: "https://contentco-op.com/portfolio/kappa-rap",
     required: [
       "Kappa Kappa Gamma",
-      "Kappa Rap 2 Recruitment Video",
+      "Rap 2 Recruitment Video",
       "Baylor Kappa Kappa Gamma",
       "publicly known as Kappa Rap 2",
       "Bailey Eubanks",
