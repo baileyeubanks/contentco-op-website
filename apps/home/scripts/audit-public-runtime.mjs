@@ -177,6 +177,28 @@ const htmlChecks = [
     ],
   },
   {
+    label: "schneider industrial conference case copy",
+    url: "https://contentco-op.com/portfolio/schneider-eae-2025",
+    required: [
+      "Schneider Electric Industrial Conference Recap",
+      "technical conference recap built around leaders",
+      "2:12 1080p conference recap",
+      "23.976fps H.264 delivery",
+      "Astrid Poupart-Lafarge title card",
+      "Agoras and Catchen Hall signage",
+      "New Applications for Digitalization and Automation in Mining agenda board",
+      "Industrial-energy attendee networking",
+      "Brand-safe Schneider Electric event edit",
+    ],
+    forbidden: [
+      "Full event coverage and recap film for Schneider Electric's Houston EAE event.",
+      "Event coverage",
+      "Multi-use recap",
+      "Schneider Electric EAE Houston 2025",
+      "schneider_eae_2025_final.mp4",
+    ],
+  },
+  {
     label: "schneider ceraweek case copy",
     url: "https://contentco-op.com/portfolio/ceraweek",
     required: [

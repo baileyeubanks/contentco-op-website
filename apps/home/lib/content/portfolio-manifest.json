@@ -5,25 +5,40 @@
   "entries": [
     {
       "id": "schneider-eae-2025",
-      "title": "Schneider Electric EAE Houston",
+      "title": "Schneider Electric Industrial Conference Recap",
       "client": "Schneider Electric",
       "sector": "Events",
-      "year": "2025",
+      "year": "2024",
       "format": "Event recap",
-      "scope": "Houston EAE event coverage and recap",
-      "headline": "Event energy captured with enough discipline to outlast the week.",
-      "summary": "Full event coverage and recap film for Schneider Electric's Houston EAE event.",
-      "mandate": "Turn high-energy event access into a polished, reusable recap.",
-      "execution": "Multi-camera event coverage, speaker moments, and controlled pacing.",
-      "outcome": "A recap film that serves marketing, comms, and leadership teams.",
-      "proofPoints": ["Event coverage", "Multi-use recap", "Brand-safe"],
-      "deliverables": ["Event recap film", "Highlight cuts"],
+      "scope": "Industrial conference interviews, panel coverage, networking, and recap edit",
+      "headline": "A technical conference recap built around leaders, rooms, and real agenda proof.",
+      "summary": "Schneider Electric's conference recap turns a dense industrial-energy event into a clean executive communications asset: on-site leader interviews, moderated panel moments, technical-session context, Agoras/Catchen Hall signage, mining-automation agenda boards, networking coverage, and fast venue texture all cut into a two-minute recap that feels organized instead of overproduced.",
+      "mandate": "Make an active technical conference feel useful after the event ends, without flattening it into generic networking footage.",
+      "execution": "Captured executive interviews, panel/speaker moments, attendee interaction, room context, and agenda signage, then shaped the material into a concise 2:12 1080p recap at 23.976fps.",
+      "outcome": "A brand-safe conference film that gives marketing, communications, and leadership teams a reusable proof asset for Schneider Electric's industrial-event presence.",
+      "proofPoints": [
+        "2:12 1080p conference recap",
+        "23.976fps H.264 delivery",
+        "Executive interview coverage",
+        "Astrid Poupart-Lafarge title card",
+        "Panel and moderated-session moments",
+        "Agoras and Catchen Hall signage",
+        "New Applications for Digitalization and Automation in Mining agenda board",
+        "Industrial-energy attendee networking",
+        "Brand-safe Schneider Electric event edit"
+      ],
+      "deliverables": [
+        "2:12 conference recap film",
+        "Executive interview selects",
+        "Panel and networking b-roll coverage",
+        "Marketing and leadership communications asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_schneider_eae_2025.jpg",
-      "preview": null,
-      "video": "/cc/portfolio-cdn/schneider_eae_2025_final.mp4",
+      "preview": "/cc/portfolio-cdn/preview_schneider.mp4",
+      "video": "/cc/portfolio-cdn/Schneider_2024_Recap_FINAL_X3.mp4",
       "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-27" },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_schneider_eae_2025.jpg", "alt": "Schneider Electric EAE Houston 2025" }
+        { "src": "/cc/portfolio-cdn/thumb_schneider_eae_2025.jpg", "alt": "Schneider Electric industrial conference attendees and technical-session coverage" }
       ]
     },
     {
