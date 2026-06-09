@@ -4,10 +4,14 @@ import { useEffect, useRef, useState } from "react";
 
 interface AmbientVideoProps {
   src: string;
-  streamSrc?: string;
+  /** Lighter rendition served to small screens and save-data connections. */
+  mobileSrc?: string;
+  poster?: string;
   label?: string;
   forcePlayback?: boolean;
 }
+
+const MOBILE_MAX_WIDTH = 640;
 
 const inlineAutoplayAttributes = {
   defaultmuted: "",
@@ -23,6 +27,16 @@ const earlyAutoplayScript = `
     ? script.previousElementSibling
     : null;
   if (!video) return;
+
+  const mobileSrc = video.dataset.mobileSrc;
+  if (mobileSrc) {
+    const saveData = navigator.connection && navigator.connection.saveData;
+    const small = Math.min(window.innerWidth, window.screen ? window.screen.width : Infinity) <= ${MOBILE_MAX_WIDTH};
+    if ((small || saveData) && video.getAttribute("src") !== mobileSrc) {
+      video.setAttribute("src", mobileSrc);
+      video.load();
+    }
+  }
 
   const frame = video.parentElement;
   const markReady = () => {
@@ -126,16 +140,24 @@ function shouldPause(): boolean {
   return prefersReducedMotion || Boolean(nav.connection?.saveData);
 }
 
+function prefersMobileRendition(): boolean {
+  if (typeof window === "undefined") return false;
+  const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+  const screenWidth = window.screen?.width ?? Infinity;
+  const small = Math.min(window.innerWidth, screenWidth) <= MOBILE_MAX_WIDTH;
+  return small || Boolean(nav.connection?.saveData);
+}
+
 export function AmbientVideo({
   src,
-  streamSrc,
+  mobileSrc,
+  poster,
   label = "Ambient background video",
   forcePlayback = false,
 }: AmbientVideoProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [hasStartedPlayback, setHasStartedPlayback] = useState(false);
   const [hasLoadedFrame, setHasLoadedFrame] = useState(false);
-  const [sourceMode, setSourceMode] = useState<"stream" | "direct">("direct");
   const playbackStatus = hasStartedPlayback ? "playing" : hasLoadedFrame ? "ready" : "pending";
 
   useEffect(() => {
@@ -150,9 +172,9 @@ export function AmbientVideo({
     }
 
     let cancelled = false;
-    let activeSource = src;
+    const activeSource = mobileSrc && prefersMobileRendition() ? mobileSrc : src;
 
-    const applySource = (nextSource: string, mode: "stream" | "direct") => {
+    const applySource = (nextSource: string) => {
       const nextUrl = normalizeMediaUrl(nextSource);
       const attrSrc = video.getAttribute("src");
       const attrUrl = attrSrc ? normalizeMediaUrl(attrSrc) : "";
@@ -162,8 +184,6 @@ export function AmbientVideo({
         video.src = nextSource;
         video.load();
       }
-      activeSource = nextSource;
-      setSourceMode(mode);
     };
 
     const tryPlay = () => {
@@ -182,7 +202,7 @@ export function AmbientVideo({
       }
     };
 
-    applySource(activeSource, "direct");
+    applySource(activeSource);
     tryPlay();
 
     const frameId = window.requestAnimationFrame(tryPlay);
@@ -267,17 +287,21 @@ export function AmbientVideo({
       window.removeEventListener("focus", tryPlay);
       window.removeEventListener("load", tryPlay);
     };
-  }, [forcePlayback, src, streamSrc]);
+  }, [forcePlayback, src, mobileSrc]);
 
   return (
-    <div className="ambient-video-frame" data-playback-status={playbackStatus} data-source-mode={sourceMode}>
+    <div
+      className="ambient-video-frame"
+      data-playback-status={playbackStatus}
+      suppressHydrationWarning
+    >
       <video
         ref={videoRef}
         data-ambient-video="single"
-        data-mp4-src={src}
-        data-stream-src={streamSrc}
+        data-mobile-src={mobileSrc}
         className="ambient-video"
         src={src}
+        poster={poster}
         autoPlay
         muted
         loop
@@ -288,6 +312,7 @@ export function AmbientVideo({
         controlsList="nodownload nofullscreen noremoteplayback"
         {...inlineAutoplayAttributes}
         aria-label={label}
+        suppressHydrationWarning
         onLoadedMetadata={(event) => { void attemptPlay(event.currentTarget); }}
         onLoadedData={(event) => { void attemptPlay(event.currentTarget); }}
         onCanPlay={(event) => { void attemptPlay(event.currentTarget); }}

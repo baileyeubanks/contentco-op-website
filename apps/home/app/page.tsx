@@ -9,7 +9,8 @@ import { AmbientVideo } from "./ambient-video";
 import {
   galleryImages,
   heroVideo,
-  heroVideoStream,
+  heroVideoMobile,
+  heroPoster,
 } from "./home-content";
 import { RotatingGallery } from "./rotating-gallery";
 import {
@@ -178,7 +179,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <section className="hero" data-hero-preview={heroPreview}>
           <AmbientVideo
             src={heroVideo}
-            streamSrc={heroVideoStream}
+            mobileSrc={heroVideoMobile}
+            poster={heroPoster}
             label="Industrial energy production footage"
             forcePlayback
           />

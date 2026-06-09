@@ -1,7 +1,8 @@
 import {
   CONTENT_VIDEO_VERSION,
   heroVideo as currentHeroVideo,
-  heroVideoStream as currentHeroVideoStream,
+  heroVideoMobile as currentHeroVideoMobile,
+  heroPoster as currentHeroPoster,
   isCurrentHeroMedia,
 } from "./hero-video-config";
 
@@ -46,7 +47,8 @@ export function videoAsset(filename: string) {
 }
 
 export const heroVideo = currentHeroVideo;
-export const heroVideoStream = currentHeroVideoStream;
+export const heroVideoMobile = currentHeroVideoMobile;
+export const heroPoster = currentHeroPoster;
 
 const heroClipIds = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10,

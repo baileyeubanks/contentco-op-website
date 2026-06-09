@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
-import { heroVideo } from "./hero-video-config";
+import { heroPoster, heroVideo, heroVideoMobile } from "./hero-video-config";
 import {
   SOCIAL_IMAGE_ALT,
   SOCIAL_IMAGE_PATH,
@@ -98,7 +98,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${plusJakartaSans.variable} ${fraunces.variable}`}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="preload" as="video" href={heroVideo} type="video/mp4" fetchPriority="high" />
+        <link rel="preload" as="image" href={heroPoster} fetchPriority="high" />
+        <link rel="preload" as="video" href={heroVideo} type="video/mp4" media="(min-width: 641px)" />
+        <link rel="preload" as="video" href={heroVideoMobile} type="video/mp4" media="(max-width: 640px)" />
       </head>
       <body data-surface="home">
         {children}

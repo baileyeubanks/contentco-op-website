@@ -28,10 +28,9 @@ function readContentVideoVersion() {
 
 const contentVideoVersion = readContentVideoVersion();
 const heroMediaPaths = [
-  `/media/hero-loop/cco-hero-supreme-hls/index.m3u8?v=${contentVideoVersion}`,
-  `/media/hero-loop/cco-hero-supreme-hls/init.mp4?v=${contentVideoVersion}`,
-  `/media/hero-loop/cco-hero-supreme-hls/segment-000.m4s?v=${contentVideoVersion}`,
-  `/media/hero-loop/cco-hero-supreme.mp4?v=${contentVideoVersion}`,
+  `/media/hero-loop/cco-hero-supreme-1080.mp4?v=${contentVideoVersion}`,
+  `/media/hero-loop/cco-hero-supreme-720.mp4?v=${contentVideoVersion}`,
+  `/media/hero-loop/cco-hero-poster.jpg?v=${contentVideoVersion}`,
 ];
 const curlAttempts = 2;
 

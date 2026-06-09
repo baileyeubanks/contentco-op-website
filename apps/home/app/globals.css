@@ -2980,7 +2980,8 @@ h1, h2, h3, h4 {
   }
 
   .hero h1 {
-    font-size: clamp(2.55rem, 9.5vw, 3.45rem);
+    /* 9.6vw keeps the nowrap headline inside the viewport down to ~280px screens */
+    font-size: clamp(1.8rem, 9.6vw, 3.45rem);
   }
 
   .showcase-rotator {
