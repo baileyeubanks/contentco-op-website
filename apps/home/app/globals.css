@@ -7,8 +7,17 @@
 }
 
 /* ─── Base ─── */
+html {
+  /* Match the cream public theme so overscroll/rubber-banding never flashes white */
+  background-color: #f3ede2;
+}
+
 body {
   font-family: var(--font-body), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html:has(body[data-surface="root"]) {
+  background-color: #07111f;
 }
 
 [data-surface="root"] body,
