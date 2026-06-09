@@ -972,7 +972,6 @@ export function getPlatformManifest(): PlatformManifest {
       principles: [
         "Platform before polish, but polish in every phase.",
         "No customer-impacting automation without explicit human-safe boundaries.",
-        "Every critical subsystem must have an owner, a health signal, and a recovery path.",
         "Docs, runtime behavior, and verification must describe the same platform reality.",
       ],
       phases: executionPhases,
