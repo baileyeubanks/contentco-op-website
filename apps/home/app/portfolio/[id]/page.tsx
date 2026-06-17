@@ -26,7 +26,6 @@ const RUNTIME_BY_ID: Record<string, string> = {
   "bp-orlando-holiday": "03:05",
   ceraweek: "02:12",
   "bp-differential-performance": "05:10",
-  "eog-ms150": "01:51",
   "adaptive-stainless": "01:45",
   "accurate-meter": "02:18",
   kodiak: "01:55",
@@ -46,7 +45,6 @@ const RUNTIME_BY_ID: Record<string, string> = {
 const LOCATION_BY_ID: Record<string, string> = {
   "bp-orlando-holiday": "Orlando, FL",
   ceraweek: "Houston, TX",
-  "eog-ms150": "Texas MS150 route",
   "wendys-final-four": "Houston, TX",
   "bp-nrg-jumbotron": "NRG Stadium, Houston",
   "bp-title-promo": "Houston, TX",

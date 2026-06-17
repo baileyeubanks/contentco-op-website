@@ -30,7 +30,6 @@ const PUBLIC_PORTFOLIO_ORDER = [
   "bp-orlando-holiday",
   "ceraweek",
   "bp-differential-performance",
-  "eog-ms150",
   "adaptive-stainless",
   "accurate-meter",
   "kodiak",
