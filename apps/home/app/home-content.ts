@@ -164,6 +164,17 @@ const PHOTOS: readonly GalleryImage[] = [
   { src: "/cc/photos/gallery-pipe-whip-fast.jpg", alt: "Fast pipe whip safety training", label: "Safety Training", tag: "Safety" },
   { src: "/cc/photos/solar-panel-workers.jpg", alt: "Solar panel installation crew", label: "Solar Install", tag: "Renewables" },
   { src: "/cc/photos/gallery-schneider-epc-houston.jpg", alt: "Schneider Electric EPC Houston panel discussion with executives on stage", label: "EPC Houston 2026", tag: "Events" },
+  { src: "/cc/photos/gallery-pinots-disconnect-reconnect.jpg", alt: "Illustrated paint-and-sip studio with couples painting at easels under warm string lights", label: "Disconnect To Reconnect", tag: "Events" },
+  { src: "/cc/photos/gallery-abb-her-story.jpg", alt: "Five women in business attire, center figure backlit at golden hour — Her Story corporate documentary", label: "Her Story — ABB", tag: "Corporate" },
+  { src: "/cc/photos/gallery-bp-stem-swimming.jpg", alt: "Young competitive swimmer at pool edge wearing a BP STEM-branded swim cap and goggles", label: "BP STEM — Science Behind Swimming", tag: "Corporate" },
+  { src: "/cc/photos/gallery-kodiak-recruitment.jpg", alt: "Three Kodiak Gas workers at a gas processing facility at golden hour — recruitment hero shot", label: "Kodiak Gas Recruitment", tag: "Upstream" },
+  { src: "/cc/photos/gallery-bp-economic-impact.jpg", alt: "BP Economic Impact Report photo mosaic — 190,000 American jobs, workers across facilities", label: "BP Economic Impact Report", tag: "Corporate" },
+  { src: "/cc/photos/gallery-pinots-gno.jpg", alt: "Women in Pinot's Palette aprons laughing and painting together at easels — Girls Night Out", label: "Girls Night Out — Pinot's Palette", tag: "Events" },
+  { src: "/cc/photos/gallery-adaptive-stainless.jpg", alt: "Two workers in a crane basket next to large stainless steel tanks on an industrial rooftop", label: "Adaptive Stainless", tag: "Industrial" },
+  { src: "/cc/photos/gallery-accurate-meter-splicing.jpg", alt: "Three technicians performing field cable splicing in an underground junction box", label: "Accurate Meter — Field Splicing", tag: "Industrial" },
+  { src: "/cc/photos/gallery-bp-differential-performance.jpg", alt: "BP Differential Performance corporate event display banners with BP messaging and green branding", label: "BP Differential Performance", tag: "Corporate" },
+  { src: "/cc/photos/gallery-power-of-us.jpg", alt: "Futuristic gala stage concept — glowing orange portal ring center stage with holographic screens and silhouette figure", label: "The Power of Us", tag: "Events" },
+  { src: "/cc/photos/gallery-cheer-america.jpg", alt: "Cheer America Championships — cheerleader with dramatic lighting and branded competition graphics", label: "Cheer America Championships", tag: "Events" },
 ];
 
 // ── Crop variants for reuse — same photo, different crop ─────

@@ -43,8 +43,6 @@ const PUBLIC_PORTFOLIO_ORDER = [
   "citgo-lessons-learned",
   "ica-aerial-refinery",
   "ica-ceo-interview",
-  "power-of-us",
-  "cheer-america",
 ] satisfies string[];
 
 const publicPortfolioOrderIndex = new Map<string, number>(PUBLIC_PORTFOLIO_ORDER.map((id, index) => [id, index]));
