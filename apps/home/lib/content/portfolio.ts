@@ -43,6 +43,8 @@ const PUBLIC_PORTFOLIO_ORDER = [
   "citgo-lessons-learned",
   "ica-aerial-refinery",
   "ica-ceo-interview",
+  "power-of-us",
+  "cheer-america",
 ] satisfies string[];
 
 const publicPortfolioOrderIndex = new Map<string, number>(PUBLIC_PORTFOLIO_ORDER.map((id, index) => [id, index]));
@@ -60,7 +62,7 @@ export const portfolioReviewedStudies = portfolioStudies.filter((study) => study
 export function isPublicPortfolioStudy(study: PortfolioCaseStudy) {
   if (study.review?.status !== "approved") return false;
   const fullVideoPath = study.video || study.remoteMediaUrl || "";
-  if (!fullVideoPath || BLOCKED_PUBLIC_VIDEO_PATHS.has(fullVideoPath)) return false;
+  if (fullVideoPath && BLOCKED_PUBLIC_VIDEO_PATHS.has(fullVideoPath)) return false;
   return Boolean(study.thumbnail || study.gallery[0]?.src);
 }
 

@@ -91,9 +91,9 @@ function classifyUseCase(study: PortfolioCaseStudy): PortfolioUseCase {
 
 function toPortfolioItem(study: PortfolioCaseStudy): PortfolioItem | null {
   const thumb = study.thumbnail || study.gallery[0]?.src || "";
-  const previewFile = study.preview || study.video || study.remoteMediaUrl || "";
-  const masterFile = study.video || study.remoteMediaUrl || study.preview || "";
-  if (!thumb || !previewFile || !masterFile) return null;
+  if (!thumb) return null;
+  const previewFile = study.preview || study.video || study.remoteMediaUrl || thumb;
+  const masterFile = study.video || study.remoteMediaUrl || study.preview || thumb;
 
   return {
     id: study.id,
@@ -259,7 +259,7 @@ function PortfolioCard({
             decoding="async"
             fetchPriority={index < 3 ? "high" : "low"}
             className={s.thumbImg}
-            style={{ opacity: hovered ? 0 : 1 }}
+            style={{ opacity: hovered && item.previewFile !== item.thumb ? 0 : 1 }}
           />
           <video
             ref={videoRef}

@@ -2069,6 +2069,84 @@
           "alt": "Kappa Kappa Gamma Kappa Rap 2 music video"
         }
       ]
+    },
+    {
+      "id": "power-of-us",
+      "title": "The Power of Us",
+      "client": "Gala Event",
+      "sector": "Events",
+      "year": "2025",
+      "format": "Event concept and stage design",
+      "scope": "Full-event creative package: stage concept design, motion graphics system, event theming, and visual identity for a gala awards ceremony.",
+      "headline": "A gala built around concept \u2014 not just a stage, a world.",
+      "summary": "The Power of Us gala is a concept-first awards ceremony: a signature portal stage design, flanking holographic screen system, and motion graphics package that give the evening a visual identity from arrival to final award.",
+      "mandate": "Design a cohesive event experience where the stage concept, motion graphics, and room theming feel like one unified idea rather than assembled vendor parts.",
+      "execution": "Content Co-op developed the stage geometry, lighting concept, and motion graphics system \u2014 centering the design on a portal motif that frames speakers and award moments with depth and drama.",
+      "outcome": "A complete event concept package ready for production: stage render, motion graphics brief, and a visual theme system that scales from pre-show content to trophies.",
+      "proofPoints": [
+        "Stage concept design",
+        "Portal stage motif",
+        "Holographic screen system",
+        "Motion graphics package",
+        "Event theming"
+      ],
+      "deliverables": [
+        "Stage concept render",
+        "Motion graphics system",
+        "Event theme package",
+        "Visual identity brief"
+      ],
+      "thumbnail": "/cc/portfolio-cdn/thumb_power_of_us.jpg",
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-06-17"
+      },
+      "gallery": [
+        {
+          "src": "/cc/portfolio-cdn/thumb_power_of_us.jpg",
+          "alt": "The Power of Us gala stage concept \u2014 glowing orange portal ring center stage with holographic screens"
+        }
+      ],
+      "remoteMediaUrl": null
+    },
+    {
+      "id": "cheer-america",
+      "title": "Cheer America Championships",
+      "client": "Cheer America",
+      "sector": "Events",
+      "year": "2024",
+      "format": "Event film",
+      "scope": "Competition event coverage and branded film for the Cheer America Championships.",
+      "headline": "Championship energy captured with broadcast-quality precision.",
+      "summary": "Cheer America Championships coverage built around the energy of elite competition \u2014 branded graphics, dramatic athlete portraits, and team performance footage packaged for promotional and recap use.",
+      "mandate": "Capture the intensity, precision, and brand identity of the Cheer America Championships in a way that works for promotion, highlights, and team use.",
+      "execution": "Coverage combined broadcast-quality competition footage with branded graphic overlays, athlete close-ups, and arena-scale context to give the event a polished promotional asset.",
+      "outcome": "A branded competition film ready for social, website, and event promotion \u2014 showing both the scale of the championship and the individual athletes.",
+      "proofPoints": [
+        "Championship competition coverage",
+        "Branded event graphics",
+        "Athlete portrait moments",
+        "Arena-scale production"
+      ],
+      "deliverables": [
+        "Championship event film",
+        "Branded promo cut",
+        "Highlight reel"
+      ],
+      "thumbnail": "/cc/portfolio-cdn/thumb_cheer_america.jpg",
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-06-17"
+      },
+      "gallery": [
+        {
+          "src": "/cc/portfolio-cdn/thumb_cheer_america.jpg",
+          "alt": "Cheer America Championships branded competition event"
+        }
+      ],
+      "remoteMediaUrl": null
     }
   ]
 }
