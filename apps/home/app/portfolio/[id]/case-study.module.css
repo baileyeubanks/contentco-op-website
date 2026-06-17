@@ -82,6 +82,51 @@
   object-fit: cover;
 }
 
+.episodeStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.episodeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.78rem;
+  border-radius: 6px;
+  border: 1px solid rgba(76, 142, 245, 0.28);
+  background: transparent;
+  cursor: pointer;
+  color: #5f6470;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: background 130ms ease, border-color 130ms ease, color 130ms ease;
+}
+
+.episodeBtn:hover {
+  border-color: #4c8ef5;
+  color: #0c1322;
+}
+
+.episodeBtnActive {
+  background: #4c8ef5;
+  border-color: #4c8ef5;
+  color: #fff;
+}
+
+.episodeBtnNum {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.episodeBtnTitle {
+  font-weight: 600;
+  opacity: 0.88;
+}
+
 .studyBody {
   width: min(1120px, 92vw);
   margin: 0 auto;

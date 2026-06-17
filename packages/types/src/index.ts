@@ -458,6 +458,13 @@ export interface PortfolioReviewMetadata {
   notes?: string;
 }
 
+export interface SeriesEpisode {
+  number: number;
+  title: string;
+  video: string;
+  thumbnail?: string;
+}
+
 export interface PortfolioCaseStudy {
   id: string;
   title: string;
@@ -479,6 +486,7 @@ export interface PortfolioCaseStudy {
   remoteMediaUrl?: string | null;
   review: PortfolioReviewMetadata;
   gallery: PortfolioProofImage[];
+  episodes?: SeriesEpisode[];
 }
 
 export interface PortfolioManifest {

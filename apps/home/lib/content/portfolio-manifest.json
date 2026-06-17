@@ -52,8 +52,8 @@
       "client": "CITGO Petroleum",
       "sector": "Safety systems",
       "year": "2024",
-      "format": "Safety series representative episode",
-      "scope": "Episode 1 inside a 9-part Life Critical Rules training rollout, focused on hazard recognition and control, permit discipline, site inspections, and field-ready safety controls",
+      "format": "9-episode safety training series",
+      "scope": "Full 9-part Life Critical Rules training rollout for CITGO Petroleum, covering hazard recognition, permit discipline, site inspections, line-of-fire awareness, and field-ready safety controls across all nine episodes",
       "headline": "A Life Critical Rules episode built around the exact checks crews have to make before work begins.",
       "summary": "CITGO's first Life Critical Rules episode turns hazard recognition and control into a 2:41 field training asset: the 9-rule system, conduct hazard identification, joint site inspection, implement safety controls, procedural discipline, sign-in/operator notification, permit-to-work context, and refinery-unit interviews all connect the rule to visible work.",
       "mandate": "Package mandatory safety guidance into a format crews would actually watch while keeping the language credible for operations, HSE review, permit culture, and repeat site training.",
@@ -119,6 +119,62 @@
         {
           "src": "/cc/portfolio-cdn/thumb_citgo_ep9.jpg",
           "alt": "CITGO LCR Episode 9"
+        }
+      ],
+      "episodes": [
+        {
+          "number": 1,
+          "title": "Episode 1",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep1_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep1.jpg"
+        },
+        {
+          "number": 2,
+          "title": "Episode 2",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep2_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep2.jpg"
+        },
+        {
+          "number": 3,
+          "title": "Episode 3",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep3_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep3.jpg"
+        },
+        {
+          "number": 4,
+          "title": "Episode 4",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep4_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep4.jpg"
+        },
+        {
+          "number": 5,
+          "title": "Episode 5",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep5_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep5.jpg"
+        },
+        {
+          "number": 6,
+          "title": "Episode 6",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep6_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep6.jpg"
+        },
+        {
+          "number": 7,
+          "title": "Episode 7",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep7_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep7.jpg"
+        },
+        {
+          "number": 8,
+          "title": "Episode 8",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep8_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep8.jpg"
+        },
+        {
+          "number": 9,
+          "title": "Episode 9",
+          "video": "/cc/portfolio-cdn/CITGO_LCR_Ep9_web.mp4",
+          "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep9.jpg"
         }
       ]
     },

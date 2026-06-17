@@ -5,6 +5,13 @@ declare module "@contentco-op/types" {
     alignment?: string;
   };
 
+  export interface SeriesEpisode {
+    number: number;
+    title: string;
+    video: string;
+    thumbnail?: string;
+  }
+
   export type PortfolioCaseStudy = {
     id: string;
     client: string;
@@ -20,8 +27,12 @@ declare module "@contentco-op/types" {
     outcome: string;
     proofPoints: string[];
     deliverables: string[];
+    thumbnail?: string;
+    preview?: string;
+    video?: string;
     remoteMediaUrl?: string | null;
     gallery: PortfolioProofImage[];
+    episodes?: SeriesEpisode[];
     review?: {
       status?: string | null;
       reviewedBy?: string | null;

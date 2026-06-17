@@ -15,13 +15,14 @@ import {
   portfolioCaseStudyUrl,
 } from "@/lib/seo";
 import s from "./case-study.module.css";
+import { EpisodePlayer } from "./episode-player";
 
 type Props = {
   params: Promise<{ id: string }>;
 };
 
 const RUNTIME_BY_ID: Record<string, string> = {
-  "citgo-lcr": "02:41",
+  "citgo-lcr": "9 × ~2:40",
   "bp-orlando-holiday": "03:05",
   ceraweek: "02:12",
   "bp-differential-performance": "05:10",
@@ -206,19 +207,23 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
         </section>
 
         <section className={s.videoSection}>
-          <div className={s.videoFrame}>
-            {videoUrl ? (
-              <video
-                controls
-                preload="metadata"
-                poster={posterUrl}
-                src={videoUrl}
-              />
-            ) : posterUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={posterUrl} alt={studyName} />
-            ) : null}
-          </div>
+          {study.episodes?.length ? (
+            <EpisodePlayer episodes={study.episodes} poster={posterUrl} />
+          ) : (
+            <div className={s.videoFrame}>
+              {videoUrl ? (
+                <video
+                  controls
+                  preload="metadata"
+                  poster={posterUrl}
+                  src={videoUrl}
+                />
+              ) : posterUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={posterUrl} alt={studyName} />
+              ) : null}
+            </div>
+          )}
         </section>
 
         <section className={s.studyBody} aria-label="Case study details">
