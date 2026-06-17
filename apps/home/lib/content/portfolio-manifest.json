@@ -5,7 +5,6 @@
     "schneider-eae-2025",
     "citgo-lcr",
     "bp-turnarounds",
-    "bp-red-zone",
     "ceraweek",
     "metallic-products",
     "houston-tech-rodeo"
@@ -165,46 +164,6 @@
         {
           "src": "/cc/portfolio-cdn/thumb_bp_turnarounds_final.jpg",
           "alt": "BP Turn-Arounds"
-        }
-      ]
-    },
-    {
-      "id": "bp-red-zone",
-      "title": "BP Red Zone Safety",
-      "client": "BP",
-      "sector": "Safety systems",
-      "year": "2024",
-      "format": "Offshore red-zone safety film",
-      "scope": "4:23 BP Red Zone Management film covering offshore line-of-fire hazards, drops prevention, BP Wells specification references, Helix Well Enhancer monitoring, device warning-zone alerts, deck audio cues, and labeled equipment practices",
-      "headline": "Red-zone safety training built around the exact moments crews have to notice.",
-      "summary": "BP's Red Zone Management film turns a complex offshore safety topic into a field-usable operating story: rig and deck context, BP Wells specification screens, Line of Fire guidance, remote expert interviews, Helix Well Enhancer red-zone monitoring visuals, warning-zone maps, device alerts, labeled tools, and audible movement cues all show how drops prevention becomes a daily crew habit.",
-      "mandate": "Make red-zone discipline and drops prevention specific enough for offshore crews without flattening the training into policy slides.",
-      "execution": "Content Co-op shaped a 1920x1080, 23.976fps safety film from interview sources, offshore b-roll, UI/demo graphics, captioned field examples, and operational visuals that connect the rule language to real deck decisions.",
-      "outcome": "The finished film gives BP a 4:23 safety asset for operations review, crew refreshers, and leadership alignment around line-of-fire awareness, red-zone boundaries, and equipment labeling.",
-      "proofPoints": [
-        "Line of Fire guidance",
-        "Helix Well Enhancer red-zone monitoring",
-        "Device warning-zone alerts",
-        "Labeled equipment practices",
-        "4:23 1080p safety film"
-      ],
-      "deliverables": [
-        "Offshore safety film",
-        "Operations review export",
-        "Crew refresher asset"
-      ],
-      "thumbnail": "/cc/portfolio-cdn/thumb_bp_red_zone_main_final.jpg",
-      "preview": "/cc/portfolio-cdn/bp_red_zone_main_final.mp4",
-      "video": "/cc/portfolio-cdn/bp_red_zone_main_20241120.mp4",
-      "review": {
-        "status": "approved",
-        "reviewedBy": "Codex",
-        "reviewedAt": "2026-03-16"
-      },
-      "gallery": [
-        {
-          "src": "/cc/portfolio-cdn/thumb_bp_red_zone_main_final.jpg",
-          "alt": "BP Red Zone Management"
         }
       ]
     },

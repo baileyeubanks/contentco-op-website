@@ -23,7 +23,6 @@ type Props = {
 const RUNTIME_BY_ID: Record<string, string> = {
   "citgo-lcr": "02:41",
   "bp-turnarounds": "03:23",
-  "bp-red-zone": "04:24",
   "bp-orlando-holiday": "03:05",
   ceraweek: "02:12",
   "bp-differential-performance": "05:10",
