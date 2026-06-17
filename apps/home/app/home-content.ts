@@ -163,6 +163,7 @@ const PHOTOS: readonly GalleryImage[] = [
   { src: "/cc/photos/bailey-red-camera.jpg", alt: "Bailey Eubanks with RED cinema camera", label: "On Set", tag: "BTS" },
   { src: "/cc/photos/gallery-pipe-whip-fast.jpg", alt: "Fast pipe whip safety training", label: "Safety Training", tag: "Safety" },
   { src: "/cc/photos/solar-panel-workers.jpg", alt: "Solar panel installation crew", label: "Solar Install", tag: "Renewables" },
+  { src: "/cc/photos/gallery-schneider-epc-houston.jpg", alt: "Schneider Electric EPC Houston panel discussion with executives on stage", label: "EPC Houston 2026", tag: "Events" },
 ];
 
 // ── Crop variants for reuse — same photo, different crop ─────
