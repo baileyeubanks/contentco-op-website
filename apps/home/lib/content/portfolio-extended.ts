@@ -171,10 +171,10 @@ export const portfolioExtendedStudies: PortfolioCaseStudy[] = [
     outcome: "A stronger proof asset for education, community, and brand narratives.",
     proofPoints: ["Community proof", "Program visibility", "Brand restraint"],
     deliverables: ["Program story", "Community brand asset"],
-    thumbnail: "/cc/portfolio-cdn/thumb_bp_stem.jpg",
+    thumbnail: "/cc/photos/gallery-bp-stem-swimming.jpg",
     preview: "/cc/portfolio-cdn/preview_bp_stem.mp4",
     video: "/cc/portfolio-cdn/preview_bp_stem.mp4",
     review: { status: "approved", reviewedBy: "Codex", reviewedAt },
-    gallery: [{ src: "/cc/portfolio-cdn/thumb_bp_stem.jpg", alt: "BP STEM story" }],
+    gallery: [{ src: "/cc/photos/gallery-bp-stem-swimming.jpg", alt: "BP STEM swimming story" }],
   },
 ];
