@@ -163,9 +163,6 @@ const PHOTOS: readonly GalleryImage[] = [
   { src: "/cc/photos/bailey-red-camera.jpg", alt: "Bailey Eubanks with RED cinema camera", label: "On Set", tag: "BTS" },
   { src: "/cc/photos/gallery-pipe-whip-fast.jpg", alt: "Fast pipe whip safety training", label: "Safety Training", tag: "Safety" },
   { src: "/cc/photos/solar-panel-workers.jpg", alt: "Solar panel installation crew", label: "Solar Install", tag: "Renewables" },
-  { src: "/cc/photos/gallery-schneider-ceraweek-28.jpg", alt: "Schneider Electric CERAWeek 2026 conference coverage", label: "CERAWeek Day 4", tag: "Events" },
-  { src: "/cc/photos/gallery-schneider-ceraweek-32.jpg", alt: "Schneider Electric CERAWeek 2026 event production", label: "CERAWeek Day 4", tag: "Events" },
-  { src: "/cc/photos/gallery-schneider-ceraweek-34.jpg", alt: "Schneider Electric CERAWeek 2026 Day 4 coverage", label: "CERAWeek Day 4", tag: "Events" },
 ];
 
 // ── Crop variants for reuse — same photo, different crop ─────

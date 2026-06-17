@@ -1,7 +1,15 @@
 {
   "version": "2026-06-04",
   "flagshipStudyId": "citgo-lcr",
-  "featuredStudyIds": ["schneider-eae-2025", "citgo-lcr", "bp-turnarounds", "bp-red-zone", "ceraweek", "metallic-products", "houston-tech-rodeo"],
+  "featuredStudyIds": [
+    "schneider-eae-2025",
+    "citgo-lcr",
+    "bp-turnarounds",
+    "bp-red-zone",
+    "ceraweek",
+    "metallic-products",
+    "houston-tech-rodeo"
+  ],
   "entries": [
     {
       "id": "schneider-eae-2025",
@@ -16,14 +24,28 @@
       "mandate": "Turn high-energy event access into a polished, reusable recap.",
       "execution": "Multi-camera event coverage, speaker moments, and controlled pacing.",
       "outcome": "A recap film that serves marketing, comms, and leadership teams.",
-      "proofPoints": ["Event coverage", "Multi-use recap", "Brand-safe"],
-      "deliverables": ["Event recap film", "Highlight cuts"],
+      "proofPoints": [
+        "Event coverage",
+        "Multi-use recap",
+        "Brand-safe"
+      ],
+      "deliverables": [
+        "Event recap film",
+        "Highlight cuts"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_schneider_eae_2025.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/schneider_eae_2025_final.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-27" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-27"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_schneider_eae_2025.jpg", "alt": "Schneider Electric EAE Houston 2025" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_schneider_eae_2025.jpg",
+          "alt": "Schneider Electric EAE Houston 2025"
+        }
       ]
     },
     {
@@ -58,17 +80,48 @@
       "thumbnail": "/cc/portfolio-cdn/thumb_citgo_ep1.jpg",
       "preview": "/cc/portfolio-cdn/preview_citgo_ep1.mp4",
       "video": "/cc/portfolio-cdn/CITGO_LCR_Ep1_web.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-13" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep1.jpg", "alt": "CITGO LCR Episode 1" },
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep2.jpg", "alt": "CITGO LCR Episode 2" },
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep3.jpg", "alt": "CITGO LCR Episode 3" },
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep4.jpg", "alt": "CITGO LCR Episode 4" },
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep5.jpg", "alt": "CITGO LCR Episode 5" },
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep6.jpg", "alt": "CITGO LCR Episode 6" },
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep7.jpg", "alt": "CITGO LCR Episode 7" },
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep8.jpg", "alt": "CITGO LCR Episode 8" },
-        { "src": "/cc/portfolio-cdn/thumb_citgo_ep9.jpg", "alt": "CITGO LCR Episode 9" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep1.jpg",
+          "alt": "CITGO LCR Episode 1"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep2.jpg",
+          "alt": "CITGO LCR Episode 2"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep3.jpg",
+          "alt": "CITGO LCR Episode 3"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep4.jpg",
+          "alt": "CITGO LCR Episode 4"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep5.jpg",
+          "alt": "CITGO LCR Episode 5"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep6.jpg",
+          "alt": "CITGO LCR Episode 6"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep7.jpg",
+          "alt": "CITGO LCR Episode 7"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep8.jpg",
+          "alt": "CITGO LCR Episode 8"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_ep9.jpg",
+          "alt": "CITGO LCR Episode 9"
+        }
       ]
     },
     {
@@ -84,14 +137,35 @@
       "mandate": "Make turnaround readiness specific: show the planning rooms, handwritten prompts, facilitation models, offshore context, and leadership behaviors behind a shutdown window, instead of treating TAR performance like generic refinery b-roll.",
       "execution": "Content Co-op shaped a 3:23, 23.98fps film from BP-branded motion text, interview-led explanation, site-effectiveness workshop footage, document review, whiteboard and sticky-note prompts, offshore platform imagery, and measured pacing that lets operational complexity stay readable.",
       "outcome": "The completed TAR video gave BP a distribution-ready MP4 for internal operations and leadership audiences, turning shutdown-planning language into a concise performance story about downtime, maintenance-window discipline, and site effectiveness.",
-      "proofPoints": ["3:23 1080p TAR performance film", "BP TAR & turn-around efficiency branding", "When units pause for maintenance or safety", "safer systems, stronger outputs", "Downtime and shutdown context", "Site-effectiveness workshop coverage", "Lencioni model and planning prompts", "Offshore platform context"],
-      "deliverables": ["TAR performance film", "Operations communications MP4", "Leadership-ready edit", "Workshop and planning-room coverage"],
+      "proofPoints": [
+        "3:23 1080p TAR performance film",
+        "BP TAR & turn-around efficiency branding",
+        "When units pause for maintenance or safety",
+        "safer systems, stronger outputs",
+        "Downtime and shutdown context",
+        "Site-effectiveness workshop coverage",
+        "Lencioni model and planning prompts",
+        "Offshore platform context"
+      ],
+      "deliverables": [
+        "TAR performance film",
+        "Operations communications MP4",
+        "Leadership-ready edit",
+        "Workshop and planning-room coverage"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_turnarounds_final.jpg",
       "preview": "/cc/portfolio-cdn/bp_turnarounds_final.mp4",
       "video": "/cc/portfolio-cdn/bp_turnarounds_final.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-16" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-16"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_turnarounds_final.jpg", "alt": "BP Turn-Arounds" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_turnarounds_final.jpg",
+          "alt": "BP Turn-Arounds"
+        }
       ]
     },
     {
@@ -107,14 +181,31 @@
       "mandate": "Make red-zone discipline and drops prevention specific enough for offshore crews without flattening the training into policy slides.",
       "execution": "Content Co-op shaped a 1920x1080, 23.976fps safety film from interview sources, offshore b-roll, UI/demo graphics, captioned field examples, and operational visuals that connect the rule language to real deck decisions.",
       "outcome": "The finished film gives BP a 4:23 safety asset for operations review, crew refreshers, and leadership alignment around line-of-fire awareness, red-zone boundaries, and equipment labeling.",
-      "proofPoints": ["Line of Fire guidance", "Helix Well Enhancer red-zone monitoring", "Device warning-zone alerts", "Labeled equipment practices", "4:23 1080p safety film"],
-      "deliverables": ["Offshore safety film", "Operations review export", "Crew refresher asset"],
+      "proofPoints": [
+        "Line of Fire guidance",
+        "Helix Well Enhancer red-zone monitoring",
+        "Device warning-zone alerts",
+        "Labeled equipment practices",
+        "4:23 1080p safety film"
+      ],
+      "deliverables": [
+        "Offshore safety film",
+        "Operations review export",
+        "Crew refresher asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_red_zone_main_final.jpg",
       "preview": "/cc/portfolio-cdn/bp_red_zone_main_final.mp4",
       "video": "/cc/portfolio-cdn/bp_red_zone_main_20241120.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-16" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-16"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_red_zone_main_final.jpg", "alt": "BP Red Zone Management" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_red_zone_main_final.jpg",
+          "alt": "BP Red Zone Management"
+        }
       ]
     },
     {
@@ -130,14 +221,33 @@
       "mandate": "Capture a fast-moving executive conference without disrupting the room, then package the interviews, stage panels, hallway texture, and Schneider Electric energy-management presence into a film teams could keep using after March 18-22, 2024.",
       "execution": "The edit balances Houston arrival context, Digital IMPACT motion graphics, CERAWeek theater signage, panel-room coverage, lounge interviews, crowd networking, and lower-thirds for Schneider leaders including Nathalie Marcotte, Ahmed Wafi, and Barbara Frei.",
       "outcome": "A 2:12 conference film that gives Schneider Electric a concise record of its CERAWeek presence and a reusable asset for executive follow-up, internal communications, and post-event energy-industry conversations.",
-      "proofPoints": ["March 18-22, 2024 CERAWeek Houston coverage", "Houston skyline opening context", "Digital IMPACT animation", "CERAWeek theater signage", "Named executive interview lower-thirds", "Stage-room and panel context"],
-      "deliverables": ["2:12 1080p conference recap film", "Executive interview selects", "CERAWeek event b-roll", "Executive follow-up recap"],
+      "proofPoints": [
+        "March 18-22, 2024 CERAWeek Houston coverage",
+        "Houston skyline opening context",
+        "Digital IMPACT animation",
+        "CERAWeek theater signage",
+        "Named executive interview lower-thirds",
+        "Stage-room and panel context"
+      ],
+      "deliverables": [
+        "2:12 1080p conference recap film",
+        "Executive interview selects",
+        "CERAWeek event b-roll",
+        "Executive follow-up recap"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_schneider.jpg",
       "preview": "/cc/portfolio-cdn/preview_schneider.mp4",
       "video": "/cc/portfolio-cdn/Schneider_2024_Recap_FINAL_X3.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-13" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_schneider.jpg", "alt": "Schneider Electric CERAWeek" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_schneider.jpg",
+          "alt": "Schneider Electric CERAWeek"
+        }
       ]
     },
     {
@@ -153,14 +263,37 @@
       "mandate": "Make the performance story clear enough for broad internal distribution while preserving the operational specificity behind logistics cash cost, base/inflation/incremental-demand layers, performance management, and year-over-year improvement.",
       "execution": "Content Co-op built a 5:10, 1080p, 23.976fps executive explainer around interview-led narration, BP-branded motion graphics, onion-model context, KPI proof screens, captions, TSI-and-value-strategy document inserts, and a revised cost chart. The edit moved through detailed stakeholder review, including music balance, caption coverage, chart timing, graph logic, and SharePoint and Yammer-ready export delivery.",
       "outcome": "The film became a comms-ready asset for BP's Q3 performance communications: a leadership message with enough visual structure for broad internal distribution and enough operational detail to keep the differential-performance story specific.",
-      "proofPoints": ["Gio Cristofoli leadership message", "Onion-model animation", "Partnering chapter cards", "TSI document visuals", "Logistics cash cost graphic", "Base, inflation, and incremental demand chart layers", "Captioned final export", "Stakeholder review cycle", "Q3 performance communications"],
-      "deliverables": ["5:10 1080p executive performance film", "BP-branded motion graphics", "Performance chart integration", "Captioned final MP4", "SharePoint and Yammer-ready export"],
+      "proofPoints": [
+        "Gio Cristofoli leadership message",
+        "Onion-model animation",
+        "Partnering chapter cards",
+        "TSI document visuals",
+        "Logistics cash cost graphic",
+        "Base, inflation, and incremental demand chart layers",
+        "Captioned final export",
+        "Stakeholder review cycle",
+        "Q3 performance communications"
+      ],
+      "deliverables": [
+        "5:10 1080p executive performance film",
+        "BP-branded motion graphics",
+        "Performance chart integration",
+        "Captioned final MP4",
+        "SharePoint and Yammer-ready export"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_differential_performance_final.jpg",
       "preview": "/cc/portfolio-cdn/bp_differential_performance_final.mp4",
       "video": "/cc/portfolio-cdn/bp_differential_performance_final.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-16" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-16"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_differential_performance_final.jpg", "alt": "BP Differential Performance" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_differential_performance_final.jpg",
+          "alt": "BP Differential Performance"
+        }
       ]
     },
     {
@@ -186,13 +319,24 @@
         "Control-panel and construction-drawing details",
         "Expanded-scope turn-key projects"
       ],
-      "deliverables": ["1:45 1080p company overview film", "Product and process visuals", "Sales-facing industrial cut"],
+      "deliverables": [
+        "1:45 1080p company overview film",
+        "Product and process visuals",
+        "Sales-facing industrial cut"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_adaptive.jpg",
       "preview": "/cc/portfolio-cdn/preview_adaptive.mp4",
       "video": "/cc/portfolio-cdn/Adaptive_Stainless_v.16.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-13" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_adaptive.jpg", "alt": "Adaptive Stainless" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_adaptive.jpg",
+          "alt": "Adaptive Stainless"
+        }
       ]
     },
     {
@@ -227,10 +371,20 @@
       "thumbnail": "/cc/portfolio-cdn/thumb_accurate_meter.jpg",
       "preview": "/cc/portfolio-cdn/preview_accurate_meter.mp4",
       "video": "/cc/portfolio-cdn/Accurate_Meter_FINAL_X_web.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-13" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_accurate_meter.jpg", "alt": "Accurate Meter & Supply" },
-        { "src": "/cc/portfolio-cdn/thumb_accurate_meter2.jpg", "alt": "Accurate Meter field" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_accurate_meter.jpg",
+          "alt": "Accurate Meter & Supply"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_accurate_meter2.jpg",
+          "alt": "Accurate Meter field"
+        }
       ]
     },
     {
@@ -265,80 +419,20 @@
       "thumbnail": "/cc/portfolio-cdn/thumb_kodiak.jpg",
       "preview": "/cc/portfolio-cdn/preview_kodiak.mp4",
       "video": "/cc/portfolio-cdn/Kodiak_Recruitment_web.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-13" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-13"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_kodiak.jpg", "alt": "Kodiak Gas Services field recruitment film" },
-        { "src": "/cc/portfolio-cdn/thumb_kodiak_recruitment.jpg", "alt": "Kodiak Gas Services employee recruiting portrait" }
-      ]
-    },
-    {
-      "id": "hlsr-2025",
-      "title": "BP Houston Rodeo 2025",
-      "client": "BP",
-      "sector": "Venue sponsorship",
-      "year": "2025",
-      "format": "Broadcast-style rodeo sponsor spot",
-      "scope": "30-second Houston Livestock Show & Rodeo center spot with BP volunteer and livestock footage, Whiting Refinery and first-responder imagery, offshore and refinery context, campus portrait coverage, Texas-shaped Investing in America map end card, and companion venue-board package",
-      "headline": "A 30-second rodeo sponsor spot that connects Houston community to BP's national footprint.",
-      "summary": "BP's 2025 Houston Livestock Show & Rodeo spot is a broadcast-style sponsor asset, not a generic rodeo montage: BP green volunteer moments, livestock and cowboy texture, Whiting Refinery signage, emergency-response and first-responder imagery, offshore work, aerial industrial footage, campus/team scenes, portrait coverage, photo-collage transitions, and the Texas-shaped Investing in America map end card all fit into a tight 30-second venue-ready cut.",
-      "mandate": "Build a concise HLSR center spot that could read at stadium scale while keeping BP's community, first-responder, and Investing in America message aligned with brand review and rodeo playback requirements.",
-      "execution": "Content Co-op shaped a 1920x1080, 10-bit 4:2:2, 29.97fps master with stereo audio, pairing rodeo access with BP industrial/community proof and a clean map bookend. The broader rodeo package was refined through review around typography, accessibility/readability, full-color bp logo use, clean borders, and companion jumbotron/ribbon/end-zone assets.",
-      "outcome": "The finished spot gave BP a high-quality 30-second HLSR asset for venue playback and sponsor communications, connecting Houston Rodeo visibility with real operational and community proof instead of simple logo placement.",
-      "proofPoints": ["1920x1080 10-bit 4:2:2 master", "Houston Livestock Show & Rodeo center spot", "Emergency-response and first-responder imagery", "Whiting Refinery signage and offshore work", "Photo-collage transitions", "Texas-shaped Investing in America map end card", "Companion venue-board package"],
-      "deliverables": ["30-second HLSR sponsor spot", "Venue playback master", "Jumbotron/ribbon/end-zone companion assets", "Brand-review-ready export"],
-      "thumbnail": "/cc/portfolio-cdn/thumb_hlsr_2025.jpg",
-      "preview": "/cc/portfolio-cdn/preview_hlsr_2025.mp4",
-      "video": "/cc/portfolio-cdn/HLSR_2025_v.1.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-17" },
-      "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_hlsr_2025.jpg", "alt": "BP Houston Rodeo 2025 sponsor spot" },
-        { "src": "/cc/portfolio-cdn/thumb_hlsr_2024.jpg", "alt": "BP Houston Rodeo companion still" }
-      ]
-    },
-    {
-      "id": "bp-hlsr-2024",
-      "title": "BP Houston Rodeo 2024",
-      "client": "BP",
-      "sector": "Community sponsorship",
-      "year": "2024",
-      "format": "Volunteer spotlight sponsor spot",
-      "scope": "30-second Houston Livestock Show & Rodeo volunteer spotlight for BP, combining green-shirt volunteer footage, hay and livestock details, cowboy moments, BP badge texture, campus and industrial aerials, wind-farm context, employee interview beat, and employee/community portrait collage",
-      "headline": "A Rodeo sponsor spot that makes BP's volunteer presence feel tied to real people and real operations.",
-      "summary": "BP's 2024 Houston Livestock Show & Rodeo spot is built around more than event atmosphere: green volunteer shirts, hay and livestock details, BP badge texture, cowboy presentation moments, BP campus context, refinery and offshore work, industrial aerials, wind-farm footage, an employee interview beat, and a closing portrait collage all connect the Houston community moment to BP's broader energy footprint.",
-      "mandate": "Turn BP's HLSR presence into a concise 30-second sponsor asset that could celebrate volunteer involvement while still carrying enough operational proof to feel like BP, not a generic Rodeo montage.",
-      "execution": "Content Co-op shaped the spot from 1920x1080, 29.97fps footage with a fast sponsor cadence: volunteer action first, Rodeo texture second, then industrial and energy visuals that widen the story before the final portrait collage and proud-sponsor finish.",
-      "outcome": "The finished spot gives BP a compact HLSR volunteer asset for venue, web, social, and community communications, showing the company's local presence without reducing the Rodeo relationship to logo placement.",
-      "proofPoints": ["BP green-shirt volunteer footage", "Hay and livestock Rodeo details", "BP badge and volunteer texture", "Industrial aerial and wind-farm visuals", "Employee interview beat", "Employee/community portrait collage", "30-second 1080p sponsor spot"],
-      "deliverables": ["30-second HLSR volunteer spot", "Venue, web, social, community communications", "Community sponsorship cut"],
-      "thumbnail": "/cc/portfolio-cdn/thumb_hlsr_2024.jpg",
-      "preview": "/cc/portfolio-cdn/preview_hlsr_2024.mp4",
-      "video": "/cc/portfolio-cdn/HLSR_2024_web.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-05-28" },
-      "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_hlsr_2024.jpg", "alt": "BP HLSR 2024 volunteer sponsor spot" }
-      ]
-    },
-    {
-      "id": "bp-rodeo-recap",
-      "title": "BP Houston Rodeo Recap",
-      "client": "BP",
-      "sector": "Community events",
-      "year": "2024",
-      "format": "Community recap film",
-      "scope": "49-second, 59.94fps Houston Rodeo community recap built from Rodeo Run coverage, BP volunteer presence, BP vest interviews, first-responder briefing moments, NRG fireworks, and HFD station context",
-      "headline": "A Rodeo recap about the small moments that make Houston feel connected.",
-      "summary": "BP's Houston Rodeo recap is a Community recap film built around specific Houston moments: Rodeo Run coverage and crowd density, a Rodeo Run arch start, BP volunteer presence, BP vest interview moments, boardroom first-responder briefing, NRG fireworks context, HFD uniform portraits, boot and western-detail inserts, HFD station exterior, and a clean BP Invest end card.",
-      "mandate": "Turn live Houston Rodeo access into a concise film that could carry BP America's community presence after the event while making the first-responder recognition feel local, specific, and tied to people who keep Houston moving.",
-      "execution": "Content Co-op shaped a 49-second, 59.94fps recap from Rodeo Run crowd rhythm, BP interview beats, NRG fireworks, HFD responder coverage, HFD station exterior, boot-detail rodeo texture, volunteer interactions, and BP Invest end-card delivery, keeping the edit quick enough for social and clear enough for internal communications.",
-      "outcome": "The finished film gives BP a reusable Houston Rodeo asset built around community pride: the run, the responders, the volunteers, the rodeo texture, and a sponsor message that feels local rather than pasted on.",
-      "proofPoints": ["Rodeo Run coverage", "BP volunteer presence", "First-responder recognition", "Rodeo Run arch and crowd coverage", "BP vest interview moments", "Boardroom first-responder briefing", "NRG fireworks context", "HFD station exterior", "BP Invest end card"],
-      "deliverables": ["49-second community recap", "49-second 1080p Rodeo recap", "59.94fps Houston Rodeo social asset", "Internal communications cut", "First-responder recognition edit"],
-      "thumbnail": "/cc/portfolio-cdn/thumb_rodeo_recap.jpg",
-      "preview": "/cc/portfolio-cdn/preview_rodeo_recap.mp4",
-      "video": "/cc/portfolio-cdn/Rodeo_Recap_BP_web.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-05-28" },
-      "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_rodeo_recap.jpg", "alt": "BP Rodeo Recap" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_kodiak.jpg",
+          "alt": "Kodiak Gas Services field recruitment film"
+        },
+        {
+          "src": "/cc/portfolio-cdn/thumb_kodiak_recruitment.jpg",
+          "alt": "Kodiak Gas Services employee recruiting portrait"
+        }
       ]
     },
     {
@@ -354,14 +448,33 @@
       "mandate": "Deliver sponsor assets that could survive Rodeo venue review: readable at stadium scale, faithful to BP brand standards, and precise enough for custom playback specs.",
       "execution": "Content Co-op built the jumbotron around small first-responder photo tiles, then refined the HLSR package through Wipster review, duplicate-photo fixes, bp logo alignment, ribbon-board caption spacing, ProRes delivery, and frame-rate feedback for 59.94 progressive playback.",
       "outcome": "The finished package gave BP a venue-ready First Responders Day system rather than a single video file: a sponsor message adapted for jumbotron, ribbons, end-zone boards, and live-stadium review.",
-      "proofPoints": ["2772x524 jumbotron master", "First Responders Day sponsor message", "Ribbon-board caption space", "End-zone panel delivery", "59.94 progressive feedback"],
-      "deliverables": ["20-second jumbotron master", "Ribbon-board assets", "End-zone panel assets", "VIB asset", "Venue-spec delivery package"],
+      "proofPoints": [
+        "2772x524 jumbotron master",
+        "First Responders Day sponsor message",
+        "Ribbon-board caption space",
+        "End-zone panel delivery",
+        "59.94 progressive feedback"
+      ],
+      "deliverables": [
+        "20-second jumbotron master",
+        "Ribbon-board assets",
+        "End-zone panel assets",
+        "VIB asset",
+        "Venue-spec delivery package"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_jumbotron.jpg",
       "preview": "/cc/portfolio-cdn/preview_jumbotron.mp4",
       "video": "/cc/portfolio-cdn/XXX_Final_Jumbotron.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-05-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-05-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_jumbotron.jpg", "alt": "BP First Responders Day ultra-wide jumbotron board" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_jumbotron.jpg",
+          "alt": "BP First Responders Day ultra-wide jumbotron board"
+        }
       ]
     },
     {
@@ -394,9 +507,16 @@
       "thumbnail": "/cc/portfolio-cdn/thumb_title_promo.jpg",
       "preview": "/cc/portfolio-cdn/preview_title_promo.mp4",
       "video": "/cc/portfolio-cdn/The_Title_Promo_X_2.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-05-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-05-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_title_promo.jpg", "alt": "The Title event promo for Cheer America Championships" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_title_promo.jpg",
+          "alt": "The Title event promo for Cheer America Championships"
+        }
       ]
     },
     {
@@ -412,14 +532,31 @@
       "mandate": "Turn broad corporate-impact data into a short, polished asset that could support stakeholder conversations without becoming a static slide deck.",
       "execution": "Content Co-op combined aerial industrial footage, energy-transition imagery, branded BP graphic cards, rapid human b-roll, and a closing America-map illustration into a compact edit with enough pace for social distribution and enough clarity for corporate communications.",
       "outcome": "The finished economic-impact film gives BP a quick proof asset for the scale of its U.S. presence: energy infrastructure, workforce, community investment, and national reach in one controlled message.",
-      "proofPoints": ["$135 billion economic impact", "190,000 American jobs", "17,000 BP employees", "$150 million community programs", "Committed to America map"],
-      "deliverables": ["30-second economic-impact film", "Social-ready proof asset", "Corporate communications cut"],
+      "proofPoints": [
+        "$135 billion economic impact",
+        "190,000 American jobs",
+        "17,000 BP employees",
+        "$150 million community programs",
+        "Committed to America map"
+      ],
+      "deliverables": [
+        "30-second economic-impact film",
+        "Social-ready proof asset",
+        "Corporate communications cut"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_ica_aerial.jpg",
       "preview": "/cc/portfolio-cdn/preview_ica_aerial.mp4",
       "video": "/cc/portfolio-cdn/EIR30_12mb.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-05-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-05-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_ica_aerial.jpg", "alt": "BP Economic Impact Report motion graphic" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_ica_aerial.jpg",
+          "alt": "BP Economic Impact Report motion graphic"
+        }
       ]
     },
     {
@@ -435,14 +572,33 @@
       "mandate": "Give Conexon a film that worked beyond event memory: enough named leadership voice for credibility, enough workshop structure for substance, and enough rural fiber broadband context to show why co-op leaders were gathering.",
       "execution": "Content Co-op shaped a 2:04, 1080p leadership film with branded lower thirds, the 2023 Co-ops Connect Fiber Broadband Workshop title card, panel-room coverage, peer round tables, audience listening shots, networking motion, Sawgrass golf texture, and exterior venue plates.",
       "outcome": "The finished film gives Conexon a post-event asset for partner education, workshop follow-up, and future attendee development by turning live co-op conversations into proof of a working rural-broadband leadership community.",
-      "proofPoints": ["Michael Kirkland, Pearl River Valley Electric CEO", "Gary Wood, Central Virginia Electric Cooperative CEO", "Co-ops Connect 2023", "Jacksonville Fiber Broadband Workshop", "Panel-room and round-table coverage", "Sawgrass golf and venue context"],
-      "deliverables": ["2:04 1080p conference leadership film", "Partner education asset", "Workshop follow-up cut", "Future-attendee development asset"],
+      "proofPoints": [
+        "Michael Kirkland, Pearl River Valley Electric CEO",
+        "Gary Wood, Central Virginia Electric Cooperative CEO",
+        "Co-ops Connect 2023",
+        "Jacksonville Fiber Broadband Workshop",
+        "Panel-room and round-table coverage",
+        "Sawgrass golf and venue context"
+      ],
+      "deliverables": [
+        "2:04 1080p conference leadership film",
+        "Partner education asset",
+        "Workshop follow-up cut",
+        "Future-attendee development asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_ica_ceo.jpg",
       "preview": "/cc/portfolio-cdn/preview_ica_ceo.mp4",
       "video": "/cc/portfolio-cdn/instagram-video-1761251546096_1_prob4.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-05-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-05-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_ica_ceo.jpg", "alt": "Conexon Co-ops Connect leadership film" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_ica_ceo.jpg",
+          "alt": "Conexon Co-ops Connect leadership film"
+        }
       ]
     },
     {
@@ -458,14 +614,31 @@
       "mandate": "Show why a private painting night feels low-pressure, social, and repeatable across franchise studios, while keeping the edit fast enough for web and social promotion.",
       "execution": "Content Co-op paired upbeat studio b-roll with kinetic typography, handwritten testimonial overlays, bold objection-handling graphics, and close-up painting details so the campaign answers common hesitations: no experience required, clear instruction, music, party atmosphere, and enough seats for a group.",
       "outcome": "The finished 59-second spot gives Pinot's Palette a booking-focused campaign asset for girls-night-out, private-party, franchise, and studio marketing without losing the color and looseness of the actual room.",
-      "proofPoints": ["Paint-and-sip studio footage", "Girls-night-out reservation prompt", "Customer testimonial overlays", "No-experience-needed messaging", "Nationwide studio CTA"],
-      "deliverables": ["59-second campaign film", "Private-party promo asset", "Studio marketing cut"],
+      "proofPoints": [
+        "Paint-and-sip studio footage",
+        "Girls-night-out reservation prompt",
+        "Customer testimonial overlays",
+        "No-experience-needed messaging",
+        "Nationwide studio CTA"
+      ],
+      "deliverables": [
+        "59-second campaign film",
+        "Private-party promo asset",
+        "Studio marketing cut"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_gno.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/GNO_03.mp4",
-      "review": { "status": "approved", "reviewedBy": "Codex", "reviewedAt": "2026-03-17" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Codex",
+        "reviewedAt": "2026-03-17"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_gno.jpg", "alt": "Pinot's Palette Girls Night Out paint-and-sip campaign" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_gno.jpg",
+          "alt": "Pinot's Palette Girls Night Out paint-and-sip campaign"
+        }
       ]
     },
     {
@@ -481,14 +654,28 @@
       "mandate": "Capture executive authority without turning it into generic corporate footage.",
       "execution": "Structured interviews, clean lighting, and purposeful pacing.",
       "outcome": "A polished executive asset that performs across internal and external use.",
-      "proofPoints": ["Executive interviews", "Brand clarity", "Multi-use asset"],
-      "deliverables": ["Executive interview film", "Brand asset"],
+      "proofPoints": [
+        "Executive interviews",
+        "Brand clarity",
+        "Multi-use asset"
+      ],
+      "deliverables": [
+        "Executive interview film",
+        "Brand asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_abb.jpg",
       "preview": "/cc/portfolio-cdn/preview_abb.mp4",
       "video": "/cc/portfolio-cdn/preview_abb.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-27" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-27"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_abb.jpg", "alt": "ABB executive interview" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_abb.jpg",
+          "alt": "ABB executive interview"
+        }
       ]
     },
     {
@@ -504,14 +691,28 @@
       "mandate": "Give stakeholders a clear emotional and visual reference for the event concept.",
       "execution": "Atmospheric imagery, controlled pacing, and a polished concept-film structure.",
       "outcome": "A pitch asset that helps the event idea feel real, premium, and easy to understand.",
-      "proofPoints": ["Concept pitch", "Live event", "Stakeholder-ready"],
-      "deliverables": ["Concept film", "Pitch asset"],
+      "proofPoints": [
+        "Concept pitch",
+        "Live event",
+        "Stakeholder-ready"
+      ],
+      "deliverables": [
+        "Concept film",
+        "Pitch asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_abb_herstory.jpg",
       "preview": "/cc/portfolio-cdn/preview_abb_herstory.mp4",
       "video": "/cc/portfolio-cdn/preview_abb_herstory.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-27" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-27"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_abb_herstory.jpg", "alt": "The Energy Within concept film" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_abb_herstory.jpg",
+          "alt": "The Energy Within concept film"
+        }
       ]
     },
     {
@@ -527,14 +728,29 @@
       "mandate": "Show Kodiak's people-first culture and community investment without turning it into a generic feel-good reel.",
       "execution": "Interview-driven storytelling, field presence, and a narrative arc that ties community back to operations culture.",
       "outcome": "A brand narrative usable across stakeholder presentations, recruiting, and corporate communications.",
-      "proofPoints": ["Community narrative", "Field culture", "Stakeholder-ready"],
-      "deliverables": ["Brand narrative film", "Culture story", "Stakeholder export"],
+      "proofPoints": [
+        "Community narrative",
+        "Field culture",
+        "Stakeholder-ready"
+      ],
+      "deliverables": [
+        "Brand narrative film",
+        "Culture story",
+        "Stakeholder export"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_kodiak_cares.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/kodiak_cares_v3.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_kodiak_cares.jpg", "alt": "Kodiak Cares narrative" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_kodiak_cares.jpg",
+          "alt": "Kodiak Cares narrative"
+        }
       ]
     },
     {
@@ -550,14 +766,28 @@
       "mandate": "Package a high-energy corporate event into a piece that works for internal pride and external brand presence.",
       "execution": "Multi-camera event coverage, controlled pacing, and a cut that respects both the crowd and the brand.",
       "outcome": "A reusable event asset for corporate communications, social, and internal distribution.",
-      "proofPoints": ["Event production", "Multi-camera coverage", "Brand-safe energy"],
-      "deliverables": ["Event recap film", "Social cuts"],
+      "proofPoints": [
+        "Event production",
+        "Multi-camera coverage",
+        "Brand-safe energy"
+      ],
+      "deliverables": [
+        "Event recap film",
+        "Social cuts"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_kodiak_green_beret.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/kodiak_green_beret_v2.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_kodiak_green_beret.jpg", "alt": "Kodiak Green Beret event" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_kodiak_green_beret.jpg",
+          "alt": "Kodiak Green Beret event"
+        }
       ]
     },
     {
@@ -573,14 +803,29 @@
       "mandate": "Turn conference floor access and executive interviews into a polished asset that outlasts the event week.",
       "execution": "Interview structure, event texture, and editorial discipline that keeps the piece focused on substance.",
       "outcome": "A durable conference asset for leadership communications, IWD campaigns, and brand use.",
-      "proofPoints": ["Conference coverage", "IWD campaign", "Executive interviews"],
-      "deliverables": ["Conference campaign film", "IWD spotlight", "Executive interviews"],
+      "proofPoints": [
+        "Conference coverage",
+        "IWD campaign",
+        "Executive interviews"
+      ],
+      "deliverables": [
+        "Conference campaign film",
+        "IWD spotlight",
+        "Executive interviews"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_abb_ceraweek.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/abb_ceraweek_iwd_v5.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_abb_ceraweek.jpg", "alt": "ABB CERAWeek IWD coverage" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_abb_ceraweek.jpg",
+          "alt": "ABB CERAWeek IWD coverage"
+        }
       ]
     },
     {
@@ -615,9 +860,16 @@
       "thumbnail": "/cc/portfolio-cdn/thumb_wendys_final_four.jpg",
       "preview": "/cc/portfolio-cdn/wendys_tailgate_tipoff.mp4",
       "video": "/cc/portfolio-cdn/wendys_tailgate_tipoff.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_wendys_final_four.jpg", "alt": "Wendy's NCAA Final Four Tailgate fan activation" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_wendys_final_four.jpg",
+          "alt": "Wendy's NCAA Final Four Tailgate fan activation"
+        }
       ]
     },
     {
@@ -633,14 +885,28 @@
       "mandate": "Elevate a D&I leadership message from meeting recording to polished executive communication.",
       "execution": "Interview-driven narrative, clean production values, and editorial focus on substance over sentiment.",
       "outcome": "A professional executive piece for internal communications and stakeholder-facing use.",
-      "proofPoints": ["CEO messaging", "D&I leadership", "Executive production"],
-      "deliverables": ["CEO presentation film", "Internal communications asset"],
+      "proofPoints": [
+        "CEO messaging",
+        "D&I leadership",
+        "Executive production"
+      ],
+      "deliverables": [
+        "CEO presentation film",
+        "Internal communications asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_elements_chemical.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/elements_chemical_di_final.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_elements_chemical.jpg", "alt": "Elements Chemical D&I CEO presentation" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_elements_chemical.jpg",
+          "alt": "Elements Chemical D&I CEO presentation"
+        }
       ]
     },
     {
@@ -656,14 +922,28 @@
       "mandate": "Launch a new digital product feature with a video that works for customer onboarding, sales enablement, and marketing.",
       "execution": "Screen-driven product walkthrough, motion graphics, and a pacing structure built for clarity.",
       "outcome": "A product explainer that performs across sales, onboarding, and marketing channels.",
-      "proofPoints": ["Product launch", "Tech explainer", "Sales enablement"],
-      "deliverables": ["Product explainer film", "Feature walkthrough"],
+      "proofPoints": [
+        "Product launch",
+        "Tech explainer",
+        "Sales enablement"
+      ],
+      "deliverables": [
+        "Product explainer film",
+        "Feature walkthrough"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_copart_edge.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/copart_edge_esign_v3.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_copart_edge.jpg", "alt": "Copart Edge E-Signature" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_copart_edge.jpg",
+          "alt": "Copart Edge E-Signature"
+        }
       ]
     },
     {
@@ -679,14 +959,28 @@
       "mandate": "Attract talent through genuine employee stories that carry credibility with experienced professionals.",
       "execution": "Personal interviews, professional production, and editorial choices that let the subjects carry the narrative.",
       "outcome": "A recruitment series where every piece feels specific to UBS and the people who work there.",
-      "proofPoints": ["Employee spotlights", "Authentic recruiting", "Professional production"],
-      "deliverables": ["Recruitment film series", "Employee spotlights"],
+      "proofPoints": [
+        "Employee spotlights",
+        "Authentic recruiting",
+        "Professional production"
+      ],
+      "deliverables": [
+        "Recruitment film series",
+        "Employee spotlights"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_ubs_recruitment.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/ubs_recruitment_web.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_ubs_recruitment.jpg", "alt": "UBS Recruitment spotlight" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_ubs_recruitment.jpg",
+          "alt": "UBS Recruitment spotlight"
+        }
       ]
     },
     {
@@ -702,14 +996,28 @@
       "mandate": "Translate a complex specialty chemicals company into a brand film that works across regions and audiences.",
       "execution": "Global employee contributions, corporate messaging, and a production approach that stays polished without feeling generic.",
       "outcome": "A corporate brand asset for web, investor relations, and internal distribution.",
-      "proofPoints": ["Global brand film", "Web-ready", "Multi-audience"],
-      "deliverables": ["Corporate brand film", "Web video"],
+      "proofPoints": [
+        "Global brand film",
+        "Web-ready",
+        "Multi-audience"
+      ],
+      "deliverables": [
+        "Corporate brand film",
+        "Web video"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_elementis.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/elementis_corporate_web.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_elementis.jpg", "alt": "Elementis corporate film" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_elementis.jpg",
+          "alt": "Elementis corporate film"
+        }
       ]
     },
     {
@@ -725,14 +1033,28 @@
       "mandate": "Package complex global safety learning into a production that works at scale while retaining operational credibility.",
       "execution": "Multi-stakeholder interviews, operational footage, and a narrative structure built for global distribution.",
       "outcome": "A safety knowledge asset built for operations review, leadership briefings, and global rollout.",
-      "proofPoints": ["Global safety", "Knowledge sharing", "Operations-first"],
-      "deliverables": ["Safety knowledge film", "Global distribution asset"],
+      "proofPoints": [
+        "Global safety",
+        "Knowledge sharing",
+        "Operations-first"
+      ],
+      "deliverables": [
+        "Safety knowledge film",
+        "Global distribution asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_gsk.jpg",
       "preview": null,
       "video": null,
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_gsk.jpg", "alt": "BP Global Safety & Knowledge" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_gsk.jpg",
+          "alt": "BP Global Safety & Knowledge"
+        }
       ]
     },
     {
@@ -748,14 +1070,28 @@
       "mandate": "Make complex operational efficiency gains visible and communicable to both technical teams and leadership audiences.",
       "execution": "Structured technical explanation, operational footage, and interview-driven clarity.",
       "outcome": "An operational film that reads at both the technical and leadership level.",
-      "proofPoints": ["Technical operations", "Efficiency narrative", "Leadership-facing"],
-      "deliverables": ["Operational efficiency film", "Leadership briefing asset"],
+      "proofPoints": [
+        "Technical operations",
+        "Efficiency narrative",
+        "Leadership-facing"
+      ],
+      "deliverables": [
+        "Operational efficiency film",
+        "Leadership briefing asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_max_efficiency.jpg",
       "preview": null,
       "video": null,
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_max_efficiency.jpg", "alt": "BP Maximising Efficiency" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_max_efficiency.jpg",
+          "alt": "BP Maximising Efficiency"
+        }
       ]
     },
     {
@@ -771,14 +1107,28 @@
       "mandate": "Turn a specialized safety topic into a film field teams take seriously while leadership can reference with confidence.",
       "execution": "Atmospheric footage, structured safety messaging, and controlled pacing that matches the gravity of the topic.",
       "outcome": "A targeted safety asset for field training, operations review, and HSE communications.",
-      "proofPoints": ["Specialized safety", "Field-ready", "HSE communications"],
-      "deliverables": ["Safety initiative film", "Field training asset"],
+      "proofPoints": [
+        "Specialized safety",
+        "Field-ready",
+        "HSE communications"
+      ],
+      "deliverables": [
+        "Safety initiative film",
+        "Field training asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_mist.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/bp_mist_final_v10.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_mist.jpg", "alt": "BP Mist safety initiative" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_mist.jpg",
+          "alt": "BP Mist safety initiative"
+        }
       ]
     },
     {
@@ -794,14 +1144,29 @@
       "mandate": "Showcase a global volunteering program without reducing it to a corporate checkbox exercise.",
       "execution": "Multi-region contributions, personal stories, and an editorial approach that keeps individual voices front and center.",
       "outcome": "A community film that works for internal pride, ESG reporting, and external communications.",
-      "proofPoints": ["Global volunteering", "Multi-region", "ESG-ready"],
-      "deliverables": ["Community film", "Volunteering spotlight", "ESG communications asset"],
+      "proofPoints": [
+        "Global volunteering",
+        "Multi-region",
+        "ESG-ready"
+      ],
+      "deliverables": [
+        "Community film",
+        "Volunteering spotlight",
+        "ESG communications asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_volunteering.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/bp_volunteering_v5.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_volunteering.jpg", "alt": "Volunteering at BP" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_volunteering.jpg",
+          "alt": "Volunteering at BP"
+        }
       ]
     },
     {
@@ -817,14 +1182,29 @@
       "mandate": "Produce an IWD campaign piece that honors the subject matter without sliding into generic diversity messaging.",
       "execution": "Executive interviews, personal narratives, and production choices that let the stories land with authority.",
       "outcome": "A campaign asset for IWD, leadership communications, and ongoing D&I programming.",
-      "proofPoints": ["IWD campaign", "Leadership spotlight", "D&I programming"],
-      "deliverables": ["IWD campaign film", "Leadership interviews", "Social cuts"],
+      "proofPoints": [
+        "IWD campaign",
+        "Leadership spotlight",
+        "D&I programming"
+      ],
+      "deliverables": [
+        "IWD campaign film",
+        "Leadership interviews",
+        "Social cuts"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_iwd_2023.jpg",
       "preview": null,
       "video": null,
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_iwd_2023.jpg", "alt": "BP International Women's Day 2023" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_iwd_2023.jpg",
+          "alt": "BP International Women's Day 2023"
+        }
       ]
     },
     {
@@ -840,14 +1220,35 @@
       "mandate": "Turn a fast-moving rider-and-volunteer archive into a specific CSR and recruiting asset for EOG teams, showing the ride history, where employees gather, how support tents work, and why the corporate cycling team keeps fundraising momentum alive.",
       "execution": "The 1:51, 29.97fps edit opens with Team EOG's since-2000 MS150 history, moves through archival team photos, Woody Speer's night-start interview, wet-road and shoulder-lane cycling, EOG Resources flag and tent support, the Houston-team wrap-up title card, Kyle Field finish context, and the San Antonio, Midland, and Denver teams rider-or-volunteer CTA.",
       "outcome": "A specific internal and community recap that connects EOG's 25-year MS150 legacy to the April 27-28, 2024 ride through visible team history, road proof, support logistics, and a practical next-team invitation.",
-      "proofPoints": ["40th annual 2024 Texas MS 150", "25-year EOG ride history", "$4M+ raised since 2000", "Team EOG biking since 2000", "Woody Speer team-captain frame", "EOG tent and flag support", "Houston team wraps up 25th MS150 ride", "San Antonio, Midland, and Denver team CTA"],
-      "deliverables": ["1:51 1080p MS150 recap film", "Route-chapter ride edit", "Volunteer and rider recognition inserts", "Rider-or-volunteer recruiting CTA"],
+      "proofPoints": [
+        "40th annual 2024 Texas MS 150",
+        "25-year EOG ride history",
+        "$4M+ raised since 2000",
+        "Team EOG biking since 2000",
+        "Woody Speer team-captain frame",
+        "EOG tent and flag support",
+        "Houston team wraps up 25th MS150 ride",
+        "San Antonio, Midland, and Denver team CTA"
+      ],
+      "deliverables": [
+        "1:51 1080p MS150 recap film",
+        "Route-chapter ride edit",
+        "Volunteer and rider recognition inserts",
+        "Rider-or-volunteer recruiting CTA"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_eog_ms150.jpg",
       "preview": "/cc/portfolio-cdn/preview_eog_ms150.mp4",
       "video": "/cc/portfolio-cdn/eog_ms150_recap_v9.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_eog_ms150.jpg", "alt": "EOG Resources MS150 Recap" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_eog_ms150.jpg",
+          "alt": "EOG Resources MS150 Recap"
+        }
       ]
     },
     {
@@ -863,14 +1264,29 @@
       "mandate": "Document hurricane response operations with aerial coverage that communicates both the scale of the disaster and the operational capability of the response.",
       "execution": "Multi-day drone deployment, cross-location coverage, and disciplined aerial storytelling.",
       "outcome": "A visual operations record and proof piece for crisis response capability and stakeholder communications.",
-      "proofPoints": ["Disaster response", "Multi-day aerial", "Operations documentation"],
-      "deliverables": ["Drone coverage series", "Operations documentation", "Stakeholder proof piece"],
+      "proofPoints": [
+        "Disaster response",
+        "Multi-day aerial",
+        "Operations documentation"
+      ],
+      "deliverables": [
+        "Drone coverage series",
+        "Operations documentation",
+        "Stakeholder proof piece"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_cat_milton.jpg",
       "preview": null,
       "video": null,
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_cat_milton.jpg", "alt": "Copart Hurricane Milton drone coverage" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_cat_milton.jpg",
+          "alt": "Copart Hurricane Milton drone coverage"
+        }
       ]
     },
     {
@@ -895,13 +1311,24 @@
         "Broadband/community organization and engineering/cable fiber topics",
         "51-second 720p event asset"
       ],
-      "deliverables": ["Workshop agenda promo", "Event marketing film", "Session lineup asset"],
+      "deliverables": [
+        "Workshop agenda promo",
+        "Event marketing film",
+        "Session lineup asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_conexon.jpg",
       "preview": "/cc/portfolio-cdn/conexon_connect_workshop.mp4",
       "video": "/cc/portfolio-cdn/conexon_connect_workshop.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_conexon.jpg", "alt": "Conexon Co-ops Connect workshop promo" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_conexon.jpg",
+          "alt": "Conexon Co-ops Connect workshop promo"
+        }
       ]
     },
     {
@@ -917,14 +1344,28 @@
       "mandate": "Showcase individual refinery identity while connecting it to BP's broader global operations story.",
       "execution": "Site coverage, leadership messaging, and a global context that ties individual refinery identity to the larger network.",
       "outcome": "A refinery spotlight that works for internal pride, recruitment, and operations communications.",
-      "proofPoints": ["Global refinery network", "Site identity", "Operations scale"],
-      "deliverables": ["Refinery spotlight film", "Global operations asset"],
+      "proofPoints": [
+        "Global refinery network",
+        "Site identity",
+        "Operations scale"
+      ],
+      "deliverables": [
+        "Refinery spotlight film",
+        "Global operations asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_cherry_point.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/bp_cherry_point_final.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_cherry_point.jpg", "alt": "BP Cherry Point Refinery" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_cherry_point.jpg",
+          "alt": "BP Cherry Point Refinery"
+        }
       ]
     },
     {
@@ -940,14 +1381,31 @@
       "mandate": "Make the message feel personal without losing executive weight: thank teams, recognize strategic wins, acknowledge operational pressure, and set up the next year with calm authority.",
       "execution": "Content Co-op shaped the edit around Orlando's seated message, sentence-case captions, bp-branded office context, Westlake exterior imagery, field and control-room b-roll, refinery and offshore wind visuals, and a tight review cycle through Wipster with communications and business-advisor comments folded into the final x3 export.",
       "outcome": "The video landed as a distribution-ready leadership communication for BP, strong enough that the finished look and process opened the door to a broader Orlando thought-leadership cadence around CEO-transition visibility, quarterly updates, operational wins, and year-end reflection.",
-      "proofPoints": ["bp America leadership message", "Westlake and field b-roll", "Sentence-case captions", "Wipster review cycle", "Final x3 export"],
-      "deliverables": ["Year-end executive message film", "Captioned leadership edit", "Distribution-ready Wipster export"],
+      "proofPoints": [
+        "bp America leadership message",
+        "Westlake and field b-roll",
+        "Sentence-case captions",
+        "Wipster review cycle",
+        "Final x3 export"
+      ],
+      "deliverables": [
+        "Year-end executive message film",
+        "Captioned leadership edit",
+        "Distribution-ready Wipster export"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_orlando_holiday.jpg",
       "preview": "/cc/portfolio-cdn/preview_bp_orlando_holiday.mp4",
       "video": "/cc/portfolio-cdn/bp_orlando_year_end_message_finalx3.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_orlando_holiday.jpg", "alt": "BP Orlando year-end message" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_orlando_holiday.jpg",
+          "alt": "BP Orlando year-end message"
+        }
       ]
     },
     {
@@ -963,14 +1421,28 @@
       "mandate": "Provide aerial documentation of industrial operations at a scale and angle that ground-level coverage cannot achieve.",
       "execution": "Fixed-wing drone deployment, top-down perspective, and controlled flight paths that map the facility.",
       "outcome": "Premium aerial footage for operations documentation, stakeholder presentations, and visual identity.",
-      "proofPoints": ["Fixed-wing aerial", "Industrial documentation", "Premium perspective"],
-      "deliverables": ["Aerial documentation", "Operations visual asset"],
+      "proofPoints": [
+        "Fixed-wing aerial",
+        "Industrial documentation",
+        "Premium perspective"
+      ],
+      "deliverables": [
+        "Aerial documentation",
+        "Operations visual asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_fixed_wing.jpg",
       "preview": null,
       "video": "/cc/portfolio-cdn/bp_fixed_wing_aerial.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-03-28" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-03-28"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_fixed_wing.jpg", "alt": "BP Peterhead fixed-wing aerial" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_fixed_wing.jpg",
+          "alt": "BP Peterhead fixed-wing aerial"
+        }
       ]
     },
     {
@@ -1007,9 +1479,16 @@
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_first_time_riders.jpg",
       "preview": "/cc/portfolio-cdn/preview_bp_first_time_riders.mp4",
       "video": "/cc/portfolio-cdn/bp_first_time_riders.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_first_time_riders.jpg", "alt": "BP First Time Riders youth cycling" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_first_time_riders.jpg",
+          "alt": "BP First Time Riders youth cycling"
+        }
       ]
     },
     {
@@ -1025,14 +1504,38 @@
       "mandate": "Show BP's community commitment through the specific people and places behind the recognition effort, while keeping the message disciplined enough for sponsor review, Rodeo-adjacent delivery, and large-format playback.",
       "execution": "Content Co-op shaped a 49-second, 29.97fps community film from race coverage, interview bites, volunteer interactions, first-responder boardroom footage, uniform detail, skyline texture, and HFD station imagery. The related delivery work also demanded bp Sans caption styling, sponsor-safe wording, exact timing, ribbon-board alignment, and jumbo-screen frame-rate compliance.",
       "outcome": "The piece became a compact recognition asset for BP's Houston community presence, supported by venue-ready visual files that could move from review links to Jumbotron-ready export and Ribbon-board visual assets without losing the people at the center of the story.",
-      "proofPoints": ["Houston first-responder recognition", "BP sponsor messaging", "Rodeo Run start arch and crowd", "BP green-dot interview moments", "2022 ALDS briefing-room scene", "Uniformed HFD group portraits", "Donation-box detail", "HFD station exterior", "Venue-screen delivery", "Rodeo technical review"],
-      "deliverables": ["Sponsor recognition film", "49-second 720p recognition film", "Caption-safe video asset", "Jumbotron-ready export", "Ribbon-board visual assets"],
+      "proofPoints": [
+        "Houston first-responder recognition",
+        "BP sponsor messaging",
+        "Rodeo Run start arch and crowd",
+        "BP green-dot interview moments",
+        "2022 ALDS briefing-room scene",
+        "Uniformed HFD group portraits",
+        "Donation-box detail",
+        "HFD station exterior",
+        "Venue-screen delivery",
+        "Rodeo technical review"
+      ],
+      "deliverables": [
+        "Sponsor recognition film",
+        "49-second 720p recognition film",
+        "Caption-safe video asset",
+        "Jumbotron-ready export",
+        "Ribbon-board visual assets"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_first_responders.jpg",
       "preview": "/cc/portfolio-cdn/preview_bp_first_responders.mp4",
       "video": "/cc/portfolio-cdn/bp_first_responders.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_first_responders.jpg", "alt": "BP First Responders Houston" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_first_responders.jpg",
+          "alt": "BP First Responders Houston"
+        }
       ]
     },
     {
@@ -1048,14 +1551,40 @@
       "mandate": "Help technical, business, digital, engineering, science, and supply-trading candidates picture a real first chapter at BP before the application page: the people they would learn from, the workspaces they would enter, the screens and desks around the work, and the growth story behind the recruitment promise.",
       "execution": "Content Co-op shaped a 1:28, 720p, 23.976fps recruitment film around one clear associate voice and small proof moments: interview setups, mentor conversation, office-floor introductions, desk and laptop scenes, trading-screen context, control-room monitoring, campus exterior texture, team walking coverage, and branded end-card pacing.",
       "outcome": "The finished film gives BP a candidate-facing recruiting asset that supports careers pages, intern and graduate programme promotion, campus conversations, social recruiting, and recruiter follow-up while letting early-career candidates see the workplace texture before they apply.",
-      "proofPoints": ["Early-career associate interview portrait", "Campus exterior arrival", "Conference-room mentorship scenes", "Panel-style mentorship scenes", "Trading-floor screens", "Control-room monitors", "Office-floor and laptop work texture", "Outdoor cohort movement", "Intern and graduate programme positioning", "BP Careers end card", "1:28 720p 23.976fps recruitment film"],
-      "deliverables": ["Candidate-facing careers film", "Associate interview story edit", "Social recruiting cuts", "BP Careers page asset", "Campus recruiting follow-up asset", "Intern and graduate programme edit"],
+      "proofPoints": [
+        "Early-career associate interview portrait",
+        "Campus exterior arrival",
+        "Conference-room mentorship scenes",
+        "Panel-style mentorship scenes",
+        "Trading-floor screens",
+        "Control-room monitors",
+        "Office-floor and laptop work texture",
+        "Outdoor cohort movement",
+        "Intern and graduate programme positioning",
+        "BP Careers end card",
+        "1:28 720p 23.976fps recruitment film"
+      ],
+      "deliverables": [
+        "Candidate-facing careers film",
+        "Associate interview story edit",
+        "Social recruiting cuts",
+        "BP Careers page asset",
+        "Campus recruiting follow-up asset",
+        "Intern and graduate programme edit"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_bp_early_careers.jpg",
       "preview": "/cc/portfolio-cdn/preview_bp_early_careers.mp4",
       "video": "/cc/portfolio-cdn/bp_early_careers.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_bp_early_careers.jpg", "alt": "BP Early Careers recruitment" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_bp_early_careers.jpg",
+          "alt": "BP Early Careers recruitment"
+        }
       ]
     },
     {
@@ -1071,14 +1600,37 @@
       "mandate": "Translate a technical Lessons Learned narrative into an operations film that could support OKC Lessons Learned review, contractor refreshers, and follow-on mitigation-script support while naming the exact working-at-height behaviors people needed to recognize.",
       "execution": "Content Co-op built the edit around direct CITGO review notes and visible chapter logic: Part 1 fall-protection systems, Part 2 worker training and competency verification, access-point assessment, always-tied-off roof work, stable access setup, storage-area hazards, and site housekeeping. Refinery aerial footage, harness closeups, roof footage, bold chapter cards, animated industrial scenarios, and graphic overlays keep the requirements readable even when live incident footage is limited.",
       "outcome": "The finished OKC Lessons Learned piece gives CITGO a safety-training asset that turns review comments into a field-facing working-at-height message: what systems are required, how workers verify competency, how access points are assessed, and where housekeeping can become a fall-protection hazard.",
-      "proofPoints": ["Fall-protection systems", "Safety Awareness title cards", "Part 1 fall-protection systems", "Part 2 worker training and competency verification", "Tie-off and roof-access guidance", "Access-point assessment", "Stable access setup", "Storage-area hazards", "Housekeeping and shared responsibility", "Mitigation-script support"],
-      "deliverables": ["4:47 720p safety training film", "OKC Lessons Learned review cut", "Mitigation-script support", "Operations distribution asset"],
+      "proofPoints": [
+        "Fall-protection systems",
+        "Safety Awareness title cards",
+        "Part 1 fall-protection systems",
+        "Part 2 worker training and competency verification",
+        "Tie-off and roof-access guidance",
+        "Access-point assessment",
+        "Stable access setup",
+        "Storage-area hazards",
+        "Housekeeping and shared responsibility",
+        "Mitigation-script support"
+      ],
+      "deliverables": [
+        "4:47 720p safety training film",
+        "OKC Lessons Learned review cut",
+        "Mitigation-script support",
+        "Operations distribution asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_citgo_lessons_learned.jpg",
       "preview": "/cc/portfolio-cdn/preview_citgo_lessons_learned.mp4",
       "video": "/cc/portfolio-cdn/citgo_lessons_learned.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_citgo_lessons_learned.jpg", "alt": "CITGO Lessons Learned safety training" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_citgo_lessons_learned.jpg",
+          "alt": "CITGO Lessons Learned safety training"
+        }
       ]
     },
     {
@@ -1094,14 +1646,28 @@
       "mandate": "Teach a technical procedure without making it feel like a cheap how-to.",
       "execution": "Close-up process footage, clear narration, and step-by-step structure.",
       "outcome": "A training and sales tool that positions Accurate Meter as the expert.",
-      "proofPoints": ["Technical tutorial", "Process documentation", "Sales + training"],
-      "deliverables": ["Tutorial film", "Training asset"],
+      "proofPoints": [
+        "Technical tutorial",
+        "Process documentation",
+        "Sales + training"
+      ],
+      "deliverables": [
+        "Tutorial film",
+        "Training asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_accurate_meter_splicing.jpg",
       "preview": "/cc/portfolio-cdn/preview_accurate_meter_splicing.mp4",
       "video": "/cc/portfolio-cdn/accurate_meter_splicing.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_accurate_meter_splicing.jpg", "alt": "Accurate Meter splicing tutorial" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_accurate_meter_splicing.jpg",
+          "alt": "Accurate Meter splicing tutorial"
+        }
       ]
     },
     {
@@ -1117,14 +1683,28 @@
       "mandate": "Turn a strategic planning document into something people would actually watch.",
       "execution": "Campus footage, leadership interviews, and a narrative arc that connects vision to action.",
       "outcome": "A strategic asset for development, admissions, and internal alignment.",
-      "proofPoints": ["Institutional storytelling", "Strategic vision", "Multi-audience"],
-      "deliverables": ["Institutional film", "Strategic plan video"],
+      "proofPoints": [
+        "Institutional storytelling",
+        "Strategic vision",
+        "Multi-audience"
+      ],
+      "deliverables": [
+        "Institutional film",
+        "Strategic plan video"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_baylor_strategic_plan.jpg",
       "preview": "/cc/portfolio-cdn/preview_baylor_strategic_plan.mp4",
       "video": "/cc/portfolio-cdn/baylor_strategic_plan.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_baylor_strategic_plan.jpg", "alt": "Baylor Business strategic plan" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_baylor_strategic_plan.jpg",
+          "alt": "Baylor Business strategic plan"
+        }
       ]
     },
     {
@@ -1140,14 +1720,28 @@
       "mandate": "Put real faces on the admissions process so prospective students feel a connection before they arrive.",
       "execution": "Individual counselor profiles, casual tone, and campus context.",
       "outcome": "An admissions asset that humanizes the university and drives campus visit intent.",
-      "proofPoints": ["Admissions content", "Personal connection", "Prospective student audience"],
-      "deliverables": ["Admissions counselor profiles", "Web content"],
+      "proofPoints": [
+        "Admissions content",
+        "Personal connection",
+        "Prospective student audience"
+      ],
+      "deliverables": [
+        "Admissions counselor profiles",
+        "Web content"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_baylor_admissions.jpg",
       "preview": "/cc/portfolio-cdn/preview_baylor_admissions.mp4",
       "video": "/cc/portfolio-cdn/baylor_admissions.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_baylor_admissions.jpg", "alt": "Baylor admissions counselors" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_baylor_admissions.jpg",
+          "alt": "Baylor admissions counselors"
+        }
       ]
     },
     {
@@ -1163,14 +1757,27 @@
       "mandate": "Create a festival intro that matches the creative ambition of the student filmmakers it celebrates.",
       "execution": "Cinematic pacing, visual texture, and a tone that respects the art form.",
       "outcome": "A festival opener that earns the room before the first film plays.",
-      "proofPoints": ["Festival production", "Cinematic craft", "Opening sequence"],
-      "deliverables": ["Festival intro film"],
+      "proofPoints": [
+        "Festival production",
+        "Cinematic craft",
+        "Opening sequence"
+      ],
+      "deliverables": [
+        "Festival intro film"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_baylor_film_festival.jpg",
       "preview": "/cc/portfolio-cdn/preview_baylor_film_festival.mp4",
       "video": "/cc/portfolio-cdn/baylor_film_festival.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_baylor_film_festival.jpg", "alt": "Baylor Black Glasses Film Festival" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_baylor_film_festival.jpg",
+          "alt": "Baylor Black Glasses Film Festival"
+        }
       ]
     },
     {
@@ -1186,14 +1793,31 @@
       "mandate": "Make a multi-day tech community feel bigger than a schedule of panels: founders, investors, civic partners, energy-tech voices, and creative operators needed to read as one connected Houston scene.",
       "execution": "The cut moves between branded Tech Rodeo graphics, interview bites, networking rooms, booth interactions, candid conversations, venue texture, and Houston skyline plates to give the event both people and place.",
       "outcome": "A concise recap that gives partners and attendees something shareable while giving the city a polished artifact of startup momentum, not just event documentation.",
-      "proofPoints": ["Houston innovation ecosystem", "Founder and investor audience", "Multi-venue event coverage", "Shareable civic recap"],
-      "deliverables": ["Event recap film", "Interview coverage", "Event-floor b-roll", "Social cuts"],
+      "proofPoints": [
+        "Houston innovation ecosystem",
+        "Founder and investor audience",
+        "Multi-venue event coverage",
+        "Shareable civic recap"
+      ],
+      "deliverables": [
+        "Event recap film",
+        "Interview coverage",
+        "Event-floor b-roll",
+        "Social cuts"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_houston_tech_rodeo.jpg",
       "preview": "/cc/portfolio-cdn/preview_houston_tech_rodeo.mp4",
       "video": "/cc/portfolio-cdn/houston_tech_rodeo.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_houston_tech_rodeo.jpg", "alt": "Houston Tech Rodeo event" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_houston_tech_rodeo.jpg",
+          "alt": "Houston Tech Rodeo event"
+        }
       ]
     },
     {
@@ -1209,14 +1833,28 @@
       "mandate": "Make a small city feel worth the trip without overstating what's there.",
       "execution": "Location coverage, local character, and a pacing that lets the city speak for itself.",
       "outcome": "A tourism and economic development asset with genuine local flavor.",
-      "proofPoints": ["Destination marketing", "City storytelling", "Tourism-ready"],
-      "deliverables": ["Destination film", "Tourism asset"],
+      "proofPoints": [
+        "Destination marketing",
+        "City storytelling",
+        "Tourism-ready"
+      ],
+      "deliverables": [
+        "Destination film",
+        "Tourism asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_north_little_rock.jpg",
       "preview": "/cc/portfolio-cdn/preview_north_little_rock.mp4",
       "video": "/cc/portfolio-cdn/north_little_rock.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_north_little_rock.jpg", "alt": "North Little Rock Arkansas destination" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_north_little_rock.jpg",
+          "alt": "North Little Rock Arkansas destination"
+        }
       ]
     },
     {
@@ -1251,9 +1889,16 @@
       "thumbnail": "/cc/portfolio-cdn/thumb_clartiv_sales_summit.jpg",
       "preview": "/cc/portfolio-cdn/preview_clartiv_sales_summit.mp4",
       "video": "/cc/portfolio-cdn/clartiv_sales_summit.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_clartiv_sales_summit.jpg", "alt": "Claritev Sales Leadership Summit audience and speaker coverage" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_clartiv_sales_summit.jpg",
+          "alt": "Claritev Sales Leadership Summit audience and speaker coverage"
+        }
       ]
     },
     {
@@ -1280,13 +1925,26 @@
         "Forklift loading and shipment proof",
         "3:03 720p manufacturing overview"
       ],
-      "deliverables": ["3:03 company overview film", "Manufacturing process coverage", "Leadership interview story", "Product airflow animation", "Sales-facing industrial brand asset"],
+      "deliverables": [
+        "3:03 company overview film",
+        "Manufacturing process coverage",
+        "Leadership interview story",
+        "Product airflow animation",
+        "Sales-facing industrial brand asset"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_metallic_products.jpg",
       "preview": "/cc/portfolio-cdn/preview_metallic_products.mp4",
       "video": "/cc/portfolio-cdn/metallic_products.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_metallic_products.jpg", "alt": "Metallic Products manufacturing" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_metallic_products.jpg",
+          "alt": "Metallic Products manufacturing"
+        }
       ]
     },
     {
@@ -1302,14 +1960,32 @@
       "mandate": "Make a themed studio night feel easy to understand, fun to join, and franchise-ready for guests who might not picture themselves at a painting class.",
       "execution": "Content Co-op cut tight customer reactions, UV-lit painting details, glow-stick prep, neon transition graphics, and reservation-minded messaging into a 30-second social/web spot that sells the experience before it explains the logistics.",
       "outcome": "The finished 1280x720, 23.976fps event promo gives Pinot's Palette a reusable campaign asset for themed nights, local studio pages, paid social, and in-venue promotion.",
-      "proofPoints": ["Black Light Night event promo", "Neon Pinot's Palette logo animation", "Glow-stick and face-paint prep", "Black-light canvas reveals", "Turn a regular night copy", "30-second 720p social/web spot"],
-      "deliverables": ["30-second event promo", "Themed-night campaign asset", "Social and web booking spot"],
+      "proofPoints": [
+        "Black Light Night event promo",
+        "Neon Pinot's Palette logo animation",
+        "Glow-stick and face-paint prep",
+        "Black-light canvas reveals",
+        "Turn a regular night copy",
+        "30-second 720p social/web spot"
+      ],
+      "deliverables": [
+        "30-second event promo",
+        "Themed-night campaign asset",
+        "Social and web booking spot"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_pinots_palette.jpg",
       "preview": "/cc/portfolio-cdn/preview_pinots_palette.mp4",
       "video": "/cc/portfolio-cdn/pinots_palette.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_pinots_palette.jpg", "alt": "Pinot's Palette Black Light Night" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_pinots_palette.jpg",
+          "alt": "Pinot's Palette Black Light Night"
+        }
       ]
     },
     {
@@ -1325,14 +2001,28 @@
       "mandate": "Produce a broadcast-ready spot that earns attention and drives awareness without a Fortune 500 budget.",
       "execution": "Broadcast framing, tight scripting, and emotional pacing that respects the audience.",
       "outcome": "A television spot that competes with national-level production quality.",
-      "proofPoints": ["Broadcast quality", "Nonprofit storytelling", "TV spot"],
-      "deliverables": ["Television spot", "Online version"],
+      "proofPoints": [
+        "Broadcast quality",
+        "Nonprofit storytelling",
+        "TV spot"
+      ],
+      "deliverables": [
+        "Television spot",
+        "Online version"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_tyler_t1d_foundation.jpg",
       "preview": "/cc/portfolio-cdn/preview_tyler_t1d_foundation.mp4",
       "video": "/cc/portfolio-cdn/tyler_t1d_foundation.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_tyler_t1d_foundation.jpg", "alt": "Tyler T1D Foundation TV spot" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_tyler_t1d_foundation.jpg",
+          "alt": "Tyler T1D Foundation TV spot"
+        }
       ]
     },
     {
@@ -1348,14 +2038,27 @@
       "mandate": "Create a recruitment piece that feels real and aspirational without the usual fraternity stereotypes.",
       "execution": "Chapter coverage, member interviews, and a narrative tone that earns respect.",
       "outcome": "A national recruitment asset that chapters can actually be proud to share.",
-      "proofPoints": ["National recruitment", "Authentic representation", "Multi-chapter"],
-      "deliverables": ["National recruitment film"],
+      "proofPoints": [
+        "National recruitment",
+        "Authentic representation",
+        "Multi-chapter"
+      ],
+      "deliverables": [
+        "National recruitment film"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_ato_fraternity.jpg",
       "preview": "/cc/portfolio-cdn/preview_ato_fraternity.mp4",
       "video": "/cc/portfolio-cdn/ato_fraternity.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_ato_fraternity.jpg", "alt": "Alpha Tau Omega national fraternity" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_ato_fraternity.jpg",
+          "alt": "Alpha Tau Omega national fraternity"
+        }
       ]
     },
     {
@@ -1371,14 +2074,27 @@
       "mandate": "Deliver a music video with commercial production quality on an independent budget.",
       "execution": "Concept development, multi-location shooting, and a polished post workflow.",
       "outcome": "A music video that competes visually with major label releases.",
-      "proofPoints": ["Music video", "Concept-driven", "Independent production"],
-      "deliverables": ["Music video"],
+      "proofPoints": [
+        "Music video",
+        "Concept-driven",
+        "Independent production"
+      ],
+      "deliverables": [
+        "Music video"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_school_boy_humor.jpg",
       "preview": "/cc/portfolio-cdn/preview_school_boy_humor.mp4",
       "video": "/cc/portfolio-cdn/school_boy_humor_7min.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_school_boy_humor.jpg", "alt": "School Boy Humor music video" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_school_boy_humor.jpg",
+          "alt": "School Boy Humor music video"
+        }
       ]
     },
     {
@@ -1394,14 +2110,30 @@
       "mandate": "Translate the Baylor Kappas' original song and chapter energy into a video students would share, quote, and remember after recruitment week ended.",
       "execution": "Bailey Eubanks directed a bright, personality-forward edit around the three credited creators, the Baylor Kappas, white-background performance setups, neon classroom choreography, campus walk-throughs, and fast chorus repetition that made the hook easy to retain.",
       "outcome": "The piece became more than a rush-room asset: it earned a Baylor Lariat retrospective, prompted national-media interest, and remained useful enough that the creators requested the full-resolution file in 2026 for national Kappa convention playback.",
-      "proofPoints": ["1.4M+ public views", "Baylor Lariat feature", "RushTok-era resurgence", "National convention playback"],
-      "deliverables": ["Recruitment music video", "Full-resolution archive file", "YouTube-ready export"],
+      "proofPoints": [
+        "1.4M+ public views",
+        "Baylor Lariat feature",
+        "RushTok-era resurgence",
+        "National convention playback"
+      ],
+      "deliverables": [
+        "Recruitment music video",
+        "Full-resolution archive file",
+        "YouTube-ready export"
+      ],
       "thumbnail": "/cc/portfolio-cdn/thumb_kappa_rap.jpg",
       "preview": "/cc/portfolio-cdn/preview_kappa_rap.mp4",
       "video": "/cc/portfolio-cdn/kappa_rap.mp4",
-      "review": { "status": "approved", "reviewedBy": "Claude", "reviewedAt": "2026-04-01" },
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Claude",
+        "reviewedAt": "2026-04-01"
+      },
       "gallery": [
-        { "src": "/cc/portfolio-cdn/thumb_kappa_rap.jpg", "alt": "Kappa Kappa Gamma Kappa Rap 2 music video" }
+        {
+          "src": "/cc/portfolio-cdn/thumb_kappa_rap.jpg",
+          "alt": "Kappa Kappa Gamma Kappa Rap 2 music video"
+        }
       ]
     }
   ]

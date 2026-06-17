@@ -6,7 +6,7 @@ ContentCo-op is a Houston-based commercial video production company founded by B
 
 **Location:** Houston, TX (primary) — nationwide travel available
 **Industries:** Energy (oil & gas, renewables), industrial/manufacturing, corporate/B2B, sports & events, safety training
-**Notable Clients:** CITGO Petroleum, BP (Houston Livestock Show & Rodeo, MS150), CERAWeek (S&P Global), Kodiak Robotics, Accurate Meter & Supply, Pinot's Palette, Petit Jean Electric Cooperative
+**Notable Clients:** CITGO Petroleum, BP (MS150), CERAWeek (S&P Global), Kodiak Robotics, Accurate Meter & Supply, Pinot's Palette, Petit Jean Electric Cooperative
 
 ## Services
 
@@ -54,7 +54,6 @@ ContentCo-op does not publish fixed rate cards because every project is scoped i
 
 ## Portfolio Highlights
 - **CITGO LCR Safety Series** — 9-episode safety training series produced on-site at CITGO refineries
-- **BP Houston Livestock Show & Rodeo** — Multi-year event coverage including jumbotron content and broadcast packages
 - **CERAWeek (S&P Global)** — Corporate speaker interviews and event recap at the world's premier energy conference
 - **Kodiak Robotics** — Corporate overview and product demo video
 - **BP MS150** — Charity cycling event documentary and social content
