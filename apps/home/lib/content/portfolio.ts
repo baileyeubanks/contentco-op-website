@@ -27,7 +27,6 @@ const BLOCKED_PUBLIC_VIDEO_PATHS = new Set([
 
 const PUBLIC_PORTFOLIO_ORDER = [
   "citgo-lcr",
-  "bp-turnarounds",
   "bp-orlando-holiday",
   "ceraweek",
   "bp-differential-performance",

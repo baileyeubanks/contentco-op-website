@@ -4,7 +4,6 @@
   "featuredStudyIds": [
     "schneider-eae-2025",
     "citgo-lcr",
-    "bp-turnarounds",
     "ceraweek",
     "metallic-products",
     "houston-tech-rodeo"
@@ -120,50 +119,6 @@
         {
           "src": "/cc/portfolio-cdn/thumb_citgo_ep9.jpg",
           "alt": "CITGO LCR Episode 9"
-        }
-      ]
-    },
-    {
-      "id": "bp-turnarounds",
-      "title": "BP Turnaround Readiness",
-      "client": "BP",
-      "sector": "Turnaround operations",
-      "year": "2024",
-      "format": "TAR performance film",
-      "scope": "3:23 internal TAR performance film for BP operations teams, built around turn-around efficiency, site-effectiveness workshops, planning discipline, and maintenance-window readiness",
-      "headline": "A turnaround-readiness film about the work that has to happen before the unit pauses.",
-      "summary": "BP's TAR Performance film turns a high-consequence shutdown window into a usable operations story. The 1920x1080 edit opens on the line, \"When units pause for maintenance or safety,\" then connects the promise of \"safer systems, stronger outputs\" to BP TAR & turn-around efficiency branding, workshop-room coverage, offshore-platform context, planning prompts, Lencioni model discussion, and leader interviews.",
-      "mandate": "Make turnaround readiness specific: show the planning rooms, handwritten prompts, facilitation models, offshore context, and leadership behaviors behind a shutdown window, instead of treating TAR performance like generic refinery b-roll.",
-      "execution": "Content Co-op shaped a 3:23, 23.98fps film from BP-branded motion text, interview-led explanation, site-effectiveness workshop footage, document review, whiteboard and sticky-note prompts, offshore platform imagery, and measured pacing that lets operational complexity stay readable.",
-      "outcome": "The completed TAR video gave BP a distribution-ready MP4 for internal operations and leadership audiences, turning shutdown-planning language into a concise performance story about downtime, maintenance-window discipline, and site effectiveness.",
-      "proofPoints": [
-        "3:23 1080p TAR performance film",
-        "BP TAR & turn-around efficiency branding",
-        "When units pause for maintenance or safety",
-        "safer systems, stronger outputs",
-        "Downtime and shutdown context",
-        "Site-effectiveness workshop coverage",
-        "Lencioni model and planning prompts",
-        "Offshore platform context"
-      ],
-      "deliverables": [
-        "TAR performance film",
-        "Operations communications MP4",
-        "Leadership-ready edit",
-        "Workshop and planning-room coverage"
-      ],
-      "thumbnail": "/cc/portfolio-cdn/thumb_bp_turnarounds_final.jpg",
-      "preview": "/cc/portfolio-cdn/bp_turnarounds_final.mp4",
-      "video": "/cc/portfolio-cdn/bp_turnarounds_final.mp4",
-      "review": {
-        "status": "approved",
-        "reviewedBy": "Codex",
-        "reviewedAt": "2026-03-16"
-      },
-      "gallery": [
-        {
-          "src": "/cc/portfolio-cdn/thumb_bp_turnarounds_final.jpg",
-          "alt": "BP Turn-Arounds"
         }
       ]
     },
