@@ -10,6 +10,48 @@
   ],
   "entries": [
     {
+      "id": "schneider-epc-houston",
+      "title": "Schneider Electric EPC Houston",
+      "client": "Schneider Electric",
+      "sector": "Energy",
+      "year": "2026",
+      "format": "Conference recap film",
+      "scope": "1:30 headline-sponsor recap for Schneider Electric's presence at the INA Energy Projects Conference & Expo Houston 2026, built from executive interviews, floor coverage, and sponsorship context.",
+      "headline": "Conference coverage that shows up for the room and holds up after it clears.",
+      "summary": "Schneider Electric's EPC Houston recap captures its role as headline sponsor of the INA Energy Projects Conference & Expo \u2014 blending executive interview coverage with conference floor footage and sponsorship signage into a tight 90-second communications asset.",
+      "mandate": "Capture Schneider Electric's EPC presence as headline sponsor and turn a fast-moving Houston energy conference into a focused video asset for post-event use.",
+      "execution": "The edit opens on EPC conference signage establishing Schneider's headline sponsor role, moves through executive interview coverage on the conference floor, and closes with venue context \u2014 structured for internal communications, executive follow-up, and sponsor recaps.",
+      "outcome": "A 1:30 conference recap delivering Schneider Electric a reusable asset from its EPC Houston presence \u2014 ready for stakeholder distribution, social, and internal communications.",
+      "proofPoints": [
+        "INA EPC Houston 2026 headline sponsor coverage",
+        "Executive interview selects",
+        "Conference floor and signage coverage",
+        "Schneider Electric sponsor context",
+        "Post-event communications asset"
+      ],
+      "deliverables": [
+        "1:30 conference recap film",
+        "Executive interview coverage",
+        "Event b-roll package",
+        "Sponsor recap edit"
+      ],
+      "thumbnail": "/cc/portfolio-cdn/thumb_schneider_epc_houston_2026.jpg",
+      "preview": "/cc/portfolio-cdn/schneider_epc_houston_2026_v4.mp4",
+      "video": "/cc/portfolio-cdn/schneider_epc_houston_2026_v4.mp4",
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Bailey",
+        "reviewedAt": "2026-06-19"
+      },
+      "gallery": [
+        {
+          "src": "/cc/portfolio-cdn/thumb_schneider_epc_houston_2026.jpg",
+          "alt": "Schneider Electric EPC Houston 2026 \u2014 executive interview on conference floor"
+        }
+      ],
+      "remoteMediaUrl": null
+    },
+    {
       "id": "schneider-eae-2025",
       "title": "Schneider Electric EAE Houston",
       "client": "Schneider Electric",

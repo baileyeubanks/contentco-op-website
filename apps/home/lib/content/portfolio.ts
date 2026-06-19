@@ -26,6 +26,7 @@ const BLOCKED_PUBLIC_VIDEO_PATHS = new Set([
 ]);
 
 const PUBLIC_PORTFOLIO_ORDER = [
+  "schneider-epc-houston",
   "citgo-lcr",
   "bp-orlando-holiday",
   "ceraweek",
