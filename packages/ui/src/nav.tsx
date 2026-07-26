@@ -35,7 +35,7 @@ export function Nav({ surface, urls }: NavProps) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="cc-nav-logo"
-            src="/logos/lockup-3408.png"
+            src="/logos/lockup-3408.png?v=2"
             alt="Content Co-op"
             width="164"
             height="44"

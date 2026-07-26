@@ -156,8 +156,8 @@ async function stageRuntime() {
   await cloneDir(path.join(appRoot, ".next", "standalone"), stagingDir);
 
   await fsp.mkdir(path.join(stagedAppDir, ".next"), { recursive: true });
-  await ensureSymlink(path.join(stagedAppDir, ".next", "static"), path.join(appRoot, ".next", "static"));
-  await ensureSymlink(path.join(stagedAppDir, "public"), path.join(appRoot, "public"));
+  await cloneDir(path.join(appRoot, ".next", "static"), path.join(stagedAppDir, ".next", "static"));
+  await cloneDir(path.join(appRoot, "public"), path.join(stagedAppDir, "public"));
 
   for (const optionalDir of ["logos", "media"]) {
     const sourceDir = path.join(appRoot, optionalDir);

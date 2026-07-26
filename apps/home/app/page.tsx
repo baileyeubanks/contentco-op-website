@@ -209,7 +209,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     key={`${logo.alt}-${copy}`}
-                    src={`${logo.src}?v=5`}
+                    src={`${logo.src}?v=6`}
                     alt={logo.alt}
                     className="client-logo"
                     style={{
