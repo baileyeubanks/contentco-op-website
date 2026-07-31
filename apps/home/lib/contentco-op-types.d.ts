@@ -16,6 +16,8 @@ declare module "@contentco-op/types" {
     id: string;
     client: string;
     title: string;
+    /** Optional exact display title; overrides the client-prefix-stripping heuristic. */
+    displayTitle?: string;
     format: string;
     sector: string;
     year: string;
