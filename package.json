@@ -52,5 +52,9 @@
   },
   "dependencies": {
     "stripe": "^20.4.1"
+  },
+  "overrides": {
+    "postcss": "^8.5.25",
+    "sharp": "^0.35.3"
   }
 }
