@@ -461,6 +461,8 @@
   aspect-ratio: 16 / 9;
   max-height: 62vh;
   overflow: hidden;
+  /* Never let the text body crush the video below its 16:9 height. */
+  flex-shrink: 0;
 }
 
 .lightboxVideo video {
@@ -470,9 +472,37 @@
   display: block;
 }
 
+.lightboxClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(12, 19, 34, 0.55);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.lightboxClose:hover {
+  background: rgba(12, 19, 34, 0.85);
+  transform: scale(1.05);
+}
+
 .lightboxBody {
   padding: 1.4rem 1.6rem;
   overflow-y: auto;
+  /* Take the remaining column height and scroll internally (min-height:0
+     is required for overflow to engage inside a flex parent). */
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .lightboxHead {
@@ -605,6 +635,76 @@
   font-weight: 600;
 }
 
+/* ─── Collapsible details ─── */
+.detailsToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-top: 0.35rem;
+  padding: 0.4rem 0;
+  background: none;
+  border: none;
+  color: #4c8ef5;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.detailsToggle svg {
+  transition: transform 200ms ease;
+}
+
+.detailsToggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.lightboxDetails {
+  margin-top: 0.5rem;
+  animation: detailsReveal 220ms ease;
+}
+
+@keyframes detailsReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Lightbox: desktop two-column "screening room" ─── */
+@media (min-width: 880px) {
+  .lightboxPanel {
+    flex-direction: row;
+    align-items: flex-start;
+    width: min(1180px, 95vw);
+    max-height: 88vh;
+  }
+
+  .lightboxVideo {
+    flex: 0 0 62%;
+    max-height: none;
+  }
+
+  .lightboxBody {
+    flex: 1 1 38%;
+    min-width: 0;
+    align-self: stretch;
+    max-height: 88vh;
+    padding: 1.6rem 1.7rem;
+  }
+
+  .lightboxHead {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.7rem;
+  }
+
+  .lightboxActions {
+    justify-content: flex-start;
+  }
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 860px) {
   .featured {
@@ -630,12 +730,37 @@
     padding-top: 3.5rem;
   }
 
+  /* Cinematic player: the video floats large and vertically centered on the
+     blurred backdrop, with a compact details sheet directly beneath it. */
+  .lightbox {
+    padding: 1rem;
+  }
+
   .lightboxPanel {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    justify-content: center;
+    gap: 0.75rem;
+    overflow: visible;
+  }
+
+  .lightboxVideo {
     border-radius: 14px;
+    max-height: none;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   }
 
   .lightboxBody {
-    padding: 1rem 1.2rem;
+    flex: 0 1 auto;
+    background: #fff;
+    border-radius: 16px;
+    max-height: 42vh;
+    padding: 1.1rem 1.2rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
   }
 
   .lightboxHead {

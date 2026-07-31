@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-04",
+  "version": "2026-07-31",
   "flagshipStudyId": "citgo-lcr",
   "featuredStudyIds": [
     "schneider-eae-2025",
@@ -9,6 +9,48 @@
     "houston-tech-rodeo"
   ],
   "entries": [
+    {
+      "id": "carwash-lead-drummond",
+      "title": "LEAD — Charles Drummond",
+      "client": "International Carwash Association",
+      "sector": "Membership & leadership",
+      "year": "2026",
+      "format": "Leadership profile film",
+      "scope": "~1:15 leadership profile produced for the International Carwash Association's LEAD program, featuring Clean Car Wash operator Charles Drummond and captured at The Car Wash Show 2026 in Nashville.",
+      "headline": "A leadership story members actually stop to watch.",
+      "summary": "A LEAD profile for the International Carwash Association built around Clean Car Wash's Charles Drummond — cutting his leadership story together with site footage and Car Wash Show coverage into a tight, human feature the association can put in front of its members.",
+      "mandate": "Turn Charles Drummond's leadership story into a profile the International Carwash Association could stand behind for its LEAD program — personal enough to connect, polished enough to headline.",
+      "execution": "Built from a sit-down interview and on-site coverage: the cut opens on Charles in his own words, layers in Clean Car Wash operations and team moments to ground the story in the work, and carries the LEAD framing throughout for a member-ready feature.",
+      "outcome": "A ~1:15 leadership profile the association can run across LEAD channels, event screens, and social — a repeatable format for spotlighting the people behind the industry.",
+      "proofPoints": [
+        "ICA LEAD program feature",
+        "Leadership interview — Charles Drummond, Clean Car Wash",
+        "Clean Car Wash site coverage",
+        "Captured at The Car Wash Show 2026 (Nashville)",
+        "Member-ready profile format"
+      ],
+      "deliverables": [
+        "~1:15 leadership profile film",
+        "Sit-down interview coverage",
+        "On-site b-roll package",
+        "Association-ready master"
+      ],
+      "thumbnail": "/cc/portfolio-cdn/thumb_ica_lead_drummond.jpg",
+      "preview": "/cc/portfolio-cdn/ica_lead_charles_drummond_web.mp4",
+      "video": "/cc/portfolio-cdn/ica_lead_charles_drummond_web.mp4",
+      "review": {
+        "status": "approved",
+        "reviewedBy": "Bailey",
+        "reviewedAt": "2026-07-31"
+      },
+      "gallery": [
+        {
+          "src": "/cc/portfolio-cdn/thumb_ica_lead_drummond.jpg",
+          "alt": "International Carwash Association LEAD — Charles Drummond, Clean Car Wash"
+        }
+      ],
+      "remoteMediaUrl": null
+    },
     {
       "id": "schneider-epc-houston",
       "title": "Schneider Electric EPC Houston",
@@ -36,8 +78,8 @@
         "Sponsor recap edit"
       ],
       "thumbnail": "/cc/portfolio-cdn/thumb_schneider_epc_houston_2026.jpg",
-      "preview": "/cc/portfolio-cdn/schneider_epc_houston_2026_v4.mp4",
-      "video": "/cc/portfolio-cdn/schneider_epc_houston_2026_v4.mp4",
+      "preview": "/cc/portfolio-cdn/schneider_epc_houston_2026_final_01.mp4",
+      "video": "/cc/portfolio-cdn/schneider_epc_houston_2026_final_01.mp4",
       "review": {
         "status": "approved",
         "reviewedBy": "Bailey",
@@ -310,7 +352,7 @@
     },
     {
       "id": "adaptive-stainless",
-      "title": "Adaptive Stainless Company Overview",
+      "title": "Built in Stainless",
       "client": "Adaptive Stainless",
       "sector": "Industrial brand",
       "year": "2024",
@@ -353,7 +395,7 @@
     },
     {
       "id": "accurate-meter",
-      "title": "Accurate Meter Company Overview",
+      "title": "The People You Call",
       "client": "Accurate Meter & Supply",
       "sector": "Utility supply brand",
       "year": "2018",
@@ -401,7 +443,7 @@
     },
     {
       "id": "kodiak",
-      "title": "Recruitment Film",
+      "title": "The Uptime Crew",
       "client": "Kodiak Gas Services",
       "sector": "Recruitment",
       "year": "2022",
@@ -449,7 +491,7 @@
     },
     {
       "id": "bp-nrg-jumbotron",
-      "title": "BP First Responders Day Venue Boards",
+      "title": "Stadium Scale",
       "client": "BP",
       "sector": "Venue sponsorship",
       "year": "2026",
@@ -491,7 +533,7 @@
     },
     {
       "id": "bp-title-promo",
-      "title": "The Title Event Promo",
+      "title": "Countdown to The Title",
       "client": "Cheer America Championships",
       "sector": "Live events",
       "year": "2018",
@@ -533,7 +575,7 @@
     },
     {
       "id": "ica-aerial-refinery",
-      "title": "Economic Impact Report",
+      "title": "National Footprint",
       "client": "BP",
       "sector": "Energy communications",
       "year": "2023",
@@ -573,7 +615,7 @@
     },
     {
       "id": "ica-ceo-interview",
-      "title": "Co-ops Connect Leadership Film",
+      "title": "The Broadband Table",
       "client": "Conexon",
       "sector": "Conference communications",
       "year": "2023",
@@ -842,7 +884,7 @@
     },
     {
       "id": "wendys-final-four",
-      "title": "Wendy's Final Four Tailgate",
+      "title": "Houston, We Have Lunch",
       "client": "Wendy's",
       "sector": "Sports activation",
       "year": "2023",
@@ -1034,7 +1076,7 @@
     },
     {
       "id": "bp-gsk",
-      "title": "BP Global Safety & Knowledge",
+      "title": "Safety at Scale",
       "client": "BP",
       "sector": "Safety systems",
       "year": "2023",
@@ -1071,7 +1113,7 @@
     },
     {
       "id": "bp-max-efficiency",
-      "title": "BP Maximising Efficiency",
+      "title": "Winning in Wells",
       "client": "BP",
       "sector": "Technical",
       "year": "2023",
@@ -1183,7 +1225,7 @@
     },
     {
       "id": "bp-iwd-2023",
-      "title": "BP International Women's Day 2023",
+      "title": "International Women's Day",
       "client": "BP",
       "sector": "Executive",
       "year": "2023",
@@ -1221,7 +1263,7 @@
     },
     {
       "id": "cat-milton",
-      "title": "Copart Hurricane Milton Response",
+      "title": "After the Storm",
       "client": "Copart",
       "sector": "Disaster response",
       "year": "2024",
@@ -1259,7 +1301,7 @@
     },
     {
       "id": "conexon-workshop",
-      "title": "Conexon Workshop Series",
+      "title": "Every Voice, Every Question",
       "client": "Conexon",
       "sector": "Broadband events",
       "year": "2023",
@@ -1338,7 +1380,7 @@
     },
     {
       "id": "bp-orlando-holiday",
-      "title": "BP Orlando Year-End Message",
+      "title": "The Year-End Address",
       "client": "BP",
       "sector": "Executive",
       "year": "2025",
@@ -1423,7 +1465,7 @@
     },
     {
       "id": "bp-first-time-riders",
-      "title": "MS150 First-Time Riders",
+      "title": "The First 150",
       "client": "BP",
       "sector": "Community",
       "year": "2024",
@@ -1469,7 +1511,7 @@
     },
     {
       "id": "bp-first-responders",
-      "title": "BP Houston First Responders",
+      "title": "For Those in Uniform",
       "client": "BP",
       "sector": "Community sponsorship",
       "year": "2024",
@@ -1516,7 +1558,7 @@
     },
     {
       "id": "bp-early-careers",
-      "title": "BP Early Careers",
+      "title": "The First Chapter",
       "client": "BP",
       "sector": "Early-career recruiting",
       "year": "2024",
@@ -1565,7 +1607,7 @@
     },
     {
       "id": "citgo-lessons-learned",
-      "title": "CITGO Lessons Learned",
+      "title": "Working at Height",
       "client": "CITGO Petroleum",
       "sector": "Safety systems",
       "year": "2024",
@@ -1611,7 +1653,7 @@
     },
     {
       "id": "accurate-meter-splicing",
-      "title": "Accurate Meter Splicing Tutorial",
+      "title": "Field Splicing",
       "client": "Accurate Meter & Supply",
       "sector": "Technical",
       "year": "2018",
@@ -1648,7 +1690,7 @@
     },
     {
       "id": "baylor-strategic-plan",
-      "title": "Baylor Business Strategic Plan",
+      "title": "Connections",
       "client": "Baylor University",
       "sector": "Education",
       "year": "2019",
@@ -1685,7 +1727,7 @@
     },
     {
       "id": "baylor-admissions",
-      "title": "Baylor Admissions Counselors",
+      "title": "Meet Your Counselor",
       "client": "Baylor University",
       "sector": "Education",
       "year": "2019",
@@ -1722,7 +1764,7 @@
     },
     {
       "id": "baylor-film-festival",
-      "title": "Baylor Black Glasses Film Festival",
+      "title": "Black Glasses",
       "client": "Baylor University",
       "sector": "Events",
       "year": "2018",
@@ -1758,7 +1800,7 @@
     },
     {
       "id": "houston-tech-rodeo",
-      "title": "Tech Rodeo Recap",
+      "title": "Tech Rodeo",
       "client": "City of Houston",
       "sector": "Events",
       "year": "2023",
@@ -1798,7 +1840,7 @@
     },
     {
       "id": "north-little-rock",
-      "title": "North Little Rock Destination Film",
+      "title": "Worth the Trip",
       "client": "City of North Little Rock",
       "sector": "Tourism",
       "year": "2020",
@@ -1835,7 +1877,7 @@
     },
     {
       "id": "clartiv-sales-summit",
-      "title": "Claritev Sales Leadership Summit",
+      "title": "The Sales Summit",
       "client": "Claritev",
       "sector": "Healthcare technology",
       "year": "2024",
@@ -1879,7 +1921,7 @@
     },
     {
       "id": "metallic-products",
-      "title": "Metallic Products Company Overview",
+      "title": "Family-Built",
       "client": "Metallic Products",
       "sector": "Industrial brand",
       "year": "2021",
@@ -1966,7 +2008,7 @@
     },
     {
       "id": "tyler-t1d-foundation",
-      "title": "Tyler T1D Foundation Story",
+      "title": "The Foundation Story",
       "client": "Tyler Type One Diabetes Foundation",
       "sector": "Nonprofit",
       "year": "2020",
@@ -2003,7 +2045,7 @@
     },
     {
       "id": "ato-fraternity",
-      "title": "ATO National Recruitment Film",
+      "title": "More Than Letters",
       "client": "Alpha Tau Omega",
       "sector": "Education",
       "year": "2018",
@@ -2039,7 +2081,7 @@
     },
     {
       "id": "school-boy-humor",
-      "title": "School Boy Humor Music Video",
+      "title": "On the Record",
       "client": "School Boy Humor",
       "sector": "Music",
       "year": "2017",
@@ -2076,6 +2118,7 @@
     {
       "id": "kappa-rap",
       "title": "Kappa Rap 2",
+      "displayTitle": "Kappa Rap 2",
       "client": "Kappa Kappa Gamma",
       "sector": "Recruitment",
       "year": "2011",

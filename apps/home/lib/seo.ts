@@ -27,7 +27,8 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export function formatPortfolioStudyDisplayTitle(study: Pick<PortfolioCaseStudy, "client" | "title">) {
+export function formatPortfolioStudyDisplayTitle(study: Pick<PortfolioCaseStudy, "client" | "title" | "displayTitle">) {
+  if (study.displayTitle?.trim()) return study.displayTitle.trim();
   const normalizedTitle = study.title.trim();
   const clientShortName = study.client.split(/\s*&\s*/)[0] ?? "";
   const clientFirstWord = study.client.split(/\s+/)[0] ?? "";

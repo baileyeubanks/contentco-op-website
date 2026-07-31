@@ -321,6 +321,7 @@ function Lightbox({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [copied, setCopied] = useState(false);
   const [shareFallbackUrl, setShareFallbackUrl] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
   const currentIndex = Math.max(0, items.findIndex((candidate) => candidate.id === item.id));
   const previousItem = items.length > 1 ? items[(currentIndex - 1 + items.length) % items.length] : null;
   const nextItem = items.length > 1 ? items[(currentIndex + 1) % items.length] : null;
@@ -342,6 +343,11 @@ function Lightbox({
     }
   }, [item.masterFile]);
 
+  // Collapse the details back down whenever a different study is opened.
+  useEffect(() => {
+    setShowDetails(false);
+  }, [item.id]);
+
   const copyShareUrl = async () => {
     const url = `${window.location.origin}${window.location.pathname}?v=${item.id}`;
     try {
@@ -359,6 +365,17 @@ function Lightbox({
     <div className={s.lightbox} onClick={onClose}>
       <div className={s.lightboxPanel} onClick={(e) => e.stopPropagation()}>
         <div className={s.lightboxVideo}>
+          <button
+            type="button"
+            className={s.lightboxClose}
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+          </button>
           <video
             ref={videoRef}
             key={item.masterFile}
@@ -413,12 +430,29 @@ function Lightbox({
             </label>
           ) : null}
           <p className={s.lightboxHeadline}>{item.headline}</p>
-          <p className={s.lightboxDesc}>{item.description}</p>
-          <div className={s.proofPoints}>
-            {item.proofPoints.map((point) => (
-              <span key={point} className={s.proofPoint}>{point}</span>
-            ))}
-          </div>
+
+          <button
+            type="button"
+            className={s.detailsToggle}
+            onClick={() => setShowDetails((value) => !value)}
+            aria-expanded={showDetails}
+          >
+            {showDetails ? "Hide details" : "Show details"}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {showDetails ? (
+            <div className={s.lightboxDetails}>
+              <p className={s.lightboxDesc}>{item.description}</p>
+              <div className={s.proofPoints}>
+                {item.proofPoints.map((point) => (
+                  <span key={point} className={s.proofPoint}>{point}</span>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

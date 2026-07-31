@@ -468,6 +468,10 @@ export interface SeriesEpisode {
 export interface PortfolioCaseStudy {
   id: string;
   title: string;
+  /** Optional exact card/display title. Overrides the client-prefix-stripping
+   *  heuristic — use when the title legitimately contains the client's name
+   *  (e.g. "Kappa Rap 2" for client "Kappa Kappa Gamma"). */
+  displayTitle?: string;
   client: string;
   sector: string;
   year: string;
