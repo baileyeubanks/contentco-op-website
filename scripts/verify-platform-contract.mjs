@@ -52,18 +52,26 @@ for (const required of [
   }
 }
 
-const duplicatedPrinciple = "Every critical subsystem must have an owner, a health signal, and a recovery path.";
-const duplicateCount = manifestSource.split(duplicatedPrinciple).length - 1;
-if (duplicateCount !== 1) {
-  issues.push(`platform manifest principle should appear once, found ${duplicateCount}`);
+const principlesMatch = manifestSource.match(/principles:\s*\[([\s\S]*?)\]/m);
+if (!principlesMatch) {
+  issues.push("platform manifest missing execution principles");
+} else {
+  const principles = Array.from(principlesMatch[1].matchAll(/"([^"]+)"/g)).map((match) => match[1]);
+  const duplicates = principles.filter((principle, index) => principles.indexOf(principle) !== index);
+  if (duplicates.length) {
+    issues.push(`platform manifest duplicate principles: ${Array.from(new Set(duplicates)).join(", ")}`);
+  }
+  if (!principles.includes("Docs, runtime behavior, and verification must describe the same platform reality.")) {
+    issues.push("platform manifest missing docs/runtime/verification principle");
+  }
 }
 
 if (!/NextResponse\.json\(getPlatformManifest\(\)\)/.test(routeSource)) {
   issues.push("platform manifest API route does not return getPlatformManifest()");
 }
 
-if (!/status:\s*["']healthy["']/.test(healthSource) && !/status\s*===\s*["']healthy["']/.test(healthSource)) {
-  issues.push("health route does not expose a healthy status contract");
+if (!/getRepoHealthSnapshot/.test(healthSource) || !/X-Health-Status/.test(healthSource)) {
+  issues.push("health route does not expose the repo health snapshot/status header contract");
 }
 
 if (issues.length) {
