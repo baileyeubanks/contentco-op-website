@@ -36,15 +36,15 @@ export default function LoginPage() {
   return (
     <PublicPageLayout surface="login" theme="dark" showFooter={false}>
       <ProductLoginShell
-        productLabel="Root"
-        description="Internal access for the shared ACS and Content Co-op operating system."
+        productLabel="Co-VideoPro"
+        description="Client access to your video production pipeline with Content Co-op."
         error={error}
         loading={loading}
         onSubmit={handleLogin}
-        submitLabel="Enter root"
-        loadingLabel="Entering root..."
-        signupHref="/"
-        signupLabel="Return home"
+        submitLabel="Sign in"
+        loadingLabel="Signing in..."
+        signupHref="/brief"
+        signupLabel="Start a project"
         homeHref="/"
       />
     </PublicPageLayout>

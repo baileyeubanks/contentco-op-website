@@ -46,12 +46,12 @@ const THEMES: Record<string, ProductTheme> = {
     manifesto: "Feedback gets cleaner when versions, comments, and final approvals sit on the same track instead of splitting across inboxes.",
     features: ["Timecoded review", "Version control", "Stakeholder sign-off"],
   },
-  Root: {
+  "Co-VideoPro": {
     accent: "#b6d2ff",
     accentSoft: "rgba(182, 210, 255, 0.14)",
-    eyebrow: "Operations access",
-    manifesto: "The operating surface for ACS and Content Co-op. Internal systems, finance, quotes, dispatch, and delivery all route through here.",
-    features: ["Internal ops access", "Shared business controls", "Protected workspace"],
+    eyebrow: "Client access",
+    manifesto: "Your video production pipeline with Content Co-op. Briefs, reviews, deliverables, and final masters all live in one place.",
+    features: ["Project dashboard", "Review and approvals", "Final deliverables"],
   },
 };
 
