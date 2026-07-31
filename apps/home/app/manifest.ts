@@ -66,6 +66,13 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/brief",
         icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }],
       },
+      {
+        name: "Scenario Lab",
+        short_name: "Lab",
+        description: "Open the read-only production scenario lab.",
+        url: "/scenario-lab",
+        icons: [{ src: "/pwa/icon-192.png", sizes: "192x192" }],
+      },
     ],
     screenshots: [
       {
@@ -80,6 +87,13 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "1200x1440",
         type: "image/jpeg",
         label: "Content Co-op field crew filming on location",
+        form_factor: "narrow",
+      },
+      {
+        src: "/pwa/screenshot-scenario-lab.png",
+        sizes: "1200x1440",
+        type: "image/png",
+        label: "Content Co-op scenario lab planning workspace",
         form_factor: "narrow",
       },
     ],

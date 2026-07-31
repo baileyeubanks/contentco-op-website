@@ -66,7 +66,7 @@ assertContains("home public calls to action", homePage, [
 assertContains("responsive nav css", cssSource, [
   /\.cc-nav-mobile-row/,
   /\.cc-nav-mobile-panel/,
-  /@media\s*\(max-width:\s*720px\)/,
+  /@media\s*\(max-width:\s*860px\)/,
   /\.cc-nav-links\s*\{\s*display:\s*none;/,
 ]);
 
