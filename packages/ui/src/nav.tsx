@@ -130,8 +130,14 @@ export function Nav({ surface, urls }: NavProps) {
         </Link>
 
         <div className="cc-nav-rail-foot">
+          <p className="cc-nav-rail-help">
+            Need help? <a href="sms:+15013515927">Text us</a>
+          </p>
           <a href="mailto:service@contentco-op.com" className="cc-nav-rail-contact">
             service@contentco-op.com
+          </a>
+          <a href="tel:+15013515927" className="cc-nav-rail-phone">
+            501-351-5927
           </a>
           <span className="cc-nav-rail-loc">Houston, TX</span>
         </div>
