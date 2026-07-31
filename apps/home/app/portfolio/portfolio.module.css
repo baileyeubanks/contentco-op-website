@@ -10,7 +10,8 @@
 /* ─── Header ─── */
 .header {
   text-align: center;
-  padding: clamp(3.25rem, 7vh, 4.75rem) 1.5rem clamp(0.9rem, 2vh, 1.35rem);
+  /* top must clear the fixed 68px nav bar */
+  padding: clamp(6rem, 8vh, 7rem) 1.5rem clamp(0.9rem, 2vh, 1.35rem);
 }
 
 .kicker {

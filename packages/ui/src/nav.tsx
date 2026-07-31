@@ -52,18 +52,6 @@ export function Nav({ surface, urls }: NavProps) {
           />
         </Link>
 
-        <nav className="cc-nav-links" aria-label="Primary navigation">
-          <Link href={u.home} className={`cc-nav-link ${surface === "home" ? "active" : ""}`}>
-            home
-          </Link>
-          <Link href={u.portfolio} className={`cc-nav-link ${surface === "portfolio" ? "active" : ""}`}>
-            portfolio
-          </Link>
-          <Link href={u.brief} className={`cc-nav-link ${briefActive ? "active" : ""}`}>
-            creative brief
-          </Link>
-        </nav>
-
         <div className="cc-nav-actions">
           <button
             type="button"
@@ -107,7 +95,7 @@ export function Nav({ surface, urls }: NavProps) {
           </button>
         </div>
 
-        <nav className="cc-nav-rail-nav" aria-label="Site">
+        <nav className="cc-nav-rail-nav" aria-label="Primary navigation">
           <Link href={u.home} className={`cc-nav-rail-link ${surface === "home" ? "active" : ""}`} onClick={close}>
             <span className="cc-nav-rail-index">01</span>
             <span>Home</span>
@@ -119,6 +107,17 @@ export function Nav({ surface, urls }: NavProps) {
           <Link href={u.brief} className={`cc-nav-rail-link ${briefActive ? "active" : ""}`} onClick={close}>
             <span className="cc-nav-rail-index">03</span>
             <span>Creative Brief</span>
+          </Link>
+          <Link href={u.client} className="cc-nav-rail-link cc-nav-rail-login" onClick={close}>
+            <span className="cc-nav-rail-index">04</span>
+            <span>Log in</span>
+            <span className="cc-nav-rail-login-tag">
+              Co&#8288;-&#8288;VideoPro
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="7" y1="17" x2="17" y2="7" />
+                <polyline points="8 7 17 7 17 16" />
+              </svg>
+            </span>
           </Link>
         </nav>
 
