@@ -39,17 +39,17 @@ export function ModuleHeader({
   actions = [],
 }: ModuleHeaderProps) {
   return (
-    <div className="root-module-header">
-      <div className="root-module-header__copy">
-        <div className="root-atlas-kicker">{kicker}</div>
-        <h1 className="root-atlas-title">{title}</h1>
-        <p className="root-atlas-copy">{description}</p>
+    <div className="os-module-header">
+      <div className="os-module-header__copy">
+        <div className="os-atlas-kicker">{kicker}</div>
+        <h1 className="os-atlas-title">{title}</h1>
+        <p className="os-atlas-copy">{description}</p>
         {meta.length > 0 ? (
-          <div className="root-module-header__meta">
+          <div className="os-module-header__meta">
             {meta.map((item) => (
               <span
                 key={`${item.label}:${item.value}`}
-                className={`root-module-chip${item.tone ? ` root-module-chip--${item.tone}` : ""}`}
+                className={`os-module-chip${item.tone ? ` os-module-chip--${item.tone}` : ""}`}
               >
                 {item.label}: {item.value}
               </span>
@@ -59,9 +59,9 @@ export function ModuleHeader({
       </div>
 
       {(scope || actions.length > 0) ? (
-        <div className="root-module-header__controls">
+        <div className="os-module-header__controls">
           {scope ? (
-            <div className="root-atlas-context-toggle">
+            <div className="os-atlas-context-toggle">
               {(scope.options || ["ALL", "ACS", "CC"]).map((entry) => (
                 <button
                   key={entry}
@@ -76,9 +76,9 @@ export function ModuleHeader({
           ) : null}
 
           {actions.length > 0 ? (
-            <div className="root-module-header__actions">
+            <div className="os-module-header__actions">
               {actions.map((action) => {
-                const className = `root-atlas-button root-atlas-button-${action.tone || "secondary"}`;
+                const className = `os-atlas-button os-atlas-button-${action.tone || "secondary"}`;
                 if (action.href) {
                   return (
                     <a key={action.label} href={action.href} className={className}>

@@ -16,8 +16,13 @@ body {
   font-family: var(--font-body), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* /os shell: force Inter — do not inherit Cream Plus Jakarta from body */
 html:has([data-surface="os"]) {
   background-color: #F7F9FC;
+}
+
+body:has([data-surface="os"]) {
+  font-family: var(--font-os), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 html:has(body[data-surface="root"]) {
@@ -212,128 +217,8 @@ h1, h2, h3, h4 {
   text-underline-offset: 2px;
 }
 
-.root-workspace-shell {
-  display: flex;
-  min-height: 100vh;
-}
-
-.root-workspace-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.root-workspace-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.15rem 1.4rem 1rem;
-  border-bottom: 1px solid var(--root-line, rgba(255,255,255,0.06));
-  background: rgba(7, 17, 31, 0.78);
-  backdrop-filter: blur(18px);
-}
-
-.root-workspace-header-copy {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.root-workspace-eyebrow {
-  font-family: var(--font-mono), monospace;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--os-accent);
-}
-
-.root-workspace-title {
-  margin: 0;
-  font-family: var(--font-body), sans-serif;
-  font-size: 1.9rem;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  /* text-transform: lowercase removed — normal casing per brand update */
-}
-
-.root-workspace-subtitle {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--root-muted, var(--muted));
-  max-width: 42rem;
-  line-height: 1.6;
-}
-
-.root-workspace-meta {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.root-workspace-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--root-line, rgba(255,255,255,0.08));
-  color: var(--root-muted, var(--muted));
-  background: rgba(255,255,255,0.03);
-  font-family: var(--font-mono), monospace;
-  font-size: 0.54rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.root-workspace-chip-live {
-  color: var(--os-accent);
-  background: rgba(74,222,128,0.08);
-}
-
-.root-workspace-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.root-workspace-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.55rem 0.9rem;
-  border-radius: 6px;
-  border: 1px solid var(--root-line, rgba(255, 255, 255, 0.08));
-  color: var(--root-muted, var(--muted));
-  text-decoration: none;
-  font-family: var(--font-mono), monospace;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.root-workspace-link:hover {
-  color: var(--os-accent);
-  border-color: var(--root-line, rgba(74,222,128,0.18));
-  background: rgba(74,222,128,0.06);
-}
-
-.root-workspace-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.root-workspace-main {
-  background:
-    radial-gradient(circle at top left, rgba(74, 222, 128, 0.08), transparent 24%),
-    linear-gradient(180deg, rgba(255,255,255,0.01), transparent 26%);
-}
-
-.root-atlas-context-toggle {
+/* ─── CCO OS shell chrome (os-* ; no root-* class selectors) ─── */
+.os-atlas-context-toggle {
   display: inline-flex;
   gap: 3px;
   padding: 3px;
@@ -342,7 +227,7 @@ h1, h2, h3, h4 {
   background: rgba(255, 255, 255, 0.02);
 }
 
-.root-atlas-context-toggle button {
+.os-atlas-context-toggle button {
   border: 1px solid transparent;
   background: transparent;
   color: var(--root-muted, var(--muted));
@@ -355,32 +240,31 @@ h1, h2, h3, h4 {
   cursor: pointer;
 }
 
-.root-atlas-context-toggle button.active {
+.os-atlas-context-toggle button.active {
   color: var(--root-ink, var(--ink));
   background: rgba(74, 222, 128, 0.08);
   border-color: var(--root-line, rgba(74, 222, 128, 0.12));
 }
 
-/* CCO OS operational pages: no editorial/display font — use body font everywhere */
+/* CCO OS operational pages: no editorial/display font — use OS Inter everywhere */
 [data-surface="product"] h1,
 [data-surface="product"] h2,
 [data-surface="product"] h3,
-[data-surface="product"] h4 {
-  font-family: var(--font-body), sans-serif !important;
+[data-surface="product"] h4,
+[data-surface="os"] h1,
+[data-surface="os"] h2,
+[data-surface="os"] h3,
+[data-surface="os"] h4 {
+  font-family: var(--font-os, var(--font-body)), Inter, sans-serif !important;
 }
 
-.root-atlas-page {
+.os-atlas-page {
   padding: 16px;
   max-width: 1380px;
   margin: 0 auto;
 }
 
-.root-atlas-header {
-  display: grid;
-  gap: 8px;
-}
-
-.root-atlas-kicker {
+.os-atlas-kicker {
   font-family: var(--font-mono), monospace;
   font-size: 0.58rem;
   font-weight: 600;
@@ -389,78 +273,23 @@ h1, h2, h3, h4 {
   color: var(--os-accent);
 }
 
-.root-atlas-title {
+.os-atlas-title {
   margin: 0;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-os, var(--font-body)), Inter, sans-serif;
   font-size: 1.55rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.05;
-  /* text-transform: lowercase removed — normal casing per brand update */
 }
 
-.root-atlas-copy {
+.os-atlas-copy {
   margin: 0;
   color: var(--root-muted, var(--muted));
   line-height: 1.65;
   max-width: 68ch;
 }
 
-.root-atlas-panel {
-  display: grid;
-  gap: 14px;
-  padding: 18px 20px;
-  border-radius: 16px;
-  border: 1px solid var(--root-line, rgba(74, 222, 128, 0.12));
-  background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.015));
-}
-
-.root-atlas-panel-soft {
-  display: grid;
-  gap: 10px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--root-line, rgba(74, 222, 128, 0.12));
-  background: rgba(255,255,255,0.02);
-}
-
-.root-atlas-label {
-  display: block;
-  margin-bottom: 4px;
-  font-family: var(--font-mono), monospace;
-  font-size: 0.5rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--root-muted, var(--muted));
-}
-
-.root-atlas-input,
-.root-atlas-select,
-.root-atlas-textarea {
-  width: 100%;
-  padding: 6px 9px;
-  border-radius: 8px;
-  border: 1px solid var(--root-line, rgba(74, 222, 128, 0.12));
-  background: rgba(255,255,255,0.035);
-  color: var(--root-ink, var(--ink));
-  font: inherit;
-  font-size: 0.62rem;
-}
-
-.root-atlas-textarea {
-  resize: vertical;
-  line-height: 1.6;
-}
-
-.root-atlas-input:focus,
-.root-atlas-select:focus,
-.root-atlas-textarea:focus {
-  outline: none;
-  border-color: var(--os-accent);
-  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.08);
-}
-
-.root-atlas-button {
+.os-atlas-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -475,45 +304,31 @@ h1, h2, h3, h4 {
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease, opacity 120ms ease;
 }
 
-.root-atlas-button-primary {
+.os-atlas-button-primary {
   border: 1px solid var(--root-line, rgba(74, 222, 128, 0.12));
   background: rgba(74, 222, 128, 0.14);
   color: var(--os-accent);
 }
 
-.root-atlas-button-secondary {
+.os-atlas-button-secondary {
   border: 1px solid var(--root-line, rgba(74, 222, 128, 0.12));
   background: rgba(255,255,255,0.03);
   color: var(--root-ink, var(--ink));
 }
 
-.root-atlas-button-warn {
+.os-atlas-button-warn {
   border: 1px solid rgba(228,173,91,0.18);
   background: rgba(228,173,91,0.12);
   color: #e4ad5b;
 }
 
-.root-atlas-button-danger {
+.os-atlas-button-danger {
   border: 1px solid rgba(209,99,91,0.18);
   background: rgba(209,99,91,0.12);
   color: #f1a39d;
 }
 
-.root-atlas-empty {
-  color: var(--root-muted, var(--muted));
-  line-height: 1.6;
-}
-
-.root-atlas-meta {
-  font-family: var(--font-mono), monospace;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  /* text-transform: lowercase removed — normal casing per brand update */
-  color: var(--root-muted, var(--muted));
-}
-
-.root-module-header {
+.os-module-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -522,33 +337,33 @@ h1, h2, h3, h4 {
   margin-bottom: 24px;
 }
 
-.root-module-header__copy {
+.os-module-header__copy {
   display: grid;
   gap: 8px;
   min-width: min(100%, 520px);
 }
 
-.root-module-header__meta {
+.os-module-header__meta {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 4px;
 }
 
-.root-module-header__controls {
+.os-module-header__controls {
   display: grid;
   justify-items: end;
   gap: 10px;
 }
 
-.root-module-header__actions {
+.os-module-header__actions {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
-.root-module-chip {
+.os-module-chip {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
@@ -562,41 +377,31 @@ h1, h2, h3, h4 {
   color: var(--root-muted, var(--muted));
 }
 
-.root-module-chip--accent {
+.os-module-chip--accent {
   background: rgba(74, 222, 128, 0.12);
   color: var(--os-accent);
 }
 
-.root-module-chip--warn {
+.os-module-chip--warn {
   background: rgba(228, 173, 91, 0.12);
   border-color: rgba(228, 173, 91, 0.18);
   color: #e4ad5b;
 }
 
-.root-module-chip--success {
+.os-module-chip--success {
   background: rgba(62, 201, 131, 0.12);
   border-color: rgba(62, 201, 131, 0.18);
   color: #3ec983;
 }
 
-.root-table-shell {
+.os-table-shell {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--root-line, rgba(74, 222, 128, 0.12));
   border-radius: 16px;
   overflow: hidden;
 }
 
-.root-table-header {
-  padding: 18px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: baseline;
-  flex-wrap: wrap;
-}
-
-.root-table-head {
+.os-table-head {
   text-align: left;
   padding: 10px 14px;
   font-family: var(--font-mono), monospace;
@@ -604,337 +409,69 @@ h1, h2, h3, h4 {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--root-muted, var(--muted));
-}
-
-.root-table-cell {
-  padding: 10px 14px;
-}
-
-.root-search-input {
-  width: 100%;
-  max-width: 420px;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--root-line, rgba(74, 222, 128, 0.12));
-  border-radius: 8px;
-  color: var(--ink);
-  font-size: 0.62rem;
-  outline: none;
-}
-
-.root-search-input:focus {
-  border-color: var(--os-accent);
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.08);
-}
-
-/* ─── Enterprise Table & Card Enhancements ─── */
-.root-table-row:hover td {
-  background: rgba(74, 222, 128, 0.03);
-}
-
-.root-table-row {
-  transition: background 120ms ease;
-}
-
-.root-table-head {
   color: rgba(74, 222, 128, 0.7);
 }
 
-.root-stat-card {
-  transition: transform 180ms ease, background 140ms ease, border-color 140ms ease, box-shadow 180ms ease;
+.os-table-row {
+  transition: background 120ms ease;
 }
 
-.root-stat-card:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(74, 222, 128, 0.22);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+.os-table-row:hover td {
+  background: rgba(74, 222, 128, 0.03);
 }
 
-/* ─── Brand-center hero glow pattern ─── */
-.root-hero-glow {
-  position: relative;
-  background:
-    radial-gradient(ellipse 60% 50% at 15% 40%, color-mix(in srgb, var(--os-accent) 8%, transparent), transparent),
-    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
-}
-
-.root-hero-glow::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(ellipse 40% 60% at 85% 20%, rgba(74,222,128,0.06), transparent);
-  pointer-events: none;
-}
-
-/* ─── Enhanced metric card with brand-center gradient ─── */
-.root-metric-card {
-  display: grid;
-  gap: 5px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(74, 222, 128, 0.1);
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-}
-
-.root-metric-card:hover {
-  transform: translateY(-1px);
-  border-color: rgba(74, 222, 128, 0.2);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-/* ─── Status tone system (brand-center reference) ─── */
-.root-tone-healthy { color: #9ce7ba; }
-.root-tone-attention { color: #f3c778; }
-.root-tone-critical { color: #f6a0a0; }
-
-.root-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-family: var(--font-mono), monospace;
-  font-size: 0.54rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
-  transition: background 100ms ease;
-}
-
-.root-pill--healthy {
-  color: #9ce7ba;
-  border-color: rgba(156, 231, 186, 0.2);
-  background: rgba(156, 231, 186, 0.08);
-}
-
-.root-pill--attention {
-  color: #f3c778;
-  border-color: rgba(243, 199, 120, 0.2);
-  background: rgba(243, 199, 120, 0.08);
-}
-
-.root-pill--critical {
-  color: #f6a0a0;
-  border-color: rgba(246, 160, 160, 0.2);
-  background: rgba(246, 160, 160, 0.08);
-}
-
-.root-pill--accent {
-  color: var(--os-accent);
-  border-color: rgba(74, 222, 128, 0.2);
-  background: rgba(74, 222, 128, 0.08);
-}
-
-.root-pill--neutral {
-  color: var(--root-muted, var(--muted));
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-/* ─── Panel with subtle inner glow ─── */
-.root-panel-glow {
-  border-radius: 16px;
-  border: 1px solid rgba(74, 222, 128, 0.1);
-  background:
-    radial-gradient(ellipse 80% 40% at 20% 0%, rgba(74,222,128,0.04), transparent),
-    rgba(255,255,255,0.02);
-  padding: 16px;
-}
-
-/* ─── Collection queue item hover ─── */
-.root-queue-item {
-  transition: transform 140ms ease, border-color 140ms ease, background 100ms ease;
-}
-
-.root-queue-item:hover {
-  transform: translateY(-1px);
-  border-color: rgba(74, 222, 128, 0.18);
-  background: rgba(255, 255, 255, 0.035);
-}
-
-/* Skeleton loading shimmer */
-@keyframes rootShimmer {
+@keyframes osShimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
-.root-skeleton {
+.os-skeleton {
   background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
   background-size: 200% 100%;
-  animation: rootShimmer 1.5s ease-in-out infinite;
-}
-
-/* Action menu dropdown */
-.root-action-menu {
-  position: relative;
-  display: inline-flex;
-}
-
-.root-action-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 5px;
-  border: 1px solid var(--root-line, rgba(74,222,128,0.12));
-  background: rgba(255,255,255,0.03);
-  color: var(--root-muted, var(--muted));
-  font-size: 0.64rem;
-  cursor: pointer;
-  transition: all 140ms ease;
-}
-
-.root-action-trigger:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(74,222,128,0.2);
-}
-
-.root-action-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 50;
-  margin-top: 3px;
-  min-width: 130px;
-  padding: 3px;
-  border-radius: 8px;
-  border: 1px solid var(--root-line, rgba(74,222,128,0.12));
-  background: var(--root-surface, #0e1a2d);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-}
-
-.root-action-item {
-  display: block;
-  width: 100%;
-  padding: 5px 8px;
-  border: none;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--ink);
-  font-size: 0.62rem;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 100ms ease;
-}
-
-.root-action-item:hover {
-  background: rgba(255,255,255,0.06);
-}
-
-/* Filter bar */
-.root-filter-bar {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: 0;
-  margin-bottom: 20px;
-}
-
-.root-filter-btn {
-  padding: 6px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--root-line, rgba(74,222,128,0.12));
-  background: rgba(255,255,255,0.03);
-  color: var(--root-muted, var(--muted));
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 140ms ease;
-}
-
-.root-filter-btn:hover {
-  background: rgba(255,255,255,0.06);
-}
-
-.root-filter-btn-active {
-  background: rgba(74,222,128,0.12);
-  color: var(--ink);
-  border-color: rgba(74,222,128,0.2);
-}
-
-/* Warning banner */
-.root-warning-banner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: 1px solid rgba(228, 173, 91, 0.24);
-  background: rgba(228, 173, 91, 0.08);
-  color: #e4ad5b;
-  font-size: 0.84rem;
-  font-weight: 500;
-  margin-bottom: 16px;
+  animation: osShimmer 1.5s ease-in-out infinite;
 }
 
 @media (max-width: 980px) {
-  .root-workspace-shell {
-    display: block;
-  }
-
-  .root-workspace-header {
-    padding: 1rem 1rem 0.9rem;
-    flex-direction: column;
-  }
-
-  .root-module-header__controls {
+  .os-module-header__controls {
     width: 100%;
     justify-items: start;
   }
 
-  .root-module-header__actions {
+  .os-module-header__actions {
     justify-content: flex-start;
   }
 
-  /* Enterprise responsive: stat grids stack */
-  .root-atlas-page [style*="grid-template-columns: repeat(4"] {
+  .os-atlas-page [style*="grid-template-columns: repeat(4"] {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  .root-atlas-page [style*="grid-template-columns: repeat(3"] {
+  .os-atlas-page [style*="grid-template-columns: repeat(3"] {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  .root-atlas-page [style*="grid-template-columns: 1fr 1fr"] {
+  .os-atlas-page [style*="grid-template-columns: 1fr 1fr"] {
     grid-template-columns: 1fr !important;
-  }
-
-  .root-filter-bar {
-    gap: 6px;
-  }
-
-  .root-filter-btn {
-    font-size: 0.72rem;
-    padding: 5px 10px;
   }
 }
 
 @media (max-width: 600px) {
-  .root-atlas-page [style*="grid-template-columns: repeat(2"] {
+  .os-atlas-page [style*="grid-template-columns: repeat(2"] {
     grid-template-columns: 1fr !important;
   }
 
-  .root-atlas-page [style*="grid-template-columns: repeat(3"] {
+  .os-atlas-page [style*="grid-template-columns: repeat(3"] {
     grid-template-columns: 1fr !important;
   }
 
-  .root-atlas-page [style*="grid-template-columns: repeat(4"] {
+  .os-atlas-page [style*="grid-template-columns: repeat(4"] {
     grid-template-columns: 1fr !important;
   }
 
-  .root-atlas-page [style*="grid-template-columns: repeat(5"] {
+  .os-atlas-page [style*="grid-template-columns: repeat(5"] {
     grid-template-columns: 1fr !important;
   }
 }
+
 
 .ambient-video-frame {
   position: absolute;

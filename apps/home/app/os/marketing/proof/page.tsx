@@ -40,7 +40,7 @@ export default async function RootMarketingProofPage() {
   const snapshot = await getRootMarketingProofSnapshot(brand.key);
 
   return (
-    <div className="root-atlas-page" style={{ maxWidth: 1320 }}>
+    <div className="os-atlas-page" style={{ maxWidth: 1320 }}>
       <div style={{ display: "grid", gap: 22 }}>
         <ModuleHeader
           kicker={brand.key === "acs" ? "marketing + reputation engine" : "marketing + delivery engine"}

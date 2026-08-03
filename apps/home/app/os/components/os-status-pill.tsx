@@ -51,7 +51,7 @@ export function OsStatusPill({
   const resolvedTone = tone || inferTone(children);
 
   return (
-    <span className={`root-status-pill root-status-pill--${resolvedTone}`}>
+    <span className={`os-status-pill os-status-pill--${resolvedTone}`}>
       {children.replace(/_/g, " ")}
     </span>
   );

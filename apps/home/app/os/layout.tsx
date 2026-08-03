@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { headers } from "next/headers";
 import { resolveOsBrand } from "@/lib/os-brand";
 import { OsShell } from "@/app/os/components/os-shell";
 import "@contentco-op/ui/src/atlantis/tokens.css";
 import "@xyflow/react/dist/style.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-os",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "CCO OS",
@@ -33,7 +26,7 @@ export default async function OsAppLayout({
     <div
       data-surface={lightOs ? "os" : "product"}
       data-os-brand={brand.key}
-      className={`${brand.brandClassName} ${inter.variable}`}
+      className={brand.brandClassName}
       style={
         {
           minHeight: "100vh",

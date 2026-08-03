@@ -68,7 +68,7 @@ export default function RootInvoiceEditPage() {
   }
 
   return (
-    <div className="root-atlas-page" style={{ maxWidth: 900, display: "grid", gap: 18 }}>
+    <div className="os-atlas-page" style={{ maxWidth: 900, display: "grid", gap: 18 }}>
       <section style={panelStyle}>
         <div style={{ display: "grid", gap: 6 }}>
           <div style={kickerStyle}>invoice edit</div>
@@ -78,8 +78,8 @@ export default function RootInvoiceEditPage() {
           <div style={subtitleStyle}>{invoice.contact_name || "unknown client"}</div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href={`/os/invoices/${invoiceId}`} className="root-atlas-button root-atlas-button-secondary">back</Link>
-          <button type="button" onClick={() => void handleSave()} className="root-atlas-button root-atlas-button-primary" disabled={saving}>
+          <Link href={`/os/invoices/${invoiceId}`} className="os-atlas-button os-atlas-button-secondary">back</Link>
+          <button type="button" onClick={() => void handleSave()} className="os-atlas-button os-atlas-button-primary" disabled={saving}>
             {saving ? "saving..." : "save"}
           </button>
         </div>

@@ -52,7 +52,7 @@ export function BriefOpsPanel({
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
         {existingQuoteId ? (
-          <a href={`/os/quotes/${existingQuoteId}`} className="root-atlas-button root-atlas-button-secondary">
+          <a href={`/os/quotes/${existingQuoteId}`} className="os-atlas-button os-atlas-button-secondary">
             open latest draft
           </a>
         ) : null}
@@ -60,7 +60,7 @@ export function BriefOpsPanel({
           type="button"
           onClick={handleGenerateDraft}
           disabled={busy}
-          className="root-atlas-button root-atlas-button-primary"
+          className="os-atlas-button os-atlas-button-primary"
         >
           {busy ? "building draft..." : existingQuoteId ? "generate fresh draft" : "generate draft quote"}
         </button>

@@ -68,12 +68,12 @@ export function DataTable<T>({
 
   if (loading) {
     return (
-      <div className="root-table-shell">
+      <div className="os-table-shell">
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
               {columns.map((col) => (
-                <th key={col.key} className="root-table-head" style={{ width: col.width }}>{col.label}</th>
+                <th key={col.key} className="os-table-head" style={{ width: col.width }}>{col.label}</th>
               ))}
             </tr>
           </thead>
@@ -82,7 +82,7 @@ export function DataTable<T>({
               <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                 {columns.map((col) => (
                   <td key={col.key} style={cellStyle}>
-                    <div className="root-skeleton" style={{ height: 16, width: "70%", borderRadius: 4 }} />
+                    <div className="os-skeleton" style={{ height: 16, width: "70%", borderRadius: 4 }} />
                   </td>
                 ))}
               </tr>
@@ -95,21 +95,21 @@ export function DataTable<T>({
 
   if (data.length === 0) {
     return (
-      <div className="root-table-shell" style={{ padding: 48, textAlign: "center", color: "var(--root-muted, var(--muted))" }}>
+      <div className="os-table-shell" style={{ padding: 48, textAlign: "center", color: "var(--root-muted, var(--muted))" }}>
         {emptyMessage}
       </div>
     );
   }
 
   return (
-    <div className="root-table-shell">
+    <div className="os-table-shell">
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
         <thead>
           <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
             {columns.map((col) => (
               <th
                 key={col.key}
-                className="root-table-head"
+                className="os-table-head"
                 style={{
                   width: col.width,
                   cursor: col.sortable ? "pointer" : undefined,
@@ -142,7 +142,7 @@ export function DataTable<T>({
                   background: isSelected ? "rgba(62,201,131,0.08)" : undefined,
                   transition: "background 100ms ease",
                 }}
-                className="root-table-row"
+                className="os-table-row"
               >
                 {columns.map((col) => (
                   <td key={col.key} style={{ ...cellStyle, textAlign: col.align || "left" }}>

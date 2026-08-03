@@ -92,7 +92,7 @@ export default async function RootInvoiceDetailPage({
   ].filter(Boolean) as string[];
 
   return (
-    <div className="root-atlas-page" style={pageStyle}>
+    <div className="os-atlas-page" style={pageStyle}>
       <section style={heroStyle}>
         <div style={{ display: "grid", gap: 10 }}>
           <div style={kickerStyle}>invoice workspace</div>
@@ -117,9 +117,9 @@ export default async function RootInvoiceDetailPage({
 
         <div style={actionRailStyle}>
           <div style={actionGroupStyle}>
-            <Link href="/os/invoices" className="root-atlas-button root-atlas-button-secondary">back to invoices</Link>
-            <a href={previewUrl} target="_blank" rel="noreferrer" className="root-atlas-button root-atlas-button-secondary">preview</a>
-            <a href={pdfUrl} target="_blank" rel="noreferrer" className="root-atlas-button root-atlas-button-primary">export pdf</a>
+            <Link href="/os/invoices" className="os-atlas-button os-atlas-button-secondary">back to invoices</Link>
+            <a href={previewUrl} target="_blank" rel="noreferrer" className="os-atlas-button os-atlas-button-secondary">preview</a>
+            <a href={pdfUrl} target="_blank" rel="noreferrer" className="os-atlas-button os-atlas-button-primary">export pdf</a>
           </div>
           {/* Interactive actions: Record Payment, Reminder, Void, Split */}
           <div style={{ ...actionGroupStyle, justifyContent: "flex-end" }}>
@@ -135,19 +135,19 @@ export default async function RootInvoiceDetailPage({
           <div style={actionGroupStyle}>
             {invoice.stripe_payment_link ? (
               <>
-                <a href={payLinkUrl} target="_blank" rel="noreferrer" className="root-atlas-button root-atlas-button-secondary">open pay link</a>
-                <CopyLinkButton href={payLinkUrl} className="root-atlas-button root-atlas-button-secondary" label="copy pay link" />
+                <a href={payLinkUrl} target="_blank" rel="noreferrer" className="os-atlas-button os-atlas-button-secondary">open pay link</a>
+                <CopyLinkButton href={payLinkUrl} className="os-atlas-button os-atlas-button-secondary" label="copy pay link" />
               </>
             ) : (
-              <GeneratePayLinkButton invoiceId={invoice.id} className="root-atlas-button root-atlas-button-primary" />
+              <GeneratePayLinkButton invoiceId={invoice.id} className="os-atlas-button os-atlas-button-primary" />
             )}
-            <CopyLinkButton href={sharePageUrl} className="root-atlas-button root-atlas-button-secondary" label="copy share link" />
-            <a href={sharePageUrl} target="_blank" rel="noreferrer" className="root-atlas-button root-atlas-button-secondary">open share page</a>
+            <CopyLinkButton href={sharePageUrl} className="os-atlas-button os-atlas-button-secondary" label="copy share link" />
+            <a href={sharePageUrl} target="_blank" rel="noreferrer" className="os-atlas-button os-atlas-button-secondary">open share page</a>
             {sendMailHref ? (
-              <a href={sendMailHref} className="root-atlas-button root-atlas-button-secondary">send / resend</a>
+              <a href={sendMailHref} className="os-atlas-button os-atlas-button-secondary">send / resend</a>
             ) : null}
             {invoice.source_quote?.id ? (
-              <Link href={`/os/quotes/${invoice.source_quote.id}`} className="root-atlas-button root-atlas-button-secondary">open source quote</Link>
+              <Link href={`/os/quotes/${invoice.source_quote.id}`} className="os-atlas-button os-atlas-button-secondary">open source quote</Link>
             ) : null}
           </div>
         </div>

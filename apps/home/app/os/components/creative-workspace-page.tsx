@@ -48,7 +48,7 @@ export function CreativeWorkspacePage({
   sections: Section[];
 }) {
   return (
-    <div className="root-atlas-page" style={{ maxWidth: 1240, display: "grid", gap: 18 }}>
+    <div className="os-atlas-page" style={{ maxWidth: 1240, display: "grid", gap: 18 }}>
       <ModuleHeader
         kicker={kicker}
         title={title}

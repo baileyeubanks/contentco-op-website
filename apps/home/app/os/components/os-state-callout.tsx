@@ -8,7 +8,7 @@ export function OsStateCallout({
   detail?: string;
 }) {
   return (
-    <div className={`root-state-callout root-state-callout--${tone}`}>
+    <div className={`os-state-callout os-state-callout--${tone}`}>
       <strong>{title}</strong>
       {detail ? <p>{detail}</p> : null}
     </div>

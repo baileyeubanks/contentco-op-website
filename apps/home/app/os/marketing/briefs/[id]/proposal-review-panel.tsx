@@ -146,7 +146,7 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
             type="button"
             onClick={handleApprove}
             disabled={busy}
-            className="root-atlas-button root-atlas-button-primary"
+            className="os-atlas-button os-atlas-button-primary"
           >
             {busy ? "Approving…" : "Approve proposal"}
           </button>
@@ -156,7 +156,7 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
             type="button"
             onClick={handleSend}
             disabled={busy}
-            className="root-atlas-button root-atlas-button-primary"
+            className="os-atlas-button os-atlas-button-primary"
           >
             {busy ? "Sending…" : "Send to client"}
           </button>
@@ -165,7 +165,7 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
           href={`/brief/proposal/${briefId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="root-atlas-button root-atlas-button-secondary"
+          className="os-atlas-button os-atlas-button-secondary"
         >
           Preview public page
         </a>

@@ -35,7 +35,7 @@ export function QuoteConvertButton({
     <div style={{ display: "flex", gap: 6 }}>
       <Link
         href={`/os/quotes/${quoteId}/convert`}
-        className="root-atlas-button root-atlas-button-primary"
+        className="os-atlas-button os-atlas-button-primary"
         style={{ textDecoration: "none", textAlign: "center" }}
       >
         review & convert
@@ -43,7 +43,7 @@ export function QuoteConvertButton({
       <button
         type="button"
         onClick={() => void handleQuickConvert()}
-        className="root-atlas-button root-atlas-button-secondary"
+        className="os-atlas-button os-atlas-button-secondary"
         disabled={disabled || loading}
       >
         {loading ? "converting..." : "quick convert"}
