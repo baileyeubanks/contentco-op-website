@@ -10,10 +10,6 @@ import {
 } from "@/lib/os-module-registry";
 
 /* ─── Constants ─── */
-const G = "rgba(74,222,128,";
-const LINE = `${G}0.10)`;
-const MONO = "var(--font-mono), monospace";
-
 const SIDEBAR_W = 118;
 const SIDEBAR_COLLAPSED_W = 30;
 const TOPBAR_H = 26;
@@ -21,18 +17,47 @@ const TOPBAR_H = 26;
 /* Pages that should NOT show the shell chrome */
 const BARE_PATHS = ["/os", "/os/login", "/os/system/map"];
 
+const LS_SIDEBAR = "os-sidebar-collapsed";
+const LS_BU_SCOPE = "os-bu-scope";
+const LEGACY_LS_SIDEBAR = "root-sidebar-collapsed";
+const LEGACY_LS_BU_SCOPE = "root-bu-scope";
+
 /* ─── Types ─── */
 type BuScope = "ALL" | "ACS" | "CC";
 
+function readMigratedLocalStorage(newKey: string, legacyKey: string): string | null {
+  if (typeof window === "undefined") return null;
+  const current = window.localStorage.getItem(newKey);
+  if (current !== null) return current;
+  const legacy = window.localStorage.getItem(legacyKey);
+  if (legacy === null) return null;
+  window.localStorage.setItem(newKey, legacy);
+  window.localStorage.removeItem(legacyKey);
+  return legacy;
+}
+
 function getInitialCollapsed(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem("root-sidebar-collapsed") === "1";
+  return readMigratedLocalStorage(LS_SIDEBAR, LEGACY_LS_SIDEBAR) === "1";
 }
 
 function getInitialBuScope(): BuScope {
-  if (typeof window === "undefined") return "ALL";
-  const saved = window.localStorage.getItem("root-bu-scope");
+  const saved = readMigratedLocalStorage(LS_BU_SCOPE, LEGACY_LS_BU_SCOPE);
   return saved === "ACS" || saved === "CC" || saved === "ALL" ? saved : "ALL";
+}
+
+function shellAccent(brandKey: OsBrandKey) {
+  if (brandKey === "cc") {
+    return {
+      solid: "#0057FF",
+      soft: "rgba(0,87,255,",
+      line: "rgba(0,87,255,0.12)",
+    };
+  }
+  return {
+    solid: "#4ade80",
+    soft: "rgba(74,222,128,",
+    line: "rgba(74,222,128,0.10)",
+  };
 }
 
 /* ─── Shell ─── */
@@ -51,11 +76,13 @@ export function OsShell({
   const cmdRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    localStorage.setItem("root-sidebar-collapsed", collapsed ? "1" : "0");
+    localStorage.setItem(LS_SIDEBAR, collapsed ? "1" : "0");
+    localStorage.removeItem(LEGACY_LS_SIDEBAR);
   }, [collapsed]);
 
   useEffect(() => {
-    localStorage.setItem("root-bu-scope", buScope);
+    localStorage.setItem(LS_BU_SCOPE, buScope);
+    localStorage.removeItem(LEGACY_LS_BU_SCOPE);
   }, [buScope]);
 
   /* Keyboard shortcuts */
@@ -102,6 +129,11 @@ export function OsShell({
   const coreModules = getRootModulesForWorkspace(brandKey, "core");
   const advancedModules = getRootModulesForWorkspace(brandKey, "advanced");
   const sideW = collapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_W;
+  const accent = shellAccent(brandKey);
+  const LINE = accent.line;
+  const G = accent.soft;
+  const MONO = 'var(--font-os, var(--font-body)), Inter, sans-serif';
+  const brandLabel = brandKey === "cc" ? "CCO OS" : "OS";
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -143,8 +175,7 @@ export function OsShell({
               width: 5,
               height: 5,
               borderRadius: "50%",
-              background: "#4ade80",
-              boxShadow: "0 0 6px #4ade80",
+              background: accent.solid,
               flexShrink: 0,
             }}
           />
@@ -159,7 +190,7 @@ export function OsShell({
                 whiteSpace: "nowrap",
               }}
             >
-              root
+              {brandLabel}
             </span>
           )}
         </div>
@@ -186,7 +217,7 @@ export function OsShell({
                   fontWeight: buScope === s ? 700 : 500,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  color: buScope === s ? "#4ade80" : "var(--muted)",
+                  color: buScope === s ? accent.solid : "var(--muted)",
                   background: buScope === s ? `${G}0.08)` : "transparent",
                   border: `1px solid ${buScope === s ? `${G}0.18)` : "transparent"}`,
                   borderRadius: 3,
@@ -202,18 +233,30 @@ export function OsShell({
 
         {/* Core modules */}
         <div style={{ padding: "3px 0 0" }}>
-          {!collapsed && <div style={sectionLabelStyle}>modules</div>}
+          {!collapsed && <div style={sectionLabelStyle(MONO)}>modules</div>}
           {coreModules.map((m) => (
-            <NavItem key={m.id} mod={m} pathname={pathname} collapsed={collapsed} />
+            <NavItem
+              key={m.id}
+              mod={m}
+              pathname={pathname}
+              collapsed={collapsed}
+              brandKey={brandKey}
+            />
           ))}
         </div>
 
         {/* Advanced modules */}
         {advancedModules.length > 0 && (
           <div style={{ padding: "2px 0 0" }}>
-            {!collapsed && <div style={sectionLabelStyle}>advanced</div>}
+            {!collapsed && <div style={sectionLabelStyle(MONO)}>advanced</div>}
             {advancedModules.map((m) => (
-              <NavItem key={m.id} mod={m} pathname={pathname} collapsed={collapsed} />
+              <NavItem
+                key={m.id}
+                mod={m}
+                pathname={pathname}
+                collapsed={collapsed}
+                brandKey={brandKey}
+              />
             ))}
           </div>
         )}
@@ -270,7 +313,7 @@ export function OsShell({
             backdropFilter: "blur(12px)",
           }}
         >
-          <Breadcrumb pathname={pathname} />
+          <Breadcrumb pathname={pathname} brandKey={brandKey} />
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <button
               onClick={() => { setCmdOpen(true); setCmdQuery(""); }}
@@ -302,7 +345,7 @@ export function OsShell({
                 placeItems: "center",
                 fontSize: "0.34rem",
                 fontWeight: 700,
-                color: "#4ade80",
+                color: accent.solid,
               }}
             >
               B
@@ -333,11 +376,16 @@ function NavItem({
   mod,
   pathname,
   collapsed,
+  brandKey,
 }: {
   mod: RootModuleDef;
   pathname: string;
   collapsed: boolean;
+  brandKey: OsBrandKey;
 }) {
+  const accent = shellAccent(brandKey);
+  const G = accent.soft;
+  const MONO = 'var(--font-os, var(--font-body)), Inter, sans-serif';
   const active =
     mod.href === "/os/overview"
       ? pathname === "/os/overview" || pathname === "/os"
@@ -360,7 +408,7 @@ function NavItem({
         borderLeft: collapsed
           ? "none"
           : active
-          ? "2px solid #4ade80"
+          ? `2px solid ${accent.solid}`
           : "2px solid transparent",
         textDecoration: "none",
         transition: "all 100ms ease",
@@ -402,8 +450,7 @@ function NavItem({
             width: 2,
             height: 10,
             borderRadius: 1,
-            background: "#4ade80",
-            boxShadow: "0 0 4px #4ade80",
+            background: accent.solid,
           }}
         />
       )}
@@ -412,7 +459,15 @@ function NavItem({
 }
 
 /* ─── Breadcrumb ─── */
-function Breadcrumb({ pathname }: { pathname: string }) {
+function Breadcrumb({
+  pathname,
+  brandKey,
+}: {
+  pathname: string;
+  brandKey: OsBrandKey;
+}) {
+  const accent = shellAccent(brandKey);
+  const MONO = 'var(--font-os, var(--font-body)), Inter, sans-serif';
   const parts = pathname.replace("/os/", "").split("/").filter(Boolean);
   if (parts.length === 0) parts.push("overview");
 
@@ -428,7 +483,9 @@ function Breadcrumb({ pathname }: { pathname: string }) {
         textTransform: "uppercase",
       }}
     >
-      <span style={{ color: "#4ade80", opacity: 0.5 }}>root</span>
+      <span style={{ color: accent.solid, opacity: 0.7 }}>
+        {brandKey === "cc" ? "CCO OS" : "OS"}
+      </span>
       {parts.map((p, i) => (
         <React.Fragment key={i}>
           <span style={{ color: "var(--muted)", opacity: 0.2 }}>/</span>
@@ -460,6 +517,10 @@ function CommandBar({
   brandKey: OsBrandKey;
   onClose: () => void;
 }) {
+  const accent = shellAccent(brandKey);
+  const G = accent.soft;
+  const LINE = accent.line;
+  const MONO = 'var(--font-os, var(--font-body)), Inter, sans-serif';
   const modules = getRootModulesForWorkspace(brandKey);
   const q = query.toLowerCase().trim();
   const results = q
@@ -475,7 +536,7 @@ function CommandBar({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.5)",
+          background: "rgba(4, 15, 28, 0.36)",
           backdropFilter: "blur(3px)",
           zIndex: 200,
         }}
@@ -487,10 +548,10 @@ function CommandBar({
           left: "50%",
           transform: "translateX(-50%)",
           width: "min(360px, 88vw)",
-          background: "var(--bg, #0c0f0a)",
-          border: `1px solid ${G}0.16)`,
-          borderRadius: 8,
-          boxShadow: `0 20px 60px rgba(0,0,0,0.5)`,
+          background: "var(--surface, #FFFFFF)",
+          border: `1px solid ${LINE}`,
+          borderRadius: 12,
+          boxShadow: "0 20px 60px rgba(4, 15, 28, 0.16)",
           zIndex: 201,
           overflow: "hidden",
         }}
@@ -615,13 +676,15 @@ function CommandBar({
 }
 
 /* ─── Shared styles ─── */
-const sectionLabelStyle: React.CSSProperties = {
-  fontSize: "0.3rem",
-  fontWeight: 700,
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
-  color: "var(--muted)",
-  opacity: 0.3,
-  padding: "0 8px 2px",
-  fontFamily: MONO,
-};
+function sectionLabelStyle(fontFamily: string): React.CSSProperties {
+  return {
+    fontSize: "0.3rem",
+    fontWeight: 700,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "var(--muted)",
+    opacity: 0.3,
+    padding: "0 8px 2px",
+    fontFamily,
+  };
+}

@@ -33,11 +33,11 @@ const ACS_BRAND: OsBrand = {
 
 const CC_BRAND: OsBrand = {
   key: "cc",
-  appName: "root",
-  subtitle: "content co-op operations core",
-  domainLabel: "contentco-op.com/root",
-  accent: "#4ade80",
-  accentSoft: "rgba(74,222,128,0.14)",
+  appName: "CCO OS",
+  subtitle: "Content Co-op operator",
+  domainLabel: "contentco-op.com/os",
+  accent: "#0057FF",
+  accentSoft: "rgba(0, 87, 255, 0.14)",
   brandClassName: "os-brand-cc",
   defaultBusinessUnit: "CC",
   loginHint: "Briefs, proposals, delivery, finance, approvals, intelligence.",

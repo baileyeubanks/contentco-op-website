@@ -1,3 +1,3 @@
-import RootLoginPage from "../os-login-page";
+import OsLoginPage from "../os-login-page";
 
-export default RootLoginPage;
+export default OsLoginPage;

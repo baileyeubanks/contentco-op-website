@@ -39,6 +39,36 @@
   --cta-ink: #e8f1ff;
 }
 
+/* ─── Palette: CCO OS (Sapphire Light UI) ─── */
+[data-surface="os"] {
+  --sapphire: #0057FF;
+  --deep-blue: #0033A0;
+  --sky: #4DA3FF;
+  --ice: #EAF2FF;
+  --canvas: #F7F9FC;
+  --gray-100: #F1F5F9;
+  --gray-300: #CBD5E1;
+  --gray-500: #8B94A3;
+  --gray-700: #334155;
+  --bg: #F7F9FC;
+  --surface: #FFFFFF;
+  --elevated: #FFFFFF;
+  --ink: #040F1C;
+  --muted: #334155;
+  --line: #CBD5E1;
+  --accent: #0057FF;
+  --signal: #0057FF;
+  --signal-gradient: linear-gradient(90deg, #0003CC 0%, #4DA3FF 100%);
+  --signal-gradient-vibrant: linear-gradient(90deg, #0057FF 0%, #4DA3FF 100%);
+  --cta: #0057FF;
+  --cta-line: #0033A0;
+  --cta-ink: #FFFFFF;
+  --success: #16A34A;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+  --ring: rgba(0, 87, 255, 0.35);
+}
+
 /* ─── Reset ─── */
 *,
 *::before,

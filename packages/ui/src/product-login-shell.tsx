@@ -54,8 +54,8 @@ const THEMES: Record<string, ProductTheme> = {
     features: ["Project dashboard", "Review and approvals", "Final deliverables"],
   },
   "CCO OS": {
-    accent: "#4ade80",
-    accentSoft: "rgba(74, 222, 128, 0.14)",
+    accent: "#0057FF",
+    accentSoft: "rgba(0, 87, 255, 0.14)",
     eyebrow: "Operator access",
     manifesto: "CCO OS for Content Co-op operators. Quotes, delivery, finance, and system health in one workspace.",
     features: ["Operations overview", "Commercial pipeline", "System health"],

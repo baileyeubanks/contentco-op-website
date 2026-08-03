@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-export default function RootLoginPage() {
+export default function OsLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,45 +34,54 @@ export default function RootLoginPage() {
   }
 
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
-      <div className="root-login-card">
-        <div className="root-login-brand">
-          <span className="root-login-dot" />
-          <span className="root-login-name">root</span>
+    <main className="os-login-shell">
+      <div className="os-login-card">
+        <div className="os-login-brand">
+          <span className="os-login-dot" aria-hidden="true" />
+          <span className="os-login-name">CCO OS</span>
         </div>
-        <p className="root-login-sub">admin access only · email + password</p>
+        <p className="os-login-sub">Content Co-op operator · email + password</p>
 
-        <form onSubmit={handleLogin} className="root-login-form">
-          <label className="root-login-field">
-            <span className="root-login-label">Email</span>
+        <form onSubmit={handleLogin} className="os-login-form">
+          <label className="os-login-field">
+            <span className="os-login-label">Email</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
-              className="root-login-input"
+              className="os-login-input"
               required
               autoFocus
+              autoComplete="username"
             />
           </label>
-          <label className="root-login-field">
-            <span className="root-login-label">Password</span>
+          <label className="os-login-field">
+            <span className="os-login-label">Password</span>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="root-login-input"
+              className="os-login-input"
               required
+              autoComplete="current-password"
             />
           </label>
-          {error && <div className="root-login-error">{error}</div>}
-          <button type="submit" className="root-login-btn" disabled={loading}>
-            {loading ? "signing in..." : "sign in to root"}
+          {error ? (
+            <div className="os-login-error" role="alert">
+              {error}
+            </div>
+          ) : null}
+          <button type="submit" className="os-login-btn" disabled={loading}>
+            {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
-        <p className="root-login-sub" style={{ marginTop: 16 }}>
-          Looping or stuck? <Link href="/os/logout" prefetch={false}>reset session</Link>
+        <p className="os-login-footer">
+          Looping or stuck?{" "}
+          <Link href="/os/logout" prefetch={false}>
+            Reset session
+          </Link>
         </p>
       </div>
     </main>
