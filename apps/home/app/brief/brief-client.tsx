@@ -811,7 +811,11 @@ export function BriefClientPage() {
                   className={s.submitBtn}
                   type="button"
                   onClick={() => void moveTo(2)}
-                  disabled={!projectReady}
+                  /* Gate on isBusy only — same unreachable-guard defect as step 1:
+                     hard-disabling on !projectReady kept moveTo's "Choose a project
+                     type and add a short summary." from ever firing and dropped the
+                     button from the tab order. Let the guard speak. */
+                  disabled={isBusy}
                 >
                   Continue
                 </button>
@@ -975,7 +979,11 @@ export function BriefClientPage() {
                   className={s.submitBtn}
                   type="button"
                   onClick={() => void moveTo(3)}
-                  disabled={!scopeReady}
+                  /* Gate on isBusy only — same unreachable-guard defect as step 1:
+                     hard-disabling on !scopeReady kept moveTo's "Choose a placement,
+                     deliverable, and timeline." from ever firing and dropped the
+                     button from the tab order. Let the guard speak. */
+                  disabled={isBusy}
                 >
                   Review
                 </button>
