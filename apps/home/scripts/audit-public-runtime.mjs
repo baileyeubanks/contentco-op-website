@@ -73,7 +73,7 @@ const htmlChecks = [
   {
     label: "brief copy",
     url: "https://contentco-op.com/brief",
-    required: ["Tell us your", "Story.", "Fill out what you can", "leave it blank"],
+    required: ["Tell us your", "Story.", "Contact fields are required", "leave it blank"],
     forbidden: ["It takes about 3 minutes", "quick chat"],
   },
   {
