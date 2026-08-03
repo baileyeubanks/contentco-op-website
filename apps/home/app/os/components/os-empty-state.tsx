@@ -6,7 +6,7 @@ export function OsEmptyState({
   detail?: string;
 }) {
   return (
-    <div className="root-empty-state">
+    <div className="os-empty-state">
       <strong>{title}</strong>
       {detail ? <p>{detail}</p> : null}
     </div>

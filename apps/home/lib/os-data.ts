@@ -568,6 +568,46 @@ function normalizeInvoiceListRow(invoice: RootInvoiceRow, contact?: RootContactR
   };
 }
 
+export async function countRootContacts(scope: RootBusinessScope = null) {
+  const sb = getSupabase();
+  const totalResult = await buildScopeQuery(
+    sb.from("contacts").select("id", { count: "exact", head: true }),
+    scope,
+  );
+
+  let acs = 0;
+  let cc = 0;
+  if (!scope) {
+    const [acsResult, ccResult] = await Promise.all([
+      sb.from("contacts").select("id", { count: "exact", head: true }).eq("business_unit", "ACS"),
+      sb.from("contacts").select("id", { count: "exact", head: true }).eq("business_unit", "CC"),
+    ]);
+    acs = acsResult.count ?? 0;
+    cc = ccResult.count ?? 0;
+  } else if (scope === "ACS") {
+    acs = totalResult.count ?? 0;
+  } else {
+    cc = totalResult.count ?? 0;
+  }
+
+  let priority = 0;
+  let priorityQuery = sb.from("contacts").select("id", { count: "exact", head: true }).gte("priority_score", 80);
+  priorityQuery = buildScopeQuery(priorityQuery, scope);
+  const priorityResult = await priorityQuery;
+  if (!priorityResult.error) {
+    priority = priorityResult.count ?? 0;
+  }
+
+  return {
+    total: totalResult.count ?? 0,
+    acs,
+    cc,
+    cross: null as number | null,
+    priority,
+    error: totalResult.error?.message || null,
+  };
+}
+
 export async function getRootContacts(limit = 500, scope: RootBusinessScope = null) {
   const sb = getSupabase();
   const cappedLimit = Math.min(Math.max(limit, 1), 750);

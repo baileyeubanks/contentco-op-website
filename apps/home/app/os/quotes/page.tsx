@@ -264,7 +264,7 @@ function QuotesPageInner() {
       header: "Quote #",
       accessorKey: "quote_number" as const,
       cell: (_: unknown, row: Quote) => (
-        <span className="font-semibold text-[var(--at-green)]">
+        <span className="font-semibold text-[var(--at-primary)]">
           {row.quote_number || <span className="opacity-30">{"\u2014"}</span>}
         </span>
       ),
@@ -344,7 +344,7 @@ function QuotesPageInner() {
   /* Metric cards data */
   const metrics = [
     { label: "Pipeline", value: fmtAmount(pipeline), color: "" },
-    { label: "Accepted", value: fmtAmount(accepted), color: "var(--at-green)" },
+    { label: "Accepted", value: fmtAmount(accepted), color: "var(--at-primary)" },
     { label: "Sent", value: String(sentCount), color: "var(--at-blue)" },
     { label: "Drafts", value: String(draftCount), color: "" },
     { label: "Expiring Soon", value: String(expiring), color: expiring > 0 ? "var(--at-yellow)" : "" },
@@ -390,7 +390,7 @@ function QuotesPageInner() {
               className={[
                 "px-3 py-2 text-sm font-medium border-b-2 transition-colors",
                 active
-                  ? "border-[var(--at-green)] text-[var(--at-green)]"
+                  ? "border-[var(--at-primary)] text-[var(--at-primary)]"
                   : "border-transparent text-[var(--at-text-secondary)] hover:text-[var(--at-text)] hover:border-[var(--at-grey-300)]",
               ].join(" ")}
             >
@@ -400,7 +400,7 @@ function QuotesPageInner() {
                   className={[
                     "ml-1.5 text-xs px-1.5 py-0.5 rounded-full",
                     active
-                      ? "bg-[var(--at-green-lightest)] text-[var(--at-green)]"
+                      ? "bg-[var(--at-primary-lightest)] text-[var(--at-primary)]"
                       : "bg-[var(--at-grey-200)] text-[var(--at-grey-500)]",
                   ].join(" ")}
                 >
@@ -429,7 +429,7 @@ function QuotesPageInner() {
             value={searchQ}
             onChange={(e) => setParam("q", e.target.value)}
             placeholder="Search quotes, clients..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--at-grey-300)] rounded-[var(--at-radius)] bg-white text-[var(--at-text)] placeholder:text-[var(--at-grey-400)] focus:outline-none focus:ring-2 focus:ring-[var(--at-green)] focus:border-[var(--at-green)] font-[var(--at-font)]"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--at-grey-300)] rounded-[var(--at-radius)] bg-white text-[var(--at-text)] placeholder:text-[var(--at-grey-400)] focus:outline-none focus:ring-2 focus:ring-[var(--at-primary)] focus:border-[var(--at-primary)] font-[var(--at-font)]"
           />
           {searchQ && (
             <button
@@ -452,7 +452,7 @@ function QuotesPageInner() {
               className={[
                 "px-3 py-2 text-xs font-semibold tracking-wide transition-colors",
                 buFilter === bu
-                  ? "bg-[var(--at-green-lightest)] text-[var(--at-green)]"
+                  ? "bg-[var(--at-primary-lightest)] text-[var(--at-primary)]"
                   : "bg-white text-[var(--at-text-secondary)] hover:bg-[var(--at-grey-100)]",
                 bu !== "ALL" ? "border-l border-[var(--at-grey-300)]" : "",
               ].join(" ")}
@@ -517,7 +517,7 @@ function QuotesPageInner() {
                   className={[
                     "w-8 h-8 rounded-[var(--at-radius-sm)] text-sm font-medium transition-colors",
                     p === page
-                      ? "bg-[var(--at-green)] text-white"
+                      ? "bg-[var(--at-primary)] text-white"
                       : "hover:bg-[var(--at-grey-100)] text-[var(--at-text-secondary)]",
                   ].join(" ")}
                 >

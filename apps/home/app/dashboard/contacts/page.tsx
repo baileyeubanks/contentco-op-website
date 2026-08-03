@@ -82,7 +82,7 @@ function fmtMoney(value: number | null | undefined) {
 }
 
 function workspaceTone(code: WorkspaceCode) {
-  return code === "ACS" ? "var(--at-blue)" : "var(--at-green)";
+  return code === "ACS" ? "var(--at-blue)" : "var(--at-primary)";
 }
 
 const STATUS_VARIANT: Record<string, "neutral" | "info" | "success" | "critical" | "warning"> = {
@@ -178,18 +178,33 @@ function ContactsPageInner() {
   const [importingGoogle, setImportingGoogle] = useState(false);
   const [importingCsv, setImportingCsv] = useState(false);
   const [enriching, setEnriching] = useState(false);
+  const [serverTotals, setServerTotals] = useState<{
+    total: number;
+    acs: number;
+    cc: number;
+    priority: number;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const listScope = buFilter === "ACS" || buFilter === "CC" ? buFilter : "ALL";
 
   const loadContacts = useCallback(() => {
     setLoading(true);
-    return fetch("/api/os/contacts?limit=750&ranked=1")
+    return fetch(`/api/os/contacts?limit=750&ranked=1&scope=${encodeURIComponent(listScope)}`)
       .then((response) => response.json())
       .then((data) => {
         setAllContacts(data.contacts || []);
+        const meta = data.meta || {};
+        setServerTotals({
+          total: Number(meta.total ?? (data.contacts || []).length),
+          acs: Number(meta.acs ?? 0),
+          cc: Number(meta.cc ?? 0),
+          priority: Number(meta.priority ?? 0),
+        });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [listScope]);
 
   useEffect(() => {
     void loadContacts();
@@ -241,11 +256,19 @@ function ContactsPageInner() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const pageData = filtered.slice((page - 1) * perPage, page * perPage);
 
-  const totalContacts = allContacts.length;
-  const acsCount = allContacts.filter((contact) => getWorkspaces(contact).includes("ACS")).length;
-  const ccCount = allContacts.filter((contact) => getWorkspaces(contact).includes("CC")).length;
+  const totalContacts = serverTotals?.total ?? allContacts.length;
+  const acsCount =
+    serverTotals && listScope === "ALL"
+      ? serverTotals.acs
+      : allContacts.filter((contact) => getWorkspaces(contact).includes("ACS")).length;
+  const ccCount =
+    serverTotals && listScope === "ALL"
+      ? serverTotals.cc
+      : allContacts.filter((contact) => getWorkspaces(contact).includes("CC")).length;
   const crossBusinessCount = allContacts.filter((contact) => getWorkspaces(contact).length > 1).length;
-  const priorityCount = allContacts.filter((contact) => Number(contact.relationship_rank || 0) >= 80).length;
+  const priorityCount =
+    serverTotals?.priority ??
+    allContacts.filter((contact) => Number(contact.relationship_rank || contact.priority_score || 0) >= 80).length;
 
   const handleRowAction = useCallback(
     (action: string, row: Contact) => {
@@ -479,9 +502,9 @@ function ContactsPageInner() {
   const metrics = [
     { label: "Stewarded Contacts", value: String(totalContacts), color: "" },
     { label: "ACS", value: String(acsCount), color: "var(--at-blue)" },
-    { label: "CCO", value: String(ccCount), color: "var(--at-green)" },
+    { label: "CCO", value: String(ccCount), color: "var(--at-primary)" },
     { label: "Cross-Business", value: String(crossBusinessCount), color: "" },
-    { label: "Priority 80+", value: String(priorityCount), color: "var(--at-green)" },
+    { label: "Priority 80+", value: String(priorityCount), color: "var(--at-primary)" },
   ];
 
   return (
@@ -521,7 +544,7 @@ function ContactsPageInner() {
             value={searchQ}
             onChange={(event) => setParam("q", event.target.value)}
             placeholder="Search name, company, code, source, preferences..."
-            className="w-full rounded-[var(--at-radius)] border border-[var(--at-grey-300)] bg-white py-2 pl-9 pr-3 text-sm text-[var(--at-text)] placeholder:text-[var(--at-grey-400)] focus:border-[var(--at-green)] focus:outline-none focus:ring-2 focus:ring-[var(--at-green)]"
+            className="w-full rounded-[var(--at-radius)] border border-[var(--at-grey-300)] bg-white py-2 pl-9 pr-3 text-sm text-[var(--at-text)] placeholder:text-[var(--at-grey-400)] focus:border-[var(--at-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--at-primary)]"
           />
         </div>
 
@@ -533,7 +556,7 @@ function ContactsPageInner() {
               className={[
                 "px-3 py-2 text-xs font-semibold tracking-wide transition-colors",
                 buFilter === value
-                  ? "bg-[var(--at-green-lightest)] text-[var(--at-green)]"
+                  ? "bg-[var(--at-primary-lightest)] text-[var(--at-primary)]"
                   : "bg-white text-[var(--at-text-secondary)] hover:bg-[var(--at-grey-100)]",
                 value !== "ALL" ? "border-l border-[var(--at-grey-300)]" : "",
               ].join(" ")}
@@ -624,7 +647,7 @@ function ContactsPageInner() {
         <div className="mb-4">
         <Card>
           <Card.Body>
-            <div className="text-sm font-medium text-[var(--at-green)]">{actionNotice}</div>
+            <div className="text-sm font-medium text-[var(--at-primary)]">{actionNotice}</div>
           </Card.Body>
         </Card>
         </div>
@@ -674,7 +697,7 @@ function ContactsPageInner() {
                   className={[
                     "h-8 w-8 rounded-[var(--at-radius-sm)] text-sm font-medium transition-colors",
                     pageNumber === page
-                      ? "bg-[var(--at-green)] text-white"
+                      ? "bg-[var(--at-primary)] text-white"
                       : "text-[var(--at-text-secondary)] hover:bg-[var(--at-grey-100)]",
                   ].join(" ")}
                 >

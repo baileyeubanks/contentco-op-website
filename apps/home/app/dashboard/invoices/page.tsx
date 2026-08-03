@@ -310,7 +310,7 @@ function InvoicesPageInner() {
       header: "Invoice #",
       accessorKey: "invoice_number" as const,
       cell: (_: unknown, row: Invoice) => (
-        <span className="font-semibold text-[var(--at-green)]">
+        <span className="font-semibold text-[var(--at-primary)]">
           {row.invoice_number || <span className="opacity-30">{"\u2014"}</span>}
         </span>
       ),
@@ -342,7 +342,7 @@ function InvoicesPageInner() {
       cell: (_: unknown, row: Invoice) => {
         const paid = row.amount_paid || row.paid_amount || 0;
         return (
-          <span className={paid > 0 ? "text-[var(--at-green)] font-medium" : "text-[var(--at-grey-400)]"}>
+          <span className={paid > 0 ? "text-[var(--at-primary)] font-medium" : "text-[var(--at-grey-400)]"}>
             {paid > 0 ? fmtAmount(paid) : "\u2014"}
           </span>
         );
@@ -400,7 +400,7 @@ function InvoicesPageInner() {
   const metrics = [
     { label: "Total Outstanding", value: fmtAmount(openBalance), color: "" },
     { label: "Overdue", value: `${fmtAmount(overdueAmt)} (${overdueCount})`, color: overdueCount > 0 ? "var(--at-red)" : "" },
-    { label: "Paid This Month", value: fmtAmount(paidThisMonth), color: "var(--at-green)" },
+    { label: "Paid This Month", value: fmtAmount(paidThisMonth), color: "var(--at-primary)" },
     { label: "Average Invoice", value: fmtAmount(avgInvoice), color: "" },
     { label: "Recurring Schedules", value: String(recurringCount), color: recurringCount > 0 ? "var(--at-blue)" : "" },
   ];
@@ -445,7 +445,7 @@ function InvoicesPageInner() {
               className={[
                 "px-3 py-2 text-sm font-medium border-b-2 transition-colors",
                 active
-                  ? "border-[var(--at-green)] text-[var(--at-green)]"
+                  ? "border-[var(--at-primary)] text-[var(--at-primary)]"
                   : "border-transparent text-[var(--at-text-secondary)] hover:text-[var(--at-text)] hover:border-[var(--at-grey-300)]",
               ].join(" ")}
             >
@@ -455,7 +455,7 @@ function InvoicesPageInner() {
                   className={[
                     "ml-1.5 text-xs px-1.5 py-0.5 rounded-full",
                     active
-                      ? "bg-[var(--at-green-lightest)] text-[var(--at-green)]"
+                      ? "bg-[var(--at-primary-lightest)] text-[var(--at-primary)]"
                       : "bg-[var(--at-grey-200)] text-[var(--at-grey-500)]",
                   ].join(" ")}
                 >
@@ -484,7 +484,7 @@ function InvoicesPageInner() {
             value={searchQ}
             onChange={(e) => setParam("q", e.target.value)}
             placeholder="Search invoices, clients..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--at-grey-300)] rounded-[var(--at-radius)] bg-white text-[var(--at-text)] placeholder:text-[var(--at-grey-400)] focus:outline-none focus:ring-2 focus:ring-[var(--at-green)] focus:border-[var(--at-green)] font-[var(--at-font)]"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--at-grey-300)] rounded-[var(--at-radius)] bg-white text-[var(--at-text)] placeholder:text-[var(--at-grey-400)] focus:outline-none focus:ring-2 focus:ring-[var(--at-primary)] focus:border-[var(--at-primary)] font-[var(--at-font)]"
           />
           {searchQ && (
             <button
@@ -507,7 +507,7 @@ function InvoicesPageInner() {
               className={[
                 "px-3 py-2 text-xs font-semibold tracking-wide transition-colors",
                 buFilter === bu
-                  ? "bg-[var(--at-green-lightest)] text-[var(--at-green)]"
+                  ? "bg-[var(--at-primary-lightest)] text-[var(--at-primary)]"
                   : "bg-white text-[var(--at-text-secondary)] hover:bg-[var(--at-grey-100)]",
                 bu !== "ALL" ? "border-l border-[var(--at-grey-300)]" : "",
               ].join(" ")}
@@ -547,7 +547,7 @@ function InvoicesPageInner() {
       {actionNotice ? (
         <Card>
           <Card.Body>
-            <div className="text-sm font-medium text-[var(--at-green)]">{actionNotice}</div>
+            <div className="text-sm font-medium text-[var(--at-primary)]">{actionNotice}</div>
           </Card.Body>
         </Card>
       ) : null}
@@ -596,7 +596,7 @@ function InvoicesPageInner() {
                   className={[
                     "w-8 h-8 rounded-[var(--at-radius-sm)] text-sm font-medium transition-colors",
                     p === page
-                      ? "bg-[var(--at-green)] text-white"
+                      ? "bg-[var(--at-primary)] text-white"
                       : "hover:bg-[var(--at-grey-100)] text-[var(--at-text-secondary)]",
                   ].join(" ")}
                 >

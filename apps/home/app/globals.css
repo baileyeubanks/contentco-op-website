@@ -39,10 +39,48 @@ body[data-surface="root"] {
 
 [data-os-brand="acs"] {
   --accent: var(--os-accent);
+  --at-primary: #4ade80;
+  --at-primary-light: #86efac;
+  --at-primary-lightest: rgba(74, 222, 128, 0.14);
 }
 
 [data-os-brand="cc"] {
   --accent: var(--os-accent);
+  --canvas: #f7f9fc;
+  --ice: #eaf2ff;
+  --gray-300: #cbd5e1;
+  --gray-700: #334155;
+  --ink: #040f1c;
+  --bg: #f7f9fc;
+  --surface: #ffffff;
+  /* Dialect B: Sapphire primary; green stays semantic health only */
+  --at-primary: #0057ff;
+  --at-primary-light: #0033a0;
+  --at-primary-lightest: #eaf2ff;
+  --at-font-display: Inter, Helvetica, Arial, sans-serif;
+  --at-radius-lg: 12px;
+}
+
+.os-empty-state {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--gray-300, #cbd5e1);
+  background: #ffffff;
+  color: var(--ink, #040f1c);
+}
+
+.os-empty-state strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.os-empty-state p {
+  margin: 0;
+  color: var(--gray-700, #334155);
+  font-size: 0.92rem;
+  line-height: 1.5;
 }
 
 /* ─── Public Page Background Tokens ─── */

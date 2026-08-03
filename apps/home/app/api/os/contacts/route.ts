@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRootContacts } from "@/lib/os-data";
+import { getRootContacts, countRootContacts } from "@/lib/os-data";
 import { listRootContactImports } from "@/lib/os-contact-ops";
 import { getRootBusinessScopeFromRequest, type RootBusinessScope } from "@/lib/os-request-scope";
 
@@ -8,12 +8,24 @@ function parseScope(value: string | null): RootBusinessScope {
   return normalized === "ACS" || normalized === "CC" ? normalized : null;
 }
 
+function resolveListScope(req: Request, rawScope: string | null): RootBusinessScope {
+  // Explicit scope=ALL (or any non-ACS/CC token) means unscoped — do not fall
+  // back to host defaultBusinessUnit, which was zeroing the Contacts rail on
+  // CCO hosts while Overview counted the full contacts table.
+  if (rawScope !== null) return parseScope(rawScope);
+  return getRootBusinessScopeFromRequest(req);
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const limit = Math.min(Math.max(Number(searchParams.get("limit") || 750), 1), 750);
-  const scope = parseScope(searchParams.get("scope")) || getRootBusinessScopeFromRequest(req);
+  const scope = resolveListScope(req, searchParams.get("scope"));
   const ranked = searchParams.get("ranked") !== "0";
-  const [result, imports] = await Promise.all([getRootContacts(limit, scope), listRootContactImports(5)]);
+  const [result, imports, counts] = await Promise.all([
+    getRootContacts(limit, scope),
+    listRootContactImports(5),
+    countRootContacts(scope),
+  ]);
   if (result.error) {
     return NextResponse.json({ error: result.error, contacts: [] }, { status: 500 });
   }
@@ -30,9 +42,14 @@ export async function GET(req: Request) {
     contacts,
     meta: {
       limit,
-      scope,
+      scope: scope ?? "ALL",
       ranked,
-      total: contacts.length,
+      total: counts.total ?? contacts.length,
+      loaded: contacts.length,
+      acs: counts.acs,
+      cc: counts.cc,
+      cross: counts.cross,
+      priority: counts.priority,
       cap: 750,
       imports_source_mode: imports.source_mode,
       recent_imports: imports.imports,

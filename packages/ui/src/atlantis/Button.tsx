@@ -18,7 +18,7 @@ interface ButtonProps {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-[var(--at-green)] text-white hover:bg-[var(--at-green-light)] focus-visible:ring-[var(--at-green)]",
+    "bg-[var(--at-primary)] text-white hover:bg-[var(--at-primary-light)] focus-visible:ring-[var(--at-primary)]",
   secondary:
     "bg-white text-[var(--at-grey-900)] border border-[var(--at-grey-300)] hover:bg-[var(--at-grey-100)] focus-visible:ring-[var(--at-grey-400)]",
   destructive:

@@ -2,19 +2,20 @@
   display: grid;
   gap: 24px;
   padding: 28px;
-  color: var(--ink);
+  color: var(--ink, #040f1c);
+  background: transparent;
 }
 
 .hero {
   display: grid;
   gap: 16px;
   padding: 24px;
-  border: 1px solid color-mix(in srgb, var(--os-accent, #4ade80) 22%, transparent);
+  border: 1px solid var(--gray-300, #cbd5e1);
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--os-accent, #4ade80) 15%, transparent), transparent 42%),
-    linear-gradient(180deg, rgba(10, 14, 20, 0.94), rgba(10, 14, 20, 0.88));
-  border-radius: 24px;
-  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.22);
+    radial-gradient(circle at top right, var(--os-accent-soft, rgba(0, 87, 255, 0.14)), transparent 42%),
+    linear-gradient(180deg, #ffffff 0%, var(--canvas, #f7f9fc) 100%);
+  border-radius: 12px;
+  box-shadow: none;
 }
 
 .eyebrow {
@@ -24,15 +25,15 @@
   font-size: 0.76rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--os-accent, #4ade80) 72%, white);
+  color: var(--os-accent, #0057ff);
 }
 
 .eyebrowDot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--os-accent, #4ade80);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--os-accent, #4ade80) 75%, transparent);
+  background: var(--os-accent, #0057ff);
+  box-shadow: none;
 }
 
 .heroTitle {
@@ -41,12 +42,13 @@
   line-height: 0.95;
   letter-spacing: -0.06em;
   font-weight: 800;
+  color: var(--ink, #040f1c);
 }
 
 .heroCopy {
   margin: 0;
   max-width: 70ch;
-  color: rgba(233, 238, 243, 0.78);
+  color: var(--gray-700, #334155);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -63,9 +65,9 @@
   gap: 8px;
   padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(233, 238, 243, 0.82);
+  background: var(--ice, #eaf2ff);
+  border: 1px solid var(--gray-300, #cbd5e1);
+  color: var(--gray-700, #334155);
   font-size: 0.82rem;
 }
 
@@ -80,39 +82,41 @@
   gap: 12px;
   min-height: 152px;
   padding: 18px;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  border-radius: 12px;
+  border: 1px solid var(--gray-300, #cbd5e1);
+  background: #ffffff;
 }
 
 .cardToneNeutral {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--gray-300, #cbd5e1);
 }
 
 .cardTonePositive {
-  border-color: color-mix(in srgb, var(--os-accent, #4ade80) 32%, transparent);
+  border-color: color-mix(in srgb, var(--os-accent, #0057ff) 32%, #cbd5e1);
 }
 
 .cardToneWarning {
-  border-color: rgba(251, 191, 36, 0.32);
+  border-color: color-mix(in srgb, #f59e0b 40%, #cbd5e1);
 }
 
 .cardLabel {
   font-size: 0.8rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(233, 238, 243, 0.62);
+  color: var(--gray-700, #334155);
 }
 
 .cardValue {
   font-size: clamp(1.85rem, 3vw, 2.6rem);
   line-height: 1;
-  font-weight: 760;
+  font-weight: 700;
   letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink, #040f1c);
 }
 
 .cardDetail {
-  color: rgba(233, 238, 243, 0.72);
+  color: var(--gray-700, #334155);
   font-size: 0.92rem;
 }
 
@@ -126,9 +130,9 @@
   display: grid;
   gap: 16px;
   padding: 20px;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(8, 10, 14, 0.78);
+  border-radius: 12px;
+  border: 1px solid var(--gray-300, #cbd5e1);
+  background: #ffffff;
 }
 
 .panelHeader {
@@ -143,17 +147,18 @@
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(233, 238, 243, 0.5);
+  color: var(--gray-700, #334155);
 }
 
 .panelTitle {
   margin: 6px 0 0;
   font-size: 1.35rem;
   letter-spacing: -0.04em;
+  color: var(--ink, #040f1c);
 }
 
 .panelAction {
-  color: var(--os-accent, #4ade80);
+  color: var(--os-accent, #0057ff);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
@@ -169,7 +174,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   padding: 14px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid var(--gray-300, #cbd5e1);
 }
 
 .row:first-child {
@@ -181,17 +186,20 @@
   margin: 0;
   font-weight: 650;
   letter-spacing: -0.02em;
+  color: var(--ink, #040f1c);
 }
 
 .rowMeta {
   margin: 6px 0 0;
-  color: rgba(233, 238, 243, 0.64);
+  color: var(--gray-700, #334155);
   font-size: 0.92rem;
 }
 
 .rowValue {
   text-align: right;
   font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink, #040f1c);
 }
 
 .pill {
@@ -201,8 +209,8 @@
   min-width: 80px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(233, 238, 243, 0.82);
+  background: var(--ice, #eaf2ff);
+  color: var(--gray-700, #334155);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -224,6 +232,7 @@
   justify-content: space-between;
   gap: 16px;
   font-size: 0.92rem;
+  color: var(--gray-700, #334155);
 }
 
 .warningList {
@@ -231,11 +240,11 @@
   gap: 10px;
   padding-left: 18px;
   margin: 0;
-  color: rgba(233, 238, 243, 0.76);
+  color: var(--gray-700, #334155);
 }
 
 .empty {
-  color: rgba(233, 238, 243, 0.66);
+  color: var(--gray-700, #334155);
   font-size: 0.95rem;
 }
 
@@ -249,13 +258,13 @@
 
 @media (max-width: 720px) {
   .surface {
-    padding: 18px;
+    padding: 16px;
   }
 
   .hero,
   .panel,
   .card {
-    border-radius: 18px;
+    border-radius: 12px;
   }
 
   .panelHeader,

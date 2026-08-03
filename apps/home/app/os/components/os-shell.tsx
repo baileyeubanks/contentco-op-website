@@ -85,6 +85,18 @@ export function OsShell({
     localStorage.removeItem(LEGACY_LS_BU_SCOPE);
   }, [buScope]);
 
+  /* Mobile: keep rail collapsed so sidebar + main never exceed viewport width */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 720px)");
+    const apply = () => {
+      if (mq.matches) setCollapsed(true);
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
   /* Keyboard shortcuts */
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -136,7 +148,14 @@ export function OsShell({
   const brandLabel = brandKey === "cc" ? "CCO OS" : "OS";
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        maxWidth: "100vw",
+        overflowX: "hidden",
+      }}
+    >
       {/* ─── Sidebar ─── */}
       <nav
         style={{
@@ -295,6 +314,9 @@ export function OsShell({
           display: "flex",
           flexDirection: "column",
           minHeight: "100vh",
+          minWidth: 0,
+          maxWidth: "100%",
+          overflowX: "hidden",
         }}
       >
         {/* Topbar */}
@@ -354,7 +376,7 @@ export function OsShell({
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1 }}>{children}</main>
+        <main style={{ flex: 1, minWidth: 0, overflowX: "hidden" }}>{children}</main>
       </div>
 
       {/* ─── Command Bar Overlay ─── */}

@@ -160,7 +160,7 @@ function FinancePageInner() {
 
   /* Metric cards */
   const metrics = [
-    { label: "Revenue", value: fmtAmount(totalRevenue), accent: "var(--at-green)", icon: "\u2191" },
+    { label: "Revenue", value: fmtAmount(totalRevenue), accent: "var(--at-primary)", icon: "\u2191" },
     { label: "Outstanding", value: fmtAmount(totalOutstanding), accent: "var(--at-yellow)", icon: "\u231B" },
     { label: "Quoted Pipeline", value: fmtAmount(totalQuoted), accent: "var(--at-blue)", icon: "\u2192" },
     { label: "Overdue", value: fmtAmount(totalOverdue), accent: "var(--at-red)", icon: "\u26A0" },
@@ -174,7 +174,7 @@ function FinancePageInner() {
       cell: (_: unknown, row: FinanceRow) => (
         <span
           className="text-xs font-semibold uppercase tracking-wide"
-          style={{ color: row.type === "invoice" ? "var(--at-green)" : row.type === "quote" ? "var(--at-blue)" : "var(--at-grey-500)" }}
+          style={{ color: row.type === "invoice" ? "var(--at-primary)" : row.type === "quote" ? "var(--at-blue)" : "var(--at-grey-500)" }}
         >
           {row.type}
         </span>
@@ -186,7 +186,7 @@ function FinancePageInner() {
       cell: (_: unknown, row: FinanceRow) => (
         <span className="font-semibold text-[var(--at-text)]">
           {row.type === "quote" ? (
-            <Link href={`/os/quotes/${row.id}`} className="text-[var(--at-green)] hover:underline">
+            <Link href={`/os/quotes/${row.id}`} className="text-[var(--at-primary)] hover:underline">
               {row.description}
             </Link>
           ) : (
@@ -325,7 +325,7 @@ function FinancePageInner() {
               className={[
                 "px-3 py-2 text-sm font-medium border-b-2 transition-colors",
                 active
-                  ? "border-[var(--at-green)] text-[var(--at-green)]"
+                  ? "border-[var(--at-primary)] text-[var(--at-primary)]"
                   : "border-transparent text-[var(--at-text-secondary)] hover:text-[var(--at-text)] hover:border-[var(--at-grey-300)]",
               ].join(" ")}
             >
@@ -334,7 +334,7 @@ function FinancePageInner() {
                 className={[
                   "ml-1.5 text-xs px-1.5 py-0.5 rounded-full",
                   active
-                    ? "bg-[var(--at-green-lightest)] text-[var(--at-green)]"
+                    ? "bg-[var(--at-primary-lightest)] text-[var(--at-primary)]"
                     : "bg-[var(--at-grey-200)] text-[var(--at-grey-500)]",
                 ].join(" ")}
               >
@@ -362,7 +362,7 @@ function FinancePageInner() {
             value={searchQ}
             onChange={(e) => setParam("q", e.target.value)}
             placeholder="Search finance records..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--at-grey-300)] rounded-[var(--at-radius)] bg-white text-[var(--at-text)] placeholder:text-[var(--at-grey-400)] focus:outline-none focus:ring-2 focus:ring-[var(--at-green)] focus:border-[var(--at-green)] font-[var(--at-font)]"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-[var(--at-grey-300)] rounded-[var(--at-radius)] bg-white text-[var(--at-text)] placeholder:text-[var(--at-grey-400)] focus:outline-none focus:ring-2 focus:ring-[var(--at-primary)] focus:border-[var(--at-primary)] font-[var(--at-font)]"
           />
           {searchQ && (
             <button
@@ -385,7 +385,7 @@ function FinancePageInner() {
               className={[
                 "px-3 py-2 text-xs font-semibold tracking-wide transition-colors",
                 buFilter === bu
-                  ? "bg-[var(--at-green-lightest)] text-[var(--at-green)]"
+                  ? "bg-[var(--at-primary-lightest)] text-[var(--at-primary)]"
                   : "bg-white text-[var(--at-text-secondary)] hover:bg-[var(--at-grey-100)]",
                 bu !== "ALL" ? "border-l border-[var(--at-grey-300)]" : "",
               ].join(" ")}
@@ -431,7 +431,7 @@ function FinancePageInner() {
                   className={[
                     "w-8 h-8 rounded-[var(--at-radius-sm)] text-sm font-medium transition-colors",
                     p === page
-                      ? "bg-[var(--at-green)] text-white"
+                      ? "bg-[var(--at-primary)] text-white"
                       : "hover:bg-[var(--at-grey-100)] text-[var(--at-text-secondary)]",
                   ].join(" ")}
                 >

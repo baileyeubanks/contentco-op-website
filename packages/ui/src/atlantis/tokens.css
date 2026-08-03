@@ -6,6 +6,10 @@
   --at-green: hsl(145, 63%, 42%);
   --at-green-light: hsl(145, 50%, 55%);
   --at-green-lightest: hsl(145, 40%, 92%);
+  /* Product primary (override per brand). Green remains semantic health only. */
+  --at-primary: var(--at-green);
+  --at-primary-light: var(--at-green-light);
+  --at-primary-lightest: var(--at-green-lightest);
   --at-red: hsl(0, 72%, 51%);
   --at-red-light: hsl(0, 60%, 92%);
   --at-yellow: hsl(45, 93%, 47%);
@@ -22,10 +26,10 @@
   --at-text: hsl(0, 0%, 15%);
   --at-text-secondary: hsl(0, 0%, 47%);
   --at-font: Inter, Helvetica, Arial, sans-serif;
-  --at-font-display: Poppins, Helvetica, Arial, sans-serif;
+  --at-font-display: Inter, Helvetica, Arial, sans-serif;
   --at-radius-sm: 4px;
   --at-radius: 8px;
-  --at-radius-lg: 16px;
+  --at-radius-lg: 12px;
   --at-space-xs: 4px;
   --at-space-sm: 8px;
   --at-space-md: 16px;
