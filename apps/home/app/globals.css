@@ -1673,25 +1673,6 @@ h1, h2, h3, h4 {
   align-items: center;
 }
 
-.cc-nav-rail-login-tag {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono), monospace;
-  font-size: 0.56rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: rgba(234, 240, 251, 0.42);
-  transition: color 160ms ease;
-}
-
-.cc-nav-rail-login:hover .cc-nav-rail-login-tag {
-  color: #7fb0ff;
-}
-
 .cc-nav-rail-cta {
   margin-top: 1.1rem;
   display: inline-flex;
@@ -1718,15 +1699,23 @@ h1, h2, h3, h4 {
 
 .cc-nav-rail-foot {
   margin-top: auto;
-  padding-top: 1.15rem;
+  padding-top: 1.35rem;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  align-items: flex-start;
+  gap: 0.4rem;
 }
 
+/* Flex row so "Need help?" and the "Text us" link keep a real gap between
+   them instead of colliding with the link underline. */
 .cc-nav-rail-help {
-  margin: 0 0 0.15rem;
+  margin: 0 0 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem;
   font-size: 0.78rem;
+  line-height: 1.4;
   color: rgba(234, 240, 251, 0.62);
 }
 
@@ -1745,8 +1734,9 @@ h1, h2, h3, h4 {
 .cc-nav-rail-phone {
   color: rgba(234, 240, 251, 0.78);
   text-decoration: none;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
+  line-height: 1.5;
   letter-spacing: 0.04em;
 }
 
@@ -1759,18 +1749,12 @@ h1, h2, h3, h4 {
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
 }
 
 .cc-nav-rail-contact:hover {
   color: #7fb0ff;
-}
-
-.cc-nav-rail-loc {
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(234, 240, 251, 0.45);
-  font-weight: 700;
 }
 
 .cc-nav-rail-social {
@@ -1810,6 +1794,8 @@ h1, h2, h3, h4 {
   --home-line-strong: rgba(47, 93, 169, 0.22);
   --home-blue: #2f5da9;
   --home-blue-deep: #244d8f;
+  /* Vibrant sapphire — the shared brand accent (packages/brand tokens.css),
+     so the hero headline matches the blue used across the site. */
   --home-signal-text: var(--signal, #5b9cff);
   --home-signal-gradient: var(--signal-gradient, linear-gradient(90deg, #6f8dff 0%, #9a8df6 46%, #35d5c4 100%));
   --home-signal-gradient-vibrant: var(--signal-gradient-vibrant, linear-gradient(90deg, #5878ff 0%, #8f85ff 44%, #25dcc3 100%));
@@ -1928,16 +1914,15 @@ h1, h2, h3, h4 {
   text-shadow: none;
 }
 
+/* Solid brand sapphire (var(--signal)) — the old gradient faded to teal and
+   lost legibility against the hero video. One confident blue in both modes. */
 .hero[data-hero-preview="quiet"] h1 em,
 .hero[data-hero-preview="vibrant"] h1 em {
-  background: var(--home-signal-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.hero[data-hero-preview="vibrant"] h1 em {
-  background-image: var(--home-signal-gradient-vibrant);
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: var(--home-signal-text);
+  text-shadow: 0 2px 18px rgba(4, 12, 32, 0.42);
 }
 
 .hero-lede {

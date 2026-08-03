@@ -110,14 +110,7 @@ export function Nav({ surface, urls }: NavProps) {
           </Link>
           <Link href={u.client} className="cc-nav-rail-link cc-nav-rail-login" onClick={close}>
             <span className="cc-nav-rail-index">04</span>
-            <span>Log in</span>
-            <span className="cc-nav-rail-login-tag">
-              Co&#8288;-&#8288;VideoPro
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <line x1="7" y1="17" x2="17" y2="7" />
-                <polyline points="8 7 17 7 17 16" />
-              </svg>
-            </span>
+            <span>Co&#8288;-&#8288;VideoPro Login</span>
           </Link>
         </nav>
 
@@ -131,7 +124,8 @@ export function Nav({ surface, urls }: NavProps) {
 
         <div className="cc-nav-rail-foot">
           <p className="cc-nav-rail-help">
-            Need help? <a href="sms:+15013515927">Text us</a>
+            <span>Need help?</span>
+            <a href="sms:+15013515927">Text us</a>
           </p>
           <a href="mailto:service@contentco-op.com" className="cc-nav-rail-contact">
             service@contentco-op.com
@@ -139,7 +133,6 @@ export function Nav({ surface, urls }: NavProps) {
           <a href="tel:+15013515927" className="cc-nav-rail-phone">
             501-351-5927
           </a>
-          <span className="cc-nav-rail-loc">Houston, TX</span>
         </div>
       </aside>
     </header>
