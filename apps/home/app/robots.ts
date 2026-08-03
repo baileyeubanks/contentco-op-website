@@ -17,7 +17,6 @@ export default function robots(): MetadataRoute.Robots {
           "/client/",
           "/share/",
           "/portal/",
-          "/scenario-lab/",
         ],
       },
       { userAgent: "GPTBot", disallow: "/" },

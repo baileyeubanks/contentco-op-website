@@ -89,13 +89,6 @@ export default function manifest(): MetadataRoute.Manifest {
         label: "Content Co-op field crew filming on location",
         form_factor: "narrow",
       },
-      {
-        src: "/pwa/screenshot-scenario-lab.png",
-        sizes: "1200x1440",
-        type: "image/png",
-        label: "Content Co-op scenario lab planning workspace",
-        form_factor: "narrow",
-      },
     ],
     categories: ["business", "productivity", "photo", "video"],
   };
