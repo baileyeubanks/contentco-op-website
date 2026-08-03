@@ -73,8 +73,8 @@ assertSourceContains("apps/home/app/layout.tsx", [
 ]);
 
 assertSourceContains("apps/home/app/manifest.ts", [
-  /Scenario Lab/,
-  /\/scenario-lab/,
+  /Book a Call/,
+  /\/book/,
   /screenshot-field-production\.jpg/,
   /Content Co-op field crew filming on location/,
   /screenshot-scenario-lab\.png/,

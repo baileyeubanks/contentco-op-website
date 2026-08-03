@@ -36,7 +36,7 @@ Active issues across the Content Co-op system, Agent OS, and infrastructure. Thi
 
 ## High
 
-### 5. Mission Control Supabase Degraded
+### 5. CCO OS Supabase Degraded
 - **Symptom**: Missing `public.profiles` table
 - **Impact**: User onboarding affected
 - **Fix**: Run missing migration
@@ -76,7 +76,7 @@ Active issues across the Content Co-op system, Agent OS, and infrastructure. Thi
 ## Monitoring
 
 - Hermes dashboard: `http://localhost:9119`
-- ROOT system health: `https://admin.contentco-op.com/root/system`
+- CCO OS system health: `https://admin.contentco-op.com/os/system`
 - Cloudflare dashboard: Zone `2365f100818f352b843288fc5af43fb8`
 
 ## Related

@@ -82,7 +82,7 @@ Exposes unified API at `:11436`
 ## Restart Procedure
 
 1. Start LMStudio with `google/gemma-4-31b` on port `1234`
-2. Start Paperclip server: `node bin/server.mjs` or `paperclip-mission-control.sh`
+2. Start Paperclip server: `node bin/server.mjs` or `paperclip-server.sh`
 3. Start inference gateway: `node bin/inference-gateway.mjs`
 4. Verify: `curl http://127.0.0.1:3100/health`
 5. Restart Cloudflare tunnel `agent-os.yml` for public access

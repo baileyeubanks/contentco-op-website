@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authorizeRootWorkspaceRoute, runRootWorkspaceSheetAction } from "@/lib/root-workspace";
+import { authorizeRootWorkspaceRoute, runRootWorkspaceSheetAction } from "@/lib/os-workspace";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -22,7 +22,7 @@ export async function POST(
       action,
       range,
       host: request.headers.get("host"),
-      brandHint: request.headers.get("x-root-brand"),
+      brandHint: request.headers.get("x-os-brand"),
     });
     return NextResponse.json(result);
   } catch (error) {

@@ -57,7 +57,7 @@ function extractAgreementPhases(payload: unknown): AgreementPhase[] {
 }
 
 /**
- * GET /api/root/quotes/[id]/agreement
+ * GET /api/os/quotes/[id]/agreement
  *
  * Returns the rendered agreement sections for this quote,
  * merged with BU-specific template and quote data.

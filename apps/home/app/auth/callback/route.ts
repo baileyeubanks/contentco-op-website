@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase-server";
+import { publicRequestOrigin } from "@/lib/request-origin";
 import { NextResponse } from "next/server";
 
 /**
@@ -6,9 +7,10 @@ import { NextResponse } from "next/server";
  * Exchanges the auth code for a session, then redirects to dashboard.
  */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = publicRequestOrigin(request);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/root/overview";
+  const next = searchParams.get("next") ?? "/os/overview";
 
   if (code) {
     const supabase = await createClient();

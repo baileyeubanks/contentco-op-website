@@ -1,11 +1,11 @@
 import { headers } from "next/headers";
-import { CreativeWorkspacePage } from "@/app/root/components/creative-workspace-page";
-import { getRootMarketingBriefQueue, getRootMarketingWorkflowSnapshot } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { CreativeWorkspacePage } from "@/app/os/components/creative-workspace-page";
+import { getRootMarketingBriefQueue, getRootMarketingWorkflowSnapshot } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 export default async function RootCoScriptPage() {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const briefs = await getRootMarketingBriefQueue(brand.key);
   const workflow = await getRootMarketingWorkflowSnapshot(brand.key);
 
@@ -17,20 +17,20 @@ export default async function RootCoScriptPage() {
       meta={[
         { label: "workspace", value: brand.key.toUpperCase(), tone: "accent" },
         { label: "product", value: "co-script", tone: "accent" },
-        { label: "authority", value: "ROOT-native bridge" },
+        { label: "authority", value: "CCO OS-native bridge" },
         { label: "canonical app", value: "script.contentco-op.com", tone: "accent" },
         { label: "legacy alias", value: "co-script.contentco-op.com", tone: "warn" },
       ]}
       actions={[
-        { label: "brief queue", href: "/root/marketing/briefs", tone: "secondary" },
-        { label: "marketing workflow", href: "/root/marketing/workflow", tone: "secondary" },
+        { label: "brief queue", href: "/os/marketing/briefs", tone: "secondary" },
+        { label: "marketing workflow", href: "/os/marketing/workflow", tone: "secondary" },
         { label: "open co-script", href: "https://script.contentco-op.com", tone: "primary" },
       ]}
       metrics={[
         { label: "briefs", value: String(briefs.length), note: "creative intakes currently visible to operators" },
         { label: "quote ready", value: String(briefs.filter((brief) => brief.quoteReady).length), note: "briefs ready to become commercial scope" },
         { label: "needs cleanup", value: String(briefs.filter((brief) => !brief.quoteReady).length), note: "briefs still missing critical scope detail" },
-        { label: "workflow lanes", value: String(workflow.lanes.length), note: "creative funnel stages linked into ROOT" },
+        { label: "workflow lanes", value: String(workflow.lanes.length), note: "creative funnel stages linked into CCO OS" },
       ]}
       sections={[
         {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { getSupabase } from "@/lib/supabase";
-import { applyInvoicePayment } from "@/lib/root-commercial-pipeline";
+import { applyInvoicePayment } from "@/lib/os-commercial-pipeline";
 
 /**
  * POST /api/webhooks/stripe

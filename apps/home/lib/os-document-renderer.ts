@@ -1,6 +1,6 @@
 /**
- * ROOT Document Renderer — Matches Bailey's SE Customer Story quote style
- * Self-contained in the monorepo. No dependency on standalone /root/ repo.
+ * CCO OS Document Renderer — Matches Bailey's SE Customer Story quote style
+ * Self-contained in the monorepo. No dependency on standalone /os/ repo.
  */
 
 import { getSupabase } from "@/lib/supabase";

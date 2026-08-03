@@ -10,9 +10,9 @@
   gap: 18px;
   padding: 28px;
   border-radius: 28px;
-  border: 1px solid color-mix(in srgb, var(--root-accent, #4ade80) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--os-accent, #4ade80) 18%, transparent);
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--root-accent, #4ade80) 14%, transparent), transparent 42%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--os-accent, #4ade80) 14%, transparent), transparent 42%),
     linear-gradient(180deg, rgba(10, 14, 20, 0.96), rgba(10, 14, 20, 0.9));
   box-shadow: 0 28px 88px rgba(0, 0, 0, 0.24);
 }
@@ -104,7 +104,7 @@
 }
 
 .primaryAction {
-  background: color-mix(in srgb, var(--root-accent, #4ade80) 82%, white);
+  background: color-mix(in srgb, var(--os-accent, #4ade80) 82%, white);
   color: #07111f;
 }
 
@@ -327,7 +327,7 @@
 .textInput:focus,
 .textArea:focus {
   outline: none;
-  border-color: color-mix(in srgb, var(--root-accent, #4ade80) 32%, white 8%);
+  border-color: color-mix(in srgb, var(--os-accent, #4ade80) 32%, white 8%);
   box-shadow: 0 0 0 3px rgba(62, 201, 131, 0.12);
 }
 

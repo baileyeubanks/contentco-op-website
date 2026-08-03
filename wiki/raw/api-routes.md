@@ -98,7 +98,7 @@ app/api/
 ## Auth Patterns
 
 - **Public routes**: No auth required (`/api/briefs`, `/api/cco/*`, `/api/client/*`)
-- **ROOT routes**: ROOT session cookie required (`/api/root/*`)
+- **CCO OS routes**: CCO OS session cookie required (`/api/os/*`)
 - **Webhook routes**: Signature validation (`/api/webhooks/stripe`)
 
 ## Response Patterns

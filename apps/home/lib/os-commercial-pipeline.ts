@@ -1,7 +1,7 @@
 import { getSupabase } from "@/lib/supabase";
 import { withSubmittedBriefPayloadFallback } from "@/lib/creative-brief-quote-draft";
-import { createDocumentArtifacts } from "@/lib/root-document-artifacts";
-import { decideApproval, ensureApprovedPolicy, requestApproval } from "@/lib/root-approvals";
+import { createDocumentArtifacts } from "@/lib/os-document-artifacts";
+import { decideApproval, ensureApprovedPolicy, requestApproval } from "@/lib/os-approvals";
 import {
   buildEstimateNumber,
   buildInvoiceNumber,
@@ -13,9 +13,9 @@ import {
   nextEstimateStateForDecision,
   type CommercialWorkflowStatus,
   type EstimateDecisionType,
-} from "@/lib/root-estimates";
-import { buildEstimateDraftFromBrief } from "@/lib/root-production-scope";
-import { emitTypedEvent } from "@/lib/root-event-log";
+} from "@/lib/os-estimates";
+import { buildEstimateDraftFromBrief } from "@/lib/os-production-scope";
+import { emitTypedEvent } from "@/lib/os-event-log";
 
 type BusinessUnit = "CC" | "ACS";
 

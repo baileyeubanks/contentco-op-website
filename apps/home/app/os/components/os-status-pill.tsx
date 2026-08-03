@@ -41,7 +41,7 @@ function inferTone(value: string): RootStatusTone {
   return "default";
 }
 
-export function RootStatusPill({
+export function OsStatusPill({
   children,
   tone,
 }: {

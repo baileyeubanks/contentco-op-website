@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy, recordAuditEvent } from "@/lib/platform-access";
-import { decideApproval } from "@/lib/root-approvals";
+import { decideApproval } from "@/lib/os-approvals";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const access = await enforceRoutePolicy(

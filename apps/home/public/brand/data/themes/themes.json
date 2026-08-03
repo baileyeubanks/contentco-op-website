@@ -5,8 +5,8 @@
   "themes": {
     "root": {
       "document": {
-        "brand.eyebrow": "ROOT canonical document engine",
-        "brand.footer": "ROOT shared document artifact",
+        "brand.eyebrow": "CCO OS canonical document engine",
+        "brand.footer": "CCO OS shared document artifact",
         "surface.background": "#f7f6f3",
         "surface.sheet": "#ffffff",
         "surface.sheetAlt": "#efede7",
@@ -31,8 +31,8 @@
     },
     "acs": {
       "document": {
-        "brand.eyebrow": "Astro Cleanings on ROOT",
-        "brand.footer": "Astro Cleanings document rendered by ROOT",
+        "brand.eyebrow": "Astro Cleanings on CCO OS",
+        "brand.footer": "Astro Cleanings document rendered by CCO OS",
         "surface.background": "#f3f7fb",
         "surface.sheet": "#ffffff",
         "surface.sheetAlt": "#e4edf7",
@@ -57,8 +57,8 @@
     },
     "cco-home": {
       "document": {
-        "brand.eyebrow": "Content Co-op on ROOT",
-        "brand.footer": "Content Co-op document rendered by ROOT",
+        "brand.eyebrow": "Content Co-op on CCO OS",
+        "brand.footer": "Content Co-op document rendered by CCO OS",
         "surface.background": "#f0ebe0",
         "surface.sheet": "#faf6ef",
         "surface.sheetAlt": "#f7f3eb",

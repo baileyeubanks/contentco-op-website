@@ -57,7 +57,7 @@ export default function FinancePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/root/finance")
+    fetch("/api/os/finance")
       .then((res) => res.json())
       .then((data) => {
         setFinance(data.finance || []);
@@ -226,7 +226,7 @@ export default function FinancePage() {
                   </td>
                   <td style={tdStyle}>
                     {f.type === "quote" ? (
-                      <a href={`/root/quotes/${f.id}`} style={{ color: "inherit", textDecoration: "none", fontWeight: 600 }}>{f.description}</a>
+                      <a href={`/os/quotes/${f.id}`} style={{ color: "inherit", textDecoration: "none", fontWeight: 600 }}>{f.description}</a>
                     ) : (
                       <strong>{f.description}</strong>
                     )}

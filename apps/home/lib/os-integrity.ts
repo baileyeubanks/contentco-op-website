@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { RootBusinessScope } from "@/lib/root-request-scope";
+import type { RootBusinessScope } from "@/lib/os-request-scope";
 
 export type IntegrityRecordKind = "quote" | "invoice" | "job";
 

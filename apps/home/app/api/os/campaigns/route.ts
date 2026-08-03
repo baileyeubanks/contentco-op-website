@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { emitTypedEvent } from "@/lib/root-event-log";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { emitTypedEvent } from "@/lib/os-event-log";
 
 export async function GET(req: Request) {
   const scope = getRootBusinessScopeFromRequest(req);

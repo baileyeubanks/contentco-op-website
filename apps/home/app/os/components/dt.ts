@@ -1,6 +1,6 @@
 /**
  * Desktop Token Constants
- * All ROOT desktop pages use ONLY these values for spacing, sizing, and typography.
+ * All CCO OS desktop pages use ONLY these values for spacing, sizing, and typography.
  * No mobile breakpoints. Min-width ~960px assumed.
  */
 export const DT = {

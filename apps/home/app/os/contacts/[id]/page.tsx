@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
-import { getRootContactDossier, type RootContactListRecord } from "@/lib/root-data";
-import { getContactTimeline, getContactRelationships } from "@/lib/root-contacts-engine";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { getRootContactDossier, type RootContactListRecord } from "@/lib/os-data";
+import { getContactTimeline, getContactRelationships } from "@/lib/os-contacts-engine";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 function formatMoney(value: number | null | undefined) {
   return Number(value || 0).toLocaleString("en-US", {
@@ -168,7 +168,7 @@ export default async function RootContactDetailPage({
 }) {
   const { id } = await params;
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
 
   const [detail, timelineResult, relationshipResult] = await Promise.all([
     getRootContactDossier(id, null),
@@ -223,7 +223,7 @@ export default async function RootContactDetailPage({
 
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start", flexWrap: "wrap" }}>
             <Link
-              href="/root/contacts"
+              href="/os/contacts"
               style={{
                 borderRadius: 999,
                 border: "1px solid rgba(148,163,184,0.22)",
@@ -236,7 +236,7 @@ export default async function RootContactDetailPage({
               back to contacts
             </Link>
             <Link
-              href={`/root/quotes?contact_id=${contact.id}`}
+              href={`/os/quotes?contact_id=${contact.id}`}
               style={{
                 borderRadius: 999,
                 border: "1px solid rgba(96,165,250,0.28)",
@@ -249,7 +249,7 @@ export default async function RootContactDetailPage({
               related quotes
             </Link>
             <Link
-              href={`/root/invoices?contact_id=${contact.id}`}
+              href={`/os/invoices?contact_id=${contact.id}`}
               style={{
                 borderRadius: 999,
                 border: "1px solid rgba(74,222,128,0.28)",
@@ -372,7 +372,7 @@ export default async function RootContactDetailPage({
                     {(contact.quotes || []).slice(0, 6).map((quote) => (
                       <Link
                         key={quote.id}
-                        href={`/root/quotes/${quote.id}`}
+                        href={`/os/quotes/${quote.id}`}
                         style={{
                           display: "grid",
                           gridTemplateColumns: "1.1fr auto auto",
@@ -403,7 +403,7 @@ export default async function RootContactDetailPage({
                     {(contact.invoices || []).slice(0, 6).map((invoice) => (
                       <Link
                         key={invoice.id}
-                        href={`/root/invoices/${invoice.id}`}
+                        href={`/os/invoices/${invoice.id}`}
                         style={{
                           display: "grid",
                           gridTemplateColumns: "1.1fr auto auto",

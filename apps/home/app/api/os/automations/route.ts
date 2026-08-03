@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy, recordAuditEvent } from "@/lib/platform-access";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { getAutomationRules, createAutomationRule } from "@/lib/root-automation-engine";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { getAutomationRules, createAutomationRule } from "@/lib/os-automation-engine";
 
 export async function GET(req: Request) {
   const access = await enforceRoutePolicy(

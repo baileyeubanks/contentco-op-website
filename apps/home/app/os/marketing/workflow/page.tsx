@@ -2,8 +2,8 @@ import type { CSSProperties } from "react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { ModuleHeader } from "@/app/dashboard/components/module-header";
-import { getRootMarketingWorkflowSnapshot } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { getRootMarketingWorkflowSnapshot } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 function chip(tone: "default" | "warn" | "success" | "accent"): CSSProperties {
   const styles: Record<string, CSSProperties> = {
@@ -36,7 +36,7 @@ function toneForStatus(value: string) {
 
 export default async function RootMarketingWorkflowPage() {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const snapshot = await getRootMarketingWorkflowSnapshot(brand.key);
 
   return (
@@ -52,11 +52,11 @@ export default async function RootMarketingWorkflowPage() {
             { label: "active items", value: String(snapshot.lanes.reduce((sum, lane) => sum + lane.count, 0)) },
           ]}
           actions={[
-            { label: "marketing lane", href: "/root/marketing", tone: "secondary" },
-            { label: brand.key === "acs" ? "reputation" : "proof", href: "/root/marketing/proof", tone: "secondary" },
-            { label: brand.key === "acs" ? "follow-through" : "delivery", href: "/root/marketing/execution", tone: "secondary" },
-            ...(brand.key === "cc" ? [{ label: "brief queue", href: "/root/marketing/briefs", tone: "secondary" as const }] : []),
-            { label: brand.key === "acs" ? "quotes" : "quote drafts", href: "/root/quotes", tone: "primary" },
+            { label: "marketing lane", href: "/os/marketing", tone: "secondary" },
+            { label: brand.key === "acs" ? "reputation" : "proof", href: "/os/marketing/proof", tone: "secondary" },
+            { label: brand.key === "acs" ? "follow-through" : "delivery", href: "/os/marketing/execution", tone: "secondary" },
+            ...(brand.key === "cc" ? [{ label: "brief queue", href: "/os/marketing/briefs", tone: "secondary" as const }] : []),
+            { label: brand.key === "acs" ? "quotes" : "quote drafts", href: "/os/quotes", tone: "primary" },
           ]}
         />
 

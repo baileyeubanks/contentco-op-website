@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buildRootOverviewReadModel } from "@/lib/root-overview";
+import { buildRootOverviewReadModel } from "@/lib/os-overview";
 import styles from "./overview.module.css";
 
 export const dynamic = "force-dynamic";
@@ -35,12 +35,12 @@ export default async function OverviewPage() {
       <section className={styles.hero}>
         <div className={styles.eyebrow}>
           <span className={styles.eyebrowDot} />
-          ROOT runtime reset
+          CCO OS runtime reset
         </div>
         <div>
           <h1 className={styles.heroTitle}>Now first. Work visible. System honest.</h1>
           <p className={styles.heroCopy}>
-            ROOT is mounted inside HOME right now, so this surface is tuned for the operator
+            CCO OS is mounted inside HOME right now, so this surface is tuned for the operator
             moment that matters first: what is moving, what is at risk, what needs attention,
             and whether the runtime itself can be trusted.
           </p>
@@ -84,7 +84,7 @@ export default async function OverviewPage() {
               <p className={styles.panelKicker}>Movement</p>
               <h2 className={styles.panelTitle}>Recent commercial motion</h2>
             </div>
-            <Link className={styles.panelAction} href="/root/quotes">
+            <Link className={styles.panelAction} href="/os/quotes">
               Open quotes
             </Link>
           </div>
@@ -116,7 +116,7 @@ export default async function OverviewPage() {
               <p className={styles.panelKicker}>Work</p>
               <h2 className={styles.panelTitle}>Dispatch and closeout pulse</h2>
             </div>
-            <Link className={styles.panelAction} href="/root/dispatch">
+            <Link className={styles.panelAction} href="/os/dispatch">
               Open dispatch
             </Link>
           </div>
@@ -153,7 +153,7 @@ export default async function OverviewPage() {
               <p className={styles.panelKicker}>Risk / Trust</p>
               <h2 className={styles.panelTitle}>Contact stewardship</h2>
             </div>
-            <Link className={styles.panelAction} href="/root/contacts">
+            <Link className={styles.panelAction} href="/os/contacts">
               Open contacts
             </Link>
           </div>
@@ -188,7 +188,7 @@ export default async function OverviewPage() {
               <p className={styles.panelKicker}>System</p>
               <h2 className={styles.panelTitle}>Runtime diagnostics</h2>
             </div>
-            <Link className={styles.panelAction} href="/root/system">
+            <Link className={styles.panelAction} href="/os/system">
               Open system
             </Link>
           </div>

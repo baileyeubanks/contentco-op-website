@@ -1,5 +1,5 @@
-import { getRootContacts, getRootFinance, getRootInvoices, type RootContactListRecord } from "@/lib/root-data";
-import type { RootBusinessScope } from "@/lib/root-request-scope";
+import { getRootContacts, getRootFinance, getRootInvoices, type RootContactListRecord } from "@/lib/os-data";
+import type { RootBusinessScope } from "@/lib/os-request-scope";
 
 type FinanceAccountTemplate = {
   code: string;

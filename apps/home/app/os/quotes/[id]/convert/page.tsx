@@ -120,7 +120,7 @@ export default function ConvertQuoteToInvoicePage() {
       const data = await res.json();
       const invoiceId = data.invoice?.id;
       if (invoiceId) {
-        router.push(`/root/invoices/${invoiceId}`);
+        router.push(`/os/invoices/${invoiceId}`);
       } else {
         router.push("/dashboard/invoices");
       }
@@ -176,7 +176,7 @@ export default function ConvertQuoteToInvoicePage() {
     return (
       <div style={{ padding: 48, textAlign: "center", color: "var(--muted)" }}>
         Quote not found.{" "}
-        <Link href="/root/quotes" style={{ color: "var(--root-accent)" }}>
+        <Link href="/os/quotes" style={{ color: "var(--os-accent)" }}>
           Back to quotes
         </Link>
       </div>
@@ -199,7 +199,7 @@ export default function ConvertQuoteToInvoicePage() {
         }}
       >
         <div>
-          <div style={{ fontFamily: MONO, fontSize: "0.52rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--root-accent)", marginBottom: 4 }}>
+          <div style={{ fontFamily: MONO, fontSize: "0.52rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "var(--os-accent)", marginBottom: 4 }}>
             convert to invoice
           </div>
           <h1 style={{ fontFamily: "var(--font-body), sans-serif", fontSize: "1.15rem", fontWeight: 800, letterSpacing: "-0.03em", margin: 0 }}>
@@ -208,7 +208,7 @@ export default function ConvertQuoteToInvoicePage() {
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           <Link
-            href={`/root/quotes/${quoteId}`}
+            href={`/os/quotes/${quoteId}`}
             style={{
               padding: "6px 16px",
               borderRadius: 999,
@@ -233,7 +233,7 @@ export default function ConvertQuoteToInvoicePage() {
         {/* LEFT: Quote Summary (read-only) */}
         <div style={{ display: "grid", gap: 14 }}>
           <div style={panelStyle}>
-            <div style={{ fontFamily: MONO, fontSize: "0.56rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 12, color: "var(--root-accent)" }}>
+            <div style={{ fontFamily: MONO, fontSize: "0.56rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 12, color: "var(--os-accent)" }}>
               Quote Summary
             </div>
 
@@ -294,7 +294,7 @@ export default function ConvertQuoteToInvoicePage() {
         {/* RIGHT: Invoice Preview (editable) */}
         <div style={{ display: "grid", gap: 14 }}>
           <div style={panelStyle}>
-            <div style={{ fontFamily: MONO, fontSize: "0.56rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 12, color: "var(--root-accent)" }}>
+            <div style={{ fontFamily: MONO, fontSize: "0.56rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 12, color: "var(--os-accent)" }}>
               Invoice Settings
             </div>
 

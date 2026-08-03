@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
 /**
- * POST /api/root/invoices/[id]/reminders
+ * POST /api/os/invoices/[id]/reminders
  * Logs a reminder and updates last_reminder_at on the invoice.
  * In production: queue an email via Resend / SendGrid here.
  */

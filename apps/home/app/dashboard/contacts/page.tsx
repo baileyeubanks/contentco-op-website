@@ -182,7 +182,7 @@ function ContactsPageInner() {
 
   const loadContacts = useCallback(() => {
     setLoading(true);
-    return fetch("/api/root/contacts?limit=750&ranked=1")
+    return fetch("/api/os/contacts?limit=750&ranked=1")
       .then((response) => response.json())
       .then((data) => {
         setAllContacts(data.contacts || []);
@@ -251,16 +251,16 @@ function ContactsPageInner() {
     (action: string, row: Contact) => {
       switch (action) {
         case "view":
-          router.push(`/root/contacts/${row.id}`);
+          router.push(`/os/contacts/${row.id}`);
           break;
         case "quotes":
-          router.push(`/root/quotes?contact_id=${row.id}`);
+          router.push(`/os/quotes?contact_id=${row.id}`);
           break;
         case "invoices":
-          router.push(`/root/invoices?contact_id=${row.id}`);
+          router.push(`/os/invoices?contact_id=${row.id}`);
           break;
         case "send_message":
-          router.push(`/root/contacts/${row.id}?action=message`);
+          router.push(`/os/contacts/${row.id}?action=message`);
           break;
       }
     },
@@ -272,7 +272,7 @@ function ContactsPageInner() {
     setActionError(null);
     setActionNotice(null);
     try {
-      const response = await fetch("/api/root/contacts/import", {
+      const response = await fetch("/api/os/contacts/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ source: "google_contacts", scope: buFilter === "ACS" ? "ACS" : buFilter === "CC" ? "CCO" : "CROSS", limit: 250 }),
@@ -296,7 +296,7 @@ function ContactsPageInner() {
     setActionNotice(null);
     try {
       const csv = await file.text();
-      const response = await fetch("/api/root/contacts/import", {
+      const response = await fetch("/api/os/contacts/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -325,7 +325,7 @@ function ContactsPageInner() {
     setActionError(null);
     setActionNotice(null);
     try {
-      const response = await fetch("/api/root/contacts/enrich", {
+      const response = await fetch("/api/os/contacts/enrich", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -487,7 +487,7 @@ function ContactsPageInner() {
   return (
     <Page
       title="Contacts"
-      subtitle="Ranked ROOT contact brain across ACS and Content Co-op. Fresh relationship, finance, and conversation state capped to 750 operators-first records."
+      subtitle="Ranked CCO OS contact brain across ACS and Content Co-op. Fresh relationship, finance, and conversation state capped to 750 operators-first records."
       actions={<Button variant="primary">+ Add Contact</Button>}
     >
       <div className="mb-6 grid grid-cols-5 gap-4">
@@ -644,7 +644,7 @@ function ContactsPageInner() {
         <DataTable<Contact>
           columns={columns}
           data={pageData}
-          onRowClick={(row) => router.push(`/root/contacts/${row.id}`)}
+          onRowClick={(row) => router.push(`/os/contacts/${row.id}`)}
           emptyMessage="No contacts match the current filters."
           loading={loading}
         />

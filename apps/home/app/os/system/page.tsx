@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { RootEmptyState } from "@/app/root/components/root-empty-state";
-import { RootStateCallout } from "@/app/root/components/root-state-callout";
-import { RootStatusPill } from "@/app/root/components/root-status-pill";
+import { OsEmptyState } from "@/app/os/components/os-empty-state";
+import { OsStateCallout } from "@/app/os/components/os-state-callout";
+import { OsStatusPill } from "@/app/os/components/os-status-pill";
 import { PhoneActionPanel } from "./phone-action-panel";
 import { SystemOpsPanel } from "./system-ops-panel";
-import { getRootRuntimeSnapshot } from "@/lib/root-system";
+import { getRootRuntimeSnapshot } from "@/lib/os-system";
 import styles from "./system.module.css";
 
 function asRecord(value: unknown) {
@@ -80,18 +80,18 @@ export default async function RootSystemPage() {
             <p className={styles.eyebrow}>System truth</p>
             <h1 className={styles.title}>Runtime, sync, and operator coordination.</h1>
             <p className={styles.subtitle}>
-              This is the ROOT machine view: who is holding work, where runtime authority lives,
+              This is the CCO OS machine view: who is holding work, where runtime authority lives,
               and what is still contract-held instead of claimed as truth.
             </p>
           </div>
           <div className={styles.heroActions}>
-            <Link href="/root/system/map" className={styles.primaryAction}>
+            <Link href="/os/system/map" className={styles.primaryAction}>
               System map
             </Link>
-            <Link href="/root/overview" className={styles.secondaryAction}>
+            <Link href="/os/overview" className={styles.secondaryAction}>
               Overview
             </Link>
-            <Link href="/root/work-claims" className={styles.secondaryAction}>
+            <Link href="/os/work-claims" className={styles.secondaryAction}>
               Work claims
             </Link>
           </div>
@@ -111,14 +111,14 @@ export default async function RootSystemPage() {
       </section>
 
       {snapshot.warnings.length > 0 ? (
-        <RootStateCallout
+        <OsStateCallout
           tone="attention"
           title={`${snapshot.warnings.length} runtime warning${snapshot.warnings.length === 1 ? "" : "s"}`}
           detail={snapshot.warnings.join(" · ")}
         />
       ) : null}
 
-      <RootStateCallout
+      <OsStateCallout
         tone={publishAuthority.status === "green" ? "healthy" : "attention"}
         title={`Publish authority · ${String(publishAuthority.status || "red")}`}
         detail={String(
@@ -178,8 +178,8 @@ export default async function RootSystemPage() {
             <div className={styles.listCard}>
               <strong>Current authority state</strong>
               <div className={styles.chipRow}>
-                <RootStatusPill>{String(publishAuthority.status || "red")}</RootStatusPill>
-                {publishAuthority.generated_at ? <RootStatusPill>{formatDateTime(String(publishAuthority.generated_at))}</RootStatusPill> : null}
+                <OsStatusPill>{String(publishAuthority.status || "red")}</OsStatusPill>
+                {publishAuthority.generated_at ? <OsStatusPill>{formatDateTime(String(publishAuthority.generated_at))}</OsStatusPill> : null}
               </div>
               <span>{String(publishAuthority.summary || "No publish alignment summary available.")}</span>
               <span>{String(publishAuthority.recommended_next_action || "Resolve publish blockers before certifying runtime.")}</span>
@@ -192,14 +192,14 @@ export default async function RootSystemPage() {
                   <div key={String(check.id || check.label || "publish-check")} className={styles.listCard}>
                     <strong>{String(check.label || "publish check")}</strong>
                     <div className={styles.chipRow}>
-                      <RootStatusPill>{String(check.status || "unknown")}</RootStatusPill>
+                      <OsStatusPill>{String(check.status || "unknown")}</OsStatusPill>
                     </div>
                     <span>{String(check.detail || "No detail recorded.")}</span>
                     {check.recommendedAction ? <span>{String(check.recommendedAction)}</span> : null}
                   </div>
                 ))
             ) : (
-              <RootEmptyState
+              <OsEmptyState
                 title="No publish blockers"
                 detail="Publish alignment did not return any current warnings or failures."
               />
@@ -243,10 +243,10 @@ export default async function RootSystemPage() {
           </div>
           <div className={styles.stack}>
             <div className={styles.chipRow}>
-              <RootStatusPill>{String(phoneCall.status || "missing")}</RootStatusPill>
-              {phoneCall.lane_state ? <RootStatusPill>{String(phoneCall.lane_state)}</RootStatusPill> : null}
-              {phoneCall.preferred_path ? <RootStatusPill>{String(phoneCall.preferred_path)}</RootStatusPill> : null}
-              {phoneCall.fallback_path ? <RootStatusPill>{String(phoneCall.fallback_path)}</RootStatusPill> : null}
+              <OsStatusPill>{String(phoneCall.status || "missing")}</OsStatusPill>
+              {phoneCall.lane_state ? <OsStatusPill>{String(phoneCall.lane_state)}</OsStatusPill> : null}
+              {phoneCall.preferred_path ? <OsStatusPill>{String(phoneCall.preferred_path)}</OsStatusPill> : null}
+              {phoneCall.fallback_path ? <OsStatusPill>{String(phoneCall.fallback_path)}</OsStatusPill> : null}
             </div>
             <div className={styles.rowList}>
               <div className={styles.row}>
@@ -291,13 +291,13 @@ export default async function RootSystemPage() {
               </div>
             </div>
             {blockedReasons.length > 0 ? (
-              <RootStateCallout
+              <OsStateCallout
                 tone="attention"
                 title="Phone lane is still blocked"
                 detail={blockedReasons.join(" · ")}
               />
             ) : (
-              <RootStateCallout
+              <OsStateCallout
                 tone="healthy"
                 title="Phone lane cert is clean"
                 detail="Continuity path, fallback path, and current system-state contract are aligned."
@@ -331,9 +331,9 @@ export default async function RootSystemPage() {
               <div key={String(label)} className={styles.listCard}>
                 <strong>{String(label)}</strong>
                 <div className={styles.chipRow}>
-                  <RootStatusPill>{String((lane as Record<string, unknown>)?.status || "missing")}</RootStatusPill>
+                  <OsStatusPill>{String((lane as Record<string, unknown>)?.status || "missing")}</OsStatusPill>
                   {label === "Claude" && (lane as Record<string, unknown>)?.critical_mcp_ready === true ? (
-                    <RootStatusPill>critical MCP ready</RootStatusPill>
+                    <OsStatusPill>critical MCP ready</OsStatusPill>
                   ) : null}
                 </div>
                 {Array.isArray((lane as Record<string, unknown>)?.blocked_reasons) &&
@@ -358,8 +358,8 @@ export default async function RootSystemPage() {
             <div className={styles.listCard}>
               <strong>Website and voice evals</strong>
               <div className={styles.chipRow}>
-                <RootStatusPill>{String(blazeOperator.customer_service.evals?.status || "missing")}</RootStatusPill>
-                <RootStatusPill>{String(blazeOperator.customer_service.voice_agent_evals?.status || "missing")}</RootStatusPill>
+                <OsStatusPill>{String(blazeOperator.customer_service.evals?.status || "missing")}</OsStatusPill>
+                <OsStatusPill>{String(blazeOperator.customer_service.voice_agent_evals?.status || "missing")}</OsStatusPill>
               </div>
               <span>
                 text {String(blazeOperator.customer_service.evals?.pass_count ?? 0)}/
@@ -369,7 +369,7 @@ export default async function RootSystemPage() {
               </span>
             </div>
             {pendingPhoneActions.length === 0 ? (
-              <RootStateCallout
+              <OsStateCallout
                 tone="healthy"
                 title="No pending phone actions"
                 detail="There are no approval-gated preflight or outbound call proposals waiting in the queue."
@@ -380,9 +380,9 @@ export default async function RootSystemPage() {
                   <div key={String(action.action_id || action.id || "action")} className={styles.listCard}>
                     <strong>{String(action.objective || action.action_id || "pending action")}</strong>
                     <div className={styles.listMeta}>
-                      <RootStatusPill>{String(action.status || "pending")}</RootStatusPill>
-                      <RootStatusPill>{String(action.target_host || "M4")}</RootStatusPill>
-                      <RootStatusPill>{String(action.business_unit || "CC")}</RootStatusPill>
+                      <OsStatusPill>{String(action.status || "pending")}</OsStatusPill>
+                      <OsStatusPill>{String(action.target_host || "M4")}</OsStatusPill>
+                      <OsStatusPill>{String(action.business_unit || "CC")}</OsStatusPill>
                     </div>
                     <span>
                       {String(action.action_type || action.kind || "phone")} ·{" "}
@@ -394,7 +394,7 @@ export default async function RootSystemPage() {
               </div>
             )}
             {recentPhoneReceipts.length === 0 ? (
-              <RootEmptyState
+              <OsEmptyState
                 title="No recent phone receipts"
                 detail="Once Blaze completes or fails a phone action, the latest receipt will surface here."
               />
@@ -406,9 +406,9 @@ export default async function RootSystemPage() {
                 <div key={String(receipt.receipt_id || receipt.id || "receipt")} className={styles.listCard}>
                   <strong>{String(receipt.phone_number || receipt.direction || "Phone receipt")}</strong>
                   <div className={styles.listMeta}>
-                    <RootStatusPill>{String(receipt.final_outcome || receipt.status || "unknown")}</RootStatusPill>
-                    <RootStatusPill>{String(receipt.call_path || "call path missing")}</RootStatusPill>
-                    {receipt.business_unit ? <RootStatusPill>{String(receipt.business_unit)}</RootStatusPill> : null}
+                    <OsStatusPill>{String(receipt.final_outcome || receipt.status || "unknown")}</OsStatusPill>
+                    <OsStatusPill>{String(receipt.call_path || "call path missing")}</OsStatusPill>
+                    {receipt.business_unit ? <OsStatusPill>{String(receipt.business_unit)}</OsStatusPill> : null}
                   </div>
                   <span>
                     {formatDateTime(String(receipt.started_at || ""))} · approval{" "}
@@ -421,7 +421,7 @@ export default async function RootSystemPage() {
             )}
             <div className={styles.sectionLabel}>Recent voice sessions</div>
             {recentVoiceSessions.length === 0 ? (
-              <RootEmptyState
+              <OsEmptyState
                 title="No recent voice sessions"
                 detail="Voice capture and reasoning sessions will appear here once the realtime lane is exercised."
               />
@@ -430,9 +430,9 @@ export default async function RootSystemPage() {
                 <div key={String(session.session_id || "voice-session")} className={styles.listCard}>
                   <strong>{String(session.session_id || "Voice session")}</strong>
                   <div className={styles.listMeta}>
-                    <RootStatusPill>{String(session.status || "unknown")}</RootStatusPill>
-                    {session.mode ? <RootStatusPill>{String(session.mode)}</RootStatusPill> : null}
-                    {session.reasoning_provider ? <RootStatusPill>{String(session.reasoning_provider)}</RootStatusPill> : null}
+                    <OsStatusPill>{String(session.status || "unknown")}</OsStatusPill>
+                    {session.mode ? <OsStatusPill>{String(session.mode)}</OsStatusPill> : null}
+                    {session.reasoning_provider ? <OsStatusPill>{String(session.reasoning_provider)}</OsStatusPill> : null}
                   </div>
                   <span>
                     STT {String(session.stt_provider || "not recorded")} · TTS{" "}
@@ -447,9 +447,9 @@ export default async function RootSystemPage() {
             <div className={styles.listCard}>
               <strong>Post-call communications</strong>
               <div className={styles.listMeta}>
-                <RootStatusPill>{String(phoneTemplates.status || "missing")}</RootStatusPill>
+                <OsStatusPill>{String(phoneTemplates.status || "missing")}</OsStatusPill>
                 {phoneTemplates.configured != null ? (
-                  <RootStatusPill>{phoneTemplates.configured ? "configured" : "unconfigured"}</RootStatusPill>
+                  <OsStatusPill>{phoneTemplates.configured ? "configured" : "unconfigured"}</OsStatusPill>
                 ) : null}
               </div>
               <span>
@@ -466,7 +466,7 @@ export default async function RootSystemPage() {
             </div>
             <div className={styles.sectionLabel}>Latest phone test campaign</div>
             {!latestCampaign.run_id ? (
-              <RootEmptyState
+              <OsEmptyState
                 title="No phone campaign artifact"
                 detail="Run the phone campaign runner and the latest campaign evaluation will publish here."
               />
@@ -474,11 +474,11 @@ export default async function RootSystemPage() {
               <div className={styles.listCard}>
                 <strong>{String(latestCampaign.run_id)}</strong>
                 <div className={styles.listMeta}>
-                  <RootStatusPill>{String(latestCampaignEvaluation.ok ? "pass" : "fail")}</RootStatusPill>
+                  <OsStatusPill>{String(latestCampaignEvaluation.ok ? "pass" : "fail")}</OsStatusPill>
                   {latestCampaign.execute != null ? (
-                    <RootStatusPill>{latestCampaign.execute ? "execute" : "plan_only"}</RootStatusPill>
+                    <OsStatusPill>{latestCampaign.execute ? "execute" : "plan_only"}</OsStatusPill>
                   ) : null}
-                  {latestCampaignEvaluation.mode ? <RootStatusPill>{String(latestCampaignEvaluation.mode)}</RootStatusPill> : null}
+                  {latestCampaignEvaluation.mode ? <OsStatusPill>{String(latestCampaignEvaluation.mode)}</OsStatusPill> : null}
                 </div>
                 <span>
                   planned {String(latestCampaignSummary.planned ?? 0)} · completed {String(latestCampaignSummary.completed ?? 0)} · failed{" "}
@@ -502,7 +502,7 @@ export default async function RootSystemPage() {
             )}
             <div className={styles.sectionLabel}>Recent campaign runs</div>
             {recentCampaigns.length === 0 ? (
-              <RootEmptyState
+              <OsEmptyState
                 title="No recent campaign history"
                 detail="The latest five phone test campaign artifacts will surface here once the runner has been used."
               />
@@ -514,8 +514,8 @@ export default async function RootSystemPage() {
                   <div key={String(campaign.run_id || "campaign")} className={styles.listCard}>
                     <strong>{String(campaign.run_id || "Campaign")}</strong>
                     <div className={styles.listMeta}>
-                      <RootStatusPill>{String(evaluation.ok ? "pass" : "fail")}</RootStatusPill>
-                      {campaign.execute != null ? <RootStatusPill>{campaign.execute ? "execute" : "plan_only"}</RootStatusPill> : null}
+                      <OsStatusPill>{String(evaluation.ok ? "pass" : "fail")}</OsStatusPill>
+                      {campaign.execute != null ? <OsStatusPill>{campaign.execute ? "execute" : "plan_only"}</OsStatusPill> : null}
                     </div>
                     <span>
                       planned {String(summary.planned ?? 0)} · completed {String(summary.completed ?? 0)} · pending{" "}
@@ -538,7 +538,7 @@ export default async function RootSystemPage() {
               <h2 className={styles.panelTitle}>Shared authority status</h2>
             </div>
           </div>
-          <RootStateCallout
+          <OsStateCallout
             tone={snapshot.artifact_advisory.checked_at ? "stale" : "withheld"}
             title={`${snapshot.artifact_advisory.status} · ${snapshot.artifact_advisory.reason}`}
             detail={`${snapshot.artifact_advisory.detail} Checked: ${
@@ -558,7 +558,7 @@ export default async function RootSystemPage() {
           </div>
           <div className={styles.stack}>
             {snapshot.work_claims.length === 0 ? (
-              <RootEmptyState
+              <OsEmptyState
                 title="No active work claims"
                 detail="Nothing is explicitly claimed in the operator ledger right now."
               />

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { mergeRootContacts } from "@/lib/root-contact-ops";
+import { mergeRootContacts } from "@/lib/os-contact-ops";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { getRootRuntimeSnapshot } from "@/lib/root-system";
+import { getRootRuntimeSnapshot } from "@/lib/os-system";
 
 export async function GET() {
   const access = await enforceRoutePolicy(

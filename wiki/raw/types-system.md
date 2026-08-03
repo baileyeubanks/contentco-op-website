@@ -15,7 +15,7 @@ tags: [typescript, types, packages, shared]
 packages/types/
 ├── src/
 │   ├── index.ts          # Re-exports everything
-│   ├── ontology.ts       # ROOT CRM/ontology types
+│   ├── ontology.ts       # CCO OS CRM/ontology types
 │   ├── platform.ts       # Platform manifest & runtime types
 │   └── workflow.ts       # Workflow state machine types
 ├── package.json

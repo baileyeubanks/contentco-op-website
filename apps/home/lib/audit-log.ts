@@ -1,5 +1,5 @@
 import { buildAuditEvent, type Permission, type SessionActor } from "@contentco-op/identity-access";
-import { logRootAuditEvent } from "@/lib/root-event-log";
+import { logRootAuditEvent } from "@/lib/os-event-log";
 
 export async function recordPlatformAuditEvent(input: {
   actor: SessionActor;

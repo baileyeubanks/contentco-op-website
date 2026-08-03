@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { getRootCatalogSuggestions } from "@/lib/root-catalog";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { getRootCatalogSuggestions } from "@/lib/os-catalog";
 
 function derivePhaseCount(items: Array<Record<string, unknown>>) {
   return new Set(
@@ -67,8 +67,8 @@ export async function GET(
 
   const quoteItems = items || [];
   const phaseCount = derivePhaseCount(quoteItems);
-  const previewUrl = `/api/root/quotes/${id}/preview`;
-  const pdfUrl = `/api/root/quotes/${id}/pdf`;
+  const previewUrl = `/api/os/quotes/${id}/preview`;
+  const pdfUrl = `/api/os/quotes/${id}/pdf`;
   const shareLinkUrl = `/share/quote/${id}`;
   const documentReadiness = deriveDocumentReadiness(quote, quoteItems);
   const nextAction = deriveNextAction(quote, quoteItems);

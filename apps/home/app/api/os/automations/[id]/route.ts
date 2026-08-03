@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy, recordAuditEvent } from "@/lib/platform-access";
-import { getAutomationRuleById, updateAutomationRule } from "@/lib/root-automation-engine";
+import { getAutomationRuleById, updateAutomationRule } from "@/lib/os-automation-engine";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const access = await enforceRoutePolicy(

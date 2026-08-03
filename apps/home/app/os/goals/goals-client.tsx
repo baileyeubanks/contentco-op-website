@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { RootStatusPill } from "@/app/root/components/root-status-pill";
-import type { RootAgentRecord, RootGoalRecord, RootGoalSourceReport, RootSwarmScope } from "@/lib/root-goals";
+import { OsStatusPill } from "@/app/os/components/os-status-pill";
+import type { RootAgentRecord, RootGoalRecord, RootGoalSourceReport, RootSwarmScope } from "@/lib/os-goals";
 import styles from "./page.module.css";
 
 type Props = {
@@ -115,7 +115,7 @@ export function GoalsClient({
   async function refreshGoals() {
     setRefreshing(true);
     try {
-      const response = await fetch("/api/root/goals?limit=100", { cache: "no-store" });
+      const response = await fetch("/api/os/goals?limit=100", { cache: "no-store" });
       const data = await response.json();
       if (response.ok) {
         setWorkspace({
@@ -125,7 +125,7 @@ export function GoalsClient({
         });
         if (data.goals?.[0]?.id) setSelectedId((current) => current || data.goals[0].id);
       }
-      const agentResponse = await fetch("/api/root/agents?limit=24", { cache: "no-store" });
+      const agentResponse = await fetch("/api/os/agents?limit=24", { cache: "no-store" });
       const agentData = await agentResponse.json();
       if (agentResponse.ok) {
         setAgentWorkspace({
@@ -143,7 +143,7 @@ export function GoalsClient({
     e.preventDefault();
     setCreating(true);
     try {
-      const response = await fetch("/api/root/goals", {
+      const response = await fetch("/api/os/goals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -173,7 +173,7 @@ export function GoalsClient({
     setDispatching(true);
     setDispatchNote(null);
     try {
-      const response = await fetch(`/api/root/goals/${selectedGoal.id}/dispatch`, {
+      const response = await fetch(`/api/os/goals/${selectedGoal.id}/dispatch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -204,10 +204,10 @@ export function GoalsClient({
           </p>
         </div>
         <div className={styles.heroActions}>
-          <Link href="/root/work-claims" className={styles.secondaryAction}>
+          <Link href="/os/work-claims" className={styles.secondaryAction}>
             Work claims
           </Link>
-          <Link href="/root/handoffs" className={styles.secondaryAction}>
+          <Link href="/os/handoffs" className={styles.secondaryAction}>
             Handoffs
           </Link>
           <button type="button" className={styles.primaryAction} onClick={() => void refreshGoals()}>
@@ -308,10 +308,10 @@ export function GoalsClient({
                   </div>
                   <p>{goal.success_criteria}</p>
                   <div className={styles.chipRow}>
-                    <RootStatusPill>{goal.status}</RootStatusPill>
-                    <RootStatusPill>{goal.approval_policy}</RootStatusPill>
-                    <RootStatusPill>{goal.runtime_sensitive ? "runtime-sensitive" : "static"}</RootStatusPill>
-                    <RootStatusPill>{`p${goal.priority}`}</RootStatusPill>
+                    <OsStatusPill>{goal.status}</OsStatusPill>
+                    <OsStatusPill>{goal.approval_policy}</OsStatusPill>
+                    <OsStatusPill>{goal.runtime_sensitive ? "runtime-sensitive" : "static"}</OsStatusPill>
+                    <OsStatusPill>{`p${goal.priority}`}</OsStatusPill>
                   </div>
                   <div className={styles.goalMeta}>
                     <span>{goal.target_surface}</span>
@@ -361,7 +361,7 @@ export function GoalsClient({
                   className={styles.input}
                   value={form.target_surface}
                   onChange={(e) => setForm((current) => ({ ...current, target_surface: e.target.value }))}
-                  placeholder="/root/work-claims"
+                  placeholder="/os/work-claims"
                 />
               </label>
               <label className={styles.field}>
@@ -471,10 +471,10 @@ export function GoalsClient({
             {selectedGoal ? (
               <div className={styles.detail}>
                 <div className={styles.chipRow}>
-                  <RootStatusPill>{selectedGoal.business_scope}</RootStatusPill>
-                  <RootStatusPill>{selectedGoal.status}</RootStatusPill>
-                  <RootStatusPill>{selectedGoal.approval_policy}</RootStatusPill>
-                  <RootStatusPill>{selectedGoal.source}</RootStatusPill>
+                  <OsStatusPill>{selectedGoal.business_scope}</OsStatusPill>
+                  <OsStatusPill>{selectedGoal.status}</OsStatusPill>
+                  <OsStatusPill>{selectedGoal.approval_policy}</OsStatusPill>
+                  <OsStatusPill>{selectedGoal.source}</OsStatusPill>
                 </div>
                 <div className={styles.detailGrid}>
                   <div>

@@ -7,7 +7,7 @@ tags: [root, finance, quotes, invoices, stripe, payments]
 
 ## Summary
 
-The commercial pipeline manages quotes, invoices, and payments. Quotes are generated from creative briefs or manually in ROOT. Invoices are generated from accepted quotes. Payments flow through Stripe.
+The commercial pipeline manages quotes, invoices, and payments. Quotes are generated from creative briefs or manually in CCO OS. Invoices are generated from accepted quotes. Payments flow through Stripe.
 
 ## Data Model
 
@@ -33,8 +33,8 @@ The commercial pipeline manages quotes, invoices, and payments. Quotes are gener
 
 ## Quote Flow
 
-1. **Generation**: From brief (`lib/creative-brief-quote-draft.ts`) or manual (`/root/quotes/new`)
-2. **Review**: Admin reviews in ROOT (`/root/quotes/[id]`)
+1. **Generation**: From brief (`lib/creative-brief-quote-draft.ts`) or manual (`/os/quotes/new`)
+2. **Review**: Admin reviews in CCO OS (`/os/quotes/[id]`)
 3. **Send**: Client receives shared link (`/share/quote/[id]`)
 4. **Accept**: Client accepts via `POST /api/client/quote/[id]/accept`
 5. **Convert**: System converts to invoice (`POST /api/quotes/[id]/convert`)
@@ -42,21 +42,21 @@ The commercial pipeline manages quotes, invoices, and payments. Quotes are gener
 ## Invoice Flow
 
 1. **Generation**: From quote conversion or manual creation
-2. **Issue**: `POST /api/root/invoices/[id]/issue`
+2. **Issue**: `POST /api/os/invoices/[id]/issue`
 3. **Send**: Client receives payment link
 4. **Pay**: Stripe checkout session
 5. **Confirm**: Webhook `POST /api/webhooks/stripe`
-6. **Record**: `POST /api/root/invoices/[id]/record-payment`
+6. **Record**: `POST /api/os/invoices/[id]/record-payment`
 
 ## Payment Methods
 
 - **Stripe Checkout**: Primary method for card payments
-- **Bank Transfer**: Manual recording via ROOT
-- **Payment Plans**: Split invoices via `POST /api/root/invoices/[id]/split`
+- **Bank Transfer**: Manual recording via CCO OS
+- **Payment Plans**: Split invoices via `POST /api/os/invoices/[id]/split`
 
 ## Recurring Invoices
 
-Recurring billing is supported via `GET /api/root/invoices/recurring`. Automation rules trigger invoice generation on schedule.
+Recurring billing is supported via `GET /api/os/invoices/recurring`. Automation rules trigger invoice generation on schedule.
 
 ## API Endpoints
 
@@ -67,16 +67,16 @@ Recurring billing is supported via `GET /api/root/invoices/recurring`. Automatio
 | POST | `/api/quotes/[id]/convert` | Convert to invoice |
 | GET | `/api/quotes/[id]/pdf` | Quote PDF |
 | GET | `/api/quotes/[id]/preview` | Quote preview |
-| GET | `/api/root/quotes` | ROOT quotes list |
-| GET | `/api/root/quotes/[id]` | ROOT quote detail |
-| POST | `/api/root/quotes/[id]/agreement` | Quote agreement |
-| POST | `/api/root/quotes/[id]/duplicate` | Duplicate quote |
-| GET | `/api/root/invoices` | Invoices list |
-| GET | `/api/root/invoices/[id]` | Invoice detail |
-| POST | `/api/root/invoices/[id]/issue` | Issue invoice |
-| POST | `/api/root/invoices/[id]/pay-link` | Generate payment link |
-| POST | `/api/root/invoices/[id]/record-payment` | Record payment |
-| POST | `/api/root/invoices/[id]/split` | Split invoice |
+| GET | `/api/os/quotes` | CCO OS quotes list |
+| GET | `/api/os/quotes/[id]` | CCO OS quote detail |
+| POST | `/api/os/quotes/[id]/agreement` | Quote agreement |
+| POST | `/api/os/quotes/[id]/duplicate` | Duplicate quote |
+| GET | `/api/os/invoices` | Invoices list |
+| GET | `/api/os/invoices/[id]` | Invoice detail |
+| POST | `/api/os/invoices/[id]/issue` | Issue invoice |
+| POST | `/api/os/invoices/[id]/pay-link` | Generate payment link |
+| POST | `/api/os/invoices/[id]/record-payment` | Record payment |
+| POST | `/api/os/invoices/[id]/split` | Split invoice |
 | POST | `/api/webhooks/stripe` | Stripe webhook handler |
 
 ## Related

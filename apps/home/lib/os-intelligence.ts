@@ -1,10 +1,10 @@
 import { getSupabase } from "@/lib/supabase";
-import { getRootHealthSnapshot, type RootHealthSnapshot } from "@/lib/root-health";
+import { getRootHealthSnapshot, type RootHealthSnapshot } from "@/lib/os-health";
 import {
   getRootRuntimeSnapshot,
   type RootRuntimeSnapshot,
   type WorkClaimRecord,
-} from "@/lib/root-system";
+} from "@/lib/os-system";
 
 type EventRecord = {
   id: string;

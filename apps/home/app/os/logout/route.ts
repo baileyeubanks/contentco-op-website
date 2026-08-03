@@ -11,7 +11,7 @@ function getSupabaseProjectRef() {
 }
 
 export async function GET(req: Request) {
-  const redirectUrl = new URL("/root", req.url);
+  const redirectUrl = new URL("/os", req.url);
   redirectUrl.searchParams.set("reset", "1");
 
   const res = NextResponse.redirect(redirectUrl);

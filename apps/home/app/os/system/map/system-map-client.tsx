@@ -131,7 +131,7 @@ export function SystemMapClient({
     setRefreshError(null);
 
     try {
-      const response = await fetch(`/api/root/system-map${reason === "manual" ? "?fresh=1" : ""}`, {
+      const response = await fetch(`/api/os/system-map${reason === "manual" ? "?fresh=1" : ""}`, {
         cache: "no-store",
       });
       if (!response.ok) {
@@ -260,7 +260,7 @@ export function SystemMapClient({
     setActionResult(null);
 
     try {
-      const response = await fetch("/api/root/system/actions", {
+      const response = await fetch("/api/os/system/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: action.action, scope: action.scope }),
@@ -309,7 +309,7 @@ export function SystemMapClient({
               >
                 {isRefreshing ? "Refreshing…" : "Refresh now"}
               </button>
-              <Link href="/root/system" className={styles.secondaryAction}>
+              <Link href="/os/system" className={styles.secondaryAction}>
                 Open system console
               </Link>
             </div>

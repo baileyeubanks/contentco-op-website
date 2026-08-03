@@ -1,11 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { createInternalOperatorActor, type Permission, type SessionActor } from "@contentco-op/identity-access";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 import {
   getRootOperatorRoleForHost,
   isAdvancedRootOperatorForHost,
   isEmailAuthorizedForRootHost,
-} from "@/lib/root-auth";
+} from "@/lib/os-auth";
 import { resolvePublicSupabaseConfig } from "@/lib/runtime-config";
 import { verifyInviteSession } from "@/lib/session";
 import { getSessionCookieName } from "@/lib/session-shared";

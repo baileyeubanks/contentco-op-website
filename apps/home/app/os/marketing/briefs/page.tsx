@@ -2,8 +2,8 @@ import type { CSSProperties } from "react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { ModuleHeader } from "@/app/dashboard/components/module-header";
-import { getRootMarketingBriefQueue } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { getRootMarketingBriefQueue } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 function formatTimestamp(value: string | null) {
   if (!value) return "unknown";
@@ -39,7 +39,7 @@ function chip(tone: "default" | "warn" | "success" | "accent"): CSSProperties {
 
 export default async function RootMarketingBriefQueuePage() {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const briefs = await getRootMarketingBriefQueue(brand.key);
 
   return (
@@ -56,9 +56,9 @@ export default async function RootMarketingBriefQueuePage() {
             { label: "needs follow-up", value: String(briefs.filter((brief) => !brief.quoteReady).length), tone: "warn" },
           ]}
           actions={[
-            { label: "marketing lane", href: "/root/marketing", tone: "secondary" },
+            { label: "marketing lane", href: "/os/marketing", tone: "secondary" },
             { label: "public brief", href: "https://contentco-op.com/brief", tone: "secondary" },
-            { label: "quotes", href: "/root/quotes", tone: "primary" },
+            { label: "quotes", href: "/os/quotes", tone: "primary" },
           ]}
         />
 

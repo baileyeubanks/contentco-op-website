@@ -5,7 +5,7 @@
    Requires: tokens.css loaded first + data-brand attribute on root.
    ============================================================ */
 
-/* ── ROOT (light, professional operator) ───────────────────── */
+/* ── CCO OS (light, professional operator) ───────────────────── */
 
 :root,
 [data-brand="root"] {

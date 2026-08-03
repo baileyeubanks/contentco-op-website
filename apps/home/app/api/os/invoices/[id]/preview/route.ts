@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { renderInvoiceHtml } from "@/lib/root-document-renderer";
-import { getRootInvoiceDetail } from "@/lib/root-data";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { renderInvoiceHtml } from "@/lib/os-document-renderer";
+import { getRootInvoiceDetail } from "@/lib/os-data";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 export async function GET(
   req: Request,

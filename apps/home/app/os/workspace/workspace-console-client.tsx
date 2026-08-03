@@ -9,7 +9,7 @@ import type {
   RootWorkspaceSnapshot,
   RootWorkspaceStatus,
   RootWorkspaceScope,
-} from "@/lib/root-workspace";
+} from "@/lib/os-workspace";
 import styles from "./page.module.css";
 
 type Selection = {
@@ -122,7 +122,7 @@ export function RootWorkspaceConsoleClient({
     setIsRefreshing(true);
     setRefreshError(null);
     try {
-      const response = await fetch(`/api/root/workspace${fresh ? "?fresh=1" : ""}`, {
+      const response = await fetch(`/api/os/workspace${fresh ? "?fresh=1" : ""}`, {
         cache: "no-store",
       });
       if (!response.ok) {
@@ -182,7 +182,7 @@ export function RootWorkspaceConsoleClient({
   async function runSheetAction(item: RootWorkspaceItem, action: string) {
     setActionResult(null);
     try {
-      const response = await fetch(`/api/root/workspace/sheets/${encodeURIComponent(item.id)}/actions`, {
+      const response = await fetch(`/api/os/workspace/sheets/${encodeURIComponent(item.id)}/actions`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ action }),
@@ -208,7 +208,7 @@ export function RootWorkspaceConsoleClient({
   async function queueImport(item: RootWorkspaceItem) {
     setActionResult(null);
     try {
-      const response = await fetch("/api/root/workspace/imports", {
+      const response = await fetch("/api/os/workspace/imports", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -249,7 +249,7 @@ export function RootWorkspaceConsoleClient({
     <div className={styles.shell}>
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>ROOT workspace console</p>
+          <p className={styles.eyebrow}>CCO OS workspace console</p>
           <h1 className={styles.title}>
             File-first Google workspace console
             <span>Drive, Docs, Sheets, Slides, GCS, Imports, Health</span>
@@ -261,7 +261,7 @@ export function RootWorkspaceConsoleClient({
             <button type="button" className={styles.primaryAction} onClick={() => void refreshSnapshot(true)} disabled={isRefreshing}>
               {isRefreshing ? "Refreshing…" : "Refresh projection"}
             </button>
-            <Link href="/root/system" className={styles.secondaryAction}>
+            <Link href="/os/system" className={styles.secondaryAction}>
               Open system console
             </Link>
           </div>

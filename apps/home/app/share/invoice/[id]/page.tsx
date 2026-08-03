@@ -22,8 +22,8 @@ export default async function ShareInvoicePage({
 
   if (!invoice) notFound();
 
-  const previewUrl = `/api/root/invoices/${id}/preview`;
-  const pdfUrl = `/api/root/invoices/${id}/pdf`;
+  const previewUrl = `/api/os/invoices/${id}/preview`;
+  const pdfUrl = `/api/os/invoices/${id}/pdf`;
   const brandColor = invoice.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
   const brandName = invoice.business_unit === "ACS" ? "Astro Cleanings" : "Content Co-Op";
   const total = Number(invoice.total || invoice.amount || 0);
@@ -107,7 +107,7 @@ export default async function ShareInvoicePage({
               </a>
             )}
             {!isPaid && !hasPayLink && stripeReady && (
-              <form action={`/api/root/invoices/${id}/pay-link`} method="POST">
+              <form action={`/api/os/invoices/${id}/pay-link`} method="POST">
                 <button
                   type="submit"
                   style={{

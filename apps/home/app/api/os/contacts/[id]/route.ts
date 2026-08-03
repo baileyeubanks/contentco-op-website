@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRootContactDossier } from "@/lib/root-data";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { getRootContactDossier } from "@/lib/os-data";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 export async function GET(
   req: Request,

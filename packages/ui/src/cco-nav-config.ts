@@ -36,7 +36,8 @@ export const CCO_URLS: CcoUrls = {
   bookingAlias: "/book",
   brief: "/brief",
   client: "/login",
-  cocut: "https://cut.contentco-op.com",
-  coscript: "https://script.contentco-op.com",
-  codeliver: "https://deliver.contentco-op.com",
+  // Product hosts are not currently DNS-live; keep public CTAs on the suite surface.
+  cocut: "/co-cut",
+  coscript: "/co-script",
+  codeliver: "/co-deliver",
 };

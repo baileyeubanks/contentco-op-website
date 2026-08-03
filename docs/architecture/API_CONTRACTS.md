@@ -11,7 +11,7 @@
    `Used by the public voice-brief assistant on /brief to extract structured intake fields before submission.`
 2. `POST /api/briefs`
    Notes:
-   `Canonical public creative-brief submit route for CCO HOME. Persists the public intake record, emits the versioned ROOT handoff envelope into the event bridge, and may invoke OpenClaw for internal follow-up guidance.`
+   `Canonical public creative-brief submit route for CCO HOME. Persists the public intake record, emits the versioned CCO OS handoff envelope into the event bridge, and may invoke OpenClaw for internal follow-up guidance.`
 3. `GET /api/briefs/:id?token=...`
    Notes:
    `Fetches the public portal brief record and status history for the client-facing portal.`
@@ -24,7 +24,7 @@ Handoff contract:
 
 1. Public funnel captures contact, scope, creative direction, production constraints, and booking intent.
 2. CCO HOME is responsible only for public intake capture, booking/brief routing, portfolio proof, and client portal access.
-3. ROOT remains the downstream authority for contacts, proposals, quotes, and operational follow-up.
+3. CCO OS remains the downstream authority for contacts, proposals, quotes, and operational follow-up.
 4. Public route notes:
    `GET /brief` is the canonical public intake route.
    `GET /book` remains available as the booking resolution reached from the brief flow.
@@ -35,7 +35,7 @@ Live shared baseline:
 1. `creative_briefs` is the live stored record. The homepage must only write columns that exist in the onboarding baseline migrations:
    `contact_name`, `contact_email`, `phone`, `company`, `role`, `location`, `content_type`, `deliverables`, `audience`, `tone`, `deadline`, `objective`, `key_messages`, `references`, `constraints`, plus the platform defaults (`id`, `access_token`, `status`, timestamps).
 2. `brief_status_history`, `brief_messages`, and `brief_files` are live support tables for the public portal.
-3. `events.payload` is the live shared bridge for richer structured handoff into ROOT-managed follow-through.
+3. `events.payload` is the live shared bridge for richer structured handoff into CCO OS-managed follow-through.
 4. Richer intake structures may be derived in app code, but they are not assumed to be durable `creative_briefs` columns until the shared baseline actually grows.
 
 Structured handoff envelope:
@@ -50,14 +50,14 @@ Create-now vs later:
 
 1. Created now in CCO HOME:
    `creative_briefs` row, client portal token, `events` bridge record, optional OpenClaw advisory.
-2. Deferred to ROOT-managed follow-through:
+2. Deferred to CCO OS-managed follow-through:
    contact match/create, booking pairing, quote generation, proposal generation, operational follow-up.
 
 End-to-end blockers:
 
 1. `booking_intent` is routing metadata only. It is not persisted on the live `creative_briefs` row today, and it does not create or confirm an appointment record.
 2. Quote/proposal readiness must be derived from the live flat brief fields or from the event handoff, not from assumed extra columns.
-3. The public brief can start quote follow-through only when the live row has enough scope signal; otherwise ROOT or humans must collect the missing fields.
+3. The public brief can start quote follow-through only when the live row has enough scope signal; otherwise CCO OS or humans must collect the missing fields.
 4. Any future structured-intake persistence must land as an explicit shared-baseline migration before runtime code depends on it.
 
 ## Co-Cut

@@ -2,8 +2,8 @@ import type { CSSProperties } from "react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { ModuleHeader } from "@/app/dashboard/components/module-header";
-import { getRootMarketingSnapshot } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { getRootMarketingSnapshot } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 function formatRelativeTime(iso: string | null) {
   if (!iso) return "unknown";
@@ -35,7 +35,7 @@ function statusTone(value: string) {
 
 export default async function RootMarketingPage() {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const snapshot = await getRootMarketingSnapshot(brand.key);
 
   return (
@@ -54,10 +54,10 @@ export default async function RootMarketingPage() {
           actions={[
             { label: "brand central", href: snapshot.authority.publicUrl, tone: "secondary" },
             { label: "root atlas", href: snapshot.rootAuthority.publicUrl, tone: "secondary" },
-            ...(brand.key === "cc" ? [{ label: "brief queue", href: "/root/marketing/briefs", tone: "secondary" as const }] : []),
-            { label: "workflow", href: "/root/marketing/workflow", tone: "secondary" },
-            { label: brand.key === "acs" ? "reputation" : "proof", href: "/root/marketing/proof", tone: "secondary" },
-            { label: brand.key === "acs" ? "follow-through" : "delivery", href: "/root/marketing/execution", tone: "secondary" },
+            ...(brand.key === "cc" ? [{ label: "brief queue", href: "/os/marketing/briefs", tone: "secondary" as const }] : []),
+            { label: "workflow", href: "/os/marketing/workflow", tone: "secondary" },
+            { label: brand.key === "acs" ? "reputation" : "proof", href: "/os/marketing/proof", tone: "secondary" },
+            { label: brand.key === "acs" ? "follow-through" : "delivery", href: "/os/marketing/execution", tone: "secondary" },
             { label: brand.key === "acs" ? "public site" : "brief intake", href: brand.key === "acs" ? "https://astrocleanings.com" : "https://contentco-op.com/brief", tone: "primary" },
           ]}
         />
@@ -83,7 +83,7 @@ export default async function RootMarketingPage() {
                 modifiedAt={snapshot.authority.freshness.modifiedAt}
               />
               <AuthorityCard
-                title="ROOT Brand Central"
+                title="CCO OS Brand Central"
                 publicUrl={snapshot.rootAuthority.publicUrl}
                 localPath={snapshot.rootAuthority.localPath}
                 modifiedAt={snapshot.rootAuthority.freshness.modifiedAt}
@@ -118,7 +118,7 @@ export default async function RootMarketingPage() {
           <div style={card}>
             <div style={sectionTitle}>Operator Lanes</div>
             <div style={{ display: "grid", gap: 12 }}>
-              <Link href="/root/marketing/workflow" style={{ textDecoration: "none", color: "inherit" }}>
+              <Link href="/os/marketing/workflow" style={{ textDecoration: "none", color: "inherit" }}>
                 <div style={rowStackStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ fontWeight: 700 }}>workflow board</div>
@@ -131,7 +131,7 @@ export default async function RootMarketingPage() {
                   </div>
                 </div>
               </Link>
-              <Link href="/root/marketing/proof" style={{ textDecoration: "none", color: "inherit" }}>
+              <Link href="/os/marketing/proof" style={{ textDecoration: "none", color: "inherit" }}>
                 <div style={rowStackStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ fontWeight: 700 }}>{brand.key === "acs" ? "reputation board" : "proof board"}</div>
@@ -144,7 +144,7 @@ export default async function RootMarketingPage() {
                   </div>
                 </div>
               </Link>
-              <Link href="/root/marketing/execution" style={{ textDecoration: "none", color: "inherit" }}>
+              <Link href="/os/marketing/execution" style={{ textDecoration: "none", color: "inherit" }}>
                 <div style={rowStackStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ fontWeight: 700 }}>{brand.key === "acs" ? "follow-through board" : "delivery board"}</div>
@@ -158,7 +158,7 @@ export default async function RootMarketingPage() {
                 </div>
               </Link>
               {brand.key === "cc" ? (
-                <Link href="/root/marketing/briefs" style={{ textDecoration: "none", color: "inherit" }}>
+                <Link href="/os/marketing/briefs" style={{ textDecoration: "none", color: "inherit" }}>
                   <div style={rowStackStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                       <div style={{ fontWeight: 700 }}>brief queue</div>
@@ -188,7 +188,7 @@ export default async function RootMarketingPage() {
             <div style={sectionTitle}>Workflow Queue</div>
             {brand.key === "cc" ? (
               <div style={{ ...metaStyle, marginBottom: 10 }}>
-                review the full internal brief queue at <Link href="/root/marketing/briefs" style={{ color: "inherit" }}>brief queue ↗</Link>
+                review the full internal brief queue at <Link href="/os/marketing/briefs" style={{ color: "inherit" }}>brief queue ↗</Link>
               </div>
             ) : null}
             {snapshot.workflow.queue.length === 0 ? (
@@ -323,7 +323,7 @@ const emptyStyle: CSSProperties = {
 };
 
 const textLinkStyle: CSSProperties = {
-  color: "var(--root-accent)",
+  color: "var(--os-accent)",
   textDecoration: "none",
   fontSize: "0.78rem",
   fontWeight: 600,

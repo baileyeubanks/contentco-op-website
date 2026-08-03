@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { getEstimateWithLineItems } from "@/lib/root-commercial-pipeline";
+import { getEstimateWithLineItems } from "@/lib/os-commercial-pipeline";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

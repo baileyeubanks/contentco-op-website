@@ -16,7 +16,7 @@ export function GeneratePayLinkButton({
   async function handleGenerate() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/root/invoices/${invoiceId}/pay-link`, {
+      const res = await fetch(`/api/os/invoices/${invoiceId}/pay-link`, {
         method: "POST",
       });
       const data = await res.json();

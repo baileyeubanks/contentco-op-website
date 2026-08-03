@@ -88,7 +88,7 @@ export default function NewQuotePage() {
 
       if (!res.ok) throw new Error("Save failed");
       const data = await res.json();
-      router.push(`/root/quotes/${data.id}`);
+      router.push(`/os/quotes/${data.id}`);
     } catch (err) {
       alert("Failed to save quote");
     } finally {

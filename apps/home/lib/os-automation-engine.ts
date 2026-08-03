@@ -1,10 +1,10 @@
 /**
- * ROOT Automation Engine — Declarative event-driven automation rules.
+ * CCO OS Automation Engine — Declarative event-driven automation rules.
  * When an event fires, matching rules are evaluated and actions executed.
  */
 
 import { getSupabase } from "@/lib/supabase";
-import { emitTypedEvent } from "@/lib/root-event-log";
+import { emitTypedEvent } from "@/lib/os-event-log";
 import { sendTransactionalEmail } from "@/lib/email-sender";
 
 type AutomationCondition = {

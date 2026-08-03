@@ -39,7 +39,7 @@ function RecordPaymentModal({
     if (!amt || amt <= 0) { setError("Enter a valid amount"); return; }
     setSaving(true); setError("");
     try {
-      const res = await fetch(`/api/root/invoices/${invoiceId}/payments`, {
+      const res = await fetch(`/api/os/invoices/${invoiceId}/payments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: amt, paid_at: date, method, reference: ref, notes }),
@@ -109,7 +109,7 @@ function SplitInvoiceModal({
     if (pctNum <= 0 || pctNum > 100) { setError("Percent must be 1–100"); return; }
     setSaving(true); setError("");
     try {
-      const res = await fetch(`/api/root/invoices/${invoiceId}/split`, {
+      const res = await fetch(`/api/os/invoices/${invoiceId}/split`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ split_label: label, split_percent: pctNum }),
@@ -171,7 +171,7 @@ function VoidConfirmModal({
   async function submit() {
     setSaving(true); setError("");
     try {
-      const res = await fetch(`/api/root/invoices/${invoiceId}`, {
+      const res = await fetch(`/api/os/invoices/${invoiceId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ invoice_status: "void", payment_status: "void" }),
@@ -213,7 +213,7 @@ function SendReminderModal({
   async function submit() {
     setSaving(true); setError("");
     try {
-      const res = await fetch(`/api/root/invoices/${invoiceId}/reminders`, {
+      const res = await fetch(`/api/os/invoices/${invoiceId}/reminders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ invoice_number: invoiceNumber }),
@@ -352,7 +352,7 @@ export function InvoiceDetailActions({ invoiceId, invoiceNumber, total, balanceD
           invoiceNumber={invoiceNumber}
           total={total}
           onClose={() => setModal(null)}
-          onSuccess={(newId) => { setModal(null); toast("Split invoice created."); if (newId) router.push(`/root/invoices/${newId}`); else router.refresh(); }}
+          onSuccess={(newId) => { setModal(null); toast("Split invoice created."); if (newId) router.push(`/os/invoices/${newId}`); else router.refresh(); }}
         />
       )}
     </>

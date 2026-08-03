@@ -70,7 +70,7 @@ export default function NewInvoicePage() {
   async function handleSave() {
     setSaving(true);
     try {
-      const res = await fetch("/api/root/invoices", {
+      const res = await fetch("/api/os/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -90,7 +90,7 @@ export default function NewInvoicePage() {
         throw new Error(data.error || "Save failed");
       }
       const data = await res.json();
-      router.push(`/root/invoices/${data.invoice.id}`);
+      router.push(`/os/invoices/${data.invoice.id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create invoice";
       alert(message);
@@ -154,7 +154,7 @@ export default function NewInvoicePage() {
               fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.16em",
-              color: "var(--root-accent)",
+              color: "var(--os-accent)",
               marginBottom: 4,
             }}
           >
@@ -206,7 +206,7 @@ export default function NewInvoicePage() {
                 letterSpacing: "0.06em",
                 cursor: "pointer",
                 border: `1px solid ${bu === b ? `${G}0.2)` : "rgba(255,255,255,0.06)"}`,
-                background: bu === b ? `color-mix(in srgb, var(--root-accent) 12%, transparent)` : "transparent",
+                background: bu === b ? `color-mix(in srgb, var(--os-accent) 12%, transparent)` : "transparent",
                 color: bu === b ? "var(--ink)" : "var(--muted)",
                 transition: "all 140ms ease",
               }}
@@ -231,7 +231,7 @@ export default function NewInvoicePage() {
                 textTransform: "uppercase",
                 letterSpacing: "0.14em",
                 marginBottom: 14,
-                color: "var(--root-accent)",
+                color: "var(--os-accent)",
               }}
             >
               Client Details
@@ -313,7 +313,7 @@ export default function NewInvoicePage() {
                 textTransform: "uppercase",
                 letterSpacing: "0.14em",
                 marginBottom: 14,
-                color: "var(--root-accent)",
+                color: "var(--os-accent)",
               }}
             >
               Line Items
@@ -476,7 +476,7 @@ export default function NewInvoicePage() {
                 fontWeight: 700,
                 textTransform: "uppercase",
                 letterSpacing: "0.14em",
-                color: "var(--root-accent)",
+                color: "var(--os-accent)",
                 marginBottom: 14,
               }}
             >

@@ -5,20 +5,20 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const NAV_ITEMS = [
-  { label: "Overview", href: "/root/overview", icon: "◆" },
-  { label: "Dispatch", href: "/root/dispatch", icon: "◉" },
-  { label: "Quotes", href: "/root/quotes", icon: "◈" },
-  { label: "Contacts", href: "/root/contacts", icon: "◎" },
-  { label: "Finance", href: "/root/finance", icon: "◌" },
-  { label: "System", href: "/root/system", icon: "◇" },
-  { label: "Work Claims", href: "/root/work-claims", icon: "⋄" },
+  { label: "Overview", href: "/os/overview", icon: "◆" },
+  { label: "Dispatch", href: "/os/dispatch", icon: "◉" },
+  { label: "Quotes", href: "/os/quotes", icon: "◈" },
+  { label: "Contacts", href: "/os/contacts", icon: "◎" },
+  { label: "Finance", href: "/os/finance", icon: "◌" },
+  { label: "System", href: "/os/system", icon: "◇" },
+  { label: "Work Claims", href: "/os/work-claims", icon: "⋄" },
 ];
 
 export function SidebarNav() {
   const pathname = usePathname();
 
   function isActive(href: string) {
-    if (href === "/root/overview") return pathname === "/root/overview" || pathname === "/root";
+    if (href === "/os/overview") return pathname === "/os/overview" || pathname === "/os";
     return pathname.startsWith(href);
   }
 

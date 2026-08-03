@@ -42,7 +42,8 @@
     "preview:home:docker": "docker build -t contentco-op-home-preview . && docker run --rm -p 4100:4100 contentco-op-home-preview",
     "verify:cco-nav": "node scripts/verify-cco-nav.mjs",
     "verify:platform": "node scripts/verify-platform-contract.mjs",
-    "verify": "npm run verify:cco-nav && npm run verify:platform"
+    "verify": "npm run verify:cco-nav && npm run verify:platform",
+    "ops:forbid-root": "bash scripts/forbid-root-naming.sh"
   },
   "devDependencies": {
     "@types/node": "^20.19.16",

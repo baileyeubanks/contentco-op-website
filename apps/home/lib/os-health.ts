@@ -212,7 +212,7 @@ export async function getRootHealthSnapshot(scope: RootHealthScope = "full"): Pr
   }
 
   // Deer is a legacy auxiliary dependency. Keep reporting it, but do not let a
-  // missing or degraded Deer lane mark the merged HOME/ROOT runtime critical.
+  // missing or degraded Deer lane mark the merged HOME/CCO OS runtime critical.
   const blazeOk = !isDownOrDegraded(blaze);
 
   return {

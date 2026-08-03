@@ -53,7 +53,7 @@ export function SystemOpsPanel({
         stderr: "",
       });
       try {
-        const response = await fetch("/api/root/system/actions", {
+        const response = await fetch("/api/os/system/actions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action, scope: selectedScope }),
@@ -74,7 +74,7 @@ export function SystemOpsPanel({
     <div style={{ display: "grid", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
         <div style={{ color: "var(--root-muted, var(--muted))", fontSize: "0.8rem" }}>
-          Run platform checks and supervised runtime actions from inside ROOT. These actions are advanced-admin only and leave an audit trail.
+          Run platform checks and supervised runtime actions from inside CCO OS. These actions are advanced-admin only and leave an audit trail.
         </div>
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.78rem", color: "var(--root-muted, var(--muted))" }}>
           scope

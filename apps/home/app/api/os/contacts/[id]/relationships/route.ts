@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getContactRelationships, createRelationship } from "@/lib/root-contacts-engine";
+import { getContactRelationships, createRelationship } from "@/lib/os-contacts-engine";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

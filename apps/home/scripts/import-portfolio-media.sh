@@ -1,8 +1,8 @@
 #!/bin/zsh
 set -euo pipefail
 
-ROOT="/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo/apps/home"
-OUT_DIR="$ROOT/public/cc/portfolio-cdn"
+CCO OS="/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo/apps/home"
+OUT_DIR="$CCO OS/public/cc/portfolio-cdn"
 FFMPEG_BIN="${FFMPEG_BIN:-/opt/homebrew/bin/ffmpeg}"
 FFPROBE_BIN="${FFPROBE_BIN:-/opt/homebrew/bin/ffprobe}"
 

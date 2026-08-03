@@ -68,7 +68,7 @@ which is below the minimum 64,000 required by Hermes Agent.
 
 ## Persona
 
-`SOUL.md` defines Hermes as the operational control plane for Bailey Eubanks' business ecosystem, with authority maps for ACS, CCO, Mission Control, CCNAS Stack, and Paperclip.
+`SOUL.md` defines Hermes as the operational control plane for Bailey Eubanks' business ecosystem, with authority maps for ACS, CCO, CCO OS, CCNAS Stack, and Paperclip.
 
 ## Recovery Steps
 

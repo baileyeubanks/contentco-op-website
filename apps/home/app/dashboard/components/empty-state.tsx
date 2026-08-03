@@ -68,7 +68,7 @@ const actionStyle: React.CSSProperties = {
   borderRadius: 8,
   border: "1px solid var(--root-line, rgba(74,222,128,0.12))",
   background: "rgba(255,255,255,0.03)",
-  color: "var(--root-accent, #4ade80)",
+  color: "var(--os-accent, #4ade80)",
   fontSize: "0.82rem",
   fontWeight: 600,
   textDecoration: "none",

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { renderQuoteHtml } from "@/lib/root-document-renderer";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { renderQuoteHtml } from "@/lib/os-document-renderer";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 export async function GET(
   req: Request,

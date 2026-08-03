@@ -18,7 +18,7 @@ export default function RootLoginPage() {
     form.set("email", email.trim().toLowerCase());
     form.set("password", password);
 
-    const res = await fetch("/api/root/login", {
+    const res = await fetch("/api/os/login", {
       method: "POST",
       body: form,
     });
@@ -30,7 +30,7 @@ export default function RootLoginPage() {
       return;
     }
 
-    window.location.href = data.redirectTo || "/root/overview";
+    window.location.href = data.redirectTo || "/os/overview";
   }
 
   return (
@@ -72,7 +72,7 @@ export default function RootLoginPage() {
           </button>
         </form>
         <p className="root-login-sub" style={{ marginTop: 16 }}>
-          Looping or stuck? <Link href="/root/logout" prefetch={false}>reset session</Link>
+          Looping or stuck? <Link href="/os/logout" prefetch={false}>reset session</Link>
         </p>
       </div>
     </main>

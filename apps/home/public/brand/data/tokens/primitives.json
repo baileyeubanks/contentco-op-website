@@ -2,7 +2,7 @@
   "meta": {
     "name": "brand-primitives",
     "version": "1.0.0",
-    "description": "Canonical raw primitives for ACS, CCO HOME, ROOT, and Co-* products."
+    "description": "Canonical raw primitives for ACS, CCO HOME, CCO OS, and Co-* products."
   },
   "color": {
     "neutral": {

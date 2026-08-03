@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { resolveRootBrand, type RootBrandKey } from "@/lib/root-brand";
+import { resolveOsBrand, type OsBrandKey } from "@/lib/os-brand";
 
 function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
@@ -9,7 +9,7 @@ function normalizeEmail(value: string) {
 type RootAuthFileConfig = {
   credentials: Map<string, string>;
   allowedEmails: string[];
-  authorities: Record<RootBrandKey, string[]>;
+  authorities: Record<OsBrandKey, string[]>;
   roles: Map<string, RootOperatorRole>;
 };
 
@@ -31,13 +31,13 @@ function getRootAuthConfigPathCandidates() {
   const home = process.env.HOME?.trim() || "";
   return [
     process.env.ROOT_AUTH_BRIDGE_CONFIG_PATH?.trim() || "",
-    "/Users/baileyeubanks/Desktop/Projects/acs/acs-website/.root-operator-auth.json",
-    home ? path.join(home, "Projects", "acs", "acs-website", ".root-operator-auth.json") : "",
-    home ? path.join(home, "Desktop", "Projects", "acs", "acs-website", ".root-operator-auth.json") : "",
-    path.join(cwd, ".root-operator-auth.json"),
-    path.resolve(cwd, "../../../../acs/acs-website/.root-operator-auth.json"),
-    path.resolve(cwd, "../../../acs/acs-website/.root-operator-auth.json"),
-    path.resolve(cwd, "../../acs/acs-website/.root-operator-auth.json"),
+    "/Users/baileyeubanks/Desktop/Projects/acs/acs-website/.os-operator-auth.json",
+    home ? path.join(home, "Projects", "acs", "acs-website", ".os-operator-auth.json") : "",
+    home ? path.join(home, "Desktop", "Projects", "acs", "acs-website", ".os-operator-auth.json") : "",
+    path.join(cwd, ".os-operator-auth.json"),
+    path.resolve(cwd, "../../../../acs/acs-website/.os-operator-auth.json"),
+    path.resolve(cwd, "../../../acs/acs-website/.os-operator-auth.json"),
+    path.resolve(cwd, "../../acs/acs-website/.os-operator-auth.json"),
   ].filter(Boolean);
 }
 
@@ -70,7 +70,7 @@ function readRootAuthFile(): RootAuthFileConfig | null {
       const explicitAuthorities = parsed?.authorities && typeof parsed.authorities === "object"
         ? parsed.authorities as Record<string, unknown>
         : {};
-      const authorities: Record<RootBrandKey, string[]> = {
+      const authorities: Record<OsBrandKey, string[]> = {
         cc: Array.isArray(explicitAuthorities.cc)
           ? explicitAuthorities.cc.map((email) => normalizeEmail(String(email))).filter(Boolean)
           : [],
@@ -123,14 +123,14 @@ function readRootAuthFile(): RootAuthFileConfig | null {
 
 export function getRootOperatorPassword() {
   return (
-    process.env.CCO_ROOT_OPERATOR_PASSWORD?.trim() ||
+    process.env.CCO_OS_OPERATOR_PASSWORD?.trim() ||
     process.env.ROOT_OPERATOR_PASSWORD?.trim() ||
     ""
   );
 }
 
 function getConfiguredRootOperatorCredentials() {
-  const raw = process.env.CCO_ROOT_OPERATOR_CREDENTIALS?.trim();
+  const raw = process.env.CCO_OS_OPERATOR_CREDENTIALS?.trim();
   if (!raw) {
     return readRootAuthFile()?.credentials || new Map();
   }
@@ -155,7 +155,7 @@ export function getAllowedRootOperatorEmails() {
   if (credentialEntries.size) {
     return Array.from(credentialEntries.keys());
   }
-  const raw = process.env.CCO_ROOT_ALLOWED_EMAILS?.trim();
+  const raw = process.env.CCO_OS_ALLOWED_EMAILS?.trim();
   if (!raw) return readRootAuthFile()?.allowedEmails || [];
   return raw
     .split(",")
@@ -191,8 +191,8 @@ function parseOperatorRole(raw: string | null | undefined): RootOperatorRole | n
   return null;
 }
 
-export function resolveRootAuthorityForHost(hostname?: string | null): RootBrandKey {
-  return resolveRootBrand(hostname).key;
+export function resolveRootAuthorityForHost(hostname?: string | null): OsBrandKey {
+  return resolveOsBrand(hostname).key;
 }
 
 export function getAllowedRootOperatorEmailsForHost(hostname?: string | null) {

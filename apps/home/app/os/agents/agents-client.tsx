@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { RootStatusPill } from "@/app/root/components/root-status-pill";
-import type { RootAgentRecord, RootGoalWorkspace, RootSwarmScope } from "@/lib/root-goals";
+import { OsStatusPill } from "@/app/os/components/os-status-pill";
+import type { RootAgentRecord, RootGoalWorkspace, RootSwarmScope } from "@/lib/os-goals";
 import styles from "./page.module.css";
 
 type GoalSummary = Pick<RootGoalWorkspace["summary"], "goals" | "active_goals" | "blocked_goals" | "runtime_sensitive_goals">;
@@ -100,7 +100,7 @@ export function AgentsClient({
   async function refreshAgents() {
     setRefreshing(true);
     try {
-      const response = await fetch("/api/root/agents?limit=48", { cache: "no-store" });
+      const response = await fetch("/api/os/agents?limit=48", { cache: "no-store" });
       const data = await response.json();
       if (response.ok) {
         setWorkspace({
@@ -118,7 +118,7 @@ export function AgentsClient({
     e.preventDefault();
     setCreating(true);
     try {
-      const response = await fetch("/api/root/agents", {
+      const response = await fetch("/api/os/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -157,10 +157,10 @@ export function AgentsClient({
           </p>
         </div>
         <div className={styles.heroActions}>
-          <Link href="/root/goals" className={styles.secondaryAction}>
+          <Link href="/os/goals" className={styles.secondaryAction}>
             Goals
           </Link>
-          <Link href="/root/work-claims" className={styles.secondaryAction}>
+          <Link href="/os/work-claims" className={styles.secondaryAction}>
             Work claims
           </Link>
           <button type="button" className={styles.primaryAction} onClick={() => void refreshAgents()}>
@@ -259,10 +259,10 @@ export function AgentsClient({
                   </div>
                   <p>{agent.summary}</p>
                   <div className={styles.chipRow}>
-                    <RootStatusPill>{agent.status}</RootStatusPill>
-                    <RootStatusPill>{agent.approval_policy}</RootStatusPill>
-                    <RootStatusPill>{agent.runtime_sensitive ? "runtime-sensitive" : "static"}</RootStatusPill>
-                    <RootStatusPill>{`p${agent.priority}`}</RootStatusPill>
+                    <OsStatusPill>{agent.status}</OsStatusPill>
+                    <OsStatusPill>{agent.approval_policy}</OsStatusPill>
+                    <OsStatusPill>{agent.runtime_sensitive ? "runtime-sensitive" : "static"}</OsStatusPill>
+                    <OsStatusPill>{`p${agent.priority}`}</OsStatusPill>
                   </div>
                   <div className={styles.goalMeta}>
                     <span>{agent.target_surface}</span>
@@ -313,7 +313,7 @@ export function AgentsClient({
                   className={styles.input}
                   value={form.target_surface}
                   onChange={(e) => setForm((current) => ({ ...current, target_surface: e.target.value }))}
-                  placeholder="/root/goals"
+                  placeholder="/os/goals"
                 />
               </label>
               <label className={styles.field}>
@@ -425,10 +425,10 @@ export function AgentsClient({
             {selectedAgent ? (
               <div className={styles.detail}>
                 <div className={styles.chipRow}>
-                  <RootStatusPill>{selectedAgent.business_scope}</RootStatusPill>
-                  <RootStatusPill>{selectedAgent.status}</RootStatusPill>
-                  <RootStatusPill>{selectedAgent.approval_policy}</RootStatusPill>
-                  <RootStatusPill>{selectedAgent.source}</RootStatusPill>
+                  <OsStatusPill>{selectedAgent.business_scope}</OsStatusPill>
+                  <OsStatusPill>{selectedAgent.status}</OsStatusPill>
+                  <OsStatusPill>{selectedAgent.approval_policy}</OsStatusPill>
+                  <OsStatusPill>{selectedAgent.source}</OsStatusPill>
                 </div>
                 <div className={styles.detailGrid}>
                   <div>

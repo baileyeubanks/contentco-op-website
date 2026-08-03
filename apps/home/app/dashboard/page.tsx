@@ -128,7 +128,7 @@ export default function RootDashboard() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/root/overview");
+      const res = await fetch("/api/os/overview");
       if (!res.ok) throw new Error(`${res.status}`);
       const data = await res.json();
       setContacts(data.contacts || []);
@@ -194,9 +194,9 @@ export default function RootDashboard() {
         </div>
         <div className="r-topright">
           <nav className="r-nav">
-            <Link href="/root/overview" className="r-navlink active">Overview</Link>
-            <Link href="/root/dispatch" className="r-navlink">Dispatch</Link>
-            <Link href="/root/quotes" className="r-navlink">Quotes</Link>
+            <Link href="/os/overview" className="r-navlink active">Overview</Link>
+            <Link href="/os/dispatch" className="r-navlink">Dispatch</Link>
+            <Link href="/os/quotes" className="r-navlink">Quotes</Link>
           </nav>
           <div className="r-bizgroup">
             {(["ALL", "ACS", "CC"] as BizFilter[]).map((b) => (
@@ -380,7 +380,7 @@ export default function RootDashboard() {
                     {fq.slice(0, 200).map((q) => (
                       <tr key={q.id}>
                         <td className="name-cell">
-                          <Link href={`/root/quotes/${q.id}`} className="accent-link">
+                          <Link href={`/os/quotes/${q.id}`} className="accent-link">
                             {q.quote_number || `Q-${q.id.slice(0, 6)}`}
                           </Link>
                         </td>
@@ -449,7 +449,7 @@ export default function RootDashboard() {
             <div className="r-table-footer">
               <span>{Math.min(activeCount, 200)} of {activeCount} {tab}</span>
               {tab === "quotes" && (
-                <Link href="/root/quotes/new" className="accent-link upper">+ new quote</Link>
+                <Link href="/os/quotes/new" className="accent-link upper">+ new quote</Link>
               )}
             </div>
           </div>

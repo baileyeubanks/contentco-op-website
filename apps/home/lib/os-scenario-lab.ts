@@ -1,6 +1,6 @@
 import { access, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { getRootRuntimeSnapshot, type RootRuntimeSnapshot } from "@/lib/root-system";
+import { getRootRuntimeSnapshot, type RootRuntimeSnapshot } from "@/lib/os-system";
 
 export type ScenarioStageStatus = "clear" | "attention" | "blocked";
 export type ScenarioTone = "healthy" | "attention" | "critical" | "exploratory";
@@ -153,7 +153,7 @@ const TOPOLOGY_NODES: ScenarioTopologyNode[] = [
     id: "api.briefs",
     label: "Brief Submit API",
     lane: "api",
-    description: "Normalizes payload, persists creative brief rows, and emits the ROOT handoff envelope.",
+    description: "Normalizes payload, persists creative brief rows, and emits the CCO OS handoff envelope.",
     repo: "contentco-op/monorepo",
     path: "apps/home/app/api/briefs/route.ts",
   },
@@ -169,7 +169,7 @@ const TOPOLOGY_NODES: ScenarioTopologyNode[] = [
     id: "data.creative_briefs",
     label: "creative_briefs",
     lane: "data",
-    description: "Live stored public intake record before ROOT-owned follow-through.",
+    description: "Live stored public intake record before CCO OS-owned follow-through.",
     repo: "supabase",
     path: "public.creative_briefs",
   },
@@ -177,17 +177,17 @@ const TOPOLOGY_NODES: ScenarioTopologyNode[] = [
     id: "data.events",
     label: "events bridge",
     lane: "data",
-    description: "Versioned handoff payload into ROOT-managed operations and downstream automation.",
+    description: "Versioned handoff payload into CCO OS-managed operations and downstream automation.",
     repo: "supabase",
     path: "public.events",
   },
   {
     id: "control.root",
-    label: "ROOT control plane",
+    label: "CCO OS control plane",
     lane: "control",
     description: "Operational state, ownership, review, and approval-aware follow-through.",
     repo: "root",
-    path: "ROOT workspace",
+    path: "CCO OS workspace",
   },
   {
     id: "control.claims",
@@ -222,7 +222,7 @@ const TOPOLOGY_EDGES: ScenarioTopologyEdge[] = [
   { id: "flow.brief_to_api", from: "public.brief", to: "api.briefs", label: "submit" },
   { id: "flow.api_to_briefs", from: "api.briefs", to: "data.creative_briefs", label: "persist row" },
   { id: "flow.api_to_events", from: "api.briefs", to: "data.events", label: "emit handoff" },
-  { id: "flow.events_to_root", from: "data.events", to: "control.root", label: "ROOT intake" },
+  { id: "flow.events_to_root", from: "data.events", to: "control.root", label: "CCO OS intake" },
   { id: "flow.root_to_claims", from: "control.root", to: "control.claims", label: "assign ownership" },
   { id: "flow.health_to_audit", from: "api.health", to: "ops.audit", label: "readiness signal" },
   { id: "flow.audit_to_workflow", from: "ops.audit", to: "ops.workflow", label: "operator summary" },
@@ -299,7 +299,7 @@ const TOUCHPOINT_SPECS: TouchpointSpec[] = [
 
 const MUTATION_BACKLOG = [
   "Supabase connectivity drops during /brief submission.",
-  "events bridge writes succeed but ROOT follow-through lags behind document generation.",
+  "events bridge writes succeed but CCO OS follow-through lags behind document generation.",
   "duplicate /book and /brief submissions from the same contact race within one minute.",
   "auth callback degrades while the public login route still renders normally.",
   "portfolio media stays reachable locally but remote media URL returns a slow 403 or timeout.",
@@ -389,7 +389,7 @@ async function readWorkflowStages(repoRoot: string | null): Promise<WorkflowStag
     {
       id: "intake_handoff",
       label: "Brief and handoff readiness",
-      owner: "CCO HOME + ROOT",
+      owner: "CCO HOME + CCO OS",
       status: "attention",
       summary: "Workflow artifact missing. Intake readiness is not currently materialized here.",
       nextAction: "Run the intake audit and regenerate the workflow artifact.",
@@ -438,7 +438,7 @@ function buildScenarioDefinitions(workflow: WorkflowStageRecord[]): ScenarioDefi
       label: "Brief happy path",
       category: "happy_path",
       tone: "healthy",
-      description: "Show the normal flow from public brief submission into ROOT-managed review and ops reporting.",
+      description: "Show the normal flow from public brief submission into CCO OS-managed review and ops reporting.",
       goal: "Make the standard intake-to-ops path visible end to end.",
       stageCoverage: ["public_funnel", "intake_handoff", "ops_guardrails"],
       mutations: ["Same payload with a tighter deadline", "Same payload with book intent attached"],
@@ -469,8 +469,8 @@ function buildScenarioDefinitions(workflow: WorkflowStageRecord[]): ScenarioDefi
         },
         {
           id: "emit-handoff",
-          label: "ROOT handoff is emitted",
-          detail: "The richer handoff envelope goes into the events bridge for ROOT follow-through.",
+          label: "CCO OS handoff is emitted",
+          detail: "The richer handoff envelope goes into the events bridge for CCO OS follow-through.",
           focusNodeIds: ["data.events", "control.root"],
           focusEdgeIds: ["flow.api_to_events", "flow.events_to_root"],
           fileIds: ["file.intake_audit"],
@@ -518,7 +518,7 @@ function buildScenarioDefinitions(workflow: WorkflowStageRecord[]): ScenarioDefi
         },
         {
           id: "merge-intent",
-          label: "ROOT dedupes into one operational record",
+          label: "CCO OS dedupes into one operational record",
           detail: "Instead of parallel follow-through, the system collapses them into one review-ready intake state.",
           focusNodeIds: ["data.events", "control.root", "control.claims"],
           focusEdgeIds: ["flow.events_to_root", "flow.root_to_claims"],
@@ -571,7 +571,7 @@ function buildScenarioDefinitions(workflow: WorkflowStageRecord[]): ScenarioDefi
       description: "Visualize the failure mode where the public brief persists but the downstream events handoff degrades.",
       goal: "Show why the system needs explicit intake failure handling and not just successful page rendering.",
       stageCoverage: ["intake_handoff", "ops_guardrails"],
-      mutations: ["Supabase event bridge insert fails", "Envelope schema version drifts", "ROOT target unavailable"],
+      mutations: ["Supabase event bridge insert fails", "Envelope schema version drifts", "CCO OS target unavailable"],
       steps: [
         {
           id: "public-capture",
@@ -584,7 +584,7 @@ function buildScenarioDefinitions(workflow: WorkflowStageRecord[]): ScenarioDefi
         {
           id: "handoff-breaks",
           label: "Events bridge fails",
-          detail: "The versioned ROOT handoff is missing or malformed, so follow-through no longer has a trustworthy downstream trigger.",
+          detail: "The versioned CCO OS handoff is missing or malformed, so follow-through no longer has a trustworthy downstream trigger.",
           focusNodeIds: ["data.events"],
           focusEdgeIds: ["flow.api_to_events"],
           fileIds: ["file.intake_audit", "file.brief_lib"],

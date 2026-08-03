@@ -1,10 +1,10 @@
 /**
- * ROOT Contacts Engine — Attio-pattern contacts, companies, relationships, timeline, lead scoring.
+ * CCO OS Contacts Engine — Attio-pattern contacts, companies, relationships, timeline, lead scoring.
  */
 
 import { getSupabase } from "@/lib/supabase";
-import { emitTypedEvent } from "@/lib/root-event-log";
-import type { RootBusinessScope } from "@/lib/root-request-scope";
+import { emitTypedEvent } from "@/lib/os-event-log";
+import type { RootBusinessScope } from "@/lib/os-request-scope";
 
 // ─── Companies ───
 

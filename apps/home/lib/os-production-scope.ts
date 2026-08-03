@@ -1,5 +1,5 @@
-import type { CanonicalEstimateLineItem } from "@/lib/root-estimates";
-import { calculateEstimateTotals, roundCurrencyCents } from "@/lib/root-estimates";
+import type { CanonicalEstimateLineItem } from "@/lib/os-estimates";
+import { calculateEstimateTotals, roundCurrencyCents } from "@/lib/os-estimates";
 
 export type ProductionScopeBucket =
   | "production_labor"

@@ -1,11 +1,11 @@
 import { headers } from "next/headers";
-import { CreativeWorkspacePage } from "@/app/root/components/creative-workspace-page";
-import { getRootMarketingExecutionSnapshot, getRootMarketingProofSnapshot } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { CreativeWorkspacePage } from "@/app/os/components/creative-workspace-page";
+import { getRootMarketingExecutionSnapshot, getRootMarketingProofSnapshot } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 export default async function RootCoDeliverPage() {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const execution = await getRootMarketingExecutionSnapshot(brand.key);
   const proof = await getRootMarketingProofSnapshot(brand.key);
   const featuredDelivery = {
@@ -54,14 +54,14 @@ export default async function RootCoDeliverPage() {
       meta={[
         { label: "workspace", value: brand.key.toUpperCase(), tone: "accent" },
         { label: "product", value: "co-deliver", tone: "accent" },
-        { label: "authority", value: "ROOT-native bridge" },
+        { label: "authority", value: "CCO OS-native bridge" },
         { label: "canonical app", value: "deliver.contentco-op.com", tone: "accent" },
         { label: "legacy alias", value: "co-deliver.contentco-op.com", tone: "warn" },
         { label: "featured handoff", value: "Accurate Meter x LEAD", tone: "accent" },
       ]}
       actions={[
-        { label: "proof board", href: "/root/marketing/proof", tone: "secondary" },
-        { label: "delivery board", href: "/root/marketing/execution", tone: "secondary" },
+        { label: "proof board", href: "/os/marketing/proof", tone: "secondary" },
+        { label: "delivery board", href: "/os/marketing/execution", tone: "secondary" },
         { label: "open co-deliver", href: "https://deliver.contentco-op.com", tone: "primary" },
       ]}
       metrics={[

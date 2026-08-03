@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { readCanonicalInvoicePdf } from "@/lib/root-document-authority";
-import { getRootInvoiceDetail } from "@/lib/root-data";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { readCanonicalInvoicePdf } from "@/lib/os-document-authority";
+import { getRootInvoiceDetail } from "@/lib/os-data";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 export async function GET(
   req: Request,

@@ -2,11 +2,11 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { CopyLinkButton } from "@/app/root/components/copy-link-button";
-import { GeneratePayLinkButton } from "@/app/root/components/generate-pay-link-button";
-import { InvoiceDetailActions } from "@/app/root/components/invoice-detail-actions";
-import { getRootInvoiceDetail } from "@/lib/root-data";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { CopyLinkButton } from "@/app/os/components/copy-link-button";
+import { GeneratePayLinkButton } from "@/app/os/components/generate-pay-link-button";
+import { InvoiceDetailActions } from "@/app/os/components/invoice-detail-actions";
+import { getRootInvoiceDetail } from "@/lib/os-data";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 function formatMoney(value: number | null | undefined) {
   return Number(value || 0).toLocaleString("en-US", {
@@ -56,7 +56,7 @@ export default async function RootInvoiceDetailPage({
 }) {
   const { id } = await params;
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const origin = absoluteOriginFromHeaders(headerStore);
   const detail = await getRootInvoiceDetail(id, brand.defaultBusinessUnit as "ACS" | "CC");
 
@@ -65,8 +65,8 @@ export default async function RootInvoiceDetailPage({
   }
 
   const invoice = detail.invoice;
-  const previewUrl = `${origin}/api/root/invoices/${invoice.id}/preview`;
-  const pdfUrl = `${origin}/api/root/invoices/${invoice.id}/pdf`;
+  const previewUrl = `${origin}/api/os/invoices/${invoice.id}/preview`;
+  const pdfUrl = `${origin}/api/os/invoices/${invoice.id}/pdf`;
   const sharePageUrl = `${origin}/share/invoice/${invoice.id}`;
   const payLinkUrl = invoice.stripe_payment_link || "";
   const shareLinkUrl = payLinkUrl || sharePageUrl;
@@ -117,7 +117,7 @@ export default async function RootInvoiceDetailPage({
 
         <div style={actionRailStyle}>
           <div style={actionGroupStyle}>
-            <Link href="/root/invoices" className="root-atlas-button root-atlas-button-secondary">back to invoices</Link>
+            <Link href="/os/invoices" className="root-atlas-button root-atlas-button-secondary">back to invoices</Link>
             <a href={previewUrl} target="_blank" rel="noreferrer" className="root-atlas-button root-atlas-button-secondary">preview</a>
             <a href={pdfUrl} target="_blank" rel="noreferrer" className="root-atlas-button root-atlas-button-primary">export pdf</a>
           </div>
@@ -147,7 +147,7 @@ export default async function RootInvoiceDetailPage({
               <a href={sendMailHref} className="root-atlas-button root-atlas-button-secondary">send / resend</a>
             ) : null}
             {invoice.source_quote?.id ? (
-              <Link href={`/root/quotes/${invoice.source_quote.id}`} className="root-atlas-button root-atlas-button-secondary">open source quote</Link>
+              <Link href={`/os/quotes/${invoice.source_quote.id}`} className="root-atlas-button root-atlas-button-secondary">open source quote</Link>
             ) : null}
           </div>
         </div>
@@ -321,7 +321,7 @@ function MetricCard({
   const color =
     tone === "success" ? "#9ce7ba" :
     tone === "warn" ? "#f3c778" :
-    tone === "accent" ? "var(--root-accent)" :
+    tone === "accent" ? "var(--os-accent)" :
     "var(--root-ink, var(--ink))";
 
   return (
@@ -399,7 +399,7 @@ const kickerStyle: CSSProperties = {
   fontWeight: 700,
   letterSpacing: "0.16em",
   textTransform: "uppercase",
-  color: "var(--root-accent)",
+  color: "var(--os-accent)",
 };
 
 const titleStyle: CSSProperties = {
@@ -440,7 +440,7 @@ const chipStyle: CSSProperties = {
 
 const chipToneStyles: Record<string, CSSProperties> = {
   default: { color: "var(--root-ink, var(--ink))" },
-  accent: { color: "var(--root-accent)", borderColor: `${G}0.18)` },
+  accent: { color: "var(--os-accent)", borderColor: `${G}0.18)` },
   warn: { color: "#f3c778", borderColor: "rgba(243,199,120,0.2)" },
   success: { color: "#9ce7ba", borderColor: "rgba(156,231,186,0.2)" },
 };

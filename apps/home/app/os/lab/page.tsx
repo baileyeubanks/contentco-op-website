@@ -1,4 +1,4 @@
-import { getRootScenarioLabSnapshot } from "@/lib/root-scenario-lab";
+import { getRootScenarioLabSnapshot } from "@/lib/os-scenario-lab";
 import { RootScenarioLab } from "./scenario-lab";
 
 export default async function RootLabPage() {

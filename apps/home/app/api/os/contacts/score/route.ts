@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { batchComputeLeadScores, computeLeadScore } from "@/lib/root-contacts-engine";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { batchComputeLeadScores, computeLeadScore } from "@/lib/os-contacts-engine";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));

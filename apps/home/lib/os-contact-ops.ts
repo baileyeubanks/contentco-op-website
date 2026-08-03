@@ -1,10 +1,10 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { getRootContacts } from "@/lib/root-data";
-import { batchComputeLeadScores, computeLeadScore, mergeContacts } from "@/lib/root-contacts-engine";
-import { emitTypedEvent } from "@/lib/root-event-log";
+import { getRootContacts } from "@/lib/os-data";
+import { batchComputeLeadScores, computeLeadScore, mergeContacts } from "@/lib/os-contacts-engine";
+import { emitTypedEvent } from "@/lib/os-event-log";
 import { getSupabase } from "@/lib/supabase";
-import type { RootBusinessScope } from "@/lib/root-request-scope";
+import type { RootBusinessScope } from "@/lib/os-request-scope";
 
 const execFileAsync = promisify(execFile);
 

@@ -1,5 +1,5 @@
 /**
- * ROOT Ontology Permissions — CRUD permission matrix per object type per role.
+ * CCO OS Ontology Permissions — CRUD permission matrix per object type per role.
  */
 
 export type OntologyObjectType =

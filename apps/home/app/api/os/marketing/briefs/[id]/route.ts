@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { getRootMarketingBriefDetail } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { getRootMarketingBriefDetail } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -10,7 +10,7 @@ interface Props {
 export async function GET(_request: Request, { params }: Props) {
   const { id } = await params;
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const detail = await getRootMarketingBriefDetail(brand.key, id);
 
   if (!detail) {

@@ -1,4 +1,4 @@
-export function RootStateCallout({
+export function OsStateCallout({
   tone = "default",
   title,
   detail,

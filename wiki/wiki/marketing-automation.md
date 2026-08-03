@@ -22,10 +22,10 @@ Campaigns are marketing initiatives with associated contacts and performance tra
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| GET | `/api/root/campaigns` | Campaigns list |
-| GET | `/api/root/campaigns/[id]` | Campaign detail |
-| GET | `/api/root/campaigns/[id]/contacts` | Campaign contacts |
-| GET | `/api/root/campaigns/[id]/performance` | Campaign metrics |
+| GET | `/api/os/campaigns` | Campaigns list |
+| GET | `/api/os/campaigns/[id]` | Campaign detail |
+| GET | `/api/os/campaigns/[id]/contacts` | Campaign contacts |
+| GET | `/api/os/campaigns/[id]/performance` | Campaign metrics |
 
 ## Approvals
 
@@ -33,8 +33,8 @@ Content approvals route through a gated workflow:
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| GET | `/api/root/approvals` | Approvals list |
-| POST | `/api/root/approvals/[id]/decision` | Approve/reject |
+| GET | `/api/os/approvals` | Approvals list |
+| POST | `/api/os/approvals/[id]/decision` | Approve/reject |
 
 ## Automations
 
@@ -49,9 +49,9 @@ Declarative automation rules trigger actions based on events:
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| GET | `/api/root/automations` | Automations list |
-| GET | `/api/root/automations/[id]` | Automation detail |
-| POST | `/api/root/automations/[id]/test` | Test automation |
+| GET | `/api/os/automations` | Automations list |
+| GET | `/api/os/automations/[id]` | Automation detail |
+| POST | `/api/os/automations/[id]/test` | Test automation |
 
 ## Marketing Briefs
 
@@ -59,8 +59,8 @@ Marketing-specific briefs are tracked separately from creative briefs:
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| GET | `/api/root/marketing` | Marketing overview |
-| GET | `/api/root/marketing/briefs/[id]` | Marketing brief detail |
+| GET | `/api/os/marketing` | Marketing overview |
+| GET | `/api/os/marketing/briefs/[id]` | Marketing brief detail |
 
 ## Related
 

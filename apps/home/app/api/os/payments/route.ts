@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { getPaymentLedger, recordPayment } from "@/lib/root-payments-engine";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { getPaymentLedger, recordPayment } from "@/lib/os-payments-engine";
 
 export async function GET(req: Request) {
   const scope = getRootBusinessScopeFromRequest(req);

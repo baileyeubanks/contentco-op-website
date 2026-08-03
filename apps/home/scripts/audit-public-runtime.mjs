@@ -530,7 +530,7 @@ const htmlChecks = [
 const sourceFileChecks = [
   {
     label: "proposal email contact copy",
-    file: "app/api/root/marketing/briefs/[id]/send/route.ts",
+    file: "app/api/os/marketing/briefs/[id]/send/route.ts",
     required: ["501-351-5927", "Houston, TX"],
     forbidden: ["(312) 555-0199", "Chicago, IL"],
   },

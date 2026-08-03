@@ -9,9 +9,10 @@ export default function robots(): MetadataRoute.Robots {
         allow: ["/", "/portfolio", "/portfolio/", "/brief", "/book", "/suite", "/privacy", "/terms"],
         disallow: [
           "/api/",
+          "/admin",
           "/brandcenter",
           "/brandcentral",
-          "/root/",
+          "/os/",
           "/dashboard/",
           "/client/",
           "/share/",

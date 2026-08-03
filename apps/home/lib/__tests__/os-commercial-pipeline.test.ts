@@ -1,13 +1,13 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "vitest";
-import { buildEstimateDraftFromBrief } from "../root-production-scope";
+import { buildEstimateDraftFromBrief } from "../os-production-scope";
 import {
   canRecordEstimateDecision,
   determineWorkflowStatusFromCommercialState,
   isReadyToSchedule,
-} from "../root-estimates";
-import { buildDocumentArtifactRows } from "../root-document-artifacts";
+} from "../os-estimates";
+import { buildDocumentArtifactRows } from "../os-document-artifacts";
 
 const sampleBrief = {
   structured_intake: {

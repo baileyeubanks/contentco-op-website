@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { createDeliverable, updateDeliverableStatus } from "@/lib/root-projects-engine";
+import { createDeliverable, updateDeliverableStatus } from "@/lib/os-projects-engine";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

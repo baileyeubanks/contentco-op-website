@@ -6,7 +6,7 @@ import {
   importRootContactsFromSheet,
   type RootContactImportScope,
   type RootContactImportSource,
-} from "@/lib/root-contact-ops";
+} from "@/lib/os-contact-ops";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

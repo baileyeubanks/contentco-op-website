@@ -1,5 +1,5 @@
 /**
- * Stripe client — payment link generation for ROOT invoices
+ * Stripe client — payment link generation for CCO OS invoices
  *
  * Add STRIPE_SECRET_KEY to .env.local to enable.
  * Add NEXT_PUBLIC_APP_URL for proper redirect URLs.

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy, recordAuditEvent } from "@/lib/platform-access";
-import { decideEstimateApprovalGate, requestEstimateApprovalGate } from "@/lib/root-commercial-pipeline";
+import { decideEstimateApprovalGate, requestEstimateApprovalGate } from "@/lib/os-commercial-pipeline";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const access = await enforceRoutePolicy(

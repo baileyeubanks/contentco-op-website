@@ -71,7 +71,7 @@ The aspirational AI proposal flow:
 3. **Proposal rendered**: Chicago/NY agency-style proposal page
 4. **Client reviews proposal** at `/client/quote/{id}`
 5. **Stripe deposit**: 50% deposit to lock project
-6. **Admin review gate**: ROOT admin reviews (accept/modify/reject)
+6. **Admin review gate**: CCO OS admin reviews (accept/modify/reject)
 7. **User notification**: Email on admin decision
 8. **Calendar reservation**: Auto-booked on deposit
 

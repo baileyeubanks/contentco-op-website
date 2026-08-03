@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { createInvoicePaymentLink, isStripeConfigured } from "@/lib/stripe";
-import { emitTypedEvent } from "@/lib/root-event-log";
+import { emitTypedEvent } from "@/lib/os-event-log";
 
 /**
- * POST /api/root/invoices/[id]/pay-link
+ * POST /api/os/invoices/[id]/pay-link
  * Generate a Stripe payment link for this invoice and store it.
  */
 export async function POST(

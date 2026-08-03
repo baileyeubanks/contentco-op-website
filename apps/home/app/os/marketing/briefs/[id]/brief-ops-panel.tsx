@@ -26,10 +26,10 @@ export function BriefOpsPanel({
       }
       const quoteId = data?.quote?.id;
       if (quoteId) {
-        window.location.href = `/root/quotes/${quoteId}`;
+        window.location.href = `/os/quotes/${quoteId}`;
         return;
       }
-      window.location.href = "/root/quotes";
+      window.location.href = "/os/quotes";
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "quote_draft_failed");
     } finally {
@@ -52,7 +52,7 @@ export function BriefOpsPanel({
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
         {existingQuoteId ? (
-          <a href={`/root/quotes/${existingQuoteId}`} className="root-atlas-button root-atlas-button-secondary">
+          <a href={`/os/quotes/${existingQuoteId}`} className="root-atlas-button root-atlas-button-secondary">
             open latest draft
           </a>
         ) : null}

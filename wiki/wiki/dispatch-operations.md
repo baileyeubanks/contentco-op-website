@@ -32,19 +32,19 @@ interface WorkClaim {
 End-of-shift reports that capture completed work, blockers, and next steps. Stored in `daily_handoffs`.
 
 ### Dispatch Jobs
-Active assignments for crew members. Viewed at `/root/dispatch`.
+Active assignments for crew members. Viewed at `/os/dispatch`.
 
 ## API Endpoints
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| GET | `/api/root/dispatch/jobs` | Dispatch jobs list |
-| GET | `/api/root/handoffs` | Handoffs data |
-| GET | `/api/root/work-claims` | Work claims list |
-| POST | `/api/root/work-claims/[id]/release` | Release work claim |
-| GET | `/api/root/projects` | Projects list |
-| GET | `/api/root/projects/[id]` | Project detail |
-| GET | `/api/root/projects/[id]/deliverables` | Project deliverables |
+| GET | `/api/os/dispatch/jobs` | Dispatch jobs list |
+| GET | `/api/os/handoffs` | Handoffs data |
+| GET | `/api/os/work-claims` | Work claims list |
+| POST | `/api/os/work-claims/[id]/release` | Release work claim |
+| GET | `/api/os/projects` | Projects list |
+| GET | `/api/os/projects/[id]` | Project detail |
+| GET | `/api/os/projects/[id]/deliverables` | Project deliverables |
 | GET | `/api/operations/dispatch` | Operations dispatch data |
 | GET | `/api/operations/crew` | Crew data |
 | POST | `/api/operations/crew/override` | Crew override |

@@ -6,7 +6,7 @@ const OUTPUT_PATH = "/Users/baileyeubanks/Desktop/Projects/BLAZE_SYSTEM_STATE.ht
 
 async function main() {
   const snapshot = await buildSystemMapSnapshot({
-    host: "root.contentco-op.com",
+    host: "admin.contentco-op.com",
     brandHint: "cc",
   });
   const html = renderSystemMapHtml(snapshot);

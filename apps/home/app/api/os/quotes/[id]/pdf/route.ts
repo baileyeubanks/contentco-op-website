@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { readCanonicalQuotePdf } from "@/lib/root-document-authority";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { readCanonicalQuotePdf } from "@/lib/os-document-authority";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 export async function GET(
   req: Request,

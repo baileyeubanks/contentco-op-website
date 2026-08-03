@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 import { getSupabase } from "@/lib/supabase";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { getRootCatalogSuggestions } from "@/lib/root-catalog";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { getRootCatalogSuggestions } from "@/lib/os-catalog";
 
 function deriveDocumentReadiness(
   quote: Record<string, unknown>,
@@ -64,8 +64,8 @@ export async function GET(req: Request) {
 
   const quotes = (data || []).map((quote) => {
     const itemCount = Array.isArray(quote.quote_items) ? quote.quote_items.length : 0;
-    const previewUrl = `/api/root/quotes/${quote.id}/preview`;
-    const pdfUrl = `/api/root/quotes/${quote.id}/pdf`;
+    const previewUrl = `/api/os/quotes/${quote.id}/preview`;
+    const pdfUrl = `/api/os/quotes/${quote.id}/pdf`;
     const documentReadiness = deriveDocumentReadiness(quote, itemCount);
     const nextAction = deriveNextAction(quote, itemCount);
     const businessUnit = String(quote.business_unit || "").trim().toUpperCase() || null;

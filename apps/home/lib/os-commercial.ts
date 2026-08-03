@@ -68,7 +68,7 @@ function mergeBuyerIntoPayload(
       ? (nextPayload.source_context as Record<string, unknown>)
       : {}),
     business_unit: input.businessUnit,
-    origin: "root_operator_quote",
+    origin: "os_operator_quote",
   };
 
   return nextPayload;

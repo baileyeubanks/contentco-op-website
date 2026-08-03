@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getRootContacts } from "@/lib/root-data";
-import { listRootContactImports } from "@/lib/root-contact-ops";
-import { getRootBusinessScopeFromRequest, type RootBusinessScope } from "@/lib/root-request-scope";
+import { getRootContacts } from "@/lib/os-data";
+import { listRootContactImports } from "@/lib/os-contact-ops";
+import { getRootBusinessScopeFromRequest, type RootBusinessScope } from "@/lib/os-request-scope";
 
 function parseScope(value: string | null): RootBusinessScope {
   const normalized = String(value || "").trim().toUpperCase();

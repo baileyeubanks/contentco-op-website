@@ -6,5 +6,5 @@ export default async function RootInvoicePrintRedirectPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  redirect(`/api/root/invoices/${id}/preview`);
+  redirect(`/api/os/invoices/${id}/preview`);
 }

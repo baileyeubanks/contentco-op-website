@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { testAutomationRule } from "@/lib/root-automation-engine";
+import { testAutomationRule } from "@/lib/os-automation-engine";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

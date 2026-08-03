@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { getCompanies, createCompany } from "@/lib/root-contacts-engine";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { getCompanies, createCompany } from "@/lib/os-contacts-engine";
 
 export async function GET(req: Request) {
   const scope = getRootBusinessScopeFromRequest(req);

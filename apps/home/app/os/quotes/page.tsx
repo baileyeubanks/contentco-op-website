@@ -153,7 +153,7 @@ function QuotesPageInner() {
     if (showSpinner) setLoading(true);
 
     try {
-      const response = await fetch("/api/root/quotes?limit=200");
+      const response = await fetch("/api/os/quotes?limit=200");
       const data = await response.json().catch(() => ({}));
       const raw = Array.isArray(data.quotes) ? (data.quotes as Quote[]) : [];
       setAllQuotes(raw.map((quote) => ({ ...quote, display_status: deriveStatus(quote) })));
@@ -230,10 +230,10 @@ function QuotesPageInner() {
   function handleRowAction(action: string, row: Quote) {
     switch (action) {
       case "view":
-        router.push(`/root/quotes/${row.id}`);
+        router.push(`/os/quotes/${row.id}`);
         break;
       case "email":
-        router.push(`/root/quotes/${row.id}`);
+        router.push(`/os/quotes/${row.id}`);
         break;
       case "copy_link":
         navigator.clipboard?.writeText(`${window.location.origin}/share/quote/${row.id}`);
@@ -241,18 +241,18 @@ function QuotesPageInner() {
       case "convert":
         void fetch(`/api/quotes/${row.id}/convert`, { method: "POST" })
           .then((r) => r.json())
-          .then((d) => d.invoice?.id && router.push(`/root/invoices/${d.invoice.id}`));
+          .then((d) => d.invoice?.id && router.push(`/os/invoices/${d.invoice.id}`));
         break;
       case "duplicate":
         void (async () => {
           setLoading(true);
-          await fetch(`/api/root/quotes/${row.id}/duplicate`, { method: "POST" });
+          await fetch(`/api/os/quotes/${row.id}/duplicate`, { method: "POST" });
           await fetchQuotes(false);
         })();
         break;
       case "delete":
         if (confirm(`Delete quote ${row.quote_number}?`))
-          void fetch(`/api/root/quotes/${row.id}`, { method: "DELETE" })
+          void fetch(`/api/os/quotes/${row.id}`, { method: "DELETE" })
             .then(() => setAllQuotes((q) => q.filter((x) => x.id !== row.id)));
         break;
     }
@@ -355,7 +355,7 @@ function QuotesPageInner() {
       title="Quotes"
       subtitle={`${allQuotes.length} total quotes across all business units`}
       actions={
-        <Link href="/root/quotes/new">
+        <Link href="/os/quotes/new">
           <Button variant="primary">+ New Quote</Button>
         </Link>
       }
@@ -486,7 +486,7 @@ function QuotesPageInner() {
         <DataTable<Quote>
           columns={columns}
           data={pageData}
-          onRowClick={(row) => router.push(`/root/quotes/${row.id}`)}
+          onRowClick={(row) => router.push(`/os/quotes/${row.id}`)}
           emptyMessage="No quotes match the current filters."
           loading={loading}
         />
@@ -555,7 +555,7 @@ function QuotesPageInner() {
         actions={
           <>
             <a
-              href={pdpId ? `/api/root/quotes/${pdpId}/pdf` : "#"}
+              href={pdpId ? `/api/os/quotes/${pdpId}/pdf` : "#"}
               target="_blank"
               rel="noreferrer"
             >
@@ -567,7 +567,7 @@ function QuotesPageInner() {
       >
         {pdpId && (
           <iframe
-            src={`/api/root/quotes/${pdpId}/preview`}
+            src={`/api/os/quotes/${pdpId}/preview`}
             className="w-full border-0"
             style={{ height: "500px" }}
           />

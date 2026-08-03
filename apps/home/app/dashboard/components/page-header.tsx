@@ -163,7 +163,7 @@ const primaryBtnStyle: React.CSSProperties = {
   alignItems: "center",
   padding: "8px 18px",
   borderRadius: 8,
-  background: "var(--root-accent, #4ade80)",
+  background: "var(--os-accent, #4ade80)",
   color: "#0a1628",
   fontSize: "0.82rem",
   fontWeight: 700,

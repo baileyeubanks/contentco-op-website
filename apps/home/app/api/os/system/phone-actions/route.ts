@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { isAdvancedRootOperatorForHost } from "@/lib/root-auth";
-import { logRootAuditEvent } from "@/lib/root-event-log";
+import { isAdvancedRootOperatorForHost } from "@/lib/os-auth";
+import { logRootAuditEvent } from "@/lib/os-event-log";
 import { verifyInviteSession } from "@/lib/session";
 import { getSessionCookieName } from "@/lib/session-shared";
 
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
         type: "root_phone_action_failed",
         host,
         email: session.email,
-        text: `ROOT phone ${kind} action failed`,
+        text: `CCO OS phone ${kind} action failed`,
         payload: {
           kind,
           endpoint,
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       type: "root_phone_action_created",
       host,
       email: session.email,
-      text: `ROOT phone ${kind} action queued`,
+      text: `CCO OS phone ${kind} action queued`,
       payload: {
         kind,
         endpoint,
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
       type: "root_phone_action_failed",
       host,
       email: session.email,
-      text: `ROOT phone ${kind} action failed`,
+      text: `CCO OS phone ${kind} action failed`,
       payload: {
         kind,
         endpoint,

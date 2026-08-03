@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
-import { resolveRootAuthorityForHost } from "@/lib/root-auth";
-import { getEventCategory, type RootEventType } from "@/lib/root-event-taxonomy";
+import { resolveRootAuthorityForHost } from "@/lib/os-auth";
+import { getEventCategory, type RootEventType } from "@/lib/os-event-taxonomy";
 
 type EventObjectType =
   | "contact"

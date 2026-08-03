@@ -1,15 +1,15 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildRootOverviewReadModel } from "../root-overview";
-import { resolveRootBrand } from "../root-brand";
+import { buildRootOverviewReadModel } from "../os-overview";
+import { resolveOsBrand } from "../os-brand";
 import {
   getPublishAlignmentReport,
   type RuntimeCertificationCheck,
   type RuntimeCertificationReport,
-} from "../root-runtime-certification";
-import { getRootIntelligenceSnapshot } from "../root-intelligence";
-import { getRootRuntimeSnapshot, type RootRuntimeSnapshot } from "../root-system";
+} from "../os-runtime-certification";
+import { getRootIntelligenceSnapshot } from "../os-intelligence";
+import { getRootRuntimeSnapshot, type RootRuntimeSnapshot } from "../os-system";
 import {
   collectAcsPublicRuntimeAudit,
   collectCcoPublicDomainAudit,
@@ -204,7 +204,7 @@ function baseSourceRefs() {
       "Root Module Registry",
       ROOT_MODULE_REGISTRY_PATH,
       "canonical",
-      "Internal ROOT surface registry and navigation contract.",
+      "Internal CCO OS surface registry and navigation contract.",
     ),
   ];
 }
@@ -230,7 +230,7 @@ function createFallbackRuntimeSnapshot(
   options: BuildSystemMapSnapshotOptions,
   error: string | null,
 ): RootRuntimeSnapshot {
-  const brand = resolveRootBrand(options.host || null, options.brandHint || null);
+  const brand = resolveOsBrand(options.host || null, options.brandHint || null);
   const warning = error || "runtime_snapshot_unavailable";
   const fallbackBlazeOperator: RootRuntimeSnapshot["blaze_operator"] = {
     status: "missing",
@@ -472,7 +472,7 @@ function buildRuntimeChecks(args: {
     createCheck({
       id: "root-runtime:m4-authority",
       group: "runtime",
-      label: "ROOT runtime authority",
+      label: "CCO OS runtime authority",
       status:
         args.runtime.machine.runtime === "M4" && args.normalizedRuntime.machinePublicApps === "M4"
           ? "healthy"
@@ -500,13 +500,13 @@ function buildRuntimeChecks(args: {
     createCheck({
       id: "root-runtime:overview",
       group: "runtime",
-      label: "ROOT overview diagnostics",
+      label: "CCO OS overview diagnostics",
       status: overviewCheckStatus,
       detail:
         args.overviewStatus === "healthy"
           ? "Overview read model is responding within the current runtime window."
           : `Overview diagnostics reported ${args.overviewStatus}.`,
-      source: "/api/root/overview",
+      source: "/api/os/overview",
     }),
     createCheck({
       id: "root-runtime:imessage",
@@ -580,7 +580,7 @@ function buildNetworkChecks(networkIncident: NetworkIncidentPack | null): System
 }
 
 function artifactHref(id: string) {
-  return `/api/root/network-continuity/${id}`;
+  return `/api/os/network-continuity/${id}`;
 }
 
 function buildNodeSourceRefs(input: {
@@ -639,7 +639,7 @@ function createSystemEdges(): SystemMapEdge[] {
     { id: "authority-root-paperclip", from: "root", to: "paperclip", flowType: "support", status: "canonical", label: "bounded orchestration", direction: "one_way" },
     { id: "publish-m2-m4", from: "m2", to: "m4", flowType: "publish", status: "healthy", label: "intentional push to M4", direction: "one_way" },
     { id: "publish-m4-cco", from: "m4", to: "cco-home", flowType: "publish", status: "healthy", label: "public home publish", direction: "one_way" },
-    { id: "publish-m4-root", from: "m4", to: "root-mount", flowType: "publish", status: "healthy", label: "shared ROOT mount publish", direction: "one_way" },
+    { id: "publish-m4-root", from: "m4", to: "root-mount", flowType: "publish", status: "healthy", label: "shared CCO OS mount publish", direction: "one_way" },
     { id: "publish-m4-acs", from: "m4", to: "acs", flowType: "publish", status: "healthy", label: "ACS publish", direction: "one_way" },
     { id: "publish-m4-coscript", from: "m4", to: "coscript", flowType: "publish", status: "healthy", label: "Co-Script publish", direction: "one_way" },
     { id: "publish-m4-cocut", from: "m4", to: "cocut", flowType: "publish", status: "healthy", label: "Co-Cut publish", direction: "one_way" },
@@ -789,7 +789,7 @@ async function buildSystemMapSnapshotUncached(
             label: "Overview collector",
             status: "attention",
             detail: overviewResult.error,
-            source: "/api/root/overview",
+            source: "/api/os/overview",
           }),
         ]
       : []),
@@ -875,7 +875,7 @@ async function buildSystemMapSnapshotUncached(
         sourceRefs: [
           ...baseSourceRefs(),
           makeSourceRef("Runtime Snapshot", ROOT_SYSTEM_SOURCE_LOCATION, statusFromChecks(runtimeChecks), "Root runtime and channel status."),
-          makeSourceRef("/root/system", "/root/system", "healthy", "Narrow runtime and ops console."),
+          makeSourceRef("/os/system", "/os/system", "healthy", "Narrow runtime and ops console."),
         ],
       },
       {
@@ -967,7 +967,7 @@ async function buildSystemMapSnapshotUncached(
       },
       {
         id: "root-mount",
-        label: "ROOT Mount",
+        label: "CCO OS Mount",
         kind: "surface" as const,
         status: mergeStatuses([
           statusFromChecks(rootMountChecks),
@@ -979,7 +979,7 @@ async function buildSystemMapSnapshotUncached(
         sourceRefs: buildSurfaceSourceRefs(
           surfaceLookup.get("root_control_plane"),
           receipts.get("root_control_plane") || null,
-          "/root/system",
+          "/os/system",
           mergeStatuses([
             statusFromChecks(rootMountChecks),
             statusFromChecks(runtimeAudit.checks),
@@ -1136,9 +1136,9 @@ async function buildSystemMapSnapshotUncached(
           overview.diagnostics.status === "healthy" ? "healthy" : overview.diagnostics.status === "slow" ? "attention" : "critical",
           `Overview diagnostics ${overview.diagnostics.status} · ${overview.diagnostics.totalMs}ms`,
           `Payload ${overview.diagnostics.payloadBytes} bytes.`,
-          "/root/overview",
+          "/os/overview",
           [
-            makeSourceRef("/api/root/overview", "/api/root/overview", overview.diagnostics.status === "healthy" ? "healthy" : "attention", "Current Root overview diagnostics."),
+            makeSourceRef("/api/os/overview", "/api/os/overview", overview.diagnostics.status === "healthy" ? "healthy" : "attention", "Current Root overview diagnostics."),
           ],
         ),
         buildPanelItem(
@@ -1176,7 +1176,7 @@ async function buildSystemMapSnapshotUncached(
       summary: "Live surface probes and M4/Coolify delivery contracts.",
       items: [
         buildPanelItem("surface-cco", "CCO HOME", nodeStatus("cco-home"), ccoDomainAudit.summary, "Domain and route probes for contentco-op.com.", "https://contentco-op.com", nodeSourceRefs("cco-home")),
-        buildPanelItem("surface-root", "ROOT mount", nodeStatus("root-mount"), runtimeAudit.summary, "Shared HOME runtime that serves the Root control plane.", "/root/system", nodeSourceRefs("root-mount")),
+        buildPanelItem("surface-root", "CCO OS mount", nodeStatus("root-mount"), runtimeAudit.summary, "Shared HOME runtime that serves the Root control plane.", "/os/system", nodeSourceRefs("root-mount")),
         buildPanelItem("surface-acs", "ACS", nodeStatus("acs"), acsAudit.summary, "ACS public runtime proof and communications route contract.", "https://astrocleanings.com", nodeSourceRefs("acs")),
         buildPanelItem("surface-coscript", "Co-Script", nodeStatus("coscript"), summarizeChecks(coscriptChecks), "Co-Script domain/runtime surface proof.", "https://co-script.contentco-op.com", nodeSourceRefs("coscript")),
         buildPanelItem("surface-cocut", "Co-Cut", nodeStatus("cocut"), summarizeChecks(cocutChecks), "Co-Cut domain/runtime surface proof.", "https://co-cut.contentco-op.com", nodeSourceRefs("cocut")),
@@ -1407,7 +1407,7 @@ async function buildSystemMapSnapshotUncached(
       id: "action-status-root",
       kind: "api",
       label: "Rerun status",
-      description: "Refresh the current ROOT runtime status report.",
+      description: "Refresh the current CCO OS runtime status report.",
       action: "status",
       scope: "root",
     },
@@ -1415,7 +1415,7 @@ async function buildSystemMapSnapshotUncached(
       id: "action-health-root",
       kind: "api",
       label: "Rerun health",
-      description: "Refresh the current ROOT health report.",
+      description: "Refresh the current CCO OS health report.",
       action: "health",
       scope: "root",
     },
@@ -1423,7 +1423,7 @@ async function buildSystemMapSnapshotUncached(
       id: "action-audit-root",
       kind: "api",
       label: "Rerun audit",
-      description: "Run the current ROOT audit report again.",
+      description: "Run the current CCO OS audit report again.",
       action: "audit",
       scope: "root",
     },
@@ -1463,15 +1463,15 @@ async function buildSystemMapSnapshotUncached(
       id: "action-open-system",
       kind: "link",
       label: "Open system console",
-      description: "Jump to the narrow ROOT system console for restart and log-tail actions.",
-      href: "/root/system",
+      description: "Jump to the narrow CCO OS system console for restart and log-tail actions.",
+      href: "/os/system",
     },
     {
       id: "action-open-overview",
       kind: "link",
       label: "Open overview",
       description: "Jump to the broader Root control-plane summary.",
-      href: "/root/overview",
+      href: "/os/overview",
     },
     {
       id: "action-open-incident-pack",

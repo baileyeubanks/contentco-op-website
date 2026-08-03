@@ -72,7 +72,7 @@ function FinancePageInner() {
 
   async function fetchFinance() {
     try {
-      const response = await fetch("/api/root/finance");
+      const response = await fetch("/api/os/finance");
       const data = await response.json().catch(() => ({}));
       setFinance(Array.isArray(data.finance) ? data.finance : []);
     } finally {
@@ -186,7 +186,7 @@ function FinancePageInner() {
       cell: (_: unknown, row: FinanceRow) => (
         <span className="font-semibold text-[var(--at-text)]">
           {row.type === "quote" ? (
-            <Link href={`/root/quotes/${row.id}`} className="text-[var(--at-green)] hover:underline">
+            <Link href={`/os/quotes/${row.id}`} className="text-[var(--at-green)] hover:underline">
               {row.description}
             </Link>
           ) : (
@@ -286,7 +286,7 @@ function FinancePageInner() {
           >
             Export CSV
           </Button>
-          <Link href="/root/invoices/new">
+          <Link href="/os/invoices/new">
             <Button variant="primary">+ New Invoice</Button>
           </Link>
         </div>

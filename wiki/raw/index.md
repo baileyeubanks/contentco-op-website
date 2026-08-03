@@ -7,7 +7,7 @@ tags: [meta, index, master]
 
 ## Summary
 
-The canonical knowledge base for Content Co-op, ROOT OS, Agent OS, and Astro Cleanings Services. This wiki is designed for LLM query context — every page is atomic, interlinked, and actionable.
+The canonical knowledge base for Content Co-op, CCO OS OS, Agent OS, and Astro Cleanings Services. This wiki is designed for LLM query context — every page is atomic, interlinked, and actionable.
 
 ## Domains
 
@@ -19,7 +19,7 @@ The canonical knowledge base for Content Co-op, ROOT OS, Agent OS, and Astro Cle
 - [[booking-system]] — Public booking and scheduling
 - [[client-portal]] — Tokenized client portals for quotes and invoices
 
-### ROOT Admin & Business Logic
+### CCO OS Admin & Business Logic
 - [[root-overview]] — Operator dashboard and admin surface
 - [[contact-intelligence]] — CRM: contacts, companies, relationships
 - [[quote-invoice-system]] — Quotes, invoices, payments, Stripe integration
@@ -29,7 +29,7 @@ The canonical knowledge base for Content Co-op, ROOT OS, Agent OS, and Astro Cle
 
 ### API & Data Architecture
 - [[api-routes]] — Complete API route inventory (40+ endpoints)
-- [[database-schema]] — Supabase tables, ROOT ontology, migrations
+- [[database-schema]] — Supabase tables, CCO OS ontology, migrations
 - [[types-system]] — Shared TypeScript definitions across packages
 - [[firebase-integration]] — Firestore collections, CCO admin SDK
 - [[stripe-integration]] — Payment flows, webhooks, deposit logic

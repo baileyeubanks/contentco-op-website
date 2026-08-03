@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 const execFileAsync = promisify(execFile);
 const MONOREPO_ROOT = "/Users/baileyeubanks/Desktop/Projects/contentco-op/monorepo";
@@ -565,7 +565,7 @@ function normalizeGcsItems(payload: unknown): RootWorkspaceItem[] {
 }
 
 function inferWorkspaceScope(host: string | null, brandHint: string | null): RootWorkspaceScope {
-  const brand = resolveRootBrand(host, brandHint);
+  const brand = resolveOsBrand(host, brandHint);
   if (brand.key === "acs") return "ACS";
   if (brand.key === "cc") return "CC";
   return "ALL";

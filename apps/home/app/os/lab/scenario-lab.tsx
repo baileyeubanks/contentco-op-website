@@ -7,7 +7,7 @@ import type {
   ScenarioDefinition,
   ScenarioStageStatus,
   WorkflowStageRecord,
-} from "@/lib/root-scenario-lab";
+} from "@/lib/os-scenario-lab";
 import styles from "./lab.module.css";
 
 type RootScenarioLabProps = {
@@ -529,15 +529,15 @@ export function RootScenarioLab({ initialSnapshot }: RootScenarioLabProps) {
               </div>
             </div>
             <div className={styles.linkList}>
-              <Link className={styles.linkCard} href="/root/system">
+              <Link className={styles.linkCard} href="/os/system">
                 <span className={styles.linkLabel}>Live system page</span>
                 <span className={styles.linkMeta}>Runtime, sync, and coordination</span>
               </Link>
-              <Link className={styles.linkCard} href="/root/overview">
-                <span className={styles.linkLabel}>ROOT overview</span>
+              <Link className={styles.linkCard} href="/os/overview">
+                <span className={styles.linkLabel}>CCO OS overview</span>
                 <span className={styles.linkMeta}>Shared operator workspace</span>
               </Link>
-              <Link className={styles.linkCard} href="/root/lab/fsm">
+              <Link className={styles.linkCard} href="/os/lab/fsm">
                 <span className={styles.linkLabel}>FSM control room</span>
                 <span className={styles.linkMeta}>Live certification ledger and runnable scenarios</span>
               </Link>

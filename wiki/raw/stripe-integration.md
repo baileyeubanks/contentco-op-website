@@ -31,16 +31,16 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 ### Invoice Payment
 
-1. Invoice issued → `POST /api/root/invoices/[id]/issue`
-2. Payment link generated → `POST /api/root/invoices/[id]/pay-link`
+1. Invoice issued → `POST /api/os/invoices/[id]/issue`
+2. Payment link generated → `POST /api/os/invoices/[id]/pay-link`
 3. Client pays via Stripe Checkout
 4. Webhook confirms payment
-5. `POST /api/root/invoices/[id]/record-payment` updates ledger
+5. `POST /api/os/invoices/[id]/record-payment` updates ledger
 
 ### Split Payments
 
 Large invoices can be split into multiple payments:
-- `POST /api/root/invoices/[id]/split`
+- `POST /api/os/invoices/[id]/split`
 - Each split generates its own Stripe Checkout Session
 - Payments tracked individually in `invoice_payments`
 

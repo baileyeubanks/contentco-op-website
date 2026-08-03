@@ -2,8 +2,8 @@ import type { CSSProperties } from "react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { ModuleHeader } from "@/app/dashboard/components/module-header";
-import { getRootMarketingExecutionSnapshot } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { getRootMarketingExecutionSnapshot } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 function chip(tone: "default" | "warn" | "success" | "accent"): CSSProperties {
   const styles: Record<string, CSSProperties> = {
@@ -36,7 +36,7 @@ function toneForStatus(value: string) {
 
 export default async function RootMarketingExecutionPage() {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const snapshot = await getRootMarketingExecutionSnapshot(brand.key);
 
   return (
@@ -52,8 +52,8 @@ export default async function RootMarketingExecutionPage() {
             { label: "active items", value: String(snapshot.sections.reduce((sum, section) => sum + section.count, 0)) },
           ]}
           actions={[
-            { label: "marketing lane", href: "/root/marketing", tone: "secondary" },
-            { label: brand.key === "acs" ? "reputation" : "proof", href: "/root/marketing/proof", tone: "secondary" },
+            { label: "marketing lane", href: "/os/marketing", tone: "secondary" },
+            { label: brand.key === "acs" ? "reputation" : "proof", href: "/os/marketing/proof", tone: "secondary" },
             { label: snapshot.primaryAction.label, href: snapshot.primaryAction.href, tone: "primary" },
           ]}
         />

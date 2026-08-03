@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { logRootAuditEvent } from "@/lib/root-event-log";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { logRootAuditEvent } from "@/lib/os-event-log";
 import {
   getIntegrityRepairDetail,
   repairIntegrityRecord,
   type IntegrityRecordKind,
-} from "@/lib/root-integrity";
+} from "@/lib/os-integrity";
 
 interface Props {
   params: Promise<{ kind: string; id: string }>;
@@ -75,7 +75,7 @@ export async function PATCH(req: Request, { params }: Props) {
     host: requestHost,
     businessUnit: repaired.business_unit,
     contactId: repaired.contact_id,
-    text: `ROOT integrity repair applied to ${repaired.kind}`,
+    text: `CCO OS integrity repair applied to ${repaired.kind}`,
     payload: {
       repair_kind: repaired.kind,
       record_id: repaired.record_id,

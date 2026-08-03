@@ -4,8 +4,8 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 const ROOT_DIR = "/Users/baileyeubanks/Desktop/Projects/root";
-const ROOT_TSX_BIN = "/Users/baileyeubanks/Desktop/Projects/root/node_modules/.bin/tsx";
-const ROOT_RENDER_SCRIPT = "/Users/baileyeubanks/Desktop/Projects/root/scripts/render-live-document.ts";
+const ROOT_TSX_BIN = "/Users/baileyeubanks/Desktop/Projects/os/node_modules/.bin/tsx";
+const ROOT_RENDER_SCRIPT = "/Users/baileyeubanks/Desktop/Projects/os/scripts/render-live-document.ts";
 
 type RenderResult =
   | { ok: true; html: string }

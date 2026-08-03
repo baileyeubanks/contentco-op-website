@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 interface Props {
   params: Promise<{ id: string }>;

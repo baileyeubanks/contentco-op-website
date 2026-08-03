@@ -1,6 +1,6 @@
 /* ─── Shared type definitions ─── */
 
-/* ─── ROOT Canonical Ontology ─── */
+/* ─── CCO OS Canonical Ontology ─── */
 export * from "./ontology";
 export * from "./platform";
 export * from "./workflow";

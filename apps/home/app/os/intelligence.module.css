@@ -17,7 +17,7 @@
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--root-accent) 20%, transparent), transparent 34%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--os-accent) 20%, transparent), transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.22);
 }
@@ -45,8 +45,8 @@
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: var(--root-accent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--root-accent) 70%, transparent);
+  background: var(--os-accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--os-accent) 70%, transparent);
 }
 
 .nav {
@@ -74,8 +74,8 @@
 
 .navLinkActive {
   color: #fff;
-  background: color-mix(in srgb, var(--root-accent) 32%, rgba(255, 255, 255, 0.03));
-  border-color: color-mix(in srgb, var(--root-accent) 55%, rgba(255, 255, 255, 0.08));
+  background: color-mix(in srgb, var(--os-accent) 32%, rgba(255, 255, 255, 0.03));
+  border-color: color-mix(in srgb, var(--os-accent) 55%, rgba(255, 255, 255, 0.08));
 }
 
 .titleWrap {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildRootOverviewReadModel } from "@/lib/root-overview";
+import { buildRootOverviewReadModel } from "@/lib/os-overview";
 
 export const dynamic = "force-dynamic";
 

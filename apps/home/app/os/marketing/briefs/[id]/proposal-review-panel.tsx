@@ -15,7 +15,7 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
   const [status, setStatus] = useState<string>("");
 
   useEffect(() => {
-    fetch(`/api/root/marketing/briefs/${briefId}/proposal`)
+    fetch(`/api/os/marketing/briefs/${briefId}/proposal`)
       .then((res) => res.json())
       .then((data) => {
         if (data.ok && data.proposal) {
@@ -33,7 +33,7 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/root/marketing/briefs/${briefId}/proposal`, {
+      const res = await fetch(`/api/os/marketing/briefs/${briefId}/proposal`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "approved", approvedAt: new Date().toISOString() }),
@@ -60,7 +60,7 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
         throw new Error("No client email found for this brief");
       }
 
-      const res = await fetch(`/api/root/marketing/briefs/${briefId}/send`, {
+      const res = await fetch(`/api/os/marketing/briefs/${briefId}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ to: clientEmail }),

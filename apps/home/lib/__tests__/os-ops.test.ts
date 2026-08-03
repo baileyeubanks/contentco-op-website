@@ -1,13 +1,13 @@
 import { expect, test } from "vitest";
-import { runtimeCertificationTone } from "../root-runtime-certification";
+import { runtimeCertificationTone } from "../os-runtime-certification";
 import {
   getRootWorkspaceItem,
   getRootWorkspaceSection,
   runRootWorkspaceSheetAction,
   type RootWorkspaceSnapshot,
-} from "../root-workspace";
-import { __rootContactOpsTestUtils } from "../root-contact-ops";
-import { __rootGoalsTestUtils } from "../root-goals";
+} from "../os-workspace";
+import { __rootContactOpsTestUtils } from "../os-contact-ops";
+import { __rootGoalsTestUtils } from "../os-goals";
 
 test("runtime certification tone falls back to attention for unknown states", () => {
   expect(runtimeCertificationTone("healthy")).toBe("healthy");

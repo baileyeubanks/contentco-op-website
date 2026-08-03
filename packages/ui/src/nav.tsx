@@ -12,9 +12,15 @@ interface NavProps {
 export function Nav({ surface, urls }: NavProps) {
   const u = { ...CCO_URLS, ...urls };
   const [menuOpen, setMenuOpen] = useState(false);
+  const [adminSurface, setAdminSurface] = useState(false);
   const close = () => setMenuOpen(false);
 
   const briefActive = surface === "brief";
+
+  useEffect(() => {
+    const host = window.location.hostname.toLowerCase();
+    setAdminSurface(host === "admin.contentco-op.com" || host.startsWith("admin."));
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -108,9 +114,21 @@ export function Nav({ surface, urls }: NavProps) {
             <span className="cc-nav-rail-index">03</span>
             <span>Creative Brief</span>
           </Link>
-          <Link href={u.client} className="cc-nav-rail-link cc-nav-rail-login" onClick={close}>
+          <Link href={u.bookingAlias} className={`cc-nav-rail-link ${surface === "booking" ? "active" : ""}`} onClick={close}>
             <span className="cc-nav-rail-index">04</span>
-            <span>Co&#8288;-&#8288;VideoPro Login</span>
+            <span>Book a Call</span>
+          </Link>
+          <Link href={u.suite} className={`cc-nav-rail-link ${surface === "suite" ? "active" : ""}`} onClick={close}>
+            <span className="cc-nav-rail-index">05</span>
+            <span>Suite</span>
+          </Link>
+          <Link
+            href={adminSurface ? "/os/login" : u.client}
+            className="cc-nav-rail-link cc-nav-rail-login"
+            onClick={close}
+          >
+            <span className="cc-nav-rail-index">06</span>
+            <span>{adminSurface ? "CCO OS Login" : "Co\u2060-\u2060VideoPro Login"}</span>
           </Link>
         </nav>
 

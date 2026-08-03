@@ -4,7 +4,7 @@ import {
   buildRootWorkspaceSnapshot,
   queueRootWorkspaceImport,
   type RootWorkspaceScope,
-} from "@/lib/root-workspace";
+} from "@/lib/os-workspace";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const snapshot = await buildRootWorkspaceSnapshot({
     host: request.headers.get("host"),
-    brandHint: request.headers.get("x-root-brand"),
+    brandHint: request.headers.get("x-os-brand"),
     fresh: url.searchParams.get("fresh") === "1",
   });
   const imports = snapshot.sections.find((section) => section.id === "imports");

@@ -1,4 +1,4 @@
-import { resolveRootBrand } from "@/lib/root-brand";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 export type RootBusinessScope = "ACS" | "CC" | null;
 
@@ -9,7 +9,7 @@ function readHost(headers: Headers) {
 export function getRootBusinessScopeFromHeaders(headers: Headers): RootBusinessScope {
   const host = readHost(headers);
   if (!host) return null;
-  return resolveRootBrand(host).defaultBusinessUnit;
+  return resolveOsBrand(host).defaultBusinessUnit;
 }
 
 export function getRootBusinessScopeFromRequest(request: Request): RootBusinessScope {

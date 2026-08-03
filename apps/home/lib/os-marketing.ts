@@ -11,7 +11,7 @@ import {
   portfolioSupportingStudies,
   portfolioStudies,
 } from "@/lib/content/portfolio";
-import type { RootBrandKey } from "@/lib/root-brand";
+import type { OsBrandKey } from "@/lib/os-brand";
 
 type FileFreshness = {
   path: string;
@@ -33,7 +33,7 @@ type ContentQueueItem = {
 };
 
 export type RootMarketingSnapshot = {
-  workspace: RootBrandKey;
+  workspace: OsBrandKey;
   authority: {
     title: string;
     publicUrl: string;
@@ -95,7 +95,7 @@ export type RootMarketingWorkflowLane = {
 };
 
 export type RootMarketingWorkflowSnapshot = {
-  workspace: RootBrandKey;
+  workspace: OsBrandKey;
   headline: string;
   lanes: RootMarketingWorkflowLane[];
 };
@@ -124,7 +124,7 @@ export type RootMarketingProofSection = {
 };
 
 export type RootMarketingProofSnapshot = {
-  workspace: RootBrandKey;
+  workspace: OsBrandKey;
   headline: string;
   metrics: RootMarketingProofMetric[];
   sections: RootMarketingProofSection[];
@@ -162,7 +162,7 @@ export type RootMarketingExecutionSection = {
 };
 
 export type RootMarketingExecutionSnapshot = {
-  workspace: RootBrandKey;
+  workspace: OsBrandKey;
   headline: string;
   metrics: RootMarketingExecutionMetric[];
   sections: RootMarketingExecutionSection[];
@@ -176,7 +176,7 @@ export type RootMarketingExecutionSnapshot = {
 
 export type RootMarketingBriefDetail = {
   id: string;
-  workspace: RootBrandKey;
+  workspace: OsBrandKey;
   status: string;
   createdAt: string | null;
   updatedAt: string | null;
@@ -351,7 +351,7 @@ async function countFilesRecursive(directoryPath: string): Promise<number> {
   }
 }
 
-async function buildAssetSummary(workspace: RootBrandKey) {
+async function buildAssetSummary(workspace: OsBrandKey) {
   const basePath = workspace === "acs"
     ? "/Users/baileyeubanks/Desktop/Projects/brand/assets/acs"
     : "/Users/baileyeubanks/Desktop/Projects/brand/assets/cco";
@@ -401,7 +401,7 @@ async function buildCcoWorkflow() {
     subtitle: [brief.company, brief.content_type].filter(Boolean).join(" · ") || "public brief intake",
     status: String(brief.status || "new"),
     createdAt: brief.created_at ? String(brief.created_at) : null,
-    href: `/root/marketing/briefs/${brief.id}`,
+    href: `/os/marketing/briefs/${brief.id}`,
   }));
 
   return {
@@ -439,7 +439,7 @@ async function buildAcsWorkflow() {
     subtitle: String(quote.quote_number || "public quote request"),
     status: String(quote.client_status || quote.status || "new"),
     createdAt: quote.created_at ? String(quote.created_at) : null,
-    href: `/root/quotes/${quote.id}`,
+    href: `/os/quotes/${quote.id}`,
   }));
 
   return {
@@ -454,7 +454,7 @@ async function buildAcsWorkflow() {
   };
 }
 
-export async function getRootMarketingSnapshot(workspace: RootBrandKey): Promise<RootMarketingSnapshot> {
+export async function getRootMarketingSnapshot(workspace: OsBrandKey): Promise<RootMarketingSnapshot> {
   const authority = workspace === "acs"
     ? {
       title: "ACS Brand Central",
@@ -501,7 +501,7 @@ export async function getRootMarketingSnapshot(workspace: RootBrandKey): Promise
   };
 }
 
-export async function getRootMarketingBriefQueue(workspace: RootBrandKey): Promise<RootMarketingBriefListItem[]> {
+export async function getRootMarketingBriefQueue(workspace: OsBrandKey): Promise<RootMarketingBriefListItem[]> {
   if (workspace !== "cc") {
     return [];
   }
@@ -545,13 +545,13 @@ export async function getRootMarketingBriefQueue(workspace: RootBrandKey): Promi
       blockers: structured.readiness.blockers,
       missingFields: structured.readiness.missing_fields,
       deliverables: structured.project.deliverables,
-      href: `/root/marketing/briefs/${brief.id}`,
+      href: `/os/marketing/briefs/${brief.id}`,
     };
   });
 }
 
 export async function getRootMarketingWorkflowSnapshot(
-  workspace: RootBrandKey,
+  workspace: OsBrandKey,
 ): Promise<RootMarketingWorkflowSnapshot> {
   if (workspace === "cc") {
     const briefQueue = await getRootMarketingBriefQueue("cc");
@@ -630,7 +630,7 @@ export async function getRootMarketingWorkflowSnapshot(
           note: latestQuote.estimated_total != null
             ? `estimated ${Number(latestQuote.estimated_total).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}`
             : laneItem.note,
-          href: `/root/quotes/${latestQuote.id}`,
+          href: `/os/quotes/${latestQuote.id}`,
         };
         if (contractedStatus) {
           contracted.push(itemWithQuote);
@@ -685,7 +685,7 @@ export async function getRootMarketingWorkflowSnapshot(
       title: String(quote.client_name || quote.quote_number || "acs quote"),
       subtitle: String(quote.quote_number || "quote request"),
       status: clientStatus,
-      href: `/root/quotes/${quote.id}`,
+      href: `/os/quotes/${quote.id}`,
       note: quote.created_at ? `created ${new Date(String(quote.created_at)).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : undefined,
     };
     const normalized = clientStatus.toLowerCase();
@@ -711,7 +711,7 @@ export async function getRootMarketingWorkflowSnapshot(
 }
 
 export async function getRootMarketingBriefDetail(
-  workspace: RootBrandKey,
+  workspace: OsBrandKey,
   briefId: string,
 ): Promise<RootMarketingBriefDetail | null> {
   if (workspace !== "cc") {
@@ -834,7 +834,7 @@ export async function getRootMarketingBriefDetail(
 }
 
 export async function getRootMarketingProofSnapshot(
-  workspace: RootBrandKey,
+  workspace: OsBrandKey,
 ): Promise<RootMarketingProofSnapshot> {
   if (workspace === "cc") {
     const approvedStudies = portfolioStudies.filter((study) => study.review?.status === "approved");
@@ -848,7 +848,7 @@ export async function getRootMarketingProofSnapshot(
 
     return {
       workspace,
-      headline: "Content Co-op uses the marketing engine to keep proof, review status, and delivery-ready case studies visible inside ROOT.",
+      headline: "Content Co-op uses the marketing engine to keep proof, review status, and delivery-ready case studies visible inside CCO OS.",
       metrics: [
         { label: "approved studies", value: String(approvedStudies.length), note: "case studies cleared for public proof" },
         { label: "deliverables indexed", value: String(portfolioStats.deliverables), note: "deliverables attached across the portfolio manifest" },
@@ -991,7 +991,7 @@ export async function getRootMarketingProofSnapshot(
 
   return {
     workspace,
-    headline: "Astro Cleanings uses the marketing engine to keep review velocity, trust proof, and post-job reputation follow-through visible inside ROOT.",
+    headline: "Astro Cleanings uses the marketing engine to keep review velocity, trust proof, and post-job reputation follow-through visible inside CCO OS.",
     metrics: [
       { label: "published reviews", value: String(publishedReviews.length), note: "reviews available for testimonial or trust use" },
       { label: "average rating", value: avgRating, note: "average across published reviews surfaced from Supabase" },
@@ -1038,7 +1038,7 @@ export async function getRootMarketingProofSnapshot(
           subtitle: `completed ${formatCompactDate(job.completedAt)}`,
           status: job.status,
           note: job.scheduledDate ? `scheduled ${formatCompactDate(job.scheduledDate)}` : "recent completed job",
-          href: "/root/dispatch",
+          href: "/os/dispatch",
         })),
       },
       {
@@ -1081,7 +1081,7 @@ export async function getRootMarketingProofSnapshot(
 }
 
 export async function getRootMarketingExecutionSnapshot(
-  workspace: RootBrandKey,
+  workspace: OsBrandKey,
 ): Promise<RootMarketingExecutionSnapshot> {
   const supabase = getSupabase();
 
@@ -1234,7 +1234,7 @@ export async function getRootMarketingExecutionSnapshot(
         note: quote.estimatedTotal != null
           ? `estimated ${Number(quote.estimatedTotal).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}`
           : `drafted ${formatCompactDate(quote.createdAt)}`,
-        href: `/root/quotes/${quote.quoteId}`,
+        href: `/os/quotes/${quote.quoteId}`,
         badges: [
           phaseNames.length > 0 ? `${phaseNames.length} phases` : null,
           deliverables.length > 0 ? `${deliverables.length} deliverables` : null,
@@ -1334,7 +1334,7 @@ export async function getRootMarketingExecutionSnapshot(
       ],
       primaryAction: {
         label: "open quote board",
-        href: "/root/quotes",
+        href: "/os/quotes",
         note: "review scoped projects, tighten deliverables, and move approved work into execution",
       },
     };
@@ -1423,7 +1423,7 @@ export async function getRootMarketingExecutionSnapshot(
           note: process.env.GOOGLE_REVIEW_LINK
             ? "review link configured and ready for post-job follow-through"
             : "configure GOOGLE_REVIEW_LINK so post-job requests can ship cleanly",
-          href: "/root/dispatch",
+          href: "/os/dispatch",
         })),
       },
       {
@@ -1437,7 +1437,7 @@ export async function getRootMarketingExecutionSnapshot(
           subtitle: `completed ${formatCompactDate(job.completedAt)}`,
           status: "reviewed",
           note: "job already has a linked review in the trust record",
-          href: "/root/dispatch",
+          href: "/os/dispatch",
         })),
       },
       {

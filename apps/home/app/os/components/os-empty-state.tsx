@@ -1,4 +1,4 @@
-export function RootEmptyState({
+export function OsEmptyState({
   title,
   detail,
 }: {

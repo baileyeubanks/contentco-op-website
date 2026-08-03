@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { NextConfig } from "next";
+import { legacyRootRedirects } from "./lib/legacy-root-redirects";
 
 const VERSIONED_MEDIA_CACHE = "public, max-age=31536000, immutable";
 const EDGE_STATIC_CACHE = "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800";
@@ -12,6 +13,24 @@ const nextConfig: NextConfig = {
     root: path.join(__dirname, "../.."),
   },
   transpilePackages: ["@contentco-op/ui", "@contentco-op/brand", "@contentco-op/types", "@contentco-op/identity-access", "@contentco-op/pricing"],
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: [{ type: "host", value: "admin.contentco-op.com" }],
+        destination: "/os",
+        permanent: false,
+      },
+      {
+        source: "/login",
+        has: [{ type: "host", value: "admin.contentco-op.com" }],
+        destination: "/os/login",
+        permanent: false,
+      },
+
+      ...legacyRootRedirects,
+    ];
+  },
   async headers() {
     return [
       {
@@ -67,7 +86,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/root/co-cut/:path*",
+        source: "/os/co-cut/:path*",
         headers: [
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },

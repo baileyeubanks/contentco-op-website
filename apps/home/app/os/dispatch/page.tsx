@@ -38,7 +38,7 @@ export default function DispatchPage() {
       end.setDate(end.getDate() + 14);
 
       const res = await fetch(
-        `/api/root/dispatch/jobs?start=${start.toISOString()}&end=${end.toISOString()}`
+        `/api/os/dispatch/jobs?start=${start.toISOString()}&end=${end.toISOString()}`
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();

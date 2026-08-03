@@ -103,7 +103,7 @@ Repo-local checks cover:
 1. `https://contentco-op.com/` resolves without redirect drift.
 2. `https://contentco-op.com/portfolio` resolves without redirect drift.
 3. `https://contentco-op.com/brief` resolves without redirect drift.
-4. `https://contentco-op.com/login` resolves to the public login screen, not `/root`.
+4. `https://contentco-op.com/login` resolves to the public login screen, not `/os`.
 5. `https://co-cut.contentco-op.com/` resolves to the Co-Cut workspace.
 6. `https://co-script.contentco-op.com/` may resolve to `/login` but must stay on the Co-Script host.
 7. `https://co-deliver.contentco-op.com/` may resolve to `/login` but must stay on the Co-Deliver host.

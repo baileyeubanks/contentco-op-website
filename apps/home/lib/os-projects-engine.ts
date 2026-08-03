@@ -1,10 +1,10 @@
 /**
- * ROOT Projects Engine — Airtable-pattern project tracking, deliverables, brief conversion.
+ * CCO OS Projects Engine — Airtable-pattern project tracking, deliverables, brief conversion.
  */
 
 import { getSupabase } from "@/lib/supabase";
-import { emitTypedEvent } from "@/lib/root-event-log";
-import type { RootBusinessScope } from "@/lib/root-request-scope";
+import { emitTypedEvent } from "@/lib/os-event-log";
+import type { RootBusinessScope } from "@/lib/os-request-scope";
 
 // ─── Projects ───
 

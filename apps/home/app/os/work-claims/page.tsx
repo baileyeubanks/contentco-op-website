@@ -25,7 +25,7 @@ export default function WorkClaimsPage() {
   const [taskKey, setTaskKey] = useState("");
 
   async function loadClaims() {
-    const res = await fetch("/api/root/work-claims");
+    const res = await fetch("/api/os/work-claims");
     if (!res.ok) return;
     const data = await res.json();
     setClaims(Array.isArray(data.work_claims) ? data.work_claims : []);
@@ -41,7 +41,7 @@ export default function WorkClaimsPage() {
 
   async function claim(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch("/api/root/work-claims", {
+    const res = await fetch("/api/os/work-claims", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -62,7 +62,7 @@ export default function WorkClaimsPage() {
   }
 
   async function release(id: string) {
-    const res = await fetch(`/api/root/work-claims/${id}/release`, {
+    const res = await fetch(`/api/os/work-claims/${id}/release`, {
       method: "POST",
     });
     if (res.ok) await loadClaims();
@@ -123,7 +123,7 @@ const buttonStyle: React.CSSProperties = {
   padding: "11px 14px",
   borderRadius: 10,
   border: "none",
-  background: "var(--root-accent)",
+  background: "var(--os-accent)",
   color: "#fff",
   fontWeight: 700,
   cursor: "pointer",

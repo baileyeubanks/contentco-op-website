@@ -100,7 +100,7 @@ export function SummaryPanel({
         fontWeight: 700,
         textTransform: "uppercase",
         letterSpacing: "0.14em",
-        color: "var(--root-accent)",
+        color: "var(--os-accent)",
         marginBottom: 14,
       }}>
         Quote Summary

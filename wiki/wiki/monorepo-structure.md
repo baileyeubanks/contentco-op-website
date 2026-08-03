@@ -7,14 +7,14 @@ tags: [monorepo, architecture, nextjs, turbo]
 
 ## Summary
 
-The Content Co-op monorepo is a Next.js 16 + Turbo + pnpm workspaces setup. It serves the public marketing site, ROOT admin surface, and shared packages.
+The Content Co-op monorepo is a Next.js 16 + Turbo + pnpm workspaces setup. It serves the public marketing site, CCO OS admin surface, and shared packages.
 
 ## Directory Structure
 
 ```
 contentco-op-monorepo/
 ├── apps/
-│   ├── home/              # Canonical Next.js app (marketing + ROOT)
+│   ├── home/              # Canonical Next.js app (marketing + CCO OS)
 │   ├── cocut/             # Mirror: Co-Cut (Vite + React)
 │   ├── coscript/          # Mirror: Co-Script (Next.js)
 │   └── codeliver/         # Mirror: Co-Deliver (Next.js)

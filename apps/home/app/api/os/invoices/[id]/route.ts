@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { getRootInvoiceDetail } from "@/lib/root-data";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { getRootInvoiceDetail } from "@/lib/os-data";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 export async function GET(
   req: Request,
@@ -18,8 +18,8 @@ export async function GET(
       ? {
           ...result.invoice,
           document_readiness: result.invoice.line_items.length > 0 ? "preview_ready" : "not_ready",
-          preview_url: `/api/root/invoices/${result.invoice.id}/preview`,
-          pdf_url: `/api/root/invoices/${result.invoice.id}/pdf`,
+          preview_url: `/api/os/invoices/${result.invoice.id}/preview`,
+          pdf_url: `/api/os/invoices/${result.invoice.id}/pdf`,
           payment_link_url: result.invoice.stripe_payment_link || null,
           share_link_url: result.invoice.stripe_payment_link || `/share/invoice/${result.invoice.id}`,
           artifact_version: result.invoice.id.slice(0, 8).toUpperCase(),

@@ -1,10 +1,10 @@
 /**
- * ROOT Payments Engine — FreshBooks-pattern payment ledger, reconciliation, recurring invoices.
+ * CCO OS Payments Engine — FreshBooks-pattern payment ledger, reconciliation, recurring invoices.
  */
 
 import { getSupabase } from "@/lib/supabase";
-import { emitTypedEvent } from "@/lib/root-event-log";
-import type { RootBusinessScope } from "@/lib/root-request-scope";
+import { emitTypedEvent } from "@/lib/os-event-log";
+import type { RootBusinessScope } from "@/lib/os-request-scope";
 
 // ─── Record Payment ───
 

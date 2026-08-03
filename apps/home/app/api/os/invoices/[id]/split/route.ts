@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
 /**
- * POST /api/root/invoices/[id]/split
+ * POST /api/os/invoices/[id]/split
  * Creates a split invoice linked to the parent.
  * Body: { split_label: string, split_percent: number }
  *

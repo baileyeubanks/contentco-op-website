@@ -38,7 +38,7 @@ export type PaginationState = {
   onPerPageChange: (pp: number) => void;
 };
 
-export type RootTableProps<T extends Record<string, unknown>> = {
+export type OsTableProps<T extends Record<string, unknown>> = {
   columns: ColumnDef<T>[];
   data: T[];
   keyField: keyof T;
@@ -84,7 +84,7 @@ export function StatusPill({ status }: { status: string }) {
 }
 
 /* ─── Root Table ─── */
-export function RootTable<T extends Record<string, unknown>>({
+export function OsTable<T extends Record<string, unknown>>({
   columns,
   data,
   keyField,
@@ -96,7 +96,7 @@ export function RootTable<T extends Record<string, unknown>>({
   onRowClick,
   loading = false,
   emptyMessage = "No records found.",
-}: RootTableProps<T>) {
+}: OsTableProps<T>) {
   const [selected, setSelected]     = useState<Set<string>>(new Set());
   const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
   const [hoveredKey, setHoveredKey]  = useState<string | null>(null);

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { getCommercialQueues } from "@/lib/root-commercial-pipeline";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { getCommercialQueues } from "@/lib/os-commercial-pipeline";
 
 export async function GET(req: Request) {
   const access = await enforceRoutePolicy(

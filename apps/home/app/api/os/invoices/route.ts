@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRootInvoices } from "@/lib/root-data";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { getRootInvoices } from "@/lib/os-data";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 import { supabase } from "@/lib/supabase";
 
 /* ── Helpers (shared with convert route) ── */
@@ -99,8 +99,8 @@ export async function GET(req: Request) {
     ...result,
     invoices: (result.invoices || []).map((invoice) => ({
       ...invoice,
-      preview_url: `/api/root/invoices/${invoice.id}/preview`,
-      pdf_url: `/api/root/invoices/${invoice.id}/pdf`,
+      preview_url: `/api/os/invoices/${invoice.id}/preview`,
+      pdf_url: `/api/os/invoices/${invoice.id}/pdf`,
       payment_link_url: invoice.stripe_payment_link || null,
       share_link_url: invoice.stripe_payment_link || `/share/invoice/${invoice.id}`,
       document_readiness: invoice.quote_id || Number(invoice.total || invoice.amount || 0) > 0 ? "preview_ready" : "not_ready",

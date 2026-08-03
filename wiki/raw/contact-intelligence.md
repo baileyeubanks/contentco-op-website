@@ -7,7 +7,7 @@ tags: [root, crm, contacts, companies, relationships]
 
 ## Summary
 
-The contact intelligence system is the CRM layer of ROOT. It tracks people, organizations, relationships between them, opportunities, and lifecycle stages. Built on the ROOT ontology in Supabase.
+The contact intelligence system is the CRM layer of CCO OS. It tracks people, organizations, relationships between them, opportunities, and lifecycle stages. Built on the CCO OS ontology in Supabase.
 
 ## Data Model
 
@@ -48,23 +48,23 @@ interface Relationship {
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| GET | `/api/root/contacts` | List contacts |
-| GET | `/api/root/contacts/[id]` | Contact detail |
-| GET | `/api/root/contacts/[id]/timeline` | Contact activity timeline |
-| GET | `/api/root/contacts/[id]/relationships` | Contact relationships |
-| POST | `/api/root/contacts/enrich` | Enrich contact data |
-| POST | `/api/root/contacts/import` | Bulk import contacts |
-| POST | `/api/root/contacts/merge` | Merge duplicate contacts |
-| POST | `/api/root/contacts/score` | Score lead quality |
-| GET | `/api/root/companies` | List companies |
-| GET | `/api/root/companies/[id]` | Company detail |
+| GET | `/api/os/contacts` | List contacts |
+| GET | `/api/os/contacts/[id]` | Contact detail |
+| GET | `/api/os/contacts/[id]/timeline` | Contact activity timeline |
+| GET | `/api/os/contacts/[id]/relationships` | Contact relationships |
+| POST | `/api/os/contacts/enrich` | Enrich contact data |
+| POST | `/api/os/contacts/import` | Bulk import contacts |
+| POST | `/api/os/contacts/merge` | Merge duplicate contacts |
+| POST | `/api/os/contacts/score` | Score lead quality |
+| GET | `/api/os/companies` | List companies |
+| GET | `/api/os/companies/[id]` | Company detail |
 
 ## Enrichment
 
 Contact enrichment pulls from:
 - Clearbit (company data)
 - Apollo (contact data)
-- Manual entry via ROOT UI
+- Manual entry via CCO OS UI
 
 ## Lead Scoring
 
@@ -78,4 +78,4 @@ The scoring algorithm considers:
 
 - [[creative-brief]] — Brief creates contacts automatically
 - [[quote-invoice-system]] — Quotes linked to contacts
-- [[database-schema]] — Full ROOT ontology
+- [[database-schema]] — Full CCO OS ontology

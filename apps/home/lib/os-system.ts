@@ -1,10 +1,10 @@
 import { headers } from "next/headers";
 import { getSupabase } from "@/lib/supabase";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { resolveOsBrand } from "@/lib/os-brand";
 import {
   getPublicSitesAuditReport,
   getPublishAlignmentReport,
-} from "@/lib/root-runtime-certification";
+} from "@/lib/os-runtime-certification";
 
 type MaybeRecord = Record<string, unknown> | null;
 export type WorkClaimRecord = {
@@ -186,7 +186,7 @@ async function resolveRuntimeRequestContext(options?: RootRuntimeSnapshotOptions
     const host = options.host || null;
     return {
       host,
-      brand: resolveRootBrand(host, options.brandHint || null),
+      brand: resolveOsBrand(host, options.brandHint || null),
     };
   }
 
@@ -195,12 +195,12 @@ async function resolveRuntimeRequestContext(options?: RootRuntimeSnapshotOptions
     const host = headerStore.get("host");
     return {
       host,
-      brand: resolveRootBrand(host, headerStore.get("x-root-brand")),
+      brand: resolveOsBrand(host, headerStore.get("x-os-brand")),
     };
   } catch {
     return {
       host: null,
-      brand: resolveRootBrand(null, options?.brandHint || null),
+      brand: resolveOsBrand(null, options?.brandHint || null),
     };
   }
 }

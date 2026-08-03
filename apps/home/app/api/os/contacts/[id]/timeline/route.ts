@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getContactTimeline } from "@/lib/root-contacts-engine";
+import { getContactTimeline } from "@/lib/os-contacts-engine";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

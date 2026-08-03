@@ -1,4 +1,4 @@
-import type { RootBusinessScope } from "@/lib/root-request-scope";
+import type { RootBusinessScope } from "@/lib/os-request-scope";
 import { getSupabase } from "@/lib/supabase";
 
 type RootGenericRow = Record<string, unknown>;

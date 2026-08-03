@@ -1,4 +1,4 @@
-import { resolveRootBrand, type RootBrandKey } from "@/lib/root-brand";
+import { resolveOsBrand, type OsBrandKey } from "@/lib/os-brand";
 
 export type RootModuleEngine =
   | "control"
@@ -35,7 +35,7 @@ export type RootModuleDef = {
   href: string;
   engine: RootModuleEngine;
   navTier: RootModuleTier;
-  hostVisibility: RootBrandKey[];
+  hostVisibility: OsBrandKey[];
   icon: string;
   shortcut?: string;
   description: string;
@@ -45,7 +45,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "overview",
     label: "overview",
-    href: "/root/overview",
+    href: "/os/overview",
     engine: "control",
     navTier: "core",
     hostVisibility: ["acs", "cc"],
@@ -56,7 +56,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "dispatch",
     label: "dispatch",
-    href: "/root/dispatch",
+    href: "/os/dispatch",
     engine: "operations",
     navTier: "core",
     hostVisibility: ["acs"],
@@ -67,7 +67,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "quotes",
     label: "quotes",
-    href: "/root/quotes",
+    href: "/os/quotes",
     engine: "commercial",
     navTier: "core",
     hostVisibility: ["acs", "cc"],
@@ -78,7 +78,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "contacts",
     label: "contacts",
-    href: "/root/contacts",
+    href: "/os/contacts",
     engine: "contact",
     navTier: "core",
     hostVisibility: ["acs", "cc"],
@@ -89,7 +89,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "invoices",
     label: "invoices",
-    href: "/root/invoices",
+    href: "/os/invoices",
     engine: "commercial",
     navTier: "core",
     hostVisibility: ["acs", "cc"],
@@ -100,7 +100,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "finance",
     label: "finance",
-    href: "/root/finance",
+    href: "/os/finance",
     engine: "commercial",
     navTier: "core",
     hostVisibility: ["acs", "cc"],
@@ -111,7 +111,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "marketing",
     label: "marketing",
-    href: "/root/marketing",
+    href: "/os/marketing",
     engine: "marketing",
     navTier: "core",
     hostVisibility: ["acs", "cc"],
@@ -122,7 +122,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "work-claims",
     label: "work claims",
-    href: "/root/work-claims",
+    href: "/os/work-claims",
     engine: "control",
     navTier: "advanced",
     hostVisibility: ["acs", "cc"],
@@ -133,7 +133,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "workspace",
     label: "workspace",
-    href: "/root/workspace",
+    href: "/os/workspace",
     engine: "control",
     navTier: "advanced",
     hostVisibility: ["acs", "cc"],
@@ -144,7 +144,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "goals",
     label: "goals",
-    href: "/root/goals",
+    href: "/os/goals",
     engine: "control",
     navTier: "advanced",
     hostVisibility: ["acs", "cc"],
@@ -155,7 +155,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "agents",
     label: "agents",
-    href: "/root/agents",
+    href: "/os/agents",
     engine: "control",
     navTier: "advanced",
     hostVisibility: ["acs", "cc"],
@@ -166,7 +166,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "system",
     label: "system",
-    href: "/root/system",
+    href: "/os/system",
     engine: "control",
     navTier: "advanced",
     hostVisibility: ["acs", "cc"],
@@ -177,7 +177,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "lab",
     label: "lab",
-    href: "/root/lab",
+    href: "/os/lab",
     engine: "intelligence",
     navTier: "advanced",
     hostVisibility: ["acs", "cc"],
@@ -190,7 +190,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "co-script",
     label: "co-script",
-    href: "/root/co-script",
+    href: "/os/co-script",
     engine: "creative",
     navTier: "core",
     hostVisibility: ["cc"],
@@ -201,7 +201,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "co-cut",
     label: "co-cut",
-    href: "/root/co-edit",
+    href: "/os/co-edit",
     engine: "creative",
     navTier: "core",
     hostVisibility: ["cc"],
@@ -212,7 +212,7 @@ const ROOT_MODULES: RootModuleDef[] = [
   {
     id: "co-deliver",
     label: "co-deliver",
-    href: "/root/co-deliver",
+    href: "/os/co-deliver",
     engine: "creative",
     navTier: "core",
     hostVisibility: ["cc"],
@@ -222,12 +222,12 @@ const ROOT_MODULES: RootModuleDef[] = [
   },
 ];
 
-export function getRootWorkspaceForHost(hostname?: string | null, brandOverride?: string | null): RootBrandKey {
-  return resolveRootBrand(hostname, brandOverride).key;
+export function getRootWorkspaceForHost(hostname?: string | null, brandOverride?: string | null): OsBrandKey {
+  return resolveOsBrand(hostname, brandOverride).key;
 }
 
 export function getRootModulesForWorkspace(
-  workspace: RootBrandKey,
+  workspace: OsBrandKey,
   navTier?: RootModuleTier,
 ): RootModuleDef[] {
   return ROOT_MODULES.filter((module) => {

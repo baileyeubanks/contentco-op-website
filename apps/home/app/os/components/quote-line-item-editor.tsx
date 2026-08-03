@@ -145,7 +145,7 @@ export function QuoteLineItemEditor({
   useEffect(() => {
     if (!catalogOpen || catalogItems.length > 0) return;
     setCatalogLoading(true);
-    fetch(`/api/root/catalog/products-services?bu=${businessUnit}`)
+    fetch(`/api/os/catalog/products-services?bu=${businessUnit}`)
       .then((r) => r.json())
       .then((d) => setCatalogItems(d.items ?? []))
       .catch(() => {})
@@ -217,7 +217,7 @@ export function QuoteLineItemEditor({
       if (onSave) {
         await onSave(items, discount, tax);
       } else if (quoteId) {
-        await fetch(`/api/root/quotes/${quoteId}`, {
+        await fetch(`/api/os/quotes/${quoteId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

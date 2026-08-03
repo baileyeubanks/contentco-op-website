@@ -31,7 +31,7 @@ export default function RootInvoiceEditPage() {
 
   async function loadInvoice() {
     setLoading(true);
-    const res = await fetch(`/api/root/invoices/${invoiceId}`, { cache: "no-store" });
+    const res = await fetch(`/api/os/invoices/${invoiceId}`, { cache: "no-store" });
     const data = await res.json();
     const nextInvoice = data.invoice as InvoiceDetail | null;
     setInvoice(nextInvoice);
@@ -44,7 +44,7 @@ export default function RootInvoiceEditPage() {
   async function handleSave() {
     setSaving(true);
     try {
-      const res = await fetch(`/api/root/invoices/${invoiceId}`, {
+      const res = await fetch(`/api/os/invoices/${invoiceId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -54,7 +54,7 @@ export default function RootInvoiceEditPage() {
         }),
       });
       if (!res.ok) throw new Error("save_failed");
-      router.push(`/root/invoices/${invoiceId}`);
+      router.push(`/os/invoices/${invoiceId}`);
       router.refresh();
     } catch {
       alert("Failed to save invoice");
@@ -78,7 +78,7 @@ export default function RootInvoiceEditPage() {
           <div style={subtitleStyle}>{invoice.contact_name || "unknown client"}</div>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href={`/root/invoices/${invoiceId}`} className="root-atlas-button root-atlas-button-secondary">back</Link>
+          <Link href={`/os/invoices/${invoiceId}`} className="root-atlas-button root-atlas-button-secondary">back</Link>
           <button type="button" onClick={() => void handleSave()} className="root-atlas-button root-atlas-button-primary" disabled={saving}>
             {saving ? "saving..." : "save"}
           </button>
@@ -127,7 +127,7 @@ const kickerStyle = {
   fontSize: "0.66rem",
   textTransform: "uppercase",
   letterSpacing: "0.16em",
-  color: "var(--root-accent)",
+  color: "var(--os-accent)",
 } as const;
 
 const subtitleStyle = {

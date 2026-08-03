@@ -3,7 +3,7 @@ import path from "node:path";
 import type { RepoHealthCheck, RepoHealthCheckStatus, RepoHealthSnapshot } from "@contentco-op/types";
 import { CREATIVE_BRIEF_HANDOFF_VERSION } from "@/lib/creative-brief";
 import { portfolioManifest, portfolioStudies } from "@/lib/content/portfolio";
-import { getRootHealthSnapshot } from "@/lib/root-health";
+import { getRootHealthSnapshot } from "@/lib/os-health";
 
 export type RepoHealthScope = "full" | "local";
 

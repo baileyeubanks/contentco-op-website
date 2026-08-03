@@ -1,4 +1,4 @@
-import { getRootGoals, getRootAgents } from "@/lib/root-goals";
+import { getRootGoals, getRootAgents } from "@/lib/os-goals";
 import { GoalsClient } from "./goals-client";
 import styles from "./page.module.css";
 

@@ -1,11 +1,11 @@
 import { headers } from "next/headers";
-import { CreativeWorkspacePage } from "@/app/root/components/creative-workspace-page";
-import { getRootMarketingExecutionSnapshot, getRootMarketingProofSnapshot } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { CreativeWorkspacePage } from "@/app/os/components/creative-workspace-page";
+import { getRootMarketingExecutionSnapshot, getRootMarketingProofSnapshot } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 export default async function RootCoEditPage() {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const execution = await getRootMarketingExecutionSnapshot(brand.key);
   const proof = await getRootMarketingProofSnapshot(brand.key);
 
@@ -17,13 +17,13 @@ export default async function RootCoEditPage() {
       meta={[
         { label: "workspace", value: brand.key.toUpperCase(), tone: "accent" },
         { label: "product", value: "co-cut", tone: "accent" },
-        { label: "authority", value: "ROOT-native bridge" },
+        { label: "authority", value: "CCO OS-native bridge" },
         { label: "canonical app", value: "cut.contentco-op.com", tone: "accent" },
         { label: "legacy alias", value: "co-cut.contentco-op.com", tone: "warn" },
       ]}
       actions={[
-        { label: "delivery board", href: "/root/marketing/execution", tone: "secondary" },
-        { label: "proof board", href: "/root/marketing/proof", tone: "secondary" },
+        { label: "delivery board", href: "/os/marketing/execution", tone: "secondary" },
+        { label: "proof board", href: "/os/marketing/proof", tone: "secondary" },
         { label: "open co-cut", href: "https://cut.contentco-op.com", tone: "primary" },
       ]}
       metrics={execution.metrics.slice(0, 4).map((metric) => ({

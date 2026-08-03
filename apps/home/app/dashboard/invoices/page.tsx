@@ -162,7 +162,7 @@ function InvoicesPageInner() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("/api/root/invoices?limit=200")
+    fetch("/api/os/invoices?limit=200")
       .then((r) => r.json())
       .then((d) => {
         const raw: Invoice[] = d.invoices ?? [];
@@ -170,7 +170,7 @@ function InvoicesPageInner() {
       })
       .finally(() => setLoading(false));
 
-    fetch("/api/root/invoices/recurring")
+    fetch("/api/os/invoices/recurring")
       .then((response) => response.json())
       .then((data) => setRecurringCount(Array.isArray(data.schedules) ? data.schedules.length : 0))
       .catch(() => {});
@@ -181,7 +181,7 @@ function InvoicesPageInner() {
     setActionError(null);
     setActionNotice(null);
     try {
-      const response = await fetch("/api/root/invoices/recurring", {
+      const response = await fetch("/api/os/invoices/recurring", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "generate_now" }),
@@ -190,12 +190,12 @@ function InvoicesPageInner() {
       if (!response.ok) throw new Error(String(data.error || "recurring_generation_failed"));
       setActionNotice(`Generated ${Number(data.generated || 0)} recurring draft invoices.`);
 
-      const invoicesResponse = await fetch("/api/root/invoices?limit=200");
+      const invoicesResponse = await fetch("/api/os/invoices?limit=200");
       const invoicesData = await invoicesResponse.json();
       const raw: Invoice[] = invoicesData.invoices ?? [];
       setAllInvoices(raw.map((inv) => ({ ...inv, display_status: deriveStatus(inv) })));
 
-      const recurringResponse = await fetch("/api/root/invoices/recurring");
+      const recurringResponse = await fetch("/api/os/invoices/recurring");
       const recurringData = await recurringResponse.json();
       setRecurringCount(Array.isArray(recurringData.schedules) ? recurringData.schedules.length : 0);
     } catch (error) {
@@ -267,23 +267,23 @@ function InvoicesPageInner() {
   const handleRowAction = useCallback((action: string, row: Invoice) => {
     switch (action) {
       case "view":
-        router.push(`/root/invoices/${row.id}`);
+        router.push(`/os/invoices/${row.id}`);
         break;
       case "send_reminder":
-        fetch(`/api/root/invoices/${row.id}/reminders`, { method: "POST" })
+        fetch(`/api/os/invoices/${row.id}/reminders`, { method: "POST" })
           .then(() => alert("Reminder sent."));
         break;
       case "record_payment":
-        router.push(`/root/invoices/${row.id}?action=payment`);
+        router.push(`/os/invoices/${row.id}?action=payment`);
         break;
       case "duplicate":
-        fetch(`/api/root/invoices/${row.id}/duplicate`, { method: "POST" })
-          .then(() => { setLoading(true); return fetch("/api/root/invoices?limit=200"); })
+        fetch(`/api/os/invoices/${row.id}/duplicate`, { method: "POST" })
+          .then(() => { setLoading(true); return fetch("/api/os/invoices?limit=200"); })
           .then((r) => r.json())
           .then((d) => setAllInvoices((d.invoices ?? []).map((inv: Invoice) => ({ ...inv, display_status: deriveStatus(inv) }))));
         break;
       case "mark_paid":
-        fetch(`/api/root/invoices/${row.id}`, {
+        fetch(`/api/os/invoices/${row.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ invoice_status: "paid" }),
@@ -293,7 +293,7 @@ function InvoicesPageInner() {
         break;
       case "void":
         if (confirm(`Void invoice ${row.invoice_number}?`))
-          fetch(`/api/root/invoices/${row.id}`, {
+          fetch(`/api/os/invoices/${row.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ invoice_status: "void" }),
@@ -410,7 +410,7 @@ function InvoicesPageInner() {
       title="Invoices"
       subtitle={`${allInvoices.length} total invoices across all business units`}
       actions={
-        <Link href="/root/invoices/new">
+        <Link href="/os/invoices/new">
           <Button variant="primary">+ New Invoice</Button>
         </Link>
       }
@@ -565,7 +565,7 @@ function InvoicesPageInner() {
         <DataTable<Invoice>
           columns={columns}
           data={pageData}
-          onRowClick={(row) => router.push(`/root/invoices/${row.id}`)}
+          onRowClick={(row) => router.push(`/os/invoices/${row.id}`)}
           emptyMessage="No invoices match the current filters."
           loading={loading}
         />
@@ -634,7 +634,7 @@ function InvoicesPageInner() {
         actions={
           <>
             <a
-              href={pdpId ? `/api/root/invoices/${pdpId}/pdf` : "#"}
+              href={pdpId ? `/api/os/invoices/${pdpId}/pdf` : "#"}
               target="_blank"
               rel="noreferrer"
             >
@@ -646,7 +646,7 @@ function InvoicesPageInner() {
       >
         {pdpId && (
           <iframe
-            src={`/api/root/invoices/${pdpId}/preview`}
+            src={`/api/os/invoices/${pdpId}/preview`}
             className="w-full border-0"
             style={{ height: "500px" }}
           />

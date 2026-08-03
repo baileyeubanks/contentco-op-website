@@ -42,7 +42,7 @@ const DATE_OPTIONS = [
   { label: "This year",     value: "this_year" },
 ];
 
-export function RootListToolbar({
+export function OsListToolbar({
   statusTabs,
   activeTab,
   onTabChange,

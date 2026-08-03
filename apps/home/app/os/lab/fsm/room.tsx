@@ -116,7 +116,7 @@ export function FsmControlRoom({ initialSnapshot, readOnly = false }: Props) {
   }, []);
 
   async function refresh() {
-    const response = await fetch("/api/root/lab/fsm", { cache: "no-store" });
+    const response = await fetch("/api/os/lab/fsm", { cache: "no-store" });
     if (!response.ok) {
       throw new Error(`refresh failed (${response.status})`);
     }
@@ -128,7 +128,7 @@ export function FsmControlRoom({ initialSnapshot, readOnly = false }: Props) {
     setMessage(null);
     startTransition(async () => {
       try {
-        const response = await fetch("/api/root/lab/fsm", {
+        const response = await fetch("/api/os/lab/fsm", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ scenarioId }),
@@ -219,7 +219,7 @@ export function FsmControlRoom({ initialSnapshot, readOnly = false }: Props) {
                     ? "Install App"
                     : "Install via Chrome"}
               </button>
-              <a className={styles.secondaryAction} href="/root/lab/fsm">
+              <a className={styles.secondaryAction} href="/os/lab/fsm">
                 Open operator surface
               </a>
             </div>
@@ -249,7 +249,7 @@ export function FsmControlRoom({ initialSnapshot, readOnly = false }: Props) {
 
         {readOnly ? (
           <div className={styles.banner}>
-            Read-only preview. The runnable operator surface lives at <code>/root/lab/fsm</code>.
+            Read-only preview. The runnable operator surface lives at <code>/os/lab/fsm</code>.
           </div>
         ) : null}
         {message ? <div className={styles.banner}>{message}</div> : null}

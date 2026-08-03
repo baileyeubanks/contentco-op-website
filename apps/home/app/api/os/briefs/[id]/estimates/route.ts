@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy, recordAuditEvent } from "@/lib/platform-access";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
-import { createEstimateFromBrief } from "@/lib/root-commercial-pipeline";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { createEstimateFromBrief } from "@/lib/os-commercial-pipeline";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const access = await enforceRoutePolicy(

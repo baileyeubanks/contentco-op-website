@@ -1,6 +1,6 @@
 # CCO Firebase Contract
 
-This folder is the code-side Firebase contract for the pristine CCO project. Do not deploy it into a shared ROOT or ACS project.
+This folder is the code-side Firebase contract for the pristine CCO project. Do not deploy it into a shared CCO OS or ACS project.
 
 Expected project setup:
 

@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { DT } from "@/app/root/components/dt";
-import { StatusPill } from "@/app/root/components/root-table";
-import { QuoteLineItemEditor, type LineItem } from "@/app/root/components/quote-line-item-editor";
+import { DT } from "@/app/os/components/dt";
+import { StatusPill } from "@/app/os/components/os-table";
+import { QuoteLineItemEditor, type LineItem } from "@/app/os/components/quote-line-item-editor";
 
 /* ─── Types ─── */
 type Quote = {
@@ -142,9 +142,9 @@ export default function QuoteDetailPage() {
     if (!quoteId) return;
     setLoading(true);
     Promise.all([
-      fetch(`/api/root/quotes/${quoteId}`).then((r) => r.json()),
-      fetch(`/api/root/quotes/${quoteId}/views`).then((r) => r.json()).catch(() => ({ views: [] })),
-      fetch(`/api/root/quotes/${quoteId}/comments`).then((r) => r.json()).catch(() => ({ comments: [] })),
+      fetch(`/api/os/quotes/${quoteId}`).then((r) => r.json()),
+      fetch(`/api/os/quotes/${quoteId}/views`).then((r) => r.json()).catch(() => ({ views: [] })),
+      fetch(`/api/os/quotes/${quoteId}/comments`).then((r) => r.json()).catch(() => ({ comments: [] })),
     ]).then(([qd, vd, cd]) => {
       if (qd.quote) setQuote(qd.quote);
       setViews(vd.views ?? []);
@@ -156,7 +156,7 @@ export default function QuoteDetailPage() {
     if (!cmtBody.trim() || posting) return;
     setPosting(true);
     try {
-      const r = await fetch(`/api/root/quotes/${quoteId}/comments`, {
+      const r = await fetch(`/api/os/quotes/${quoteId}/comments`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ author: "Team", body: cmtBody, is_client: false }),
       });
@@ -170,20 +170,20 @@ export default function QuoteDetailPage() {
     if (!confirm("Convert to invoice?")) return;
     const r = await fetch(`/api/quotes/${quoteId}/convert`, { method: "POST" });
     const d = await r.json();
-    if (d.invoice?.id) router.push(`/root/invoices/${d.invoice.id}`);
+    if (d.invoice?.id) router.push(`/os/invoices/${d.invoice.id}`);
   }
 
   async function doDelete() {
     if (!quote || !confirm(`Delete ${quote.quote_number}?`)) return;
-    await fetch(`/api/root/quotes/${quoteId}`, { method: "DELETE" });
-    router.push("/root/quotes");
+    await fetch(`/api/os/quotes/${quoteId}`, { method: "DELETE" });
+    router.push("/os/quotes");
   }
 
   if (loading) return <div style={{ padding: 24, fontFamily: MONO, fontSize: DT.font.sm, opacity: 0.3 }}>Loading…</div>;
   if (!quote)  return (
     <div style={{ padding: 24 }}>
       <div style={{ fontFamily: MONO, fontSize: DT.font.sm, color: "#f87171", marginBottom: 8 }}>Quote not found.</div>
-      <Link href="/root/quotes" style={{ fontSize: DT.font.sm, color: "#4ade80", textDecoration: "none" }}>← Back to Quotes</Link>
+      <Link href="/os/quotes" style={{ fontSize: DT.font.sm, color: "#4ade80", textDecoration: "none" }}>← Back to Quotes</Link>
     </div>
   );
 
@@ -206,7 +206,7 @@ export default function QuoteDetailPage() {
       flexShrink: 0,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
-        <Link href="/root/quotes" style={{ fontFamily: MONO, fontSize: DT.font.xs, color: "var(--muted)", opacity: 0.38, textDecoration: "none", flexShrink: 0, letterSpacing: "0.02em" }}>← Quotes</Link>
+        <Link href="/os/quotes" style={{ fontFamily: MONO, fontSize: DT.font.xs, color: "var(--muted)", opacity: 0.38, textDecoration: "none", flexShrink: 0, letterSpacing: "0.02em" }}>← Quotes</Link>
         <span style={{ color: `${G}0.25)`, opacity: 1, flexShrink: 0, fontSize: DT.font.xs }}>·</span>
         <span style={{ fontFamily: MONO, fontSize: DT.font.sm, color: "#4ade80", fontWeight: 700, flexShrink: 0, letterSpacing: "0.04em" }}>
           {quote.quote_number || quoteId.slice(0, 8).toUpperCase()}
@@ -246,7 +246,7 @@ export default function QuoteDetailPage() {
             <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, background: "var(--surface, #111)", backdropFilter: "blur(8px)", border: `1px solid ${G}0.18)`, borderRadius: 6, boxShadow: "0 12px 36px rgba(0,0,0,0.5)", minWidth: 168, zIndex: 200, overflow: "hidden", padding: "3px 0" }}>
               {([
                 { label: "⬇ Download PDF",       fn: () => { window.open(quote.pdf_url, "_blank"); setMoreOpen(false); } },
-                { label: "📋 Duplicate",           fn: () => { fetch(`/api/root/quotes/${quoteId}/duplicate`, { method: "POST" }).then((r) => r.json()).then((d) => d.quote?.id && router.push(`/root/quotes/${d.quote.id}`)); setMoreOpen(false); } },
+                { label: "📋 Duplicate",           fn: () => { fetch(`/api/os/quotes/${quoteId}/duplicate`, { method: "POST" }).then((r) => r.json()).then((d) => d.quote?.id && router.push(`/os/quotes/${d.quote.id}`)); setMoreOpen(false); } },
                 quote.conversion_readiness ? { label: "🔄 Convert to Invoice", fn: () => { doConvert(); setMoreOpen(false); } } : null,
                 { label: "🗑 Delete", fn: () => { doDelete(); setMoreOpen(false); }, danger: true },
               ] as Array<{ label: string; fn: () => void; danger?: boolean } | null>).filter(Boolean).map((it) => it && (
@@ -307,7 +307,7 @@ export default function QuoteDetailPage() {
           <Field label="Company" value={quote.contact_company} />
         </div>
         {quote.service_address && <div style={{ marginTop: 10 }}><Field label="Service Address" value={quote.service_address} /></div>}
-        {quote.contact_id && <div style={{ marginTop: 8 }}><Link href={`/root/contacts/${quote.contact_id}`} style={{ fontSize: DT.font.xs, fontFamily: MONO, color: "#4ade80", opacity: 0.65, textDecoration: "none" }}>View contact record →</Link></div>}
+        {quote.contact_id && <div style={{ marginTop: 8 }}><Link href={`/os/contacts/${quote.contact_id}`} style={{ fontSize: DT.font.xs, fontFamily: MONO, color: "#4ade80", opacity: 0.65, textDecoration: "none" }}>View contact record →</Link></div>}
       </div>
       <div style={{ border: `1px solid ${LINE}`, borderRadius: 5, padding: "10px 12px" }}>
         <SHead label="Details" />
@@ -475,7 +475,7 @@ export default function QuoteDetailPage() {
         {quote.conversion_readiness && (
           <button onClick={doConvert} style={{ width: "100%", padding: "5px 10px", fontSize: DT.font.xs, fontFamily: MONO, letterSpacing: "0.04em", color: "#4ade80", background: `${G}0.07)`, border: `1px solid ${G}0.18)`, borderRadius: 4, cursor: "pointer" }}>🔄 Convert to Invoice</button>
         )}
-        <SBtn onClick={() => { fetch(`/api/root/quotes/${quoteId}/duplicate`, { method: "POST" }).then((r) => r.json()).then((d) => d.quote?.id && router.push(`/root/quotes/${d.quote.id}`)); }}>📋 Duplicate</SBtn>
+        <SBtn onClick={() => { fetch(`/api/os/quotes/${quoteId}/duplicate`, { method: "POST" }).then((r) => r.json()).then((d) => d.quote?.id && router.push(`/os/quotes/${d.quote.id}`)); }}>📋 Duplicate</SBtn>
         <button
           onClick={doDelete}
           style={{ width: "100%", padding: "4px 10px", fontSize: DT.font.xs, fontFamily: MONO, color: "rgba(239,68,68,0.5)", background: "transparent", border: `1px solid rgba(239,68,68,0.12)`, borderRadius: 4, cursor: "pointer" }}

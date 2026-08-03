@@ -1,5 +1,5 @@
 /**
- * ROOT Event Taxonomy — Canonical event types for the shared-business OS.
+ * CCO OS Event Taxonomy — Canonical event types for the shared-business OS.
  * Every event in the system maps to one of these types.
  * Pattern: {domain}.{action}
  */

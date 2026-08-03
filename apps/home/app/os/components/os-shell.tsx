@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import type { RootBrandKey } from "@/lib/root-brand";
+import type { OsBrandKey } from "@/lib/os-brand";
 import {
   getRootModulesForWorkspace,
   type RootModuleDef,
-} from "@/lib/root-module-registry";
+} from "@/lib/os-module-registry";
 
 /* ─── Constants ─── */
 const G = "rgba(74,222,128,";
@@ -19,7 +19,7 @@ const SIDEBAR_COLLAPSED_W = 30;
 const TOPBAR_H = 26;
 
 /* Pages that should NOT show the shell chrome */
-const BARE_PATHS = ["/root", "/root/login", "/root/system/map"];
+const BARE_PATHS = ["/os", "/os/login", "/os/system/map"];
 
 /* ─── Types ─── */
 type BuScope = "ALL" | "ACS" | "CC";
@@ -36,11 +36,11 @@ function getInitialBuScope(): BuScope {
 }
 
 /* ─── Shell ─── */
-export function RootShell({
+export function OsShell({
   brandKey,
   children,
 }: {
-  brandKey: RootBrandKey;
+  brandKey: OsBrandKey;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -339,8 +339,8 @@ function NavItem({
   collapsed: boolean;
 }) {
   const active =
-    mod.href === "/root/overview"
-      ? pathname === "/root/overview" || pathname === "/root"
+    mod.href === "/os/overview"
+      ? pathname === "/os/overview" || pathname === "/os"
       : pathname.startsWith(mod.href);
 
   return (
@@ -413,7 +413,7 @@ function NavItem({
 
 /* ─── Breadcrumb ─── */
 function Breadcrumb({ pathname }: { pathname: string }) {
-  const parts = pathname.replace("/root/", "").split("/").filter(Boolean);
+  const parts = pathname.replace("/os/", "").split("/").filter(Boolean);
   if (parts.length === 0) parts.push("overview");
 
   return (
@@ -457,7 +457,7 @@ function CommandBar({
   query: string;
   setQuery: (q: string) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
-  brandKey: RootBrandKey;
+  brandKey: OsBrandKey;
   onClose: () => void;
 }) {
   const modules = getRootModulesForWorkspace(brandKey);

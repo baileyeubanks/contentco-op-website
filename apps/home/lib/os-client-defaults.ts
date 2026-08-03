@@ -1,12 +1,12 @@
 export type BizFilter = "ALL" | "ACS" | "CC";
 
-import { resolveRootBrand } from "@/lib/root-brand";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 export function getAllowedBizFiltersForHost(hostname?: string | null): BizFilter[] {
   if (!hostname) return ["ALL", "ACS", "CC"];
   const host = hostname.toLowerCase();
   if (host.includes("localhost") || host.includes("127.0.0.1")) return ["ALL", "ACS", "CC"];
-  const brand = resolveRootBrand(host);
+  const brand = resolveOsBrand(host);
   return brand.defaultBusinessUnit === "ACS" ? ["ACS"] : ["CC"];
 }
 

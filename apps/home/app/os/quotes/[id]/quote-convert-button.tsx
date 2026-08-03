@@ -22,7 +22,7 @@ export function QuoteConvertButton({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "conversion_failed");
       const invoiceId = data?.invoice?.id;
-      router.push(invoiceId ? `/root/invoices/${invoiceId}` : "/root/invoices");
+      router.push(invoiceId ? `/os/invoices/${invoiceId}` : "/os/invoices");
       router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Invoice conversion failed");
@@ -34,7 +34,7 @@ export function QuoteConvertButton({
   return (
     <div style={{ display: "flex", gap: 6 }}>
       <Link
-        href={`/root/quotes/${quoteId}/convert`}
+        href={`/os/quotes/${quoteId}/convert`}
         className="root-atlas-button root-atlas-button-primary"
         style={{ textDecoration: "none", textAlign: "center" }}
       >

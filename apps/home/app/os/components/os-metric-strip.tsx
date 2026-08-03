@@ -20,7 +20,7 @@ type Props = {
   metrics: MetricItem[];
 };
 
-export function RootMetricStrip({ metrics }: Props) {
+export function OsMetricStrip({ metrics }: Props) {
   if (!metrics.length) return null;
 
   return (

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
-import type { RootRuntimeSnapshot, WorkClaimRecord } from "@/lib/root-system";
+import type { RootRuntimeSnapshot, WorkClaimRecord } from "@/lib/os-system";
 
 type ExecutionControlSurfaceProps = {
   initialSnapshot: RootRuntimeSnapshot;
@@ -123,7 +123,7 @@ export function ExecutionControlSurface({
   const selectedClaim = snapshot.work_claims.find((claim) => claim.id === selectedClaimId) || null;
 
   async function refreshSnapshot(successMessage?: string) {
-    const res = await fetch("/api/root/system", { cache: "no-store" });
+    const res = await fetch("/api/os/system", { cache: "no-store" });
     const data = (await readJson(res)) as RootRuntimeSnapshot;
     setSnapshot(data);
     setClaimDraft((current) => ({
@@ -151,7 +151,7 @@ export function ExecutionControlSurface({
 
     try {
       await readJson(
-        await fetch("/api/root/work-claims", {
+        await fetch("/api/os/work-claims", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -190,7 +190,7 @@ export function ExecutionControlSurface({
 
     try {
       await readJson(
-        await fetch("/api/root/handoffs", {
+        await fetch("/api/os/handoffs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -241,7 +241,7 @@ export function ExecutionControlSurface({
     try {
       if (options.withHandoff) {
         await readJson(
-          await fetch("/api/root/handoffs", {
+          await fetch("/api/os/handoffs", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -257,7 +257,7 @@ export function ExecutionControlSurface({
       }
 
       await readJson(
-        await fetch(`/api/root/work-claims/${selectedClaim.id}/release`, {
+        await fetch(`/api/os/work-claims/${selectedClaim.id}/release`, {
           method: "POST",
         }),
       );
@@ -747,7 +747,7 @@ const eyebrow: CSSProperties = {
   fontWeight: 600,
   textTransform: "uppercase",
   letterSpacing: "0.14em",
-  color: "var(--root-accent)",
+  color: "var(--os-accent)",
 };
 
 const sectionHeader: CSSProperties = {
@@ -800,7 +800,7 @@ const primaryButton: CSSProperties = {
   borderRadius: 12,
   border: "1px solid var(--root-line, rgba(74,222,128,0.12))",
   background: "rgba(74,222,128,0.14)",
-  color: "var(--root-accent)",
+  color: "var(--os-accent)",
   fontFamily: "var(--font-mono)",
   fontWeight: 600,
   fontSize: "0.68rem",

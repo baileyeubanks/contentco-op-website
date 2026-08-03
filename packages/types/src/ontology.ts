@@ -1,4 +1,5 @@
-/* ─── ROOT Canonical Ontology Types ─── */
+/* CCO OS ontology — commercial authority on CCO-DB. ACS types elsewhere. Retired governance names are forbidden. */
+/* ─── CCO OS Canonical Ontology Types ─── */
 
 /* ─── Companies (Attio pattern) ─── */
 export interface Company {

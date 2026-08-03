@@ -17,7 +17,7 @@ describe("system map normalization", () => {
         node_version: "v25.8.2",
       },
       runtime: {
-        host: "root.contentco-op.com",
+        host: "admin.contentco-op.com",
         app_version: "0.1.0",
         node_env: "production",
         default_business_unit: "CC",
@@ -114,7 +114,7 @@ describe("system map render contract", () => {
           label: "Runtime check",
           status: "healthy",
           detail: "ok",
-          source: "/api/root/system-map",
+          source: "/api/os/system-map",
         },
       ],
       conflicts: [

@@ -29,8 +29,8 @@ const STEPS = [
   {
     label: "04",
     title: "Move into production",
-    detail: "Carry the approved scope into ROOT, Co-Script, Co-Cut, and delivery.",
-    href: "/root",
+    detail: "Carry the approved scope into CCO OS, Co-Script, Co-Cut, and delivery.",
+    href: "/os",
     cta: "Open Root",
     external: false,
   },

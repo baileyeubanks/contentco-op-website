@@ -2,8 +2,8 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { isAdvancedRootOperatorForHost, resolveRootAuthorityForHost } from "@/lib/root-auth";
-import { logRootAuditEvent } from "@/lib/root-event-log";
+import { isAdvancedRootOperatorForHost, resolveRootAuthorityForHost } from "@/lib/os-auth";
+import { logRootAuditEvent } from "@/lib/os-event-log";
 import { verifyInviteSession } from "@/lib/session";
 import { getSessionCookieName } from "@/lib/session-shared";
 
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
       type: "root_system_action_succeeded",
       host,
       email: session.email,
-      text: `ROOT system action ${action} completed`,
+      text: `CCO OS system action ${action} completed`,
       payload: {
         action,
         scope,
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
       type: "root_system_action_failed",
       host,
       email: session.email,
-      text: `ROOT system action ${action} failed`,
+      text: `CCO OS system action ${action} failed`,
       payload: {
         action,
         scope,

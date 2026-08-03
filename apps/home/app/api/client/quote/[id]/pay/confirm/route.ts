@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
-import { applyInvoicePayment } from "@/lib/root-commercial-pipeline";
+import { applyInvoicePayment } from "@/lib/os-commercial-pipeline";
 
 /**
  * POST /api/client/quote/[id]/pay/confirm

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getRootCatalog, getRootCatalogCategories } from "@/lib/root-catalog";
-import { getCatalogItems, upsertCatalogItem } from "@/lib/root-payments-engine";
-import { getRootBusinessScopeFromRequest } from "@/lib/root-request-scope";
+import { getRootCatalog, getRootCatalogCategories } from "@/lib/os-catalog";
+import { getCatalogItems, upsertCatalogItem } from "@/lib/os-payments-engine";
+import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 export async function GET(req: Request) {
   const scope = getRootBusinessScopeFromRequest(req);

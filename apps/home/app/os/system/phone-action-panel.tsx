@@ -114,7 +114,7 @@ export function PhoneActionPanel({
               : undefined,
           };
 
-        const response = await fetch("/api/root/system/phone-actions", {
+        const response = await fetch("/api/os/system/phone-actions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -141,7 +141,7 @@ export function PhoneActionPanel({
           <span className={styles.metaTiny}>lane {phoneStatus}</span>
         </div>
         <div className={styles.microCopy}>
-          Queue a preflight or outbound-call proposal directly from ROOT. Nothing executes automatically; Blaze still requires approval.
+          Queue a preflight or outbound-call proposal directly from CCO OS. Nothing executes automatically; Blaze still requires approval.
         </div>
         {blockedReasons.length > 0 ? (
           <div className={styles.metaTiny} style={{ color: "#f0c271" }}>

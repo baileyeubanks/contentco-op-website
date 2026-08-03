@@ -28,12 +28,12 @@ body[data-surface="root"] {
     linear-gradient(180deg, var(--root-brand-bg, #07111f) 0%, #091524 100%);
 }
 
-[data-root-brand="acs"] {
-  --accent: var(--root-accent);
+[data-os-brand="acs"] {
+  --accent: var(--os-accent);
 }
 
-[data-root-brand="cc"] {
-  --accent: var(--root-accent);
+[data-os-brand="cc"] {
+  --accent: var(--os-accent);
 }
 
 /* ─── Public Page Background Tokens ─── */
@@ -81,7 +81,7 @@ h1, h2, h3, h4 {
   inset: 0 auto auto 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, var(--root-accent) 0%, transparent 82%);
+  background: linear-gradient(90deg, var(--os-accent) 0%, transparent 82%);
   opacity: 0.7;
 }
 
@@ -128,7 +128,7 @@ h1, h2, h3, h4 {
 }
 
 .root-login-kicker {
-  color: var(--root-accent);
+  color: var(--os-accent);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -165,7 +165,7 @@ h1, h2, h3, h4 {
   border-radius: 6px;
   border: 1px solid var(--root-line, rgba(255,255,255,0.08));
   background: rgba(74,222,128,0.08);
-  color: var(--root-accent);
+  color: var(--os-accent);
   font-family: var(--font-mono), monospace;
   font-size: 0.62rem;
   font-weight: 600;
@@ -184,8 +184,8 @@ h1, h2, h3, h4 {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--root-accent);
-  box-shadow: 0 0 12px var(--root-accent);
+  background: var(--os-accent);
+  box-shadow: 0 0 12px var(--os-accent);
 }
 
 .root-login-name {
@@ -233,8 +233,8 @@ h1, h2, h3, h4 {
 
 .root-login-input:focus {
   outline: none;
-  border-color: var(--root-accent);
-  box-shadow: 0 0 0 4px var(--root-accent-soft, rgba(74,222,128,0.14));
+  border-color: var(--os-accent);
+  box-shadow: 0 0 0 4px var(--os-accent-soft, rgba(74,222,128,0.14));
 }
 
 .root-login-error {
@@ -250,7 +250,7 @@ h1, h2, h3, h4 {
   padding: 13px 16px;
   border-radius: 999px;
   border: none;
-  background: linear-gradient(135deg, var(--root-accent), var(--root-glow, var(--root-accent)));
+  background: linear-gradient(135deg, var(--os-accent), var(--root-glow, var(--os-accent)));
   color: #07111f;
   font: inherit;
   font-size: 0.76rem;
@@ -295,7 +295,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--root-accent);
+  color: var(--os-accent);
 }
 
 .root-workspace-title {
@@ -337,7 +337,7 @@ h1, h2, h3, h4 {
 }
 
 .root-workspace-chip-live {
-  color: var(--root-accent);
+  color: var(--os-accent);
   background: rgba(74,222,128,0.08);
 }
 
@@ -366,7 +366,7 @@ h1, h2, h3, h4 {
 }
 
 .root-workspace-link:hover {
-  color: var(--root-accent);
+  color: var(--os-accent);
   border-color: var(--root-line, rgba(74,222,128,0.18));
   background: rgba(74,222,128,0.06);
 }
@@ -410,7 +410,7 @@ h1, h2, h3, h4 {
   border-color: var(--root-line, rgba(74, 222, 128, 0.12));
 }
 
-/* ROOT operational pages: no editorial/display font — use body font everywhere */
+/* CCO OS operational pages: no editorial/display font — use body font everywhere */
 [data-surface="product"] h1,
 [data-surface="product"] h2,
 [data-surface="product"] h3,
@@ -435,7 +435,7 @@ h1, h2, h3, h4 {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--root-accent);
+  color: var(--os-accent);
 }
 
 .root-atlas-title {
@@ -505,7 +505,7 @@ h1, h2, h3, h4 {
 .root-atlas-select:focus,
 .root-atlas-textarea:focus {
   outline: none;
-  border-color: var(--root-accent);
+  border-color: var(--os-accent);
   box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.08);
 }
 
@@ -527,7 +527,7 @@ h1, h2, h3, h4 {
 .root-atlas-button-primary {
   border: 1px solid var(--root-line, rgba(74, 222, 128, 0.12));
   background: rgba(74, 222, 128, 0.14);
-  color: var(--root-accent);
+  color: var(--os-accent);
 }
 
 .root-atlas-button-secondary {
@@ -613,7 +613,7 @@ h1, h2, h3, h4 {
 
 .root-module-chip--accent {
   background: rgba(74, 222, 128, 0.12);
-  color: var(--root-accent);
+  color: var(--os-accent);
 }
 
 .root-module-chip--warn {
@@ -673,7 +673,7 @@ h1, h2, h3, h4 {
 }
 
 .root-search-input:focus {
-  border-color: var(--root-accent);
+  border-color: var(--os-accent);
   box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.08);
 }
 
@@ -705,7 +705,7 @@ h1, h2, h3, h4 {
 .root-hero-glow {
   position: relative;
   background:
-    radial-gradient(ellipse 60% 50% at 15% 40%, color-mix(in srgb, var(--root-accent) 8%, transparent), transparent),
+    radial-gradient(ellipse 60% 50% at 15% 40%, color-mix(in srgb, var(--os-accent) 8%, transparent), transparent),
     linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
 }
 
@@ -774,7 +774,7 @@ h1, h2, h3, h4 {
 }
 
 .root-pill--accent {
-  color: var(--root-accent);
+  color: var(--os-accent);
   border-color: rgba(74, 222, 128, 0.2);
   background: rgba(74, 222, 128, 0.08);
 }

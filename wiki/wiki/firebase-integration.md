@@ -52,12 +52,12 @@ Firebase provides a parallel data layer for CCO operations, particularly for lea
 
 `lib/cco-firebase-client.ts`:
 - Client SDK for real-time subscriptions
-- Used in ROOT dashboard for live data
+- Used in CCO OS dashboard for live data
 
 ## Dual Write Pattern
 
 CCO uses both Supabase (canonical) and Firestore (operational):
-- **Supabase**: Structured relational data, ROOT queries, reporting
+- **Supabase**: Structured relational data, CCO OS queries, reporting
 - **Firestore**: Real-time updates, lead capture, event streaming
 
 ## Related

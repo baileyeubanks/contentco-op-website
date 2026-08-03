@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { ModuleHeader } from "@/app/dashboard/components/module-header";
 import { BriefOpsPanel } from "./brief-ops-panel";
 import { ProposalReviewPanel } from "./proposal-review-panel";
-import { getRootMarketingBriefDetail } from "@/lib/root-marketing";
-import { resolveRootBrand } from "@/lib/root-brand";
+import { getRootMarketingBriefDetail } from "@/lib/os-marketing";
+import { resolveOsBrand } from "@/lib/os-brand";
 
 function formatTimestamp(value: string | null) {
   if (!value) return "unknown";
@@ -37,7 +37,7 @@ export default async function RootMarketingBriefDetailPage({
 }) {
   const { id } = await params;
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
   const detail = await getRootMarketingBriefDetail(brand.key, id);
 
   if (!detail) {
@@ -58,9 +58,9 @@ export default async function RootMarketingBriefDetailPage({
             { label: "quote ready", value: detail.readiness.quoteReady ? "yes" : "needs follow-up", tone: detail.readiness.quoteReady ? "success" : "warn" },
           ]}
           actions={[
-            { label: "marketing lane", href: "/root/marketing", tone: "secondary" },
+            { label: "marketing lane", href: "/os/marketing", tone: "secondary" },
             { label: "public brief", href: "https://contentco-op.com/brief", tone: "secondary" },
-            ...(detail.relatedQuotes[0]?.id ? [{ label: "latest draft quote", href: `/root/quotes/${detail.relatedQuotes[0].id}`, tone: "primary" as const }] : []),
+            ...(detail.relatedQuotes[0]?.id ? [{ label: "latest draft quote", href: `/os/quotes/${detail.relatedQuotes[0].id}`, tone: "primary" as const }] : []),
           ]}
         />
 
@@ -181,7 +181,7 @@ export default async function RootMarketingBriefDetailPage({
             ) : (
               <div style={stack}>
                 {detail.relatedQuotes.map((quote) => (
-                  <Link key={quote.id} href={`/root/quotes/${quote.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                  <Link key={quote.id} href={`/os/quotes/${quote.id}`} style={{ textDecoration: "none", color: "inherit" }}>
                     <div style={rowStack}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                         <div style={{ fontWeight: 700 }}>{quote.quoteNumber || quote.id.slice(0, 8)}</div>

@@ -1,12 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isAdvancedRootOperatorForHost, isEmailAuthorizedForRootHost } from "@/lib/root-auth";
+import { isAdvancedRootOperatorForHost, isEmailAuthorizedForRootHost } from "@/lib/os-auth";
 import { resolvePublicSupabaseConfig } from "@/lib/runtime-config";
 import { verifyInviteSessionEdge } from "@/lib/session-edge";
 import { getSessionCookieName } from "@/lib/session-shared";
 
-const ADVANCED_ROOT_PATHS = ["/root/system", "/root/lab", "/root/work-claims"];
-const PUBLIC_ROOT_PATHS = new Set(["/root", "/root/login", "/root/logout"]);
+const ADVANCED_ROOT_PATHS = ["/os/system", "/os/lab", "/os/work-claims"];
+const PUBLIC_ROOT_PATHS = new Set(["/os", "/os/login", "/os/logout"]);
 
 /**
  * Middleware: refreshes Supabase auth session on every request.
@@ -17,8 +17,8 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname =
       request.nextUrl.pathname === "/dashboard"
-        ? "/root/overview"
-        : request.nextUrl.pathname.replace(/^\/dashboard/, "/root");
+        ? "/os/overview"
+        : request.nextUrl.pathname.replace(/^\/dashboard/, "/os");
     return NextResponse.redirect(url);
   }
 
@@ -63,19 +63,19 @@ export async function proxy(request: NextRequest) {
     (user?.email ? isAdvancedRootOperatorForHost(user.email, host) : false);
 
   // Keep the explicit auth recovery routes reachable even if a stale or
-  // partially-authorized session cookie is present. `/root` remains the smart
-  // entrypoint; `/root/login` and `/root/logout` must stay deterministic.
-  if (request.nextUrl.pathname === "/root/login" || request.nextUrl.pathname === "/root/logout") {
+  // partially-authorized session cookie is present. `/os` remains the smart
+  // entrypoint; `/os/login` and `/os/logout` must stay deterministic.
+  if (request.nextUrl.pathname === "/os/login" || request.nextUrl.pathname === "/os/logout") {
     return supabaseResponse;
   }
 
   if (
-    request.nextUrl.pathname.startsWith("/root") &&
+    request.nextUrl.pathname.startsWith("/os") &&
     ADVANCED_ROOT_PATHS.some((route) => request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith(`${route}/`)) &&
     !advancedAuthorized
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/root/overview";
+    url.pathname = "/os/overview";
     url.searchParams.set("denied", "advanced");
     return NextResponse.redirect(url);
   }
@@ -84,30 +84,30 @@ export async function proxy(request: NextRequest) {
   if (
     !user &&
     !operatorAuthorized &&
-    request.nextUrl.pathname.startsWith("/root") &&
+    request.nextUrl.pathname.startsWith("/os") &&
     !PUBLIC_ROOT_PATHS.has(request.nextUrl.pathname)
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/root";
+    url.pathname = "/os";
     return NextResponse.redirect(url);
   }
 
-  if (request.nextUrl.pathname.startsWith("/root") && user && !userAuthorized && !operatorAuthorized) {
+  if (request.nextUrl.pathname.startsWith("/os") && user && !userAuthorized && !operatorAuthorized) {
     const url = request.nextUrl.clone();
-    url.pathname = "/root";
+    url.pathname = "/os";
     return NextResponse.redirect(url);
   }
 
   if ((userAuthorized || operatorAuthorized) && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/root/overview";
+    url.pathname = "/os/overview";
     return NextResponse.redirect(url);
   }
 
   // If logged in and hitting /root, redirect to root overview
   if ((userAuthorized || operatorAuthorized) && PUBLIC_ROOT_PATHS.has(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/root/overview";
+    url.pathname = "/os/overview";
     return NextResponse.redirect(url);
   }
 
@@ -115,5 +115,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/root", "/root/:path*"],
+  matcher: ["/dashboard/:path*", "/login", "/os", "/os/:path*"],
 };

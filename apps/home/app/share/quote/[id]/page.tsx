@@ -78,8 +78,8 @@ export default async function ShareQuotePage({ params }: { params: Promise<{ id:
     }
   }
 
-  const previewUrl = `/api/root/quotes/${id}/preview`;
-  const pdfUrl = `/api/root/quotes/${id}/pdf`;
+  const previewUrl = `/api/os/quotes/${id}/preview`;
+  const pdfUrl = `/api/os/quotes/${id}/pdf`;
   const brandColor = quote.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
   const accentColor = quote.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
   const brandName = quote.business_unit === "ACS" ? "Astro Cleanings" : "Content Co-Op";

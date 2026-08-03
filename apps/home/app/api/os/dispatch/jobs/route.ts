@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
 /**
- * GET /api/root/dispatch/jobs?start=ISO&end=ISO
+ * GET /api/os/dispatch/jobs?start=ISO&end=ISO
  *
  * Fetch jobs for the dispatch calendar within a date range.
  * Joins with contacts to get client_name if not stored directly.

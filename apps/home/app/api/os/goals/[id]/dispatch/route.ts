@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { getRootGoals } from "@/lib/root-goals";
-import { emitTypedEvent } from "@/lib/root-event-log";
+import { getRootGoals } from "@/lib/os-goals";
+import { emitTypedEvent } from "@/lib/os-event-log";
 import { getSupabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";

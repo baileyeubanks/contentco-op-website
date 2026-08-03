@@ -13,15 +13,15 @@ The finance control system tracks accounts, payables, reconciliation, and tax ob
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| GET | `/api/root/finance` | Finance dashboard data |
-| GET | `/api/root/finance/overview` | High-level overview |
-| GET | `/api/root/finance/accounts` | Chart of accounts |
-| GET | `/api/root/finance/payables` | Accounts payable |
-| GET | `/api/root/finance/reconciliation` | Bank reconciliation |
-| GET | `/api/root/finance/rules` | Automation rules |
-| GET | `/api/root/finance/tax` | Tax data and obligations |
-| GET | `/api/root/payments` | Payment ledger |
-| GET | `/api/root/payments/[id]` | Payment detail |
+| GET | `/api/os/finance` | Finance dashboard data |
+| GET | `/api/os/finance/overview` | High-level overview |
+| GET | `/api/os/finance/accounts` | Chart of accounts |
+| GET | `/api/os/finance/payables` | Accounts payable |
+| GET | `/api/os/finance/reconciliation` | Bank reconciliation |
+| GET | `/api/os/finance/rules` | Automation rules |
+| GET | `/api/os/finance/tax` | Tax data and obligations |
+| GET | `/api/os/payments` | Payment ledger |
+| GET | `/api/os/payments/[id]` | Payment detail |
 
 ## Chart of Accounts
 

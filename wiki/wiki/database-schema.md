@@ -7,7 +7,7 @@ tags: [database, supabase, schema, ontology]
 
 ## Summary
 
-Content Co-op uses Supabase as its primary database. The schema is managed through SQL migrations in `infra/supabase/migrations/`. The ROOT ontology (added in `20260317_root_ontology_core.sql`) provides the canonical data model for CRM, projects, and finance.
+Content Co-op uses Supabase as its primary database. The schema is managed through SQL migrations in `infra/supabase/migrations/`. The CCO OS ontology (added in `20260317_root_ontology_core.sql`) provides the canonical data model for CRM, projects, and finance.
 
 ## Migrations
 
@@ -22,7 +22,7 @@ Content Co-op uses Supabase as its primary database. The schema is managed throu
 | `20260226_user_profiles.sql` | User profiles |
 | `20260306_root_ops_core.sql` | Work claims, handoffs, document artifacts |
 | `20260317_creative_brief_v3_structured_fields.sql` | Structured brief columns |
-| `20260317_root_ontology_core.sql` | **Full ROOT ontology** |
+| `20260317_root_ontology_core.sql` | **Full CCO OS ontology** |
 | `20260411_root_commercial_pipeline.sql` | Commercial pipeline extensions |
 
 ## Core Tables
@@ -78,7 +78,7 @@ Content Co-op uses Supabase as its primary database. The schema is managed throu
 All tables have RLS enabled. Policies restrict access based on:
 - `auth.uid()` for authenticated users
 - Business unit membership via `contact_business_map`
-- ROOT role via `root_users` table
+- CCO OS role via `root_users` table
 
 ## Related
 

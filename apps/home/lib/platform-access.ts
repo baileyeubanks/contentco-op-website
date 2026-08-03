@@ -17,8 +17,8 @@ import {
   getRootOperatorRoleForHost,
   isEmailAuthorizedForRootHost,
   type RootOperatorRole,
-} from "@/lib/root-auth";
-import { logRootAuditEvent } from "@/lib/root-event-log";
+} from "@/lib/os-auth";
+import { logRootAuditEvent } from "@/lib/os-event-log";
 import { getSessionCookieName } from "@/lib/session";
 import { verifyInviteSession } from "@/lib/session";
 

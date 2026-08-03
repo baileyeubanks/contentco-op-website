@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { resolveRootBrand } from "@/lib/root-brand";
-import { RootShell } from "@/app/root/components/root-shell";
+import { resolveOsBrand } from "@/lib/os-brand";
+import { OsShell } from "@/app/os/components/os-shell";
 import "@contentco-op/ui/src/atlantis/tokens.css";
 import "@xyflow/react/dist/style.css";
 
@@ -13,18 +13,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootAppLayout({
+export default async function OsAppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const headerStore = await headers();
-  const brand = resolveRootBrand(headerStore.get("host"), headerStore.get("x-root-brand"));
+  const brand = resolveOsBrand(headerStore.get("host"), headerStore.get("x-os-brand"));
 
   return (
     <div
       data-surface="product"
-      data-root-brand={brand.key}
+      data-os-brand={brand.key}
       className={brand.brandClassName}
       style={
         {
@@ -32,12 +32,12 @@ export default async function RootAppLayout({
           background: "var(--bg)",
           color: "var(--ink)",
           fontFamily: "var(--font-body)",
-          "--root-accent": brand.accent,
-          "--root-accent-soft": brand.accentSoft,
+          "--os-accent": brand.accent,
+          "--os-accent-soft": brand.accentSoft,
         } as React.CSSProperties
       }
     >
-      <RootShell brandKey={brand.key}>{children}</RootShell>
+      <OsShell brandKey={brand.key}>{children}</OsShell>
     </div>
   );
 }

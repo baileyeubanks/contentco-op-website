@@ -10,7 +10,10 @@ export function PublicFooter() {
           <Link href={CCO_URLS.home}>Home</Link>
           <Link href={CCO_URLS.portfolio}>Portfolio</Link>
           <Link href={CREATIVE_BRIEF_PATH}>Creative Brief</Link>
+          <Link href="/book">Book</Link>
+          <Link href="/suite">Suite</Link>
           <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
         </nav>
         <div className="cc-footer-contact" aria-label="Contact information">
           <a href="mailto:service@contentco-op.com">service@contentco-op.com</a>

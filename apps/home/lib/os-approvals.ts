@@ -1,5 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
-import { emitTypedEvent } from "@/lib/root-event-log";
+import { emitTypedEvent } from "@/lib/os-event-log";
 
 export type ApprovalRecord = {
   id: string;

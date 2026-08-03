@@ -14,9 +14,9 @@
   grid-template-columns: 1.5fr 1fr;
   padding: 22px;
   border-radius: 24px;
-  border: 1px solid color-mix(in srgb, var(--root-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--os-accent) 16%, transparent);
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--root-accent) 14%, transparent), transparent 38%),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--os-accent) 14%, transparent), transparent 38%),
     linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
 }
 
@@ -43,7 +43,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--root-accent);
+  color: var(--os-accent);
 }
 
 .installCopy {
@@ -60,7 +60,7 @@
 }
 
 .eyebrow {
-  color: var(--root-accent);
+  color: var(--os-accent);
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -124,8 +124,8 @@
 .banner {
   padding: 14px 16px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--root-accent) 12%, rgba(255,255,255,0.03));
-  border: 1px solid color-mix(in srgb, var(--root-accent) 18%, transparent);
+  background: color-mix(in srgb, var(--os-accent) 12%, rgba(255,255,255,0.03));
+  border: 1px solid color-mix(in srgb, var(--os-accent) 18%, transparent);
 }
 
 .grid {
@@ -187,7 +187,7 @@
 }
 
 .runButton {
-  background: var(--root-accent);
+  background: var(--os-accent);
   color: #08110f;
 }
 
@@ -223,8 +223,8 @@
 }
 
 .scenarioButton[data-active="true"] {
-  border-color: color-mix(in srgb, var(--root-accent) 32%, transparent);
-  background: color-mix(in srgb, var(--root-accent) 10%, rgba(255,255,255,0.02));
+  border-color: color-mix(in srgb, var(--os-accent) 32%, transparent);
+  background: color-mix(in srgb, var(--os-accent) 10%, rgba(255,255,255,0.02));
 }
 
 .scenarioTop,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { createRootGoal, getRootGoals } from "@/lib/root-goals";
+import { createRootGoal, getRootGoals } from "@/lib/os-goals";
 
 export const dynamic = "force-dynamic";
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy, recordAuditEvent } from "@/lib/platform-access";
-import { getProjectById, updateProjectStatus } from "@/lib/root-projects-engine";
+import { getProjectById, updateProjectStatus } from "@/lib/os-projects-engine";
 import { getSupabase } from "@/lib/supabase";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { getRootFinance } from "@/lib/root-data";
+import { getRootFinance } from "@/lib/os-data";
 
 export async function GET() {
   const access = await enforceRoutePolicy(

@@ -84,7 +84,7 @@ function renderGraph(snapshot: SystemMapSnapshot) {
           <p class="eyebrow">Live topology</p>
           <h2>Authority, runtime, lanes, and public surfaces.</h2>
         </div>
-        <p class="graph-note">This export is read-only. The live route at <code>/root/system/map</code> auto-refreshes every 60 seconds.</p>
+        <p class="graph-note">This export is read-only. The live route at <code>/os/system/map</code> auto-refreshes every 60 seconds.</p>
       </div>
       <div class="graph-canvas">
         <svg class="graph-lines" viewBox="0 0 1280 820" preserveAspectRatio="none" aria-hidden="true">

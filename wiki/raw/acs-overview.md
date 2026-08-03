@@ -49,7 +49,7 @@ ACS brand assets in `contentco-op/brand/assets/acs/`:
 Hermes `SOUL.md` grants ACS equal authority with CCO:
 1. ACS — `astrocleanings.com`, Blaze.local:8080
 2. CCO — `contentco-op.com`, Blaze.local:4100
-3. Mission Control — Port 4300
+3. CCO OS — Port 4300
 4. CCNAS Stack — Open WebUI, Chroma, Ollama, Prometheus, Grafana
 5. Paperclip — `http://127.0.0.1:3100`
 

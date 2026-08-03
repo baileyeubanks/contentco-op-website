@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authorizeRootWorkspaceRoute, buildRootWorkspaceSnapshot, getRootWorkspaceItem } from "@/lib/root-workspace";
+import { authorizeRootWorkspaceRoute, buildRootWorkspaceSnapshot, getRootWorkspaceItem } from "@/lib/os-workspace";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -15,7 +15,7 @@ export async function GET(
   const url = new URL(request.url);
   const snapshot = await buildRootWorkspaceSnapshot({
     host: request.headers.get("host"),
-    brandHint: request.headers.get("x-root-brand"),
+    brandHint: request.headers.get("x-os-brand"),
     fresh: url.searchParams.get("fresh") === "1",
   });
   const item = getRootWorkspaceItem(snapshot, id);

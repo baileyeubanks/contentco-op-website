@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { processRecurringInvoices } from "@/lib/root-payments-engine";
+import { processRecurringInvoices } from "@/lib/os-payments-engine";
 import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";

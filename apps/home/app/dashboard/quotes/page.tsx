@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useEffectEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { DT } from "@/app/root/components/dt";
-import { RootTable, StatusPill, type ColumnDef, type RowAction, type BulkAction } from "@/app/root/components/root-table";
-import { RootListToolbar } from "@/app/root/components/root-list-toolbar";
-import { RootMetricStrip } from "@/app/root/components/root-metric-strip";
+import { DT } from "@/app/os/components/dt";
+import { OsTable, StatusPill, type ColumnDef, type RowAction, type BulkAction } from "@/app/os/components/os-table";
+import { OsListToolbar } from "@/app/os/components/os-list-toolbar";
+import { OsMetricStrip } from "@/app/os/components/os-metric-strip";
 
 /* ─── Types ─── */
 type Quote = {
@@ -83,7 +83,7 @@ function QuotesPageInner() {
     }
 
     try {
-      const res = await fetch("/api/root/quotes?limit=200");
+      const res = await fetch("/api/os/quotes?limit=200");
       const data = await res.json();
       const raw: Quote[] = data.quotes ?? [];
       setAllQuotes(raw.map((q) => ({ ...q, display_status: deriveStatus(q) })));
@@ -244,19 +244,19 @@ function QuotesPageInner() {
   const rowActions = useCallback(
     (row: Quote): RowAction<Quote>[] => [
       { label: "Preview PDF",         icon: "👁", onClick: () => setPdpId(row.id) },
-      { label: "Email Quote",          icon: "✉", onClick: () => router.push(`/root/quotes/${row.id}`) },
+      { label: "Email Quote",          icon: "✉", onClick: () => router.push(`/os/quotes/${row.id}`) },
       { label: "Copy Share Link",      icon: "🔗", onClick: () => navigator.clipboard?.writeText(`${window.location.origin}/share/quote/${row.id}`) },
       { label: "Convert to Invoice",   icon: "🔄", dividerBefore: true, onClick: () => {
           fetch(`/api/quotes/${row.id}/convert`, { method: "POST" })
             .then((r) => r.json())
-            .then((d) => d.invoice?.id && router.push(`/root/invoices/${d.invoice.id}`));
+            .then((d) => d.invoice?.id && router.push(`/os/invoices/${d.invoice.id}`));
         }
       },
       { label: "Duplicate",            icon: "📋", onClick: () => {
           void (async () => {
             setLoading(true);
             try {
-              await fetch(`/api/root/quotes/${row.id}/duplicate`, { method: "POST" });
+              await fetch(`/api/os/quotes/${row.id}/duplicate`, { method: "POST" });
               await fetchQuotes(false);
             } finally {
               setLoading(false);
@@ -266,7 +266,7 @@ function QuotesPageInner() {
       },
       { label: "Delete",               icon: "🗑", danger: true, dividerBefore: true, onClick: () => {
           if (confirm(`Delete quote ${row.quote_number}?`))
-            fetch(`/api/root/quotes/${row.id}`, { method: "DELETE" })
+            fetch(`/api/os/quotes/${row.id}`, { method: "DELETE" })
               .then(() => setAllQuotes((q) => q.filter((x) => x.id !== row.id)));
         }
       },
@@ -291,7 +291,7 @@ function QuotesPageInner() {
       label: "Mark as Sent",
       onClick: (ids) =>
         Promise.all(ids.map((id) =>
-          fetch(`/api/root/quotes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_status: "sent" }) })
+          fetch(`/api/os/quotes/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_status: "sent" }) })
         )).then(() =>
           setAllQuotes((prev) => prev.map((q) => ids.includes(q.id) ? { ...q, client_status: "sent", display_status: "sent" } : q))
         ),
@@ -314,7 +314,7 @@ function QuotesPageInner() {
           </span>
         </div>
         <Link
-          href="/root/quotes/new"
+          href="/os/quotes/new"
           style={{ padding: DT.btn.primary.pad, fontSize: DT.btn.primary.font, fontFamily: DT.font.mono, fontWeight: 700, letterSpacing: "0.06em", color: "#0d1109", background: "#4ade80", borderRadius: DT.btn.primary.radius, textDecoration: "none" }}
         >
           + New Quote
@@ -322,7 +322,7 @@ function QuotesPageInner() {
       </div>
 
       {/* Toolbar */}
-      <RootListToolbar
+      <OsListToolbar
         statusTabs={tabsWithCounts}
         activeTab={activeTab}
         onTabChange={(v) => setParam("status", v)}
@@ -334,7 +334,7 @@ function QuotesPageInner() {
       />
 
       {/* Metric strip */}
-      <RootMetricStrip
+      <OsMetricStrip
         metrics={[
           { label: "Pipeline",      value: fmtAmount(pipeline) },
           { label: "Accepted",      value: fmtAmount(accepted), accent: accepted > 0 },
@@ -346,7 +346,7 @@ function QuotesPageInner() {
       />
 
       {/* Table */}
-      <RootTable<Quote>
+      <OsTable<Quote>
         columns={columns}
         data={pageData}
         keyField="id"
@@ -355,7 +355,7 @@ function QuotesPageInner() {
         sort={{ key: sortKey, dir: sortDir }}
         onSortChange={(s) => { setParam("sort", s.key); setParam("dir", s.dir); }}
         pagination={{ page, perPage, total: filtered.length, onPageChange: (p) => setParam("page", String(p)), onPerPageChange: (pp) => setParam("per", String(pp)) }}
-        onRowClick={(row) => router.push(`/root/quotes/${row.id}`)}
+        onRowClick={(row) => router.push(`/os/quotes/${row.id}`)}
         loading={loading}
         emptyMessage="No quotes match the current filters."
       />
@@ -367,11 +367,11 @@ function QuotesPageInner() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", borderBottom: `1px solid ${LINE}` }}>
               <span style={{ fontFamily: DT.font.mono, fontSize: DT.font.sm, opacity: 0.5 }}>PDF Preview</span>
               <div style={{ display: "flex", gap: 6 }}>
-                <a href={`/api/root/quotes/${pdpId}/pdf`} target="_blank" rel="noreferrer" style={{ padding: DT.btn.ghost.pad, fontSize: DT.btn.ghost.font, fontFamily: DT.font.mono, color: "#4ade80", border: `1px solid ${G}0.22)`, borderRadius: DT.btn.ghost.radius, textDecoration: "none" }}>⬇ Download</a>
+                <a href={`/api/os/quotes/${pdpId}/pdf`} target="_blank" rel="noreferrer" style={{ padding: DT.btn.ghost.pad, fontSize: DT.btn.ghost.font, fontFamily: DT.font.mono, color: "#4ade80", border: `1px solid ${G}0.22)`, borderRadius: DT.btn.ghost.radius, textDecoration: "none" }}>⬇ Download</a>
                 <button onClick={() => setPdpId(null)} style={{ padding: DT.btn.ghost.pad, fontSize: DT.btn.ghost.font, fontFamily: DT.font.mono, color: "var(--muted)", border: `1px solid ${LINE}`, borderRadius: DT.btn.ghost.radius, background: "transparent", cursor: "pointer" }}>✕ Close</button>
               </div>
             </div>
-            <iframe src={`/api/root/quotes/${pdpId}/preview`} style={{ flex: 1, border: "none", width: "100%" }} />
+            <iframe src={`/api/os/quotes/${pdpId}/preview`} style={{ flex: 1, border: "none", width: "100%" }} />
           </div>
         </div>
       )}
