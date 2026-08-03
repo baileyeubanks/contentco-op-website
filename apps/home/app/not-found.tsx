@@ -35,7 +35,7 @@ export default function NotFound() {
               display: "inline-flex",
               alignItems: "center",
               gap: "0.5rem",
-              background: "#4c8ef5",
+              background: "#c4722a",
               color: "#fff",
               padding: "0.75rem 1.5rem",
               borderRadius: 999,

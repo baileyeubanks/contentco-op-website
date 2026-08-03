@@ -30,7 +30,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #4c8ef5;
+  color: #c4722a;
 }
 
 .stepTitle::before {
@@ -50,7 +50,7 @@
 }
 
 .title em {
-  color: #4c8ef5;
+  color: #c4722a;
   font-style: italic;
   font-weight: 500;
 }
@@ -84,7 +84,7 @@
 
 .progressFill {
   height: 3px;
-  background: linear-gradient(90deg, #4c8ef5, #a78bf5, #2dd4bf);
+  background: linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%);
   transition: width 400ms ease;
 }
 
@@ -150,8 +150,8 @@
 .field input:focus,
 .field textarea:focus,
 .field select:focus {
-  border-color: #4c8ef5;
-  box-shadow: 0 0 0 3px rgba(76, 142, 245, 0.1);
+  border-color: #c4722a;
+  box-shadow: 0 0 0 3px rgba(196, 114, 42, 0.12);
 }
 
 .field textarea {
@@ -202,8 +202,8 @@
 }
 
 .chipActive {
-  border-color: #4c8ef5;
-  background: rgba(76, 142, 245, 0.08);
+  border-color: #c4722a;
+  background: rgba(196, 114, 42, 0.1);
   color: #1a1a1a;
 }
 
@@ -254,8 +254,8 @@
 }
 
 .cardActive {
-  border: 2px solid #4c8ef5;
-  background: rgba(76, 142, 245, 0.04);
+  border: 2px solid #c4722a;
+  background: rgba(196, 114, 42, 0.06);
 }
 
 /* ─── Option groups ─── */
@@ -305,7 +305,7 @@
   justify-content: center;
   gap: 0.5rem;
   border: none;
-  background: #4c8ef5;
+  background: #c4722a;
   color: #fff;
   padding: 0.875rem 1.75rem;
   border-radius: 999px;
@@ -316,13 +316,13 @@
   cursor: pointer;
   text-decoration: none;
   transition: all 180ms ease;
-  box-shadow: 0 4px 12px rgba(76, 142, 245, 0.2);
+  box-shadow: 0 4px 12px rgba(196, 114, 42, 0.22);
 }
 
 .submitBtn:hover:not(:disabled) {
-  background: #3a7de4;
+  background: #a35f22;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(76, 142, 245, 0.28);
+  box-shadow: 0 6px 18px rgba(196, 114, 42, 0.28);
 }
 
 .submitBtn:disabled,
@@ -338,7 +338,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4c8ef5, #2dd4bf);
+  background: linear-gradient(135deg, #0b1928, #c4722a);
   color: #fff;
   display: grid;
   place-items: center;
@@ -400,10 +400,10 @@
 
 /* ─── Estimate preview ─── */
 .estimatePreview {
-  border: 1px solid rgba(76, 142, 245, 0.25);
+  border: 1px solid rgba(196, 114, 42, 0.25);
   border-radius: 16px;
   padding: 1.25rem;
-  background: rgba(76, 142, 245, 0.04);
+  background: rgba(196, 114, 42, 0.06);
   margin-bottom: 1.25rem;
 }
 
@@ -443,7 +443,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #4c8ef5;
+  background: #c4722a;
   animation: dotPulse 1.4s infinite ease-in-out;
 }
 
@@ -528,34 +528,34 @@
   justify-self: center;
   color: rgba(12, 19, 34, 0.6);
   text-decoration: none;
-  border-bottom: 1px solid rgba(76, 142, 245, 0.28);
+  border-bottom: 1px solid rgba(196, 114, 42, 0.28);
   transition: color 180ms ease, border-color 180ms ease;
 }
 
 .bookFallback a:hover {
   color: #0c1322;
-  border-color: rgba(76, 142, 245, 0.72);
+  border-color: rgba(196, 114, 42, 0.72);
 }
 
 .bookFallbackButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(76, 142, 245, 0.28) !important;
+  border: 1px solid rgba(196, 114, 42, 0.28) !important;
   border-radius: 999px;
   padding: 0.75rem 1.2rem;
-  background: rgba(76, 142, 245, 0.08);
+  background: rgba(196, 114, 42, 0.1);
   color: #0c1322 !important;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  box-shadow: 0 8px 22px rgba(76, 142, 245, 0.1);
+  box-shadow: 0 8px 22px rgba(196, 114, 42, 0.12);
 }
 
 .bookFallbackButton:hover {
-  border-color: rgba(76, 142, 245, 0.72) !important;
-  background: rgba(76, 142, 245, 0.12);
+  border-color: rgba(196, 114, 42, 0.72) !important;
+  background: rgba(196, 114, 42, 0.12);
 }
 
 /* ─── Responsive ─── */

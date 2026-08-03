@@ -18,7 +18,7 @@
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #4c8ef5;
+  color: #c4722a;
   font-weight: 700;
   margin: 0 0 0.5rem;
 }
@@ -34,7 +34,7 @@
 }
 
 .title em {
-  color: #4c8ef5;
+  color: #c4722a;
   font-style: italic;
   font-weight: 500;
 }
@@ -44,7 +44,7 @@
   height: 3px;
   margin: 1.1rem auto 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #4c8ef5, #a78bf5, #2dd4bf);
+  background: linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%);
 }
 
 .subtitle {
@@ -86,14 +86,14 @@
 }
 
 .filterBtn:hover {
-  border-color: rgba(76, 142, 245, 0.3);
+  border-color: rgba(196, 114, 42, 0.3);
   color: #0c1322;
 }
 
 .filterBtnActive {
   composes: filterBtn;
-  border-color: #4c8ef5;
-  background: rgba(76, 142, 245, 0.08);
+  border-color: #c4722a;
+  background: rgba(196, 114, 42, 0.1);
   color: #0c1322;
 }
 
@@ -175,7 +175,7 @@
 
 .featuredKicker {
   margin: 0;
-  color: #4c8ef5;
+  color: #c4722a;
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.18em;
@@ -205,9 +205,9 @@
 }
 
 .featuredMeta span {
-  border: 1px solid rgba(76, 142, 245, 0.18);
+  border: 1px solid rgba(196, 114, 42, 0.18);
   border-radius: 999px;
-  background: rgba(76, 142, 245, 0.05);
+  background: rgba(196, 114, 42, 0.06);
   color: #42638d;
   padding: 0.35rem 0.55rem;
   font-size: 0.68rem;
@@ -239,7 +239,7 @@
 .card:hover {
   transform: translateY(-6px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  border-color: rgba(76, 142, 245, 0.25);
+  border-color: rgba(196, 114, 42, 0.25);
 }
 
 .cardBtn {
@@ -347,7 +347,7 @@
   font-size: 0.56rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #4c8ef5;
+  color: #c4722a;
   font-weight: 700;
 }
 
@@ -402,12 +402,12 @@
 }
 
 .quickViewBtn:hover {
-  border-color: #4c8ef5;
-  background: rgba(76, 142, 245, 0.06);
+  border-color: #c4722a;
+  background: rgba(196, 114, 42, 0.07);
 }
 
 .caseStudyLink {
-  color: #4c8ef5;
+  color: #c4722a;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -544,7 +544,7 @@
 .lightboxClient {
   margin: 0;
   font-size: 0.85rem;
-  color: #4c8ef5;
+  color: #c4722a;
   font-weight: 600;
 }
 
@@ -575,7 +575,7 @@
 }
 
 .lbActionBtn:hover {
-  border-color: #4c8ef5;
+  border-color: #c4722a;
   color: #0c1322;
 }
 
@@ -595,9 +595,9 @@
 
 .shareFallback input {
   width: 100%;
-  border: 1px solid rgba(76, 142, 245, 0.24);
+  border: 1px solid rgba(196, 114, 42, 0.24);
   border-radius: 8px;
-  background: rgba(76, 142, 245, 0.04);
+  background: rgba(196, 114, 42, 0.06);
   color: #0c1322;
   padding: 0.65rem 0.75rem;
   font: inherit;
@@ -630,7 +630,7 @@
   padding: 0.35rem 0.65rem;
   border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(76, 142, 245, 0.04);
+  background: rgba(196, 114, 42, 0.06);
   color: #555;
   font-size: 0.68rem;
   font-weight: 600;
@@ -646,7 +646,7 @@
   padding: 0.4rem 0;
   background: none;
   border: none;
-  color: #4c8ef5;
+  color: #c4722a;
   font-family: inherit;
   font-size: 0.7rem;
   font-weight: 800;

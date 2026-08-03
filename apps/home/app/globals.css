@@ -95,6 +95,17 @@ body[data-surface="root"] {
 }
 
 .public-page[data-theme="cream"] {
+  /* Dialect A — Cream Editorial (public marketing only) */
+  --cream: #f0ebe0;
+  --parchment: #faf6ef;
+  --navy: #0b1928;
+  --copper: #c4722a;
+  --brand-accent: #c4722a;
+  --brand-accent-primary: #c4722a;
+  --brand-accent-secondary: #a35f22;
+  --accent: #c4722a;
+  --signal: #c4722a;
+  --signal-gradient: linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%);
   background: linear-gradient(180deg, #f3ede2 0%, #efe8dc 100%);
 }
 
@@ -567,7 +578,7 @@ h1, h2, h3, h4 {
 .cc-nav[data-surface="home"] .cc-nav-link.active,
 .cc-nav[data-surface="portfolio"] .cc-nav-link.active {
   color: #0c1322;
-  border-bottom-color: #4c8ef5;
+  border-bottom-color: #c4722a;
 }
 
 .cc-nav[data-surface="home"] .cc-nav-brand,
@@ -661,7 +672,7 @@ h1, h2, h3, h4 {
 /* Dark nav surface: login */
 .cc-nav[data-surface="login"] {
   background: rgba(17, 27, 48, 0.82);
-  border-bottom-color: rgba(76, 142, 245, 0.15);
+  border-bottom-color: rgba(196, 114, 42, 0.15);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
 }
 
@@ -691,14 +702,14 @@ h1, h2, h3, h4 {
 }
 
 .cc-nav[data-surface="login"] .cc-nav-action-cta {
-  background: rgba(76, 142, 245, 0.85);
-  border-color: rgba(76, 142, 245, 0.85);
+  background: rgba(196, 114, 42, 0.9);
+  border-color: rgba(196, 114, 42, 0.9);
   color: #ffffff;
 }
 
 .cc-nav[data-surface="login"] .cc-nav-action-cta:hover {
-  background: #4c8ef5;
-  border-color: #4c8ef5;
+  background: #c4722a;
+  border-color: #c4722a;
   color: #ffffff;
 }
 
@@ -820,7 +831,7 @@ h1, h2, h3, h4 {
   pointer-events: auto;
   mix-blend-mode: normal;
   isolation: isolate;
-  color: #4c8ef5;
+  color: #c4722a;
   transition: color 150ms ease;
 }
 .cc-nav-brand:hover {
@@ -884,7 +895,7 @@ h1, h2, h3, h4 {
 
 .cc-nav-link.active {
   color: #0b1928;
-  border-bottom: 1px solid rgba(76, 142, 245, 0.82);
+  border-bottom: 1px solid rgba(196, 114, 42, 0.82);
 }
 
 /* ── Mobile row: CTA + hamburger ── */
@@ -1035,8 +1046,8 @@ h1, h2, h3, h4 {
 }
 
 .cc-nav-rail-trigger:hover {
-  border-color: #4c8ef5;
-  background: rgba(76, 142, 245, 0.06);
+  border-color: #c4722a;
+  background: rgba(196, 114, 42, 0.07);
   color: #0b1928;
 }
 
@@ -1175,7 +1186,7 @@ h1, h2, h3, h4 {
 }
 
 .cc-nav-rail-link.active {
-  color: #4c8ef5;
+  color: #c4722a;
 }
 
 .cc-nav-rail-index {
@@ -1198,7 +1209,7 @@ h1, h2, h3, h4 {
   gap: 0.75rem;
   padding: 0.85rem 1.25rem;
   border-radius: 14px;
-  background: #4c8ef5;
+  background: #c4722a;
   color: #04122c;
   font-weight: 800;
   font-size: 0.72rem;
@@ -1209,9 +1220,9 @@ h1, h2, h3, h4 {
 }
 
 .cc-nav-rail-cta:hover {
-  background: #6ba3ff;
+  background: #a35f22;
   transform: translateY(-1px);
-  box-shadow: 0 10px 26px rgba(76, 142, 245, 0.3);
+  box-shadow: 0 10px 26px rgba(196, 114, 42, 0.3);
 }
 
 .cc-nav-rail-foot {
@@ -1314,8 +1325,8 @@ h1, h2, h3, h4 {
   /* Vibrant sapphire — the shared brand accent (packages/brand tokens.css),
      so the hero headline matches the blue used across the site. */
   --home-signal-text: var(--signal, #5b9cff);
-  --home-signal-gradient: var(--signal-gradient, linear-gradient(90deg, #6f8dff 0%, #9a8df6 46%, #35d5c4 100%));
-  --home-signal-gradient-vibrant: var(--signal-gradient-vibrant, linear-gradient(90deg, #5878ff 0%, #8f85ff 44%, #25dcc3 100%));
+  --home-signal-gradient: var(--signal-gradient, linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%));
+  --home-signal-gradient-vibrant: var(--signal-gradient-vibrant, linear-gradient(90deg, #0b1928 0%, #c4722a 100%));
   --home-ink: #53637c;
   --home-ink-strong: #46556d;
   --home-shadow: rgba(58, 73, 104, 0.14);
@@ -1658,7 +1669,7 @@ h1, h2, h3, h4 {
   font-style: italic;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  color: #4c8ef5;
+  color: #c4722a;
   margin: 0;
   text-shadow: 0 12px 28px rgba(3, 8, 18, 0.3);
 }
@@ -1685,8 +1696,8 @@ h1, h2, h3, h4 {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(76, 142, 245, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(76, 142, 245, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(196, 114, 42, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(196, 114, 42, 0.07) 1px, transparent 1px);
   background-size: 60px 60px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 70%);
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 70%);
@@ -1735,7 +1746,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #4c8ef5;
+  color: #c4722a;
 }
 
 .products-headline {
@@ -1749,7 +1760,7 @@ h1, h2, h3, h4 {
 }
 
 .products-headline em {
-  color: #4c8ef5;
+  color: #c4722a;
   font-style: italic;
   font-weight: 500;
 }
@@ -1759,7 +1770,7 @@ h1, h2, h3, h4 {
   height: 3px;
   margin: -0.8rem auto 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #4c8ef5, #a78bf5, #2dd4bf);
+  background: linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%);
 }
 
 .products-intro {
@@ -1808,7 +1819,7 @@ h1, h2, h3, h4 {
   right: 15%;
   height: 2px;
   border-radius: 0 0 2px 2px;
-  background: var(--card-accent, #4c8ef5);
+  background: var(--card-accent, #c4722a);
   opacity: 0.6;
   transition: opacity 320ms ease;
 }
@@ -1827,7 +1838,7 @@ h1, h2, h3, h4 {
 }
 
 .product-card:focus-visible {
-  outline: 2px solid rgba(76, 142, 245, 0.5);
+  outline: 2px solid rgba(196, 114, 42, 0.5);
   outline-offset: 2px;
 }
 
@@ -1837,7 +1848,7 @@ h1, h2, h3, h4 {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--card-accent, #4c8ef5);
+  color: var(--card-accent, #c4722a);
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--card-accent) 20%, transparent));
 }
 
@@ -1857,7 +1868,7 @@ h1, h2, h3, h4 {
 }
 
 .product-co {
-  color: var(--card-accent, #4c8ef5);
+  color: var(--card-accent, #c4722a);
   font-weight: 800;
 }
 
@@ -2306,7 +2317,7 @@ h1, h2, h3, h4 {
   line-height: 1.65;
   color: rgba(12, 19, 34, 0.7);
   margin: 0;
-  border-left: 2px solid rgba(76, 142, 245, 0.4);
+  border-left: 2px solid rgba(196, 114, 42, 0.4);
   padding-left: 1.3rem;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -2373,7 +2384,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #4c8ef5;
+  color: #c4722a;
   opacity: 1;
 }
 
@@ -2669,7 +2680,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent, #4c8ef5);
+  color: var(--accent, #c4722a);
 }
 
 .suite-product-name {
@@ -2683,7 +2694,7 @@ h1, h2, h3, h4 {
 }
 
 .suite-product-co {
-  color: var(--accent, #4c8ef5);
+  color: var(--accent, #c4722a);
 }
 
 .suite-product-headline {
@@ -2734,7 +2745,7 @@ h1, h2, h3, h4 {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--accent, #4c8ef5);
+  color: var(--accent, #c4722a);
   transition: opacity 150ms ease;
 }
 
@@ -2988,6 +2999,13 @@ h1, h2, h3, h4 {
     flex-wrap: wrap;
     gap: 0.55rem;
     width: 100%;
+  }
+
+  .hero-content .button {
+    min-height: 44px;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    box-sizing: border-box;
   }
 
   .hero-mark-link {
@@ -3358,7 +3376,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   font-style: italic;
   line-height: 1.1;
-  color: #4c8ef5;
+  color: #c4722a;
   letter-spacing: -0.02em;
 }
 
@@ -3379,7 +3397,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #4c8ef5;
+  color: #c4722a;
   margin: 0 0 1rem;
 }
 .suite-headline {
@@ -3392,7 +3410,7 @@ h1, h2, h3, h4 {
 }
 .suite-headline em {
   font-style: italic;
-  color: #4c8ef5;
+  color: #c4722a;
 }
 .suite-hl-thin { font-weight: 300; }
 .suite-lede {
@@ -3424,7 +3442,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--accent, #4c8ef5);
+  color: var(--accent, #c4722a);
   margin-bottom: 0.6rem;
   display: block;
 }
@@ -3438,7 +3456,7 @@ h1, h2, h3, h4 {
   margin: 0 0 1rem;
 }
 .suite-product-co {
-  color: var(--accent, #4c8ef5);
+  color: var(--accent, #c4722a);
   font-style: italic;
 }
 .suite-product-headline {
@@ -3474,14 +3492,14 @@ h1, h2, h3, h4 {
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: var(--accent, #4c8ef5);
+  color: var(--accent, #c4722a);
 }
 .suite-product-cta {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent, #4c8ef5);
+  color: var(--accent, #c4722a);
   text-decoration: none;
   transition: color 150ms ease;
 }

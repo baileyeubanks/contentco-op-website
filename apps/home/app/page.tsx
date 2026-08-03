@@ -70,7 +70,7 @@ const HOME_SUITE_PRODUCTS: Array<{
     tagline: "Align the story.",
     description:
       "Co-Script turns a brief into production intelligence: client language, research, interview targets, shot lists, constraints, and script drafts in one place. AI helps surface angles and gaps, while the human team keeps the message accurate and on brand.",
-    accent: "#4c8ef5",
+    accent: "#c4722a",
     href: "/co-script",
     icon: (
       <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
@@ -88,7 +88,7 @@ const HOME_SUITE_PRODUCTS: Array<{
     tagline: "Shape the film.",
     description:
       "Co-Cut keeps post-production legible: media ingest, transcript-driven selects, edit versions, captions, exports, and frame-specific feedback. AI supports transcripts and selects so the editor can spend more time shaping the film, not chasing notes.",
-    accent: "#a78bf5",
+    accent: "#c4722a",
     href: "/co-cut",
     icon: (
       <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
@@ -108,7 +108,7 @@ const HOME_SUITE_PRODUCTS: Array<{
     tagline: "Control the handoff.",
     description:
       "Co-Deliver is the client-ready review and delivery layer: approval gates, comments, share links, downloads, final versions, and archive trails. AI helps summarize decisions and flag loose ends so the final handoff stays clean.",
-    accent: "#2dd4bf",
+    accent: "#c4722a",
     href: "/co-deliver",
     icon: (
       <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">

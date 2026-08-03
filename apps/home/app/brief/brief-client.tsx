@@ -117,6 +117,23 @@ const DEFAULT_DRAFT: BriefDraft = {
   bookingPreference: "20",
 };
 
+function formatMissingList(items: string[]) {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+function missingLeadFields(draft: BriefDraft) {
+  const missing: string[] = [];
+  if (draft.name.trim().length <= 1) missing.push("name");
+  if (!isValidEmail(draft.email)) missing.push("email");
+  if (normalizePhone(draft.phone).length < 10) missing.push("phone");
+  if (draft.company.trim().length <= 1) missing.push("company");
+  if (draft.address.trim().length <= 1) missing.push("location");
+  return missing;
+}
+
 function normalizePhone(value: string) {
   return value.replace(/\D/g, "");
 }
@@ -391,8 +408,13 @@ export function BriefClientPage() {
     try {
       if (step === 0 && next > 0) {
         if (!leadReady) {
+          const missing = missingLeadFields(draft);
           setSubmitState("error");
-          setSubmitError("Add name, email, phone, company, and location.");
+          setSubmitError(
+            missing.length
+              ? `Add ${formatMissingList(missing)}.`
+              : "Add name, email, phone, company, and location.",
+          );
           return;
         }
         setSubmitState("saving_lead");
@@ -610,7 +632,8 @@ export function BriefClientPage() {
           Tell us your <em>Story.</em>
         </h1>
         <p className={s.subtitle}>
-          Fill out what you can. If you don&rsquo;t know the answer to something, leave it blank.
+          Contact fields are required so we can follow up. Project details can stay thin — if you
+          don&rsquo;t know an answer later, leave it blank.
         </p>
 
         {/* Gradient progress bar */}
@@ -624,75 +647,97 @@ export function BriefClientPage() {
               <p className={s.stepTitle}>Step 1 of 4</p>
               <h2 className={s.sectionTitle}>Contact</h2>
               <div className={s.row}>
-                <label className={s.field}>
+                <label className={s.field} htmlFor="brief-name">
                   <span>Name</span>
                   <input
+                    id="brief-name"
+                    name="name"
                     value={draft.name}
                     onChange={(e) => update("name", e.target.value)}
                     onBlur={() => touch("name")}
                     autoComplete="name"
                     placeholder="Jane Smith"
+                    required
+                    aria-required="true"
                     aria-invalid={!!fieldErrors.name}
                   />
                   {touched.name && fieldErrors.name ? <span className={s.fieldError}>{fieldErrors.name}</span> : null}
                 </label>
-                <label className={s.field}>
+                <label className={s.field} htmlFor="brief-email">
                   <span>Email</span>
                   <input
+                    id="brief-email"
+                    name="email"
                     value={draft.email}
                     onChange={(e) => update("email", e.target.value)}
                     onBlur={() => touch("email")}
                     autoComplete="email"
                     type="email"
                     placeholder="jane@company.com"
+                    required
+                    aria-required="true"
                     aria-invalid={!!fieldErrors.email}
                   />
                   {touched.email && fieldErrors.email ? <span className={s.fieldError}>{fieldErrors.email}</span> : null}
                 </label>
               </div>
               <div className={s.row}>
-                <label className={s.field}>
+                <label className={s.field} htmlFor="brief-phone">
                   <span>Phone</span>
                   <input
+                    id="brief-phone"
+                    name="phone"
                     value={draft.phone}
                     onChange={(e) => update("phone", e.target.value)}
                     onBlur={() => touch("phone")}
                     autoComplete="tel"
                     type="tel"
                     placeholder="(713) 555-0199"
+                    required
+                    aria-required="true"
                     aria-invalid={!!fieldErrors.phone}
                   />
                   {touched.phone && fieldErrors.phone ? <span className={s.fieldError}>{fieldErrors.phone}</span> : null}
                 </label>
-                <label className={s.field}>
+                <label className={s.field} htmlFor="brief-company">
                   <span>Company</span>
                   <input
+                    id="brief-company"
+                    name="company"
                     value={draft.company}
                     onChange={(e) => update("company", e.target.value)}
                     onBlur={() => touch("company")}
                     autoComplete="organization"
                     placeholder="Acme, Inc."
+                    required
+                    aria-required="true"
                     aria-invalid={!!fieldErrors.company}
                   />
                   {touched.company && fieldErrors.company ? <span className={s.fieldError}>{fieldErrors.company}</span> : null}
                 </label>
               </div>
               <div className={s.row}>
-                <label className={s.field}>
+                <label className={s.field} htmlFor="brief-address">
                   <span>Address / location</span>
                   <input
+                    id="brief-address"
+                    name="address"
                     value={draft.address}
                     onChange={(e) => update("address", e.target.value)}
                     onBlur={() => touch("address")}
                     autoComplete="street-address"
                     placeholder="Houston, TX"
+                    required
+                    aria-required="true"
                     aria-invalid={!!fieldErrors.address}
                   />
                   {touched.address && fieldErrors.address ? <span className={s.fieldError}>{fieldErrors.address}</span> : null}
                 </label>
-                <label className={s.field}>
+                <label className={s.field} htmlFor="brief-role">
                   <span>Role</span>
                   <input
+                    id="brief-role"
+                    name="role"
                     value={draft.role}
                     onChange={(e) => update("role", e.target.value)}
                     placeholder="Marketing Director, Founder, Ops lead"
@@ -700,18 +745,25 @@ export function BriefClientPage() {
                 </label>
               </div>
               <div className={s.row}>
-                <label className={s.field}>
+                <label className={s.field} htmlFor="brief-website">
                   <span>Website</span>
                   <input
+                    id="brief-website"
+                    name="website"
                     value={draft.website}
                     onChange={(e) => update("website", e.target.value)}
                     inputMode="url"
                     placeholder="https://company.com"
                   />
                 </label>
-                <label className={s.field}>
+                <label className={s.field} htmlFor="brief-company-scale">
                   <span>Company scale</span>
-                  <select value={draft.companyScale} onChange={(e) => update("companyScale", e.target.value)}>
+                  <select
+                    id="brief-company-scale"
+                    name="companyScale"
+                    value={draft.companyScale}
+                    onChange={(e) => update("companyScale", e.target.value)}
+                  >
                     {COMPANY_SCALES.map((scale) => <option key={scale}>{scale}</option>)}
                   </select>
                 </label>
@@ -722,13 +774,9 @@ export function BriefClientPage() {
                   type="button"
                   onClick={() => void moveTo(1)}
                   /* Gate on isBusy only. Disabling on !leadReady made moveTo's own
-                     guard — which sets the message "Add name, email, phone, company,
-                     and location." — structurally unreachable: no click, no error,
-                     ever. The page tells the visitor "fill out what you can… leave it
-                     blank", then silently refuses to advance with nothing marked
-                     required. A disabled button also leaves the tab order, so a
-                     keyboard or screen-reader user cannot even find it to discover
-                     the dead end. Let the click through and let the guard speak. */
+                     guard structurally unreachable (no click → no error). Contact
+                     fields are required and marked; the guard lists only what's
+                     still missing. Let the click through and let the alert speak. */
                   disabled={isBusy}
                 >
                   {submitState === "saving_lead" ? (
