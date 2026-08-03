@@ -35,10 +35,10 @@ export function CrewSidebar({ crew }: CrewSidebarProps) {
   });
 
   return (
-    <div className="flex h-full flex-col border-l border-white/[0.06] bg-[var(--bg,#0e1117)]">
+    <div className="flex h-full flex-col bg-white">
       {/* Header */}
-      <div className="shrink-0 border-b border-white/[0.06] px-4 py-3">
-        <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.06em] text-[var(--muted)]">
+      <div className="shrink-0 border-b border-[var(--gray-300,#CBD5E1)] px-4 py-3">
+        <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.06em] text-[var(--muted,#64748B)]">
           Crew ({crew.length})
         </h3>
       </div>
@@ -46,8 +46,8 @@ export function CrewSidebar({ crew }: CrewSidebarProps) {
       {/* List */}
       <div className="flex-1 overflow-auto px-3 py-2">
         {sorted.length === 0 && (
-          <p className="py-6 text-center text-[0.74rem] text-[var(--muted)]">
-            No crew members
+          <p className="py-6 text-center text-[0.74rem] text-[var(--muted,#64748B)]">
+            Live crew offline — schedule still loads from the job ledger
           </p>
         )}
 

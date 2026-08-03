@@ -66,8 +66,10 @@ export default function OperationsPage() {
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch("/api/operations/crew");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || data.reason || `HTTP ${res.status}`);
+      }
 
       setCrew(data.crew || []);
 
@@ -86,8 +88,15 @@ export default function OperationsPage() {
       setSites(apiSites);
 
       setLastRefresh(new Date());
-      setError("");
+      // Degraded ACS live-locations: honest empty, not a red fetch banner.
+      setError(
+        data.degraded
+          ? "Live crew map unavailable — ACS location proxy is offline. Calendar still shows the job ledger."
+          : "",
+      );
     } catch (err: any) {
+      setCrew([]);
+      setSites([]);
       setError(err.message || "Failed to fetch crew data");
     } finally {
       setLoading(false);
@@ -182,7 +191,7 @@ export default function OperationsPage() {
             letterSpacing: "-0.02em",
             margin: 0,
           }}>
-            ACS Operations
+            Live crew map
           </h1>
           <div style={{ fontSize: "0.68rem", color: "var(--muted)", marginTop: 2 }}>
             {activeCrew.length} active crew · {jobsInProgress.length} in progress · {completedToday.length} completed
@@ -246,17 +255,19 @@ export default function OperationsPage() {
         </div>
       </div>
 
-      {/* Error banner */}
+      {/* Status banner — amber for degraded proxy, red only for hard failures */}
       {error && (
         <div style={{
           padding: "8px 24px",
           fontSize: "0.78rem",
           fontWeight: 600,
-          background: "rgba(222,118,118,0.1)",
-          color: "#de7676",
-          borderBottom: "1px solid rgba(222,118,118,0.15)",
+          background: error.includes("unavailable")
+            ? "rgba(245,158,11,0.12)"
+            : "rgba(220,38,38,0.08)",
+          color: error.includes("unavailable") ? "#B45309" : "#DC2626",
+          borderBottom: "1px solid rgba(203,213,225,0.9)",
         }}>
-          ⚠ {error}
+          {error}
         </div>
       )}
 
@@ -355,7 +366,7 @@ export default function OperationsPage() {
               <>
                 {crew.length === 0 && !loading && (
                   <div style={{ fontSize: "0.78rem", color: "var(--muted)", textAlign: "center", padding: 24 }}>
-                    No crew data available
+                    No live crew positions right now
                   </div>
                 )}
                 {crew.map((member) => (

@@ -14,24 +14,25 @@ const MapView = React.lazy(() =>
   }))
 );
 
-type ViewMode = "map" | "calendar";
+type ViewMode = "calendar" | "map";
 
 /* ─── Main Page ─── */
 
 export default function DispatchPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>("map");
+  // Calendar is the trusted default: it reads CCO-DB jobs. Map depends on the
+  // ACS live-locations proxy and may degrade when that lane is unavailable.
+  const [viewMode, setViewMode] = useState<ViewMode>("calendar");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [crew, setCrew] = useState<CrewMemberSidebar[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  /* ─── Fetch jobs for calendar ─── */
+  const [loading, setLoading] = useState(true);
+  const [jobsError, setJobsError] = useState<string | null>(null);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
+    setJobsError(null);
     try {
       const now = new Date();
-      // Fetch a 2-week window around today
       const start = new Date(now);
       start.setDate(start.getDate() - 7);
       const end = new Date(now);
@@ -40,23 +41,32 @@ export default function DispatchPage() {
       const res = await fetch(
         `/api/os/dispatch/jobs?start=${start.toISOString()}&end=${end.toISOString()}`
       );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setJobs(data.jobs ?? []);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      const nextJobs = (data.jobs ?? []).filter(
+        (job: Job) => typeof job.scheduled_start === "string" && job.scheduled_start.length > 0
+      );
+      setJobs(nextJobs);
     } catch (err) {
       console.error("[dispatch] Failed to fetch jobs:", err);
+      setJobs([]);
+      setJobsError(err instanceof Error ? err.message : "Failed to load schedule");
     } finally {
       setLoading(false);
     }
   }, []);
-
-  /* ─── Fetch crew for sidebar ─── */
 
   const fetchCrew = useCallback(async () => {
     try {
       const res = await fetch("/api/operations/crew");
       if (!res.ok) return;
       const data = await res.json();
+      if (data.degraded) {
+        setCrew([]);
+        return;
+      }
       const members: CrewMemberSidebar[] = (data.crew || []).map((c: any) => ({
         id: c.crew_member_id,
         name: c.name,
@@ -72,13 +82,9 @@ export default function DispatchPage() {
   }, []);
 
   useEffect(() => {
-    if (viewMode === "calendar") {
-      fetchJobs();
-      fetchCrew();
-    }
-  }, [viewMode, fetchJobs, fetchCrew]);
-
-  /* ─── Handlers ─── */
+    void fetchJobs();
+    void fetchCrew();
+  }, [fetchJobs, fetchCrew]);
 
   function handleJobClick(job: Job) {
     setSelectedJob(job);
@@ -89,64 +95,56 @@ export default function DispatchPage() {
   }
 
   async function handleStatusChange(jobId: string, status: Job["status"]) {
-    // Optimistic UI update
     setJobs((prev) =>
       prev.map((j) => (j.id === jobId ? { ...j, status } : j))
     );
     setSelectedJob(null);
-    // Real update would POST to an API — placeholder for now
   }
-
-  /* ─── Tab button style ─── */
 
   const tabStyle = (active: boolean) =>
     `px-4 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.04em] cursor-pointer transition-colors ${
       active
-        ? "bg-[rgba(139,164,196,0.15)] text-[var(--ink)] rounded-md"
-        : "text-[var(--muted)] hover:text-[var(--ink)]"
+        ? "bg-[rgba(0,87,255,0.10)] text-[var(--ink,#040F1C)] rounded-lg"
+        : "text-[var(--muted,#64748B)] hover:text-[var(--ink,#040F1C)]"
     }`;
 
-  /* ─── Render ─── */
-
   return (
-    <div className="flex h-full flex-col">
-      {/* ── Top bar with view toggle ── */}
-      <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-3">
+    <div className="flex h-full min-h-[70vh] flex-col bg-[var(--canvas,#F7F9FC)]">
+      <div className="flex shrink-0 items-center justify-between border-b border-[var(--gray-300,#CBD5E1)] bg-white px-6 py-3">
         <div>
-          <h1 className="text-[1.1rem] font-bold tracking-tight text-[var(--ink)]">
-            ACS Dispatch
+          <h1 className="text-[1.1rem] font-bold tracking-tight text-[var(--ink,#040F1C)]">
+            Dispatch
           </h1>
-          <p className="mt-0.5 text-[0.68rem] text-[var(--muted)]">
-            Crew tracking, scheduling, and dispatch
+          <p className="mt-0.5 text-[0.68rem] text-[var(--muted,#64748B)]">
+            Schedule, crew pulse, and closeout — jobs from the shared ledger
           </p>
         </div>
 
-        {/* View toggle */}
-        <div className="flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.02] p-0.5">
+        <div className="flex items-center gap-1 rounded-lg border border-[var(--gray-300,#CBD5E1)] bg-[var(--canvas,#F7F9FC)] p-0.5">
           <button
-            onClick={() => setViewMode("map")}
-            className={tabStyle(viewMode === "map")}
-          >
-            Map View
-          </button>
-          <button
+            type="button"
             onClick={() => setViewMode("calendar")}
             className={tabStyle(viewMode === "calendar")}
           >
-            Calendar View
+            Calendar
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("map")}
+            className={tabStyle(viewMode === "map")}
+          >
+            Live map
           </button>
         </div>
       </div>
 
-      {/* ── Content area ── */}
       <div className="flex flex-1 overflow-hidden">
         {viewMode === "map" ? (
-          /* Map View — renders the existing operations page */
           <div className="flex-1">
             <React.Suspense
               fallback={
-                <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">
-                  Loading map...
+                <div className="flex h-full items-center justify-center text-sm text-[var(--muted,#64748B)]">
+                  Loading map…
                 </div>
               }
             >
@@ -154,30 +152,50 @@ export default function DispatchPage() {
             </React.Suspense>
           </div>
         ) : (
-          /* Calendar View */
           <>
             <div className="flex-1 overflow-hidden">
               {loading ? (
-                <div className="flex h-full items-center justify-center text-sm text-[var(--muted)]">
-                  Loading schedule...
+                <div className="flex h-full items-center justify-center text-sm text-[var(--muted,#64748B)]">
+                  Loading schedule…
+                </div>
+              ) : jobsError ? (
+                <div className="os-empty-state flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+                  <p className="text-[0.95rem] font-semibold text-[var(--ink,#040F1C)]">
+                    Schedule could not be loaded
+                  </p>
+                  <p className="max-w-md text-[0.8rem] text-[var(--muted,#64748B)]">
+                    {jobsError}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void fetchJobs()}
+                    className="mt-2 rounded-lg bg-[#0057FF] px-4 py-2 text-[0.75rem] font-semibold text-white"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : jobs.length === 0 ? (
+                <div className="os-empty-state flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+                  <p className="text-[0.95rem] font-semibold text-[var(--ink,#040F1C)]">
+                    No jobs in this window
+                  </p>
+                  <p className="max-w-md text-[0.8rem] text-[var(--muted,#64748B)]">
+                    Nothing scheduled from 7 days ago through the next 14 days.
+                    Overview will still show the wider jobs lane when work exists outside this range.
+                  </p>
                 </div>
               ) : (
-                <CalendarView
-                  jobs={jobs}
-                  onJobClick={handleJobClick}
-                />
+                <CalendarView jobs={jobs} onJobClick={handleJobClick} />
               )}
             </div>
 
-            {/* Crew sidebar (right, 240px) */}
-            <div className="w-60 shrink-0">
+            <div className="w-60 shrink-0 border-l border-[var(--gray-300,#CBD5E1)] bg-white">
               <CrewSidebar crew={crew} />
             </div>
           </>
         )}
       </div>
 
-      {/* ── Job detail drawer ── */}
       {selectedJob && (
         <JobDetailDrawer
           job={selectedJob}

@@ -59,7 +59,9 @@ const ROOT_MODULES: RootModuleDef[] = [
     href: "/os/dispatch",
     engine: "operations",
     navTier: "core",
-    hostVisibility: ["acs"],
+    // On-rail for both hosts: overview "Open dispatch" must land in MODULES,
+    // not a hidden ACS-only sibling that operators can't trust.
+    hostVisibility: ["acs", "cc"],
     icon: "◉",
     shortcut: "D",
     description: "crew, schedule, and route state",
