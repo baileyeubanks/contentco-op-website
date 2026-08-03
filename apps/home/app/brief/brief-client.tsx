@@ -721,7 +721,15 @@ export function BriefClientPage() {
                   className={s.submitBtn}
                   type="button"
                   onClick={() => void moveTo(1)}
-                  disabled={!leadReady || isBusy}
+                  /* Gate on isBusy only. Disabling on !leadReady made moveTo's own
+                     guard — which sets the message "Add name, email, phone, company,
+                     and location." — structurally unreachable: no click, no error,
+                     ever. The page tells the visitor "fill out what you can… leave it
+                     blank", then silently refuses to advance with nothing marked
+                     required. A disabled button also leaves the tab order, so a
+                     keyboard or screen-reader user cannot even find it to discover
+                     the dead end. Let the click through and let the guard speak. */
+                  disabled={isBusy}
                 >
                   {submitState === "saving_lead" ? (
                     <>
@@ -1046,7 +1054,7 @@ export function BriefClientPage() {
           ) : null}
         </form>
 
-        {submitError ? <div className={s.error}>{submitError}</div> : null}
+        {submitError ? <div className={s.error} role="alert">{submitError}</div> : null}
         {step === 3 ? (
           <div className={s.bookFallback}>
             <span>Rather talk it through?</span>
