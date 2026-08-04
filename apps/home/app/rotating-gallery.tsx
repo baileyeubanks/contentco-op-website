@@ -12,6 +12,11 @@ interface GalleryImage {
   tag: string;
 }
 
+interface SlotSpan {
+  col: number;
+  row: number;
+}
+
 interface RotatingGalleryProps {
   images: readonly GalleryImage[];
   columns?: number;
@@ -22,6 +27,33 @@ interface RotatingGalleryProps {
   closeHref?: string;
 }
 
+/**
+ * HOME-3 — editorial mosaic (not equal contact-sheet).
+ * Two 8×2 bands; each band: two 2×2 featured tiles + eight 1×1 tiles = 16 units.
+ */
+const GALLERY_LAYOUT_8x4: readonly SlotSpan[] = [
+  { col: 2, row: 2 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 2, row: 2 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 2, row: 2 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+  { col: 2, row: 2 },
+  { col: 1, row: 1 },
+  { col: 1, row: 1 },
+];
+
 export function RotatingGallery({
   images,
   columns = 8,
@@ -31,8 +63,9 @@ export function RotatingGallery({
   initialSelectedSrc = null,
   closeHref = "/",
 }: RotatingGalleryProps) {
+  const layout = columns === 8 && rows === 4 ? GALLERY_LAYOUT_8x4 : null;
   const [pools] = useState<GalleryImage[][]>(() => {
-    const slotCount = rows * columns;
+    const slotCount = layout ? layout.length : rows * columns;
     const slots: GalleryImage[][] = Array.from({ length: slotCount }, () => []);
     images.forEach((img, i) => slots[i % slotCount].push(img));
     slots.forEach((slot, i) => {
@@ -61,18 +94,26 @@ export function RotatingGallery({
   return (
     <>
       <section
-        className="gallery"
+        className="gallery gallery--mosaic"
         style={{ "--gallery-columns": columns } as CSSProperties}
+        data-gallery-hierarchy="mosaic"
       >
-        {pools.map((pool, i) => (
-          <GallerySlot
-            key={i}
-            images={pool}
-            delay={(i % columns) * 220 + Math.floor(i / columns) * 650}
-            interval={interval}
-            baseHref={baseHref}
-          />
-        ))}
+        {pools.map((pool, i) => {
+          const span = layout?.[i] ?? { col: 1, row: 1 };
+          const featured = span.col > 1 || span.row > 1;
+          return (
+            <GallerySlot
+              key={i}
+              images={pool}
+              delay={(i % columns) * 220 + Math.floor(i / columns) * 650}
+              interval={interval}
+              baseHref={baseHref}
+              colSpan={span.col}
+              rowSpan={span.row}
+              featured={featured}
+            />
+          );
+        })}
       </section>
 
       {selectedImage ? (
@@ -87,11 +128,17 @@ function GallerySlot({
   delay,
   interval,
   baseHref,
+  colSpan = 1,
+  rowSpan = 1,
+  featured = false,
 }: {
   images: GalleryImage[];
   delay: number;
   interval: number;
   baseHref: string;
+  colSpan?: number;
+  rowSpan?: number;
+  featured?: boolean;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [showB, setShowB] = useState(false);
@@ -139,8 +186,22 @@ function GallerySlot({
   const layerB = showB ? currentImage : prevImage;
   const openHref = `${baseHref}?photo=${encodeURIComponent(currentImage.src)}`;
 
+  const sizes = featured
+    ? "(max-width: 980px) 50vw, 25vw"
+    : "(max-width: 980px) 25vw, 12.5vw";
+
   return (
-    <figure ref={containerRef} className="gallery-item">
+    <figure
+      ref={containerRef}
+      className={`gallery-item${featured ? " gallery-item--featured" : ""}`}
+      style={
+        {
+          "--gallery-col-span": colSpan,
+          "--gallery-row-span": rowSpan,
+        } as CSSProperties
+      }
+      data-gallery-featured={featured ? "true" : "false"}
+    >
       <Link
         href={openHref}
         scroll={false}
@@ -155,7 +216,7 @@ function GallerySlot({
           src={layerA.src}
           alt={layerA.alt}
           fill
-          sizes="(max-width: 980px) 25vw, 12.5vw"
+          sizes={sizes}
           loading="lazy"
           fetchPriority="low"
           quality={82}
@@ -166,7 +227,7 @@ function GallerySlot({
           src={layerB.src}
           alt={layerB.alt}
           fill
-          sizes="(max-width: 980px) 25vw, 12.5vw"
+          sizes={sizes}
           loading="lazy"
           fetchPriority="low"
           quality={82}

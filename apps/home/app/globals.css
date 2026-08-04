@@ -2025,6 +2025,12 @@ h1, h2, h3, h4 {
   overflow: hidden;
 }
 
+/* HOME-3: mosaic hierarchy — featured 2×2 anchors, not equal contact-sheet */
+.gallery--mosaic {
+  grid-auto-flow: dense;
+  grid-auto-rows: clamp(7.5rem, 9.3vw, 10.5rem);
+}
+
 .gallery-item {
   position: relative;
   aspect-ratio: 4 / 3;
@@ -2032,6 +2038,30 @@ h1, h2, h3, h4 {
   margin: 0;
   background: #0c1220;
   cursor: zoom-in;
+}
+
+.gallery--mosaic .gallery-item {
+  aspect-ratio: auto;
+  grid-column: span var(--gallery-col-span, 1);
+  grid-row: span var(--gallery-row-span, 1);
+  min-height: 0;
+}
+
+.gallery--mosaic .gallery-item--featured {
+  z-index: 1;
+}
+
+.gallery--mosaic .gallery-item--featured img {
+  filter: saturate(0.98) brightness(0.94);
+}
+
+.gallery--mosaic .gallery-item--featured:hover img {
+  filter: saturate(1.05) brightness(1.02);
+}
+
+.gallery--mosaic .gallery-item--featured .gallery-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
 }
 
 .gallery-open {
@@ -2830,6 +2860,14 @@ h1, h2, h3, h4 {
 
   .gallery-item {
     aspect-ratio: 16 / 9;
+  }
+
+  .gallery--mosaic {
+    grid-auto-rows: clamp(5.5rem, 22vw, 7.25rem);
+  }
+
+  .gallery--mosaic .gallery-item {
+    aspect-ratio: auto;
   }
 
   .mosaic-wall {
