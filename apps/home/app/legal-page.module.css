@@ -26,7 +26,7 @@
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
-  color: #c4722a;
+  color: #4c8ef5;
 }
 
 .title {
@@ -41,7 +41,7 @@
 }
 
 .titleAccent {
-  color: #c4722a;
+  color: #4c8ef5;
   font-style: italic;
   font-weight: 500;
 }
@@ -90,7 +90,7 @@
   display: grid;
   gap: 0.8rem;
   padding: 1rem 0 0;
-  border-top: 1px solid rgba(196, 114, 42, 0.42);
+  border-top: 1px solid rgba(76, 142, 245, 0.42);
 }
 
 .tocLabel {
@@ -99,7 +99,7 @@
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
-  color: #c4722a;
+  color: #4c8ef5;
 }
 
 .tocLinks {
@@ -168,7 +168,7 @@
   gap: 0.5rem;
   margin-top: 1.1rem;
   padding: 0.1rem 0 0.1rem 1rem;
-  border-left: 2px solid rgba(196, 114, 42, 0.72);
+  border-left: 2px solid rgba(76, 142, 245, 0.72);
 }
 
 .noteTitle {
@@ -177,7 +177,7 @@
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
-  color: #c4722a;
+  color: #4c8ef5;
 }
 
 .noteBody {

@@ -19,7 +19,7 @@
 .sectionKicker,
 .blockLabel {
   margin: 0;
-  color: #c4722a;
+  color: #4c8ef5;
   text-transform: uppercase;
   letter-spacing: 0;
   font-size: 0.72rem;
@@ -38,7 +38,7 @@
 }
 
 .title em {
-  color: #c4722a;
+  color: #4c8ef5;
   font-style: italic;
   font-weight: 500;
 }
@@ -48,7 +48,7 @@
   height: 3px;
   margin: 0.25rem auto 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%);
+  background: linear-gradient(90deg, #4c8ef5, #a78bf5, #2dd4bf);
 }
 
 .headline {
@@ -70,7 +70,7 @@
   overflow: hidden;
   border-radius: 18px;
   background: #0c1322;
-  border: 1px solid rgba(196, 114, 42, 0.16);
+  border: 1px solid rgba(76, 142, 245, 0.16);
   box-shadow: 0 22px 70px rgba(12, 19, 34, 0.16);
 }
 
@@ -95,7 +95,7 @@
   gap: 0.4rem;
   padding: 0.42rem 0.78rem;
   border-radius: 6px;
-  border: 1px solid rgba(196, 114, 42, 0.28);
+  border: 1px solid rgba(76, 142, 245, 0.28);
   background: transparent;
   cursor: pointer;
   color: #5f6470;
@@ -106,13 +106,13 @@
 }
 
 .episodeBtn:hover {
-  border-color: #c4722a;
+  border-color: #4c8ef5;
   color: #0c1322;
 }
 
 .episodeBtnActive {
-  background: #c4722a;
-  border-color: #c4722a;
+  background: #4c8ef5;
+  border-color: #4c8ef5;
   color: #fff;
 }
 
@@ -143,7 +143,7 @@
   display: grid;
   gap: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(196, 114, 42, 0.42);
+  border-top: 1px solid rgba(76, 142, 245, 0.42);
 }
 
 .specList {
@@ -237,7 +237,7 @@
   width: 0.32rem;
   height: 0.32rem;
   border-radius: 999px;
-  background: #c4722a;
+  background: #4c8ef5;
 }
 
 .relatedSection {
@@ -268,7 +268,7 @@
 }
 
 .relatedCard:hover .relatedTitle {
-  color: #c4722a;
+  color: #4c8ef5;
 }
 
 .relatedMeta {
@@ -336,13 +336,13 @@
 }
 
 .ghostBtn {
-  border: 1px solid rgba(196, 114, 42, 0.32);
+  border: 1px solid rgba(76, 142, 245, 0.32);
   color: #2f5da9;
 }
 
 .ghostBtn:hover {
   transform: translateY(-1px);
-  border-color: #c4722a;
+  border-color: #4c8ef5;
   color: #0c1322;
 }
 

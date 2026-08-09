@@ -396,7 +396,7 @@ function Lightbox({
           <div className={s.lightboxHead}>
             <div style={{ minWidth: 0 }}>
               <div className={s.lightboxMetaRow}>
-                <span className={s.lightboxMetaItem} style={{ color: "#c4722a" }}>{item.category}</span>
+                <span className={s.lightboxMetaItem} style={{ color: "#4c8ef5" }}>{item.category}</span>
                 <span className={s.lightboxMetaDot}>&middot;</span>
                 <span className={s.lightboxMetaItem} style={{ color: "#999" }}>{item.year}</span>
                 <span className={s.lightboxMetaDot}>&middot;</span>

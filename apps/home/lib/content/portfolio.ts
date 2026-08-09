@@ -6,7 +6,6 @@ const manifest = portfolioManifestJson as PortfolioManifest;
 const manifestEntryIds = new Set(manifest.entries.map((entry) => entry.id));
 const allStudies = [...manifest.entries, ...portfolioExtendedStudies.filter((entry) => !manifestEntryIds.has(entry.id))];
 const BLOCKED_PUBLIC_VIDEO_PATHS = new Set([
-  "/cc/portfolio-cdn/schneider_eae_2025_final.mp4",
   "/cc/portfolio-cdn/kodiak_cares_v3.mp4",
   "/cc/portfolio-cdn/kodiak_green_beret_v2.mp4",
   "/cc/portfolio-cdn/preview_abb.mp4",

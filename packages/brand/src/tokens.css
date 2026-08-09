@@ -8,10 +8,10 @@
   --ink: #121d2a;
   --muted: #4a5e71;
   --line: #c3ced8;
-  --accent: #c4722a;
-  --signal: #c4722a;
-  --signal-gradient: linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%);
-  --signal-gradient-vibrant: linear-gradient(90deg, #0b1928 0%, #c4722a 100%);
+  --accent: #8ba4c4;
+  --signal: #5b9cff;
+  --signal-gradient: linear-gradient(90deg, #6f8dff 0%, #9a8df6 46%, #35d5c4 100%);
+  --signal-gradient-vibrant: linear-gradient(90deg, #5878ff 0%, #8f85ff 44%, #25dcc3 100%);
   --cta: #132642;
   --cta-line: #395b89;
   --cta-ink: #eaf2ff;

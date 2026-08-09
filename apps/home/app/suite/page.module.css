@@ -12,7 +12,7 @@
   font-size: 0.64rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: #c4722a;
+  color: #4c8ef5;
   margin: 0;
   font-weight: 700;
 }
@@ -22,7 +22,7 @@
   height: 3px;
   margin: 0 auto;
   border-radius: 999px;
-  background: linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%);
+  background: linear-gradient(90deg, #4c8ef5, #a78bf5, #2dd4bf);
 }
 
 .primaryBtn,
@@ -83,8 +83,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(196, 114, 42, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(196, 114, 42, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(76, 142, 245, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(76, 142, 245, 0.06) 1px, transparent 1px);
   background-size: 60px 60px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 70%);
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 70%);
@@ -100,7 +100,7 @@
   top: 10%;
   left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(196, 114, 42, 0.07) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(76, 142, 245, 0.06) 0%, transparent 60%);
   filter: blur(60px);
   pointer-events: none;
   animation: orbFloat 12s ease-in-out infinite;
@@ -130,7 +130,7 @@
 }
 
 .heroTitle em {
-  color: #c4722a;
+  color: #4c8ef5;
   font-style: italic;
   font-weight: 500;
 }
@@ -142,7 +142,7 @@
   height: 3px;
   margin: -0.8rem auto 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #0b1928 0%, #c4722a 55%, rgba(196, 114, 42, 0.18) 100%);
+  background: linear-gradient(90deg, #4c8ef5, #a78bf5, #2dd4bf);
 }
 
 .heroIntro {
@@ -201,7 +201,7 @@
   right: 15%;
   height: 2px;
   border-radius: 0 0 2px 2px;
-  background: var(--card-accent, #c4722a);
+  background: var(--card-accent, #4c8ef5);
   opacity: 0.6;
   transition: opacity 320ms ease;
 }
@@ -211,7 +211,7 @@
 }
 
 .cardIcon {
-  color: var(--card-accent, #c4722a);
+  color: var(--card-accent, #4c8ef5);
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--card-accent) 20%, transparent));
 }
 
@@ -226,7 +226,7 @@
 
 .cardPrefix {
   font-weight: 800;
-  color: var(--card-accent, #c4722a);
+  color: var(--card-accent, #4c8ef5);
 }
 
 .cardTagline {
