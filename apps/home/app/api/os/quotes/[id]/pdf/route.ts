@@ -2,12 +2,31 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { readCanonicalQuotePdf } from "@/lib/os-document-authority";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
+import { verifyShareToken } from "@/lib/share-token";
 
 export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
+
+  /* Public share pages link this route with a signed share token (?token=);
+     everyone else needs the internal policy. */
+  const shareToken = new URL(req.url).searchParams.get("token");
+  if (!verifyShareToken(shareToken, id)) {
+    const access = await enforceRoutePolicy(
+      createRoutePolicy({
+        id: "root.quotes.pdf",
+        accessLevel: "internal",
+        sessionPolicies: ["supabase_user", "operator_invite"],
+        requiredPermissions: ["quote_read"],
+        tenantBoundary: "internal_workspace",
+      }),
+    );
+    if (!access.ok) return access.response;
+  }
+
   const scope = getRootBusinessScopeFromRequest(req);
   const sb = getSupabase();
   const { data: quote, error } = await sb

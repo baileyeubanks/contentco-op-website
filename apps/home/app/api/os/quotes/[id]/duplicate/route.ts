@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -14,6 +15,17 @@ function addDays(input: string | null | undefined, days: number) {
 }
 
 export async function POST(req: Request, { params }: Props) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.quotes.duplicate",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const scope = getRootBusinessScopeFromRequest(req);
   const sb = getSupabase();

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 /**
  * POST /api/os/invoices/[id]/reminders
@@ -10,6 +11,17 @@ export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.invoices.reminders",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["invoice_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await context.params;
   const sb = getSupabase();
 

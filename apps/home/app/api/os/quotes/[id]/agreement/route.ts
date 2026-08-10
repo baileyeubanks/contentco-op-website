@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getAgreementTemplate, requiresSignature } from "@/lib/agreement-templates";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -63,6 +64,17 @@ function extractAgreementPhases(payload: unknown): AgreementPhase[] {
  * merged with BU-specific template and quote data.
  */
 export async function GET(_req: Request, { params }: Props) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.quotes.agreement.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const sb = getSupabase();
 

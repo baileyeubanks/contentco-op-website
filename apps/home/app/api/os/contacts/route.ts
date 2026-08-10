@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getRootContacts, countRootContacts } from "@/lib/os-data";
 import { listRootContactImports } from "@/lib/os-contact-ops";
 import { getRootBusinessScopeFromRequest, type RootBusinessScope } from "@/lib/os-request-scope";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 function parseScope(value: string | null): RootBusinessScope {
   const normalized = String(value || "").trim().toUpperCase();
@@ -17,6 +18,17 @@ function resolveListScope(req: Request, rawScope: string | null): RootBusinessSc
 }
 
 export async function GET(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.contacts.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["workflow_intervene"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { searchParams } = new URL(req.url);
   const limit = Math.min(Math.max(Number(searchParams.get("limit") || 750), 1), 750);
   const scope = resolveListScope(req, searchParams.get("scope"));

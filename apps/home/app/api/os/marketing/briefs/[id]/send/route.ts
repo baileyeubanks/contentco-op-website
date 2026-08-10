@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCcoFirebaseAdminStatus, getCcoFirebaseApp } from "@/lib/cco-firebase-server";
 import { getFirestore } from "firebase-admin/firestore";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,17 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.marketing.brief.send",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   if (!id) {
     return NextResponse.json({ error: "missing_id" }, { status: 400 });

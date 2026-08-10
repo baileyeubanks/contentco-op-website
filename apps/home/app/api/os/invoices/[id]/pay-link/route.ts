@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { createInvoicePaymentLink, isStripeConfigured } from "@/lib/stripe";
 import { emitTypedEvent } from "@/lib/os-event-log";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
+import { verifyShareToken } from "@/lib/share-token";
 
 /**
  * POST /api/os/invoices/[id]/pay-link
@@ -12,6 +14,22 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
+
+  /* The public invoice share page posts here with a signed share token
+     (?token=); everyone else needs the internal policy. */
+  const shareToken = new URL(req.url).searchParams.get("token");
+  if (!verifyShareToken(shareToken, id)) {
+    const access = await enforceRoutePolicy(
+      createRoutePolicy({
+        id: "root.invoices.pay_link",
+        accessLevel: "internal",
+        sessionPolicies: ["supabase_user", "operator_invite"],
+        requiredPermissions: ["invoice_manage"],
+        tenantBoundary: "internal_workspace",
+      }),
+    );
+    if (!access.ok) return access.response;
+  }
 
   if (!isStripeConfigured()) {
     return NextResponse.json(

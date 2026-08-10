@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 function toList(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -19,6 +20,17 @@ function toList(value: unknown): string[] {
 }
 
 export async function GET() {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.handoffs.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["workflow_intervene"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const sb = getSupabase();
   const { data, error } = await sb
     .from("daily_handoffs")
@@ -31,6 +43,17 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.handoffs.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["workflow_intervene"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const sb = getSupabase();
   const body = await req.json().catch(() => null);
 

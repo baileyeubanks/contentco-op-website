@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { emitTypedEvent } from "@/lib/os-event-log";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.campaign.contacts.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const sb = getSupabase();
 
@@ -17,6 +29,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.campaign.contacts.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const body = await req.json();
   const contactIds: string[] = Array.isArray(body.contact_ids) ? body.contact_ids : body.contact_id ? [body.contact_id] : [];
@@ -47,6 +70,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.campaign.contacts.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const body = await req.json();
   if (!body.contact_id) return NextResponse.json({ error: "contact_id required" }, { status: 400 });

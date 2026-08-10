@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 import { batchComputeLeadScores, computeLeadScore } from "@/lib/os-contacts-engine";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export async function POST(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.contacts.score.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["workflow_intervene"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const body = await req.json().catch(() => ({}));
 
   // Single contact scoring

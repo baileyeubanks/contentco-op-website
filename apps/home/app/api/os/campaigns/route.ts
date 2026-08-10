@@ -2,8 +2,20 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 import { emitTypedEvent } from "@/lib/os-event-log";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export async function GET(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.campaigns.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const scope = getRootBusinessScopeFromRequest(req);
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status") || undefined;
@@ -21,6 +33,17 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.campaigns.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const body = await req.json();
   if (!body.title) return NextResponse.json({ error: "title required" }, { status: 400 });
 

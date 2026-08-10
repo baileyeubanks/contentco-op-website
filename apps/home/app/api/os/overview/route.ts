@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { buildRootOverviewReadModel } from "@/lib/os-overview";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.overview.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const model = await buildRootOverviewReadModel();
   const compatibilityStats = {
     contacts_total: model.summary.contactsTotal,

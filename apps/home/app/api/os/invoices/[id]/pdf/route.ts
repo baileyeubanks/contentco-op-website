@@ -2,12 +2,31 @@ import { NextResponse } from "next/server";
 import { readCanonicalInvoicePdf } from "@/lib/os-document-authority";
 import { getRootInvoiceDetail } from "@/lib/os-data";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
+import { verifyShareToken } from "@/lib/share-token";
 
 export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
+
+  /* Public share pages link this route with a signed share token (?token=);
+     everyone else needs the internal policy. */
+  const shareToken = new URL(req.url).searchParams.get("token");
+  if (!verifyShareToken(shareToken, id)) {
+    const access = await enforceRoutePolicy(
+      createRoutePolicy({
+        id: "root.invoices.pdf",
+        accessLevel: "internal",
+        sessionPolicies: ["supabase_user", "operator_invite"],
+        requiredPermissions: ["invoice_read"],
+        tenantBoundary: "internal_workspace",
+      }),
+    );
+    if (!access.ok) return access.response;
+  }
+
   const scope = getRootBusinessScopeFromRequest(req);
   const detail = await getRootInvoiceDetail(id, scope);
   if (!detail.invoice) {

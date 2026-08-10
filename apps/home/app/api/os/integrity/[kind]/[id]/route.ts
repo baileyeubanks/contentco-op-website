@@ -7,6 +7,7 @@ import {
   repairIntegrityRecord,
   type IntegrityRecordKind,
 } from "@/lib/os-integrity";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 interface Props {
   params: Promise<{ kind: string; id: string }>;
@@ -18,6 +19,17 @@ function normalizeKind(value: string): IntegrityRecordKind | null {
 }
 
 export async function GET(req: Request, { params }: Props) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.integrity.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["audit_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const resolved = await params;
   const kind = normalizeKind(String(resolved.kind || ""));
   if (!kind) {
@@ -39,6 +51,17 @@ export async function GET(req: Request, { params }: Props) {
 }
 
 export async function PATCH(req: Request, { params }: Props) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.integrity.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["system_config"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const resolved = await params;
   const kind = normalizeKind(String(resolved.kind || ""));
   if (!kind) {

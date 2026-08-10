@@ -2,11 +2,23 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getRootInvoiceDetail } from "@/lib/os-data";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.invoice.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["invoice_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await context.params;
   const result = await getRootInvoiceDetail(id, getRootBusinessScopeFromRequest(req));
   if (result.error) {
@@ -32,6 +44,17 @@ export async function PATCH(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.invoice.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["invoice_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await context.params;
   const scope = getRootBusinessScopeFromRequest(req);
   const sb = getSupabase();
@@ -78,6 +101,17 @@ export async function DELETE(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.invoice.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["invoice_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await context.params;
   const scope = getRootBusinessScopeFromRequest(req);
   const sb = getSupabase();

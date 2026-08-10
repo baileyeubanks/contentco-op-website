@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 import { getRootCatalogSuggestions } from "@/lib/os-catalog";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 function derivePhaseCount(items: Array<Record<string, unknown>>) {
   return new Set(
@@ -35,6 +36,17 @@ export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.quote.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await context.params;
   const scope = getRootBusinessScopeFromRequest(req);
   const sb = getSupabase();

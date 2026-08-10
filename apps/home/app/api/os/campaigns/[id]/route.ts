@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { emitTypedEvent } from "@/lib/os-event-log";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.campaign.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const sb = getSupabase();
 
@@ -21,6 +33,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.campaign.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const body = await req.json();
   const sb = getSupabase();

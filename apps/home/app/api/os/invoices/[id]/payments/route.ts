@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { recordPayment } from "@/lib/os-payments-engine";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.invoices.payments.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["invoice_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const sb = getSupabase();
 
@@ -17,6 +29,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.invoices.payments.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["payment_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const body = await req.json();
   if (!body.amount_cents) return NextResponse.json({ error: "amount_cents required" }, { status: 400 });

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 /**
  * GET /api/os/dispatch/jobs?start=ISO&end=ISO
@@ -8,6 +9,17 @@ import { getSupabase } from "@/lib/supabase";
  * Maps CCO-DB `jobs` columns (no client_name / service_address) via contacts.
  */
 export async function GET(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.dispatch.jobs.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const url = new URL(req.url);
   const start = url.searchParams.get("start");
   const end = url.searchParams.get("end");

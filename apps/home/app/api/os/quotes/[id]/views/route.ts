@@ -1,10 +1,22 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.quotes.views.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await context.params;
   const sb = getSupabase();
 

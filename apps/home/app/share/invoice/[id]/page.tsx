@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { isStripeConfigured } from "@/lib/stripe";
+import { signShareToken } from "@/lib/share-token";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,12 @@ export default async function ShareInvoicePage({
 
   if (!invoice) notFound();
 
-  const previewUrl = `/api/os/invoices/${id}/preview`;
-  const pdfUrl = `/api/os/invoices/${id}/pdf`;
+  /* Signed share token — required by the gated preview/pdf/pay-link routes.
+     Null when QUOTE_SHARE_SECRET is unset (fail closed). */
+  const shareToken = signShareToken(id);
+  const tokenQuery = shareToken ? `?token=${encodeURIComponent(shareToken)}` : "";
+  const previewUrl = `/api/os/invoices/${id}/preview${tokenQuery}`;
+  const pdfUrl = `/api/os/invoices/${id}/pdf${tokenQuery}`;
   const brandColor = invoice.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
   const brandName = invoice.business_unit === "ACS" ? "Astro Cleanings" : "Content Co-Op";
   const total = Number(invoice.total || invoice.amount || 0);
@@ -107,7 +112,7 @@ export default async function ShareInvoicePage({
               </a>
             )}
             {!isPaid && !hasPayLink && stripeReady && (
-              <form action={`/api/os/invoices/${id}/pay-link`} method="POST">
+              <form action={`/api/os/invoices/${id}/pay-link${tokenQuery}`} method="POST">
                 <button
                   type="submit"
                   style={{

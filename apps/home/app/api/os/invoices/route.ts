@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getRootInvoices } from "@/lib/os-data";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 import { supabase } from "@/lib/supabase";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 /* ── Helpers (shared with convert route) ── */
 
@@ -89,6 +90,17 @@ async function maybeAllocateInvoiceNumber(businessUnit: string) {
 /* ── GET — list invoices ── */
 
 export async function GET(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.invoices.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["invoice_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { searchParams } = new URL(req.url);
   const limit = Math.min(Number(searchParams.get("limit") || 100), 200);
   const result = await getRootInvoices(limit, getRootBusinessScopeFromRequest(req));
@@ -111,6 +123,17 @@ export async function GET(req: Request) {
 /* ── POST — create standalone invoice (no quote required) ── */
 
 export async function POST(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "root.invoices.write",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["invoice_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const requestScope = getRootBusinessScopeFromRequest(req);
 
   const body = await parseBody(req);
