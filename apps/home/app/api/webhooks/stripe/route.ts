@@ -23,21 +23,18 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
 
-  /* Verify webhook signature if secret is configured */
-  if (webhookSecret && sig) {
-    try {
-      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-    } catch (err) {
-      console.error("[stripe-webhook] Signature verification failed:", err);
-      return NextResponse.json({ error: "invalid_signature" }, { status: 400 });
-    }
-  } else {
-    /* Fallback: parse without verification (development only) */
-    try {
-      event = JSON.parse(body) as Stripe.Event;
-    } catch {
-      return NextResponse.json({ error: "invalid_json" }, { status: 400 });
-    }
+  /* Fail closed: only a signature-verified event may proceed. */
+  if (!webhookSecret) {
+    return NextResponse.json({ error: "webhook_secret_unconfigured" }, { status: 400 });
+  }
+  if (!sig) {
+    return NextResponse.json({ error: "missing_signature" }, { status: 400 });
+  }
+  try {
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+  } catch (err) {
+    console.error("[stripe-webhook] Signature verification failed:", err);
+    return NextResponse.json({ error: "invalid_signature" }, { status: 400 });
   }
 
   const sb = getSupabase();
