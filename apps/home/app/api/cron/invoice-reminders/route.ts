@@ -12,18 +12,23 @@ import { evaluateAndSendReminders } from "@/lib/reminder-engine";
  *   - Coolify scheduled task
  *   - External cron service (e.g. cron-job.org)
  *
- * Optional: Add CRON_SECRET to .env.local for authentication.
+ * Auth: CRON_SECRET required in production — with no secret configured the
+ * route refuses to run (fail-closed, same contract as brief-progress-reminders).
  */
-export async function GET(req: Request) {
-  /* Optional auth check */
+function isAuthorized(req: Request) {
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = req.headers.get("authorization");
-    const { searchParams } = new URL(req.url);
-    const token = authHeader?.replace("Bearer ", "") || searchParams.get("secret");
-    if (token !== cronSecret) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    }
+  if (!cronSecret && process.env.NODE_ENV === "production") return false;
+  if (!cronSecret) return true;
+
+  const authHeader = req.headers.get("authorization");
+  const { searchParams } = new URL(req.url);
+  const token = authHeader?.replace("Bearer ", "") || searchParams.get("secret");
+  return token === cronSecret;
+}
+
+export async function GET(req: Request) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const result = await evaluateAndSendReminders();
