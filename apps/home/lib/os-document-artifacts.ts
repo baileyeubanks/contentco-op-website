@@ -177,6 +177,14 @@ async function renderArtifactBuffers(payload: CommercialArtifactPayload) {
   };
 }
 
+export type { CommercialArtifactPayload };
+
+/** Render a PDF buffer from a payload (used to render frozen estimate snapshots). */
+export async function renderDocumentPdfBuffer(payload: CommercialArtifactPayload) {
+  const buffers = await renderArtifactBuffers(payload);
+  return buffers.pdfBuffer;
+}
+
 export async function createDocumentArtifacts(input: {
   sourceDocumentId: string;
   businessUnit: "CC" | "ACS";

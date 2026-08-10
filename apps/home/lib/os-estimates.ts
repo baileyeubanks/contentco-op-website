@@ -82,7 +82,8 @@ export function canSendEstimate(input: {
 }) {
   const internalStatus = String(input.internalStatus || "draft").toLowerCase();
   const approvalStatus = String(input.approvalStatus || "not_required").toLowerCase();
-  if (!["draft", "pending_approval", "ready_to_send"].includes(internalStatus)) return false;
+  // "changes_requested" re-send keeps row identity and freezes a new version.
+  if (!["draft", "pending_approval", "ready_to_send", "changes_requested"].includes(internalStatus)) return false;
   if (approvalStatus === "pending" || approvalStatus === "rejected") return false;
   return true;
 }
