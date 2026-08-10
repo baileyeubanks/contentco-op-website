@@ -44,6 +44,19 @@ const GUARD_EXEMPTIONS: Record<string, { justification: string; markers: string[
   },
 };
 
+/**
+ * Files whose handlers are guarded indirectly through a file-local helper that
+ * wraps enforceRoutePolicy (e.g. `requireAccess()`). The test asserts both the
+ * helper call in every method body AND the guard literal in the file.
+ */
+const GUARD_VIA_LOCAL_HELPER: Record<string, { helper: string; justification: string }> = {
+  "app/api/os/lab/fsm/route.ts": {
+    helper: "requireAccess",
+    justification:
+      "GET and POST both call the file-local requireAccess() helper, which wraps enforceRoutePolicy(root.lab.fsm.control, system_config).",
+  },
+};
+
 function walkRouteFiles(dir: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -54,6 +67,42 @@ function walkRouteFiles(dir: string): string[] {
   return out;
 }
 
+/**
+ * Extract the body text of every `export async function <METHOD>` in a route
+ * file, keyed by method. Paren/brace balanced; per-method granularity so a
+ * guarded GET cannot mask an unguarded POST in the same file.
+ */
+function exportedMethodBodies(src: string): Record<string, string> {
+  const bodies: Record<string, string> = {};
+  const re = /export async function (GET|POST|PATCH|PUT|DELETE)\s*\(/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    let i = src.indexOf("(", m.index);
+    let depth = 0;
+    while (i < src.length) {
+      if (src[i] === "(") depth++;
+      else if (src[i] === ")") {
+        depth--;
+        if (depth === 0) break;
+      }
+      i++;
+    }
+    const bodyStart = src.indexOf("{", i);
+    depth = 0;
+    let j = bodyStart;
+    while (j < src.length) {
+      if (src[j] === "{") depth++;
+      else if (src[j] === "}") {
+        depth--;
+        if (depth === 0) break;
+      }
+      j++;
+    }
+    bodies[m[1]] = src.slice(bodyStart, j + 1);
+  }
+  return bodies;
+}
+
 describe("static: every /api/os route references the guard or is exempt", () => {
   const routeFiles = walkRouteFiles(OS_API_ROOT).map((full) => path.relative(APP_ROOT, full));
 
@@ -61,13 +110,33 @@ describe("static: every /api/os route references the guard or is exempt", () => 
     expect(routeFiles.length).toBeGreaterThanOrEqual(90);
   });
 
-  test("no route file lacks the guard without an exemption", () => {
-    const unguarded = routeFiles.filter((rel) => {
+  test("per-method: every exported handler in non-exempt routes references the guard", () => {
+    const failures: string[] = [];
+    for (const rel of routeFiles) {
+      if (rel in GUARD_EXEMPTIONS) continue;
       const src = readFileSync(path.join(APP_ROOT, rel), "utf8");
-      if (src.includes("enforceRoutePolicy") || src.includes("authorizeRootWorkspaceRoute")) return false;
-      return !(rel in GUARD_EXEMPTIONS);
-    });
-    expect(unguarded).toEqual([]);
+      const bodies = exportedMethodBodies(src);
+      if (Object.keys(bodies).length === 0) {
+        failures.push(`${rel} (no exported HTTP handlers found)`);
+        continue;
+      }
+      const viaHelper = GUARD_VIA_LOCAL_HELPER[rel];
+      if (viaHelper) {
+        /* The indirection is only valid if the guard really exists in-file. */
+        expect(src, `${rel} claims guard-via-helper but lacks the guard literal`).toMatch(
+          /enforceRoutePolicy|authorizeRootWorkspaceRoute/,
+        );
+        expect(src, `${rel} no longer defines helper ${viaHelper.helper}`).toContain(viaHelper.helper);
+      }
+      for (const [method, body] of Object.entries(bodies)) {
+        const direct = /enforceRoutePolicy|authorizeRootWorkspaceRoute/.test(body);
+        const indirect = viaHelper ? body.includes(`${viaHelper.helper}(`) : false;
+        if (!direct && !indirect) {
+          failures.push(`${rel} ${method}`);
+        }
+      }
+    }
+    expect(failures).toEqual([]);
   });
 
   test("every exemption still contains its justifying mechanism", () => {
@@ -133,6 +202,7 @@ import { GET as invoicesGET } from "@/app/api/os/invoices/route";
 import { GET as quoteDetailGET } from "@/app/api/os/quotes/[id]/route";
 import { GET as paymentsGET } from "@/app/api/os/payments/route";
 import { GET as quotePreviewGET } from "@/app/api/os/quotes/[id]/preview/route";
+import { POST as quoteViewsPOST } from "@/app/api/os/quotes/[id]/views/route";
 import { signShareToken } from "../share-token";
 
 const QUOTE_ID = "4d2f0b7e-9c1a-4e2b-b7a1-0f3c5d6e7a8b";
@@ -200,6 +270,15 @@ describe("runtime: unauthenticated /api/os calls fail closed", () => {
       { params: Promise.resolve({ id: QUOTE_ID }) },
     );
     expect(res.status).toBe(401);
+  });
+
+  test("quotes/[id]/views POST -> 401 (anonymous insert into quote_views blocked)", async () => {
+    const res = await quoteViewsPOST(
+      new Request(`https://admin.contentco-op.com/api/os/quotes/${QUOTE_ID}/views`, { method: "POST" }),
+      { params: Promise.resolve({ id: QUOTE_ID }) },
+    );
+    expect(res.status).toBe(401);
+    expect((await res.json()).error).toBe("unauthorized");
   });
 
   test("env restored", () => {
