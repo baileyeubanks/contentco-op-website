@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
+import { signShareToken } from "@/lib/share-token";
 import { QuoteShareClient } from "./quote-share-client";
 
 export const dynamic = "force-dynamic";
@@ -80,6 +81,9 @@ export default async function ShareQuotePage({ params }: { params: Promise<{ id:
 
   const previewUrl = `/api/os/quotes/${id}/preview`;
   const pdfUrl = `/api/os/quotes/${id}/pdf`;
+  /* Signed share token — required by the accept mutation. Null when
+     QUOTE_SHARE_SECRET is unset (accept stays disabled, fail closed). */
+  const acceptToken = signShareToken(id);
   const brandColor = quote.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
   const accentColor = quote.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
   const brandName = quote.business_unit === "ACS" ? "Astro Cleanings" : "Content Co-Op";
@@ -106,6 +110,7 @@ export default async function ShareQuotePage({ params }: { params: Promise<{ id:
       terms={terms}
       previewUrl={previewUrl}
       pdfUrl={pdfUrl}
+      acceptToken={acceptToken}
       brandName={brandName}
       brandColor={brandColor}
       accentColor={accentColor}

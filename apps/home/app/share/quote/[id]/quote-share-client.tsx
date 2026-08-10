@@ -36,6 +36,7 @@ interface Props {
   terms: TermsSection[];
   previewUrl: string;
   pdfUrl: string;
+  acceptToken: string | null;
   brandName: string;
   brandColor: string;
   accentColor: string;
@@ -50,6 +51,7 @@ export function QuoteShareClient({
   terms,
   previewUrl,
   pdfUrl,
+  acceptToken,
   brandName,
   brandColor,
   accentColor,
@@ -70,6 +72,10 @@ export function QuoteShareClient({
   const isRejected = status === "rejected";
   const isChangesRequested = status === "changes_requested";
   const total = Number(quote.estimated_total || 0);
+  /* Accept mutations require the signed share token issued by the server page */
+  const acceptUrl = acceptToken
+    ? `/api/share/quote/${quote.id}/accept?token=${encodeURIComponent(acceptToken)}`
+    : null;
 
   /* Track view on mount */
   useEffect(() => {
@@ -90,9 +96,10 @@ export function QuoteShareClient({
   }, [comments]);
 
   async function handleAccept() {
+    if (!acceptUrl) return;
     setAccepting(true);
     try {
-      const res = await fetch(`/api/share/quote/${quote.id}/accept`, {
+      const res = await fetch(acceptUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "accept" }),
@@ -109,8 +116,9 @@ export function QuoteShareClient({
   }
 
   async function handleReject() {
+    if (!acceptUrl) return;
     try {
-      const res = await fetch(`/api/share/quote/${quote.id}/accept`, {
+      const res = await fetch(acceptUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "reject" }),
@@ -124,8 +132,9 @@ export function QuoteShareClient({
   }
 
   async function handleRequestChanges() {
+    if (!acceptUrl) return;
     try {
-      const res = await fetch(`/api/share/quote/${quote.id}/accept`, {
+      const res = await fetch(acceptUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "request_changes", comment: changeReason }),
@@ -337,7 +346,7 @@ export function QuoteShareClient({
             <a href={pdfUrl} target="_blank" rel="noopener" className="qs-btn qs-btn-outline" style={{ borderColor: brandColor, color: brandColor }}>
               PDF
             </a>
-            {!isAccepted && !isRejected && (
+            {!isAccepted && !isRejected && acceptToken && (
               <button onClick={handleAccept} disabled={accepting} className="qs-btn qs-btn-solid qs-btn-lg" style={{ background: accepting ? "#94a3b8" : accentColor, cursor: accepting ? "not-allowed" : "pointer" }}>
                 {accepting ? "Accepting..." : "Accept Quote"}
               </button>
@@ -417,7 +426,7 @@ export function QuoteShareClient({
               )}
 
               {/* Acceptance CTA */}
-              {!isAccepted && !isRejected && (
+              {!isAccepted && !isRejected && acceptToken && (
                 <div className="qs-accept-box">
                   <div className="qs-accept-box-title">Ready to proceed?</div>
                   <div className="qs-accept-box-text">
@@ -482,6 +491,11 @@ export function QuoteShareClient({
                     {acceptedAt ? ` on ${new Date(acceptedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}` : ""}
                   </div>
                 </div>
+              )}
+              {!isAccepted && !isRejected && !acceptToken && (
+                <p style={{ marginTop: 20, fontSize: 11, color: "#888", fontStyle: "italic" }}>
+                  Online acceptance is temporarily unavailable — please contact us to proceed.
+                </p>
               )}
             </div>
           )}
@@ -550,7 +564,7 @@ export function QuoteShareClient({
         </div>
 
         {/* Floating Accept Bar */}
-        {tab === "scope" && !isAccepted && !isRejected && (
+        {tab === "scope" && !isAccepted && !isRejected && acceptToken && (
           <div className="qs-float">
             <div className="qs-float-total">
               Total: <strong>{fmtMoney(total)}</strong>

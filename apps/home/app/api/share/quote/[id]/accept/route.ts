@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { verifyShareToken } from "@/lib/share-token";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -33,9 +34,19 @@ async function parseBody(req: Request): Promise<QuoteAcceptanceBody> {
  *
  * Client-facing acceptance endpoint. Records ESIGN-compliant acceptance
  * with timestamp, IP, user-agent, and optional signature data.
+ * Requires a valid, unexpired share token (?token= or x-share-token header)
+ * issued by the /share/quote/[id] page.
  */
 export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
+
+  /* Token gate — fail closed before touching the database */
+  const token =
+    new URL(req.url).searchParams.get("token") || req.headers.get("x-share-token");
+  if (!verifyShareToken(token, id)) {
+    return NextResponse.json({ error: "invalid_share_token" }, { status: 401 });
+  }
+
   const sb = getSupabase();
 
   const body = await parseBody(req);
