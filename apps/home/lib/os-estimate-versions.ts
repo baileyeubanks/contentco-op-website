@@ -23,6 +23,7 @@ export type EstimateVersionTotals = {
 export type EstimateVersionSnapshot = {
   estimate: Record<string, unknown>;
   line_items: Record<string, unknown>[];
+  contact: Record<string, unknown> | null;
   totals: EstimateVersionTotals;
   frozen_at: string;
 };
@@ -61,12 +62,17 @@ function asNumber(value: unknown) {
 export function buildEstimateVersionSnapshot(input: {
   estimate: Record<string, unknown>;
   lineItems: Record<string, unknown>[];
+  contact?: Record<string, unknown> | null;
   frozenAt?: string;
 }): EstimateVersionSnapshot {
   const estimate = input.estimate;
   return {
     estimate: { ...estimate },
     line_items: input.lineItems.map((item) => ({ ...item })),
+    // The estimates table has no client_* columns — the contact join is the
+    // only place client identity lives, so it must be frozen into the
+    // snapshot for PDFs/handoffs to render it.
+    contact: input.contact ? { ...input.contact } : null,
     totals: {
       subtotal_cents: asNumber(estimate.subtotal_cents),
       tax_cents: asNumber(estimate.tax_cents),
@@ -93,6 +99,8 @@ export async function freezeEstimateVersion(
     estimateId: string;
     estimate: Record<string, unknown>;
     lineItems: Record<string, unknown>[];
+    contact?: Record<string, unknown> | null;
+    frozenAt?: string;
   },
 ): Promise<{ version: EstimateVersionRow | null; error: string | null }> {
   const { data: latest, error: latestError } = await sb
@@ -108,6 +116,8 @@ export async function freezeEstimateVersion(
   const snapshot = buildEstimateVersionSnapshot({
     estimate: input.estimate,
     lineItems: input.lineItems,
+    contact: input.contact,
+    frozenAt: input.frozenAt,
   });
 
   const { data: versionRow, error: insertError } = await sb
@@ -218,17 +228,20 @@ export async function resolveFrozenDepositAmountCents(
 export function buildEstimateVersionArtifactPayload(snapshot: EstimateVersionSnapshot) {
   const estimate = snapshot.estimate || {};
   const totals = snapshot.totals;
+  const contact = snapshot.contact || {};
   return {
     documentType: "estimate" as const,
     documentNumber: String(estimate.estimate_number || estimate.id || ""),
     businessUnit: String(estimate.business_unit || "CC").toUpperCase() === "ACS" ? ("ACS" as const) : ("CC" as const),
-    issueDate: String(estimate.sent_at || estimate.created_at || snapshot.frozen_at).slice(0, 10),
+    // frozen_at IS the send time (sendEstimate stamps it before the status
+    // update), so the frozen PDF is dated the day the client received it.
+    issueDate: String(snapshot.frozen_at).slice(0, 10),
     dueDate: estimate.valid_until ? String(estimate.valid_until).slice(0, 10) : null,
     title: "Content Co-op Estimate",
     customer: {
-      name: estimate.client_name ? String(estimate.client_name) : null,
-      email: estimate.client_email ? String(estimate.client_email) : null,
-      company: estimate.client_company ? String(estimate.client_company) : null,
+      name: contact.full_name ? String(contact.full_name) : null,
+      email: contact.email ? String(contact.email) : null,
+      company: contact.company ? String(contact.company) : null,
     },
     lineItems: (snapshot.line_items || []).map((item) => ({
       description: String(item.description || ""),

@@ -23,10 +23,12 @@ import {
 } from "../os-commercial-pipeline";
 import { canSendEstimate } from "../os-estimates";
 import {
+  buildEstimateVersionArtifactPayload,
   buildEstimateVersionSnapshot,
   getFrozenEstimateForLegacyQuote,
   hashEstimateVersionSnapshot,
   resolveFrozenDepositAmountCents,
+  type EstimateVersionSnapshot,
 } from "../os-estimate-versions";
 
 const ESTIMATE_ID = "11111111-1111-4111-8111-111111111111";
@@ -174,6 +176,33 @@ describe("freeze-on-send (task 2.5)", () => {
     expect(canSendEstimate({ internalStatus: "changes_requested", approvalStatus: "approved" })).toBe(true);
     expect(canSendEstimate({ internalStatus: "sent", approvalStatus: "not_required" })).toBe(false);
   });
+
+  test("freeze captures the contact and stamps frozen_at with the send time", async () => {
+    const contactId = fakeUuid();
+    fake.store.set("contacts", [
+      { id: contactId, full_name: "Jordan Client", email: "jordan@example.com", company: "Client Co", phone: null },
+    ]);
+    fake.store.set("estimates", [seedEstimateRow({ contact_id: contactId })]);
+    fake.store.set("estimate_line_items", seedLineItems());
+
+    const { estimate, versions } = await freezeViaSend();
+
+    const snapshot = versions[0].snapshot as EstimateVersionSnapshot;
+    expect(snapshot.contact).toMatchObject({
+      full_name: "Jordan Client",
+      email: "jordan@example.com",
+      company: "Client Co",
+    });
+    // Freeze runs BEFORE the send status update, so sent_at must equal the
+    // freeze timestamp — the frozen PDF dates itself from it.
+    expect(String(versions[0].frozen_at)).toBe(String(estimate.sent_at));
+    expect(String(snapshot.frozen_at)).toBe(String(estimate.sent_at));
+
+    const payload = buildEstimateVersionArtifactPayload(snapshot);
+    expect(payload.customer.name).toBe("Jordan Client");
+    expect(payload.customer.email).toBe("jordan@example.com");
+    expect(payload.issueDate).toBe(String(estimate.sent_at).slice(0, 10));
+  });
 });
 
 describe("decision + invoice bind to the frozen version (task 2.5)", () => {
@@ -227,6 +256,55 @@ describe("decision + invoice bind to the frozen version (task 2.5)", () => {
     expect(result.error).toBe("estimate_not_frozen");
     expect(result.invoice).toBeNull();
     expect(fake.store.get("invoices") || []).toHaveLength(0);
+  });
+
+  test("approve after re-send mints a fresh deposit invoice bound to the new version", async () => {
+    // v1 sent; the client pay route pre-mints the v1 deposit invoice.
+    seedEstimateDraft();
+    await freezeViaSend();
+    const v1Id = String(fake.store.get("estimates")![0].active_version_id);
+
+    const first = await convertEstimateToDepositInvoice({ estimateId: ESTIMATE_ID });
+    expect(first.error).toBeNull();
+    expect(first.invoice!.estimate_version_id).toBe(v1Id);
+    expect(first.invoice!.amount_due_cents).toBe(250000);
+
+    // Client asks for changes; operator revises pricing; re-send freezes v2.
+    const changes = await recordEstimateDecision({
+      estimateId: ESTIMATE_ID,
+      decision: "requested_changes",
+      actorType: "client",
+    });
+    expect(changes.error).toBeNull();
+    Object.assign(fake.store.get("estimates")![0], {
+      subtotal_cents: 600000,
+      total_cents: 600000,
+      deposit_due_cents: 300000,
+      balance_remaining_cents: 300000,
+    });
+    await freezeViaSend();
+    const v2Id = String(fake.store.get("estimates")![0].active_version_id);
+    expect(v2Id).not.toBe(v1Id);
+
+    // Approving v2 must NOT return the stale v1 invoice.
+    const approval = await recordEstimateDecision({
+      estimateId: ESTIMATE_ID,
+      decision: "approved",
+      actorType: "client",
+    });
+    expect(approval.error).toBeNull();
+
+    const invoices = fake.store.get("invoices") || [];
+    expect(invoices).toHaveLength(2);
+    const v2Invoice = invoices.find((row) => row.estimate_version_id === v2Id)!;
+    expect(v2Invoice).toBeTruthy();
+    expect(v2Invoice.amount_due_cents).toBe(300000);
+
+    // Pay path: snapshot amount equals the v2 invoice amount — no 409.
+    const resolved = await resolveFrozenDepositAmountCents(fake.client as never, QUOTE_ID);
+    expect(resolved.error).toBeNull();
+    expect(resolved.amountCents).toBe(300000);
+    expect(Number(v2Invoice.amount_due_cents)).toBe(resolved.amountCents);
   });
 });
 

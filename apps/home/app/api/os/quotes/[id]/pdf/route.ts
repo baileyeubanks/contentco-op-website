@@ -41,6 +41,9 @@ export async function GET(
   // machine-local live-row renderer. The canonical script
   // (os-document-authority.ts) reads live DB rows, so it stays the fallback
   // for legacy quotes that have no frozen version.
+  // Bridge note: the estimate↔quote link is dual — quotes.payload.estimate_id
+  // (used here) and estimates.legacy_quote_id (used by the pay/edit guards).
+  // Both are written together at estimate creation; keep them intact.
   const estimateId = asRecord(quote.payload)?.estimate_id ? String(asRecord(quote.payload)!.estimate_id) : null;
   if (estimateId) {
     const { data: estimate } = await sb

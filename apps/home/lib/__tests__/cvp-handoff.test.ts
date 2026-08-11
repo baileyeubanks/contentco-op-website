@@ -199,3 +199,75 @@ describe("cvp handoff (task 4.1)", () => {
     expect(buildHandoffIdempotencyKey("", 1, "A")).toBeNull();
   });
 });
+
+describe("cvp handoff race + crash recovery (review finding 4)", () => {
+  test("concurrent handoffs produce one project, one inquiry, one receipt", async () => {
+    publicFake = createFakeSupabase(undefined, {
+      uniques: { commercial_handoffs: ["idempotency_key"] },
+    });
+    cvpFake = createFakeSupabase(undefined, {
+      uniques: {
+        projects: ["cco_estimate_version_id"],
+        inquiries: ["cco_estimate_version_id"],
+      },
+    });
+    seedApprovedFrozenEstimate();
+
+    const [first, second] = await Promise.all([runHandoff(), runHandoff()]);
+
+    expect(first.error).toBeNull();
+    expect(second.error).toBeNull();
+    expect(first.receipt!.cvpProjectId).toBe(second.receipt!.cvpProjectId);
+    expect(first.receipt!.cvpInquiryId).toBe(second.receipt!.cvpInquiryId);
+    expect(first.receipt!.replayed || second.receipt!.replayed).toBe(true);
+    expect(cvpFake.store.get("projects") || []).toHaveLength(1);
+    expect(cvpFake.store.get("inquiries") || []).toHaveLength(1);
+    expect(publicFake.store.get("commercial_handoffs") || []).toHaveLength(1);
+  });
+
+  test("retry after a crash before the receipt insert reuses orphaned CVP rows", async () => {
+    seedApprovedFrozenEstimate();
+    // Prior attempt crashed after the CVP writes but before the
+    // commercial_handoffs insert: orphan org + inquiry + project exist.
+    const orgId = fakeUuid();
+    cvpFake.store.set("organizations", [{ id: orgId, owner_id: CVP_OWNER, name: "Client Co" }]);
+    cvpFake.store.set("inquiries", [
+      {
+        id: fakeUuid(),
+        owner_id: CVP_OWNER,
+        organization_id: orgId,
+        contact_id: null,
+        source: "cco_os",
+        summary: "orphan from crashed attempt",
+        status: "new",
+        cco_estimate_id: ESTIMATE_ID,
+        cco_estimate_version_id: VERSION_ID,
+      },
+    ]);
+    cvpFake.store.set("projects", [
+      {
+        id: fakeUuid(),
+        owner_id: CVP_OWNER,
+        name: "orphan project",
+        stage: "intake",
+        organization_id: orgId,
+        primary_contact_id: null,
+        cco_estimate_id: ESTIMATE_ID,
+        cco_estimate_version_id: VERSION_ID,
+        commercial_total_cents: 500000,
+      },
+    ]);
+    const orphanProjectId = String(cvpFake.store.get("projects")![0].id);
+
+    const result = await runHandoff();
+
+    expect(result.error).toBeNull();
+    expect(result.receipt!.replayed).toBe(false);
+    expect(result.receipt!.cvpProjectId).toBe(orphanProjectId);
+    expect(cvpFake.store.get("projects") || []).toHaveLength(1);
+    expect(cvpFake.store.get("inquiries") || []).toHaveLength(1);
+    expect(cvpFake.store.get("inquiries")![0].status).toBe("converted");
+    expect(cvpFake.store.get("inquiries")![0].project_id).toBe(orphanProjectId);
+    expect(publicFake.store.get("commercial_handoffs") || []).toHaveLength(1);
+  });
+});

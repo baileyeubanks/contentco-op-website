@@ -11,7 +11,8 @@ export type FakeRow = Record<string, unknown>;
 
 type Filter = { col: string; op: "eq" | "neq" | "in"; value: unknown };
 
-type FakeResult = { data: unknown; error: { message: string } | null; count: number | null };
+type FakeError = { message: string; code?: string };
+type FakeResult = { data: unknown; error: FakeError | null; count: number | null };
 
 let idCounter = 0;
 
@@ -38,6 +39,7 @@ class FakeQuery {
   constructor(
     private readonly store: Map<string, FakeRow[]>,
     private readonly table: string,
+    private readonly uniques: Record<string, string[]>,
   ) {}
 
   select(_columns?: string, opts?: { count?: "exact"; head?: boolean }) {
@@ -143,7 +145,7 @@ class FakeQuery {
     return rows;
   }
 
-  private shape(data: unknown, error: { message: string } | null, count: number | null = null): FakeResult {
+  private shape(data: unknown, error: FakeError | null, count: number | null = null): FakeResult {
     return { data, error, count };
   }
 
@@ -168,6 +170,20 @@ class FakeQuery {
 
     if (op.kind === "insert") {
       const table = this.store.get(this.table) || [];
+      const uniqueCols = this.uniques[this.table];
+      if (uniqueCols) {
+        const violates = op.rows.some((row) =>
+          row[uniqueCols[0]] != null &&
+          uniqueCols.every((col) => row[col] != null) &&
+          table.some((existing) => uniqueCols.every((col) => existing[col] === row[col])),
+        );
+        if (violates) {
+          return this.shape(null, {
+            message: `duplicate key value violates unique constraint on ${this.table}(${uniqueCols.join(",")})`,
+            code: "23505",
+          });
+        }
+      }
       const inserted = op.rows.map((row) => {
         const record: FakeRow = {
           id: row.id ?? fakeUuid(),
@@ -234,14 +250,18 @@ class FakeQuery {
   }
 }
 
-export function createFakeSupabase(seed?: Record<string, FakeRow[]>) {
+export function createFakeSupabase(
+  seed?: Record<string, FakeRow[]>,
+  options?: { uniques?: Record<string, string[]> },
+) {
   const store = new Map<string, FakeRow[]>();
   for (const [table, rows] of Object.entries(seed || {})) {
     store.set(table, rows.map((row) => ({ ...row })));
   }
+  const uniques = options?.uniques || {};
   const client = {
     from(table: string) {
-      return new FakeQuery(store, table);
+      return new FakeQuery(store, table, uniques);
     },
   };
   return { client, store };

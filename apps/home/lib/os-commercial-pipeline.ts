@@ -475,14 +475,26 @@ export async function sendEstimate(input: {
     return { estimate: null, error: "estimate_send_forbidden" };
   }
 
-  // Freeze BEFORE the status update: a sent estimate must always carry an
-  // immutable version. Re-send after changes_requested mints version+1 and
-  // keeps row identity (no superseded_by_estimate_id).
-  const freeze = await freezeEstimateVersion(sb, { estimateId: input.estimateId, estimate, lineItems });
-  if (freeze.error || !freeze.version) return { estimate: null, error: freeze.error || "estimate_freeze_failed" };
-
   const businessUnit = input.businessUnit || asBusinessUnit(estimate.business_unit);
   const sentAt = nowIso();
+
+  // Freeze BEFORE the status update: a sent estimate must always carry an
+  // immutable version. The snapshot captures the contact (estimates has no
+  // client_* columns) and is stamped with the send time so frozen PDFs are
+  // dated the send date. Re-send after changes_requested mints version+1 and
+  // keeps row identity (no superseded_by_estimate_id).
+  const contact = estimate.contact_id
+    ? ((await sb.from("contacts").select("id, full_name, email, company, phone").eq("id", estimate.contact_id).maybeSingle()).data as Record<string, unknown> | null)
+    : null;
+  const freeze = await freezeEstimateVersion(sb, {
+    estimateId: input.estimateId,
+    estimate,
+    lineItems,
+    contact,
+    frozenAt: sentAt,
+  });
+  if (freeze.error || !freeze.version) return { estimate: null, error: freeze.error || "estimate_freeze_failed" };
+
   const nextStatus = String(estimate.approval_status || "not_required").toLowerCase() === "approved" ? "sent" : "sent";
   const { data, error: updateError } = await sb
     .from("estimates")
@@ -716,11 +728,21 @@ export async function convertEstimateToDepositInvoice(input: {
   const { estimate, error } = await getEstimateWithLineItems(input.estimateId);
   if (error || !estimate) return { invoice: null, error: error || "estimate_not_found" };
 
+  // Money comes from the frozen version, never the live estimate row.
+  if (!estimate.active_version_id) return { invoice: null, error: "estimate_not_frozen" };
+  const frozenVersion = await getActiveEstimateVersion(sb, estimate);
+  if (!frozenVersion) return { invoice: null, error: "estimate_version_missing" };
+
+  // Idempotency is scoped to the ACTIVE version: after a changes_requested →
+  // re-send cycle the active version moves, and the stale invoice from the
+  // previous version must not be resurrected (it would deadlock the pay
+  // route on frozen_amount_mismatch).
   const existing = await sb
     .from("invoices")
     .select("*")
     .eq("estimate_id", input.estimateId)
     .eq("invoice_type", "deposit")
+    .eq("estimate_version_id", frozenVersion.id)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -728,10 +750,6 @@ export async function convertEstimateToDepositInvoice(input: {
     return { invoice: existing.data as Record<string, unknown>, error: null };
   }
 
-  // Money comes from the frozen version, never the live estimate row.
-  if (!estimate.active_version_id) return { invoice: null, error: "estimate_not_frozen" };
-  const frozenVersion = await getActiveEstimateVersion(sb, estimate);
-  if (!frozenVersion) return { invoice: null, error: "estimate_version_missing" };
   const frozenEstimate = frozenVersion.snapshot.estimate || {};
   const frozenTotals = frozenVersion.snapshot.totals;
   const depositDueCents = Number(frozenTotals?.deposit_due_cents || 0);

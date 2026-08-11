@@ -109,6 +109,26 @@ function canonicalHandoffPayload(input: {
   };
 }
 
+function replayedReceiptFromRow(
+  row: Record<string, unknown>,
+  idempotencyKey: string,
+  payloadHash: `sha256:${string}`,
+  estimateId: string,
+): CvpHandoffReceipt {
+  const stored = (row.receipt || {}) as Record<string, unknown>;
+  return {
+    status: "created",
+    replayed: true,
+    idempotencyKey,
+    payloadHash,
+    estimateId,
+    estimateVersionId: String(row.estimate_version_id),
+    cvpInquiryId: String(row.cvp_inquiry_id || stored.cvp_inquiry_id || ""),
+    cvpProjectId: String(row.cvp_project_id || stored.cvp_project_id || ""),
+    commercialRef: (stored.commercial_ref || {}) as Record<string, unknown>,
+  };
+}
+
 export async function handoffEstimateToCoVideoPro(
   input: { estimateId: string; variant?: string },
   deps?: { sb?: ClientLike; cvpSb?: ClientLike; env?: Record<string, string | undefined> },
@@ -168,19 +188,8 @@ export async function handoffEstimateToCoVideoPro(
     .maybeSingle();
   if (existingHandoff) {
     if (existingHandoff.payload_hash !== payloadHash) return failure("idempotency_payload_conflict");
-    const stored = (existingHandoff.receipt || {}) as Record<string, unknown>;
     return {
-      receipt: {
-        status: "created",
-        replayed: true,
-        idempotencyKey,
-        payloadHash,
-        estimateId: input.estimateId,
-        estimateVersionId: String(existingHandoff.estimate_version_id),
-        cvpInquiryId: String(existingHandoff.cvp_inquiry_id || stored.cvp_inquiry_id || ""),
-        cvpProjectId: String(existingHandoff.cvp_project_id || stored.cvp_project_id || ""),
-        commercialRef: (stored.commercial_ref || {}) as Record<string, unknown>,
-      },
+      receipt: replayedReceiptFromRow(existingHandoff, idempotencyKey, payloadHash, input.estimateId),
       error: null,
     };
   }
@@ -261,47 +270,95 @@ export async function handoffEstimateToCoVideoPro(
     }
   }
 
-  // Inquiry: source cco_os, summary = commercial reference.
+  // Inquiry: source cco_os, summary = commercial reference. The writes are
+  // resumable: keyed by cco_estimate_version_id (unique in co_production),
+  // so a retry after a crash — or the loser of a concurrent race — reuses
+  // the existing rows instead of duplicating them.
   const summary = `CCO OS accepted package ${canonical.estimate_number} v${version.version} — total $${(totals.total_cents / 100).toLocaleString("en-US")} (frozen ${version.frozen_at}, sha256 ${version.sha256.slice(0, 16)})`;
-  const { data: inquiry, error: inquiryError } = await cvp
+  let inquiry: Record<string, unknown> | null = null;
+  const { data: existingInquiry } = await cvp
     .from("inquiries")
-    .insert({
-      owner_id: ownerId,
-      organization_id: organization.id,
-      contact_id: cvpContact?.id || null,
-      source: "cco_os",
-      summary,
-      status: "new",
-      cco_estimate_id: input.estimateId,
-      cco_estimate_version_id: version.id,
-      commercial_total_cents: totals.total_cents,
-      commercial_ref: commercialRef,
-    })
     .select("*")
-    .single();
-  if (inquiryError || !inquiry) return failure(inquiryError?.message || "cvp_inquiry_write_failed");
+    .eq("owner_id", ownerId)
+    .eq("cco_estimate_version_id", version.id)
+    .maybeSingle();
+  if (existingInquiry) {
+    inquiry = existingInquiry as Record<string, unknown>;
+  } else {
+    const inserted = await cvp
+      .from("inquiries")
+      .insert({
+        owner_id: ownerId,
+        organization_id: organization.id,
+        contact_id: cvpContact?.id || null,
+        source: "cco_os",
+        summary,
+        status: "new",
+        cco_estimate_id: input.estimateId,
+        cco_estimate_version_id: version.id,
+        commercial_total_cents: totals.total_cents,
+        commercial_ref: commercialRef,
+      })
+      .select("*")
+      .single();
+    if (inserted.error) {
+      // Lost a concurrent race — the unique index serialized; recover the winner's row.
+      const { data: raced } = await cvp
+        .from("inquiries")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .eq("cco_estimate_version_id", version.id)
+        .maybeSingle();
+      if (!raced) return failure(inserted.error.message || "cvp_inquiry_write_failed");
+      inquiry = raced as Record<string, unknown>;
+    } else {
+      inquiry = inserted.data as Record<string, unknown>;
+    }
+  }
 
   // Project at stage 'intake' with org/contact links — exactly the convert
-  // route's write, plus the commercial handoff columns.
+  // route's write, plus the commercial handoff columns. Same resumable rule.
   const projectName = `${orgName} — ${canonical.estimate_number}`.slice(0, 240);
-  const { data: project, error: projectError } = await cvp
+  let project: Record<string, unknown> | null = null;
+  const { data: existingProject } = await cvp
     .from("projects")
-    .insert({
-      owner_id: ownerId,
-      name: projectName,
-      stage: "intake",
-      organization_id: organization.id ?? null,
-      primary_contact_id: cvpContact?.id ?? null,
-      cco_estimate_id: input.estimateId,
-      cco_estimate_version_id: version.id,
-      commercial_total_cents: totals.total_cents,
-      commercial_ref: commercialRef,
-    })
     .select("*")
-    .single();
-  if (projectError || !project) return failure(projectError?.message || "cvp_project_write_failed");
+    .eq("owner_id", ownerId)
+    .eq("cco_estimate_version_id", version.id)
+    .maybeSingle();
+  if (existingProject) {
+    project = existingProject as Record<string, unknown>;
+  } else {
+    const inserted = await cvp
+      .from("projects")
+      .insert({
+        owner_id: ownerId,
+        name: projectName,
+        stage: "intake",
+        organization_id: organization.id ?? null,
+        primary_contact_id: cvpContact?.id ?? null,
+        cco_estimate_id: input.estimateId,
+        cco_estimate_version_id: version.id,
+        commercial_total_cents: totals.total_cents,
+        commercial_ref: commercialRef,
+      })
+      .select("*")
+      .single();
+    if (inserted.error) {
+      const { data: raced } = await cvp
+        .from("projects")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .eq("cco_estimate_version_id", version.id)
+        .maybeSingle();
+      if (!raced) return failure(inserted.error.message || "cvp_project_write_failed");
+      project = raced as Record<string, unknown>;
+    } else {
+      project = inserted.data as Record<string, unknown>;
+    }
+  }
 
-  // Mark the inquiry converted, pointing at the new project.
+  // Mark the inquiry converted, pointing at the project (idempotent).
   const { error: convertError } = await cvp
     .from("inquiries")
     .update({
@@ -335,7 +392,21 @@ export async function handoffEstimateToCoVideoPro(
     cvp_project_id: receipt.cvpProjectId,
     receipt,
   });
-  if (handoffError) return failure(handoffError.message);
+  if (handoffError) {
+    // Lost a concurrent race on the unique key: return the winner's stored
+    // receipt, or an honest conflict if the payloads differ.
+    const { data: winner } = await sb
+      .from("commercial_handoffs")
+      .select("*")
+      .eq("idempotency_key", idempotencyKey)
+      .maybeSingle();
+    if (!winner) return failure(handoffError.message);
+    if (winner.payload_hash !== payloadHash) return failure("idempotency_payload_conflict");
+    return {
+      receipt: replayedReceiptFromRow(winner, idempotencyKey, payloadHash, input.estimateId),
+      error: null,
+    };
+  }
 
   return { receipt, error: null };
 }
