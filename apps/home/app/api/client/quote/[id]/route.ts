@@ -50,6 +50,10 @@ export async function GET(
 
   // Frozen version is the money authority when one exists (matches what the
   // pay route charges); live-row amounts are only the pre-freeze fallback.
+  // NOTE: this route intentionally fails OPEN to live rows if frozen
+  // resolution errors (a wrong display is recoverable; a wrong CHARGE is
+  // not — the pay route fails CLOSED instead). Display-only; never feeds
+  // money movement.
   const frozen = estimate?.active_version_id
     ? await resolveFrozenDepositAmountCents(sb, id)
     : null;
