@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { verifyShareToken } from "@/lib/share-token";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -52,6 +53,17 @@ export async function GET(_req: Request, { params }: Props) {
 
 export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
+
+  /* Token gate — fail closed before touching the database (mirrors the
+     accept route; closes the anonymous-write hole on the share surface).
+     GET stays open: reading comments is the same trust level as viewing the
+     public-by-UUID share page itself. */
+  const token =
+    new URL(req.url).searchParams.get("token") || req.headers.get("x-share-token");
+  if (!verifyShareToken(token, id)) {
+    return NextResponse.json({ error: "invalid_share_token" }, { status: 401 });
+  }
+
   const sb = getSupabase();
 
   const body = await parseBody(req);

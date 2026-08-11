@@ -78,6 +78,11 @@ export function QuoteShareClient({
   const acceptUrl = acceptToken
     ? `/api/share/quote/${quote.id}/accept?token=${encodeURIComponent(acceptToken)}`
     : null;
+  /* Comment POSTs are token-gated too (anonymous-write hole closed); when no
+     token can be issued the composer disables (fail closed, mirrors accept) */
+  const commentUrl = acceptToken
+    ? `/api/share/quote/${quote.id}/comment?token=${encodeURIComponent(acceptToken)}`
+    : null;
 
   /* Track view on mount */
   useEffect(() => {
@@ -154,10 +159,10 @@ export function QuoteShareClient({
   }
 
   async function handleSendComment() {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !commentUrl) return;
     setSendingComment(true);
     try {
-      const res = await fetch(`/api/share/quote/${quote.id}/comment`, {
+      const res = await fetch(commentUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: newComment }),
@@ -551,11 +556,12 @@ export function QuoteShareClient({
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendComment(); } }}
-                  placeholder="Type a message..."
+                  placeholder={commentUrl ? "Type a message..." : "Messaging is temporarily unavailable"}
+                  disabled={!commentUrl}
                 />
                 <button
                   onClick={handleSendComment}
-                  disabled={sendingComment || !newComment.trim()}
+                  disabled={sendingComment || !newComment.trim() || !commentUrl}
                   style={{
                     background: !newComment.trim() ? "#e2e8f0" : brandColor,
                     color: !newComment.trim() ? "#94a3b8" : "#fff",

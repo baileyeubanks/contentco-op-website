@@ -203,6 +203,7 @@ import { GET as quoteDetailGET } from "@/app/api/os/quotes/[id]/route";
 import { GET as paymentsGET } from "@/app/api/os/payments/route";
 import { GET as quotePreviewGET } from "@/app/api/os/quotes/[id]/preview/route";
 import { POST as quoteViewsPOST } from "@/app/api/os/quotes/[id]/views/route";
+import { POST as quoteCommentPOST } from "@/app/api/share/quote/[id]/comment/route";
 import { signShareToken } from "../share-token";
 
 const QUOTE_ID = "4d2f0b7e-9c1a-4e2b-b7a1-0f3c5d6e7a8b";
@@ -279,6 +280,55 @@ describe("runtime: unauthenticated /api/os calls fail closed", () => {
     );
     expect(res.status).toBe(401);
     expect((await res.json()).error).toBe("unauthorized");
+  });
+
+  test("share comment POST without token -> 401 (anonymous write blocked)", async () => {
+    const res = await quoteCommentPOST(
+      new Request(`https://admin.contentco-op.com/api/share/quote/${QUOTE_ID}/comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "hello" }),
+      }),
+      { params: Promise.resolve({ id: QUOTE_ID }) },
+    );
+    expect(res.status).toBe(401);
+    expect((await res.json()).error).toBe("invalid_share_token");
+  });
+
+  test("share comment POST with a tampered token -> 401", async () => {
+    const res = await quoteCommentPOST(
+      new Request(
+        `https://admin.contentco-op.com/api/share/quote/${QUOTE_ID}/comment?token=${QUOTE_ID}.9999999999.deadbeef`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: "hello" }),
+        },
+      ),
+      { params: Promise.resolve({ id: QUOTE_ID }) },
+    );
+    expect(res.status).toBe(401);
+  });
+
+  test("share comment POST with a valid share token -> 201", async () => {
+    supabaseResult = {
+      data: { id: "c1", sender: "client", body: "hello", created_at: "2026-08-11T00:00:00Z" },
+      error: null,
+    };
+    const token = signShareToken(QUOTE_ID)!;
+    const res = await quoteCommentPOST(
+      new Request(
+        `https://admin.contentco-op.com/api/share/quote/${QUOTE_ID}/comment?token=${encodeURIComponent(token)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: "hello" }),
+        },
+      ),
+      { params: Promise.resolve({ id: QUOTE_ID }) },
+    );
+    expect(res.status).toBe(201);
+    expect((await res.json()).comment.id).toBe("c1");
   });
 
   test("env restored", () => {
