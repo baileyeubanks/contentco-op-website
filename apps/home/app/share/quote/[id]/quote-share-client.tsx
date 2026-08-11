@@ -571,6 +571,15 @@ export function QuoteShareClient({
                   Send
                 </button>
               </div>
+              {!commentUrl && (
+                <p style={{ marginTop: 12, fontSize: 14, color: "#444", lineHeight: 1.5 }}>
+                  Messaging is temporarily unavailable — please email{" "}
+                  <a href={`mailto:${contactEmail}`} style={{ color: accentColor, textDecoration: "underline" }}>
+                    {contactEmail}
+                  </a>{" "}
+                  instead.
+                </p>
+              )}
             </div>
           )}
         </div>
