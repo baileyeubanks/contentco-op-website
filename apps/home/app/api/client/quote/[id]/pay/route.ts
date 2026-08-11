@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
 import { convertEstimateToDepositInvoice } from "@/lib/os-commercial-pipeline";
+import { resolveFrozenDepositAmountCents } from "@/lib/os-estimate-versions";
 
 /**
  * POST /api/client/quote/[id]/pay
@@ -52,20 +53,27 @@ export async function POST(
     );
   }
 
-  const { data: estimate } = await sb
-    .from("estimates")
-    .select("id, deposit_due_cents, internal_status")
-    .eq("legacy_quote_id", id)
-    .maybeSingle();
+  const amountResolution = await resolveFrozenDepositAmountCents(sb, id);
 
-  if (!estimate?.id) {
+  if (amountResolution.error === "quote_not_migrated_to_estimate") {
     return NextResponse.json(
       { error: "quote_not_migrated_to_estimate" },
       { status: 409 }
     );
   }
 
-  const invoiceResult = await convertEstimateToDepositInvoice({ estimateId: String(estimate.id) });
+  // Fail closed: no frozen version means no trustworthy amount — the old
+  // hardcoded 15000-cent fallback is gone on purpose.
+  if (amountResolution.error || !amountResolution.amountCents) {
+    return NextResponse.json(
+      { error: amountResolution.error || "estimate_version_missing" },
+      { status: 409 }
+    );
+  }
+
+  const estimateId = String(amountResolution.estimateId);
+
+  const invoiceResult = await convertEstimateToDepositInvoice({ estimateId });
   if (invoiceResult.error || !invoiceResult.invoice) {
     return NextResponse.json(
       { error: invoiceResult.error || "deposit_invoice_missing" },
@@ -73,7 +81,16 @@ export async function POST(
     );
   }
 
-  const amountCents = Number(invoiceResult.invoice.amount_due_cents || estimate.deposit_due_cents || quote.deposit_amount_cents || 15000);
+  // The Stripe amount must equal the invoice the webhook settles; the invoice
+  // is itself minted from the same frozen version, so any divergence is a bug
+  // worth failing closed on.
+  const amountCents = Number(invoiceResult.invoice.amount_due_cents || 0);
+  if (!amountCents || amountCents !== amountResolution.amountCents) {
+    return NextResponse.json(
+      { error: "frozen_amount_mismatch" },
+      { status: 409 }
+    );
+  }
 
   try {
     const paymentIntent = await stripe.paymentIntents.create({
@@ -83,7 +100,8 @@ export async function POST(
       metadata: {
         quote_id: quote.id,
         quote_number: quote.quote_number ?? "",
-        estimate_id: String(estimate.id),
+        estimate_id: estimateId,
+        estimate_version_id: amountResolution.estimateVersionId ?? "",
         invoice_id: String(invoiceResult.invoice.id),
         contact_id: quote.contact_id ?? "",
         business_unit: quote.business_unit ?? "ACS",
@@ -96,7 +114,8 @@ export async function POST(
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       invoice_id: invoiceResult.invoice.id,
-      estimate_id: estimate.id,
+      estimate_id: estimateId,
+      estimate_version_id: amountResolution.estimateVersionId,
       amount_cents: amountCents,
     });
   } catch (err) {

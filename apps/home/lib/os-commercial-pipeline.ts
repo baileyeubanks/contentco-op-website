@@ -16,6 +16,7 @@ import {
 } from "@/lib/os-estimates";
 import { buildEstimateDraftFromBrief } from "@/lib/os-production-scope";
 import { emitTypedEvent } from "@/lib/os-event-log";
+import { freezeEstimateVersion, getActiveEstimateVersion } from "@/lib/os-estimate-versions";
 
 type BusinessUnit = "CC" | "ACS";
 
@@ -476,6 +477,24 @@ export async function sendEstimate(input: {
 
   const businessUnit = input.businessUnit || asBusinessUnit(estimate.business_unit);
   const sentAt = nowIso();
+
+  // Freeze BEFORE the status update: a sent estimate must always carry an
+  // immutable version. The snapshot captures the contact (estimates has no
+  // client_* columns) and is stamped with the send time so frozen PDFs are
+  // dated the send date. Re-send after changes_requested mints version+1 and
+  // keeps row identity (no superseded_by_estimate_id).
+  const contact = estimate.contact_id
+    ? ((await sb.from("contacts").select("id, full_name, email, company, phone").eq("id", estimate.contact_id).maybeSingle()).data as Record<string, unknown> | null)
+    : null;
+  const freeze = await freezeEstimateVersion(sb, {
+    estimateId: input.estimateId,
+    estimate,
+    lineItems,
+    contact,
+    frozenAt: sentAt,
+  });
+  if (freeze.error || !freeze.version) return { estimate: null, error: freeze.error || "estimate_freeze_failed" };
+
   const nextStatus = String(estimate.approval_status || "not_required").toLowerCase() === "approved" ? "sent" : "sent";
   const { data, error: updateError } = await sb
     .from("estimates")
@@ -506,7 +525,7 @@ export async function sendEstimate(input: {
     businessUnit,
     contactId: data.contact_id ? String(data.contact_id) : null,
     text: `Estimate ${data.estimate_number} sent`,
-    payload: { sent_at: sentAt },
+    payload: { sent_at: sentAt, estimate_version_id: freeze.version.id, estimate_version: freeze.version.version },
   });
 
   return { estimate: data as Record<string, unknown>, error: null };
@@ -604,6 +623,10 @@ export async function recordEstimateDecision(input: {
   })) {
     return { estimate: null, decision: null, invoice: null, error: "estimate_decision_forbidden" };
   }
+  // Decisions only bind to a frozen version — never to a mutable live row.
+  if (!estimate.active_version_id) {
+    return { estimate: null, decision: null, invoice: null, error: "estimate_not_frozen" };
+  }
 
   const timestamps: Record<string, string | null> = {
     viewed_at: null,
@@ -620,6 +643,7 @@ export async function recordEstimateDecision(input: {
     .from("estimate_decisions")
     .insert({
       estimate_id: input.estimateId,
+      estimate_version_id: estimate.active_version_id,
       decision_type: input.decision,
       actor_type: input.actorType,
       actor_id: input.actorId || null,
@@ -700,20 +724,36 @@ export async function convertEstimateToDepositInvoice(input: {
   actorId?: string | null;
 }) {
   const sb = getSupabase();
-  const { estimate, lineItems, error } = await getEstimateWithLineItems(input.estimateId);
+  // Line items live inside the frozen snapshot; only the estimate row is read live.
+  const { estimate, error } = await getEstimateWithLineItems(input.estimateId);
   if (error || !estimate) return { invoice: null, error: error || "estimate_not_found" };
 
+  // Money comes from the frozen version, never the live estimate row.
+  if (!estimate.active_version_id) return { invoice: null, error: "estimate_not_frozen" };
+  const frozenVersion = await getActiveEstimateVersion(sb, estimate);
+  if (!frozenVersion) return { invoice: null, error: "estimate_version_missing" };
+
+  // Idempotency is scoped to the ACTIVE version: after a changes_requested →
+  // re-send cycle the active version moves, and the stale invoice from the
+  // previous version must not be resurrected (it would deadlock the pay
+  // route on frozen_amount_mismatch).
   const existing = await sb
     .from("invoices")
     .select("*")
     .eq("estimate_id", input.estimateId)
     .eq("invoice_type", "deposit")
+    .eq("estimate_version_id", frozenVersion.id)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (existing.data) {
     return { invoice: existing.data as Record<string, unknown>, error: null };
   }
+
+  const frozenEstimate = frozenVersion.snapshot.estimate || {};
+  const frozenTotals = frozenVersion.snapshot.totals;
+  const depositDueCents = Number(frozenTotals?.deposit_due_cents || 0);
+  const frozenEstimateNumber = String(frozenEstimate.estimate_number || estimate.estimate_number || "");
 
   const businessUnit = asBusinessUnit(estimate.business_unit);
   const invoiceSequence = (await countRows("invoices", businessUnit)) + 1;
@@ -722,11 +762,11 @@ export async function convertEstimateToDepositInvoice(input: {
   const dueAt = plusDays(7);
   const depositLineItems = [
     {
-      description: `50% deposit for ${estimate.estimate_number}`,
+      description: `50% deposit for ${frozenEstimateNumber}`,
       quantity: 1,
       unit: "deposit",
-      unit_price_cents: Number(estimate.deposit_due_cents || 0),
-      line_total_cents: Number(estimate.deposit_due_cents || 0),
+      unit_price_cents: depositDueCents,
+      line_total_cents: depositDueCents,
     },
   ];
 
@@ -738,6 +778,7 @@ export async function convertEstimateToDepositInvoice(input: {
       quote_id: estimate.legacy_quote_id || null,
       brief_id: estimate.brief_id,
       estimate_id: estimate.id,
+      estimate_version_id: frozenVersion.id,
       invoice_number: invoiceNumber,
       invoice_type: "deposit",
       status: "issued",
@@ -745,12 +786,12 @@ export async function convertEstimateToDepositInvoice(input: {
       document_status: "deposit_due",
       payment_status: "unpaid",
       approval_status: "not_required",
-      amount: Number(estimate.deposit_due_cents || 0) / 100,
-      total: Number(estimate.deposit_due_cents || 0) / 100,
-      balance_due: Number(estimate.deposit_due_cents || 0) / 100,
-      amount_due_cents: Number(estimate.deposit_due_cents || 0),
+      amount: depositDueCents / 100,
+      total: depositDueCents / 100,
+      balance_due: depositDueCents / 100,
+      amount_due_cents: depositDueCents,
       amount_paid_cents: 0,
-      balance_due_cents: Number(estimate.deposit_due_cents || 0),
+      balance_due_cents: depositDueCents,
       client_name: null,
       client_email: null,
       client_phone: null,
@@ -760,8 +801,8 @@ export async function convertEstimateToDepositInvoice(input: {
         unit_price: item.unit_price_cents / 100,
         line_total: item.line_total_cents / 100,
       })),
-      scope_snapshot: estimate.scope_snapshot || {},
-      pricing_snapshot: estimate.pricing_snapshot || {},
+      scope_snapshot: frozenEstimate.scope_snapshot || {},
+      pricing_snapshot: frozenEstimate.pricing_snapshot || {},
       issued_at: issueTime,
       due_at: dueAt,
     })
@@ -796,7 +837,7 @@ export async function convertEstimateToDepositInvoice(input: {
       businessUnit,
       contactId: invoice.contact_id ? String(invoice.contact_id) : null,
       text: `Deposit requested for estimate ${estimate.estimate_number}`,
-      payload: { estimate_id: estimate.id, deposit_due_cents: estimate.deposit_due_cents },
+      payload: { estimate_id: estimate.id, estimate_version_id: frozenVersion.id, deposit_due_cents: depositDueCents },
     }),
   ]);
 

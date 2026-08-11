@@ -129,6 +129,28 @@ export async function POST(req: Request) {
   const notes = asNullableString(body.notes);
   const payload = asObject(body.payload);
   const items = normalizeQuoteItems(body.items);
+
+  // Frozen-version guard: refuse to mint a new legacy quote bound to an
+  // estimate that already has a frozen version — the bridge row for it exists
+  // and is display state only.
+  const payloadEstimateId = asNullableString(payload?.estimate_id);
+  if (payloadEstimateId) {
+    const { data: bridgedEstimate } = await supabase
+      .from("estimates")
+      .select("id, legacy_quote_id, active_version_id")
+      .eq("id", payloadEstimateId)
+      .maybeSingle();
+    if (bridgedEstimate?.active_version_id) {
+      return NextResponse.json(
+        {
+          error: "quote_frozen",
+          estimate_id: bridgedEstimate.id,
+          estimate_version_id: bridgedEstimate.active_version_id,
+        },
+        { status: 409 },
+      );
+    }
+  }
   const bu = businessUnit;
   let quoteNumber: string | null = null;
   try {

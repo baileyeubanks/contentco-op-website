@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getFrozenEstimateForLegacyQuote } from "@/lib/os-estimate-versions";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 
 interface Props {
@@ -128,6 +129,21 @@ export async function POST(req: Request, { params }: Props) {
   const quoteScope = String(quote.business_unit || "").trim().toUpperCase();
   if (requestScope && quoteScope && quoteScope !== requestScope) {
     return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
+  }
+
+  // Frozen-version guard: once the bridged estimate is frozen, the estimate's
+  // active version is the money authority — this legacy live-row convert must
+  // not mint invoices. Use /api/os/estimates/[id]/convert-to-invoice instead.
+  const frozenEstimate = await getFrozenEstimateForLegacyQuote(supabase, id);
+  if (frozenEstimate) {
+    return NextResponse.json(
+      {
+        error: "quote_frozen",
+        estimate_id: frozenEstimate.id,
+        estimate_version_id: frozenEstimate.active_version_id,
+      },
+      { status: 409 },
+    );
   }
 
   const { data: existing } = await supabase

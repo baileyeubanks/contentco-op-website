@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
+import { resolveFrozenDepositAmountCents } from "@/lib/os-estimate-versions";
 
 /**
  * GET /api/client/quote/[id]
@@ -43,9 +44,21 @@ export async function GET(
 
   const { data: estimate } = await sb
     .from("estimates")
-    .select("id, estimate_number, deposit_due_cents, internal_status, client_status")
+    .select("id, estimate_number, deposit_due_cents, internal_status, client_status, active_version_id")
     .eq("legacy_quote_id", id)
     .maybeSingle();
+
+  // Frozen version is the money authority when one exists (matches what the
+  // pay route charges); live-row amounts are only the pre-freeze fallback.
+  // NOTE: this route intentionally fails OPEN to live rows if frozen
+  // resolution errors (a wrong display is recoverable; a wrong CHARGE is
+  // not — the pay route fails CLOSED instead). Display-only; never feeds
+  // money movement.
+  const frozen = estimate?.active_version_id
+    ? await resolveFrozenDepositAmountCents(sb, id)
+    : null;
+  const displayDepositCents =
+    frozen?.amountCents ?? estimate?.deposit_due_cents ?? quote.deposit_amount_cents ?? 15000;
 
   const [{ data: invoice }, { data: workflow }] = await Promise.all([
     estimate?.id
@@ -70,10 +83,10 @@ export async function GET(
   return NextResponse.json({
     quote: {
       ...quote,
-      deposit_amount_cents: quote.deposit_amount_cents ?? 15000,
+      deposit_amount_cents: displayDepositCents,
       estimate_id: estimate?.id || null,
       estimate_number: estimate?.estimate_number || null,
-      canonical_deposit_due_cents: estimate?.deposit_due_cents || (quote.deposit_amount_cents ?? 15000),
+      canonical_deposit_due_cents: displayDepositCents,
       canonical_invoice_id: invoice?.id || null,
       canonical_invoice_status: invoice?.payment_status || null,
       workflow_status: workflow?.current_status || null,

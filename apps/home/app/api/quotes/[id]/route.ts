@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { getFrozenEstimateForLegacyQuote } from "@/lib/os-estimate-versions";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -93,6 +94,21 @@ export async function PATCH(req: Request, { params }: Props) {
   const body = await parseBody(req);
   if (!body) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  // Frozen-version guard: once the bridged estimate has been sent (frozen),
+  // the legacy quote row is display state only — edits must go through a new
+  // estimate version, not a mutation of the quote the client already saw.
+  const frozenEstimate = await getFrozenEstimateForLegacyQuote(supabase, id);
+  if (frozenEstimate) {
+    return NextResponse.json(
+      {
+        error: "quote_frozen",
+        estimate_id: frozenEstimate.id,
+        estimate_version_id: frozenEstimate.active_version_id,
+      },
+      { status: 409 },
+    );
   }
 
   const { items, ...quoteFields } = body;
