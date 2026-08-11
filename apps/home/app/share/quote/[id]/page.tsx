@@ -88,6 +88,7 @@ export default async function ShareQuotePage({ params }: { params: Promise<{ id:
   const brandColor = quote.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
   const accentColor = quote.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
   const brandName = quote.business_unit === "ACS" ? "Astro Cleanings" : "Content Co-Op";
+  const contactEmail = quote.business_unit === "ACS" ? "caio@astrocleanings.com" : "service@contentco-op.com";
 
   /* Strip payload from the quote data passed to the client (it can be large) */
   const clientQuote = {
@@ -113,6 +114,7 @@ export default async function ShareQuotePage({ params }: { params: Promise<{ id:
       pdfUrl={pdfUrl}
       acceptToken={acceptToken}
       brandName={brandName}
+      contactEmail={contactEmail}
       brandColor={brandColor}
       accentColor={accentColor}
     />

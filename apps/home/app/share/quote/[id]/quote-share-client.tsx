@@ -38,6 +38,7 @@ interface Props {
   pdfUrl: string;
   acceptToken: string | null;
   brandName: string;
+  contactEmail: string;
   brandColor: string;
   accentColor: string;
 }
@@ -53,6 +54,7 @@ export function QuoteShareClient({
   pdfUrl,
   acceptToken,
   brandName,
+  contactEmail,
   brandColor,
   accentColor,
 }: Props) {
@@ -493,8 +495,12 @@ export function QuoteShareClient({
                 </div>
               )}
               {!isAccepted && !isRejected && !acceptToken && (
-                <p style={{ marginTop: 20, fontSize: 11, color: "#888", fontStyle: "italic" }}>
-                  Online acceptance is temporarily unavailable — please contact us to proceed.
+                <p style={{ marginTop: 20, fontSize: 14, color: "#444", lineHeight: 1.5 }}>
+                  Online acceptance is temporarily unavailable — please email{" "}
+                  <a href={`mailto:${contactEmail}`} style={{ color: accentColor, textDecoration: "underline" }}>
+                    {contactEmail}
+                  </a>{" "}
+                  to proceed.
                 </p>
               )}
             </div>
