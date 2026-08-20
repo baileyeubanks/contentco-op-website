@@ -320,7 +320,10 @@ async function ensureCcoContact(
   const { data: existing, error: lookupError } = await db
     .from("contacts")
     .select("id, metadata")
-    .eq("email", email)
+    // CCO-DB stores this canonical lower-case key independently of the
+    // display email, so a pre-existing `Jane@Example.com` replays safely as
+    // `jane@example.com` without an ILIKE wildcard match or duplicate insert.
+    .eq("cco_public_email_key", email)
     .contains("business_unit", [CCO_BUSINESS_UNIT])
     .maybeSingle();
 
@@ -336,6 +339,7 @@ async function ensureCcoContact(
     name: cleanString(input.name),
     full_name: cleanString(input.name),
     email,
+    cco_public_email_key: email,
     phone: cleanString(input.phone) || null,
     company: cleanString(input.company) || null,
     title: cleanString(input.role) || null,
@@ -356,6 +360,43 @@ async function ensureCcoContact(
   if (error || !contactId) return { ok: false, error: databaseErrorCode("contact_write", error) };
 
   return { ok: true, contactId, replayed: Boolean(existingId) };
+}
+
+/**
+ * A retry can re-attempt email delivery, but it must never use a modified
+ * browser payload to describe a brief that was already persisted. Rebuild the
+ * notification source entirely from the durable CCO-DB row instead.
+ */
+function getPersistedBriefNotificationSubmission(
+  brief: Record<string, unknown>,
+): CcoPublicBriefSubmission | null {
+  const data = asRecord(brief.data);
+  const parsedProject = BriefProjectSchema.safeParse(asRecord(data.project));
+  const name = cleanString(brief.contact_name);
+  const email = cleanEmail(brief.contact_email);
+  const company = cleanString(brief.company);
+  if (!parsedProject.success || !name || !email || !company) return null;
+
+  const bookingIntent = cleanString(brief.booking_intent);
+  const bookingPreference = bookingIntent.endsWith("_15")
+    ? "15"
+    : bookingIntent.endsWith("_30")
+      ? "30"
+      : "20";
+  return {
+    sourcePath: cleanString(brief.source_path) || "/brief",
+    submissionId: cleanString(data.public_submission_id) || undefined,
+    contact: {
+      name,
+      email,
+      phone: cleanString(brief.phone) || undefined,
+      company,
+      role: cleanString(brief.role) || undefined,
+      address: cleanString(brief.location) || undefined,
+    },
+    project: parsedProject.data,
+    bookingPreference,
+  };
 }
 
 function buildAdminAlert(input: CcoPublicBriefSubmission, briefId: string): EmailNotification {
@@ -653,7 +694,7 @@ export async function persistCcoBrief(
   const submission = { ...input, submissionId };
   const existingResult = await db
     .from("creative_briefs")
-    .select("id, access_token, status, brief_number, contact_email, data")
+    .select("id, access_token, status, brief_number, contact_name, contact_email, phone, company, role, location, source_path, booking_intent, data")
     .eq("company_account_id", CCO_COMPANY_ACCOUNT_ID)
     .contains("data", { public_submission_id: submissionId })
     .maybeSingle();
@@ -687,11 +728,25 @@ export async function persistCcoBrief(
     if (!existingBriefId) {
       return { ok: false, persisted: true, error: "brief_receipt_missing", retryable: true, contactId };
     }
+    const persistedSubmission = getPersistedBriefNotificationSubmission(existingResult.data);
+    if (!persistedSubmission) {
+      return {
+        ok: false,
+        persisted: true,
+        error: "brief_notification_scope_missing",
+        retryable: false,
+        contactId,
+        briefId: existingBriefId,
+        accessToken: cleanString(existingResult.data.access_token) || null,
+        status: cleanString(existingResult.data.status) || null,
+        briefNumber: cleanString(existingResult.data.brief_number) || null,
+      };
+    }
     const notifications = await deliverBriefNotifications({
       db,
       briefId: existingBriefId,
       contactId,
-      submission,
+      submission: persistedSubmission,
       sendEmail: deps?.sendEmail || sendTransactionalEmail,
     });
     return briefResponse(existingResult.data, contactId, true, notifications);

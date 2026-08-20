@@ -10,6 +10,12 @@ alter table public.creative_briefs
   add column if not exists data jsonb not null default '{}'::jsonb,
   add column if not exists company_account_id text not null default 'content-co-op';
 
+-- Keep a lower-case, literal lookup key separate from the display email.
+-- PostgREST's ILIKE filter treats characters such as `_` as wildcards, so it
+-- is not safe for identity lookup. Public CCO intake queries this exact key.
+alter table public.contacts
+  add column if not exists cco_public_email_key text;
+
 create table if not exists public.notification_log (
   id uuid primary key default gen_random_uuid(),
   recipient text,
@@ -75,17 +81,29 @@ begin
      and column_name = 'business_unit';
 
   if business_unit_udt = '_text' then
+    update public.contacts
+       set cco_public_email_key = lower(email)
+     where email is not null
+       and business_unit @> array['CC']::text[]
+       and cco_public_email_key is distinct from lower(email);
+
     execute $sql$
       create unique index if not exists idx_contacts_cco_public_email_unique
-        on public.contacts (lower(email))
-        where email is not null
+        on public.contacts (cco_public_email_key)
+        where cco_public_email_key is not null
           and business_unit @> array['CC']::text[]
     $sql$;
   elsif business_unit_udt = 'text' then
+    update public.contacts
+       set cco_public_email_key = lower(email)
+     where email is not null
+       and business_unit = 'CC'
+       and cco_public_email_key is distinct from lower(email);
+
     execute $sql$
       create unique index if not exists idx_contacts_cco_public_email_unique
-        on public.contacts (lower(email))
-        where email is not null
+        on public.contacts (cco_public_email_key)
+        where cco_public_email_key is not null
           and business_unit = 'CC'
     $sql$;
   else

@@ -225,6 +225,32 @@ describe("CCO public intake persistence", () => {
     });
   });
 
+  test("reuses a mixed-case CC contact through its canonical email key for lead and brief retries", async () => {
+    const db = new FakeDatabase();
+    db.rows("contacts").push({
+      id: "existing-contact",
+      email: "Avery@Example.com",
+      cco_public_email_key: "avery@example.com",
+      business_unit: ["CC"],
+      metadata: { preserved: true },
+    });
+
+    const lead = await persistCcoLead({ contact }, { db });
+    const brief = await persistCcoBrief(submission, {
+      db,
+      sendEmail: async () => ({ ok: true, id: "provider-message-1" }),
+    });
+
+    expect(lead).toMatchObject({ ok: true, contactId: "existing-contact", replayed: true });
+    expect(brief).toMatchObject({ ok: true, contactId: "existing-contact" });
+    expect(db.rows("contacts")).toHaveLength(1);
+    expect(db.rows("contacts")[0]).toMatchObject({
+      email: "avery@example.com",
+      cco_public_email_key: "avery@example.com",
+      metadata: expect.objectContaining({ preserved: true }),
+    });
+  });
+
   test("builds and serves a proposal only from the stored brief receipt", async () => {
     const db = new FakeDatabase();
     const saved = await persistCcoBrief(submission, {
@@ -356,8 +382,19 @@ describe("CCO public intake persistence", () => {
     db.rows("creative_briefs").push({
       id: "creative_briefs-1",
       company_account_id: "content-co-op",
+      contact_name: contact.name,
       contact_email: "avery@example.com",
-      data: { public_submission_id: submission.submissionId, contact_id: "contacts-1" },
+      phone: contact.phone,
+      company: contact.company,
+      role: contact.role,
+      location: contact.address,
+      source_path: "/brief",
+      booking_intent: "discovery_call_20",
+      data: {
+        public_submission_id: submission.submissionId,
+        contact_id: "contacts-1",
+        project,
+      },
     });
     for (const [id, recipient, template_key] of [
       ["notification_log-1", "bailey@contentco-op.com", "cco_public_brief_admin_alert"],
@@ -404,6 +441,48 @@ describe("CCO public intake persistence", () => {
     expect(db.rows("creative_briefs")).toHaveLength(1);
     expect(db.rows("notification_log")).toHaveLength(2);
     expect(sendEmail).toHaveBeenCalledTimes(2);
+  });
+
+  test("retries failed delivery from the persisted brief rather than altered replay input", async () => {
+    const db = new FakeDatabase();
+    const first = await persistCcoBrief(submission, {
+      db,
+      sendEmail: async () => ({ ok: false, error: "provider_unavailable" }),
+    });
+    expect(first).toMatchObject({
+      ok: true,
+      notification: {
+        admin: { status: "failed" },
+        client: { status: "failed" },
+      },
+    });
+
+    const alteredReplay = {
+      ...submission,
+      contact: { ...contact, name: "Changed Caller", company: "Unpersisted Co" },
+      project: {
+        ...project,
+        projectName: "Unpersisted Project",
+        projectContext: "This scope was never stored and must never be sent in a retry email.",
+      },
+    };
+    const resend = vi.fn(async () => ({ ok: true, id: "provider-message-retry" }));
+    const replay = await persistCcoBrief(alteredReplay, { db, sendEmail: resend });
+
+    expect(replay).toMatchObject({ ok: true, replayed: true });
+    expect(resend).toHaveBeenCalledWith(expect.objectContaining({
+      subject: "New Content Co-Op brief: Avery Brooks — Example Industrial",
+      text: expect.stringContaining("Launch proof film"),
+    }));
+    expect(resend).not.toHaveBeenCalledWith(expect.objectContaining({
+      subject: expect.stringContaining("Changed Caller"),
+    }));
+    expect(db.rows("notification_log")).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        template_key: "cco_public_brief_admin_alert",
+        body_text: expect.stringContaining("Launch proof film"),
+      }),
+    ]));
   });
 
   test("does not disclose an existing proposal capability when a replay email differs", async () => {

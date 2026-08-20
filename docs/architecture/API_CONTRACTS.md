@@ -39,10 +39,11 @@ Handoff contract:
 CCO-DB public-intake baseline:
 
 1. `creative_briefs` is the durable record. Public intake writes the flat portal fields plus the CCO fields established by `20260819000000_cco_public_brief_persistence.sql`: `company_account_id` and `data`.
-2. `data.public_submission_id` is the browser retry key; CCO-DB enforces one CCO brief per key.
-3. `data.proposal.content` is the only proposal a public proposal page may render.
-4. `notification_log` has one durable row per public brief, recipient, and delivery template. It records `sending`, provider-accepted `sent`, `failed`, or an explicit `unknown` delivery outcome. Recipient mailbox delivery/bounce confirmation requires provider-webhook reconciliation and is not inferred from `sent`.
-5. `brief_status_history`, `brief_messages`, and `brief_files` remain live support tables for the public portal.
+2. `contacts.cco_public_email_key` is the lower-case literal identity key; CCO-DB enforces one CCO contact per key without wildcard email matching.
+3. `data.public_submission_id` is the browser retry key; CCO-DB enforces one CCO brief per key.
+4. `data.proposal.content` is the only proposal a public proposal page may render.
+5. `notification_log` has one durable row per public brief, recipient, and delivery template. It records `sending`, provider-accepted `sent`, `failed`, or an explicit `unknown` delivery outcome. Recipient mailbox delivery/bounce confirmation requires provider-webhook reconciliation and is not inferred from `sent`.
+6. `brief_status_history`, `brief_messages`, and `brief_files` remain live support tables for the public portal.
 
 Structured handoff envelope:
 
