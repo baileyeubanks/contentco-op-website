@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
-import { getCcoFirebaseApp, getCcoFirebaseAdminStatus } from "@/lib/cco-firebase-server";
-import { getFirestore } from "firebase-admin/firestore";
+import {
+  getCcoGeneratedBriefProposal,
+  getOperatorCcoBrief,
+} from "@/lib/cco-public-intake";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export const dynamic = "force-dynamic";
 
@@ -8,58 +11,63 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.brief.operator.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   if (!id) {
     return NextResponse.json({ error: "missing_id" }, { status: 400 });
   }
 
-  const status = getCcoFirebaseAdminStatus();
-  const app = getCcoFirebaseApp();
-  if (!status.configured || !app) {
+  let result: Awaited<ReturnType<typeof getOperatorCcoBrief>>;
+  try {
+    result = await getOperatorCcoBrief(id);
+  } catch {
     return NextResponse.json(
-      { error: "firebase_not_configured", mode: status.mode },
+      { error: "cco_persistence_unavailable", retryable: true },
       { status: 503 }
     );
   }
-
-  try {
-    const db = getFirestore(app);
-    const briefSnap = await db.collection("briefs").doc(id).get();
-    if (!briefSnap.exists) {
+  if (!result.ok) {
+    if (result.error === "brief_not_found") {
       return NextResponse.json({ error: "brief_not_found" }, { status: 404 });
     }
-
-    const brief = briefSnap.data() as Record<string, unknown>;
-
-    // Fetch related records
-    const personId = brief.personId as string;
-    const organizationId = brief.organizationId as string | null;
-
-    const [personSnap, orgSnap, estimatesSnap, proposalsSnap] = await Promise.all([
-      personId ? db.collection("people").doc(personId).get() : Promise.resolve(null),
-      organizationId ? db.collection("organizations").doc(organizationId).get() : Promise.resolve(null),
-      db.collection("estimates").where("briefId", "==", id).orderBy("createdAt", "desc").limit(1).get(),
-      db.collection("proposalVersions").where("briefId", "==", id).orderBy("createdAt", "desc").limit(1).get(),
-    ]);
-
-    const person = personSnap?.exists ? (personSnap.data() as Record<string, unknown>) : null;
-    const organization = orgSnap?.exists ? (orgSnap.data() as Record<string, unknown>) : null;
-    const estimate = estimatesSnap.docs[0]?.exists ? (estimatesSnap.docs[0].data() as Record<string, unknown>) : null;
-    const proposalVersion = proposalsSnap.docs[0]?.exists ? (proposalsSnap.docs[0].data() as Record<string, unknown>) : null;
-
-    return NextResponse.json({
-      ok: true,
-      brief,
-      person,
-      organization,
-      estimate,
-      proposalVersion,
-    });
-  } catch (err) {
-    console.error("[briefs/[id]] Fetch failed:", err);
     return NextResponse.json(
-      { error: "fetch_failed", message: err instanceof Error ? err.message : "Unknown" },
-      { status: 500 }
+      { error: "cco_persistence_unavailable", code: result.error, retryable: result.retryable },
+      { status: 503 },
     );
   }
+
+  const brief = result.brief;
+  const proposal = getCcoGeneratedBriefProposal(brief);
+  const estimate = proposal
+    ? {
+      low: proposal.investmentBreakdown.totalLow,
+      high: proposal.investmentBreakdown.totalHigh,
+      deposit: proposal.investmentBreakdown.deposit,
+    }
+    : null;
+
+  return NextResponse.json({
+    ok: true,
+    brief,
+    person: {
+      name: brief.contact_name || null,
+      email: brief.contact_email || null,
+      phone: brief.phone || null,
+    },
+    organization: brief.company ? { name: brief.company } : null,
+    estimate,
+    proposalVersion: proposal
+      ? { status: "generated", snapshot: { aiProposal: proposal, estimate } }
+      : null,
+  });
 }

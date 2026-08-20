@@ -29,6 +29,8 @@ const statusMeta: Record<string, { icon: string; color: string }> = {
   sent: { icon: "✓", color: "#3ec983" },
   delivered: { icon: "✓✓", color: "#3ec983" },
   failed: { icon: "✗", color: "#de7676" },
+  sending: { icon: "…", color: "#e4ad5b" },
+  unknown: { icon: "?", color: "#fbbf24" },
   queued: { icon: "⏳", color: "#e4ad5b" },
   async: { icon: "⏳", color: "#e4ad5b" },
 };
@@ -46,6 +48,7 @@ function timeAgo(iso: string): string {
 export function NotificationLog({ maxItems = 50 }: NotificationLogProps) {
   const [entries, setEntries] = useState<NotificationEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [channelFilter, setChannelFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -57,9 +60,17 @@ export function NotificationLog({ maxItems = 50 }: NotificationLogProps) {
       if (res.ok) {
         const data = await res.json();
         setEntries(data.notifications || []);
+        setLoadError(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setLoadError(
+          data?.error === "unauthorized" || data?.error === "forbidden"
+            ? "Notification history requires an operator session."
+            : "Notification history is temporarily unavailable.",
+        );
       }
     } catch {
-      // silent
+      setLoadError("Notification history is temporarily unavailable.");
     } finally {
       setLoading(false);
     }
@@ -122,6 +133,10 @@ export function NotificationLog({ maxItems = 50 }: NotificationLogProps) {
         {loading ? (
           <div style={{ padding: "24px 16px", fontSize: "0.78rem", color: "var(--muted)", textAlign: "center" }}>
             Loading notifications...
+          </div>
+        ) : loadError ? (
+          <div style={{ padding: "24px 16px", fontSize: "0.78rem", color: "#fbbf24", textAlign: "center" }}>
+            {loadError}
           </div>
         ) : entries.length === 0 ? (
           <div style={{ padding: "24px 16px", fontSize: "0.78rem", color: "var(--muted)", textAlign: "center" }}>

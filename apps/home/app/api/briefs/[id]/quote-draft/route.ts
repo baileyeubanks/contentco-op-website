@@ -1,11 +1,23 @@
 import { NextResponse } from "next/server";
 import { createQuoteDraftFromBriefId } from "@/lib/creative-brief-quote-draft";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
 export async function POST(_req: Request, { params }: Props) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.legacy_brief.quote_draft.manage",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
 
   try {

@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/pricing";
 import s from "./proposal.module.css";
@@ -28,39 +25,12 @@ interface ProposalData {
 }
 
 interface ProposalClientProps {
-  briefId: string;
   proposal: ProposalData;
   contactName: string;
   company: string;
 }
 
-export function ProposalClient({ briefId, proposal, contactName, company }: ProposalClientProps) {
-  const [depositLoading, setDepositLoading] = useState(false);
-
-  async function handleDeposit() {
-    setDepositLoading(true);
-    try {
-      const res = await fetch(`/api/cco/briefs/${briefId}/deposit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: proposal.investmentBreakdown.deposit,
-          description: `Deposit for ${proposal.title}`,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Payment setup failed. Please contact us.");
-      }
-    } catch {
-      alert("Payment setup failed. Please contact us.");
-    } finally {
-      setDepositLoading(false);
-    }
-  }
-
+export function ProposalClient({ proposal, contactName, company }: ProposalClientProps) {
   return (
     <main className={s.page}>
       {/* Header */}
@@ -181,15 +151,8 @@ export function ProposalClient({ briefId, proposal, contactName, company }: Prop
         <div className={s.ctaCard}>
           <p className={s.ctaLabel}>Ready to move forward?</p>
           <p className={s.ctaAmount}>
-            {formatCurrency(proposal.investmentBreakdown.deposit)} deposit locks your production dates
+            Your producer will confirm scope, scheduling, and any deposit before payment is requested.
           </p>
-          <button
-            className={s.depositBtn}
-            onClick={handleDeposit}
-            disabled={depositLoading}
-          >
-            {depositLoading ? "Setting up payment…" : "Submit Deposit"}
-          </button>
           <p className={s.ctaNote}>
             {proposal.disclaimer}
           </p>

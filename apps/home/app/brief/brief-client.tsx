@@ -2,11 +2,22 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  CCO_BRIEF_DRAFT_STORAGE_KEY,
+  clearCcoBriefSubmissionStorage,
+  getCcoBriefDeliveryIssue,
+  type CcoBriefDeliveryIssue,
+  getCcoBriefSubmissionId,
+} from "@/lib/cco-public-intake-client";
 import { buildBriefPricingInputs, calculateEstimate, formatCurrency } from "@/lib/pricing";
 import s from "./page.module.css";
 
 type SubmitState = "idle" | "saving_lead" | "submitting" | "success" | "error";
 type FieldErrors = Partial<Record<keyof BriefDraft, string>>;
+type BriefResult = {
+  briefId: string;
+  deliveryIssue: CcoBriefDeliveryIssue;
+};
 
 const PROJECT_TYPES = [
   { id: "brand", label: "Brand film", desc: "Tell your company narrative with cinematic depth" },
@@ -204,13 +215,19 @@ function formatShootDayLabel(days: string) {
   return `${days} day${days === "1" || days === "0.5" ? "" : "s"}`;
 }
 
-const STORAGE_KEY = "cco-brief-draft-v1";
-const SUBMISSION_ID_STORAGE_KEY = "cco-brief-submission-id-v1";
-
 function responseErrorMessage(payload: unknown, fallback: string) {
   const body = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
+  if (body.code === "notification_delivery_in_progress") {
+    return "Your brief is saved and email delivery is still being confirmed. Please wait a moment, then retry safely.";
+  }
+  if (body.code === "brief_submission_conflict") {
+    return "This saved retry cannot be matched to your brief. Your draft is still here; please submit it again.";
+  }
   if (body.persisted === true) {
     return "Your brief was saved, but we could not complete its delivery record. Retry safely to finish that step.";
+  }
+  if (body.partial === true) {
+    return "We saved your contact details, but not your brief. Please retry. No brief confirmation has been issued.";
   }
   if (body.error === "cco_persistence_unavailable") {
     return "We could not save your brief to our system. Nothing has been confirmed. Please retry.";
@@ -224,7 +241,7 @@ export function BriefClientPage() {
   const [submitError, setSubmitError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof BriefDraft, boolean>>>({});
-  const [result, setResult] = useState<{ briefId: string; bookingUrl: string; adminUrl: string } | null>(null);
+  const [result, setResult] = useState<BriefResult | null>(null);
   const [retrySubmissionAvailable, setRetrySubmissionAvailable] = useState(false);
   const submissionIdRef = useRef<string | null>(null);
 
@@ -233,14 +250,14 @@ export function BriefClientPage() {
   /* ── Auto-save / restore ── */
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(CCO_BRIEF_DRAFT_STORAGE_KEY);
       if (saved) setDraft((prev) => ({ ...prev, ...normalizeDraft(JSON.parse(saved)) }));
     } catch { /* ignore */ }
   }, []);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+      localStorage.setItem(CCO_BRIEF_DRAFT_STORAGE_KEY, JSON.stringify(draft));
     } catch { /* ignore */ }
   }, [draft]);
 
@@ -357,14 +374,6 @@ export function BriefClientPage() {
     return calculateEstimate(buildBriefPricingInputs(draft));
   }, [draft]);
 
-  const discoveryBookingHref = useMemo(() => {
-    const params = new URLSearchParams({ duration: "20" });
-    if (draft.name.trim()) params.set("name", draft.name.trim());
-    if (draft.email.trim()) params.set("email", draft.email.trim());
-    if (draft.company.trim()) params.set("company", draft.company.trim());
-    return `/book?${params.toString()}`;
-  }, [draft.company, draft.email, draft.name]);
-
   function clearMessage() {
     if (submitError) setSubmitError("");
     if (submitState === "error") setSubmitState("idle");
@@ -372,32 +381,14 @@ export function BriefClientPage() {
   }
 
   function getSubmissionId() {
-    if (submissionIdRef.current) return submissionIdRef.current;
-    try {
-      const saved = localStorage.getItem(SUBMISSION_ID_STORAGE_KEY);
-      if (saved) {
-        submissionIdRef.current = saved;
-        return saved;
-      }
-      const id = globalThis.crypto.randomUUID();
-      localStorage.setItem(SUBMISSION_ID_STORAGE_KEY, id);
-      submissionIdRef.current = id;
-      return id;
-    } catch {
-      const id = globalThis.crypto.randomUUID();
-      submissionIdRef.current = id;
-      return id;
-    }
+    const id = getCcoBriefSubmissionId(submissionIdRef.current);
+    submissionIdRef.current = id;
+    return id;
   }
 
   function clearSubmittedDraft() {
     submissionIdRef.current = null;
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(SUBMISSION_ID_STORAGE_KEY);
-    } catch {
-      // A persisted submission does not depend on local storage cleanup.
-    }
+    clearCcoBriefSubmissionStorage();
   }
 
   async function saveLeadSnapshot() {
@@ -423,32 +414,6 @@ export function BriefClientPage() {
     return payload;
   }
 
-  async function scheduleProgressReminder() {
-    if (!isValidEmail(draft.email)) return;
-    try {
-      await fetch("/api/cco/briefs/email-progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "schedule", email: draft.email, draft }),
-      });
-    } catch {
-      // Local draft autosave still works if the remote reminder queue is unavailable.
-    }
-  }
-
-  async function cancelProgressReminder(email: string) {
-    if (!isValidEmail(email)) return;
-    try {
-      await fetch("/api/cco/briefs/email-progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "cancel", email }),
-      });
-    } catch {
-      // Non-blocking; a submitted brief also queues the normal received email.
-    }
-  }
-
   async function moveTo(next: 0 | 1 | 2 | 3) {
     clearMessage();
     try {
@@ -465,7 +430,6 @@ export function BriefClientPage() {
         }
         setSubmitState("saving_lead");
         await saveLeadSnapshot();
-        await scheduleProgressReminder();
         setSubmitState("idle");
       }
       if (step === 1 && next > 1 && !projectReady) {
@@ -547,11 +511,27 @@ export function BriefClientPage() {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok || payload?.persisted !== true) {
-        throw new Error(responseErrorMessage(payload, "Brief submission failed"));
+        const submissionError = new Error(responseErrorMessage(payload, "Brief submission failed")) as Error & { retryable?: boolean };
+        submissionError.retryable = payload?.retryable !== false;
+        if (submissionError.retryable === false) clearSubmittedDraft();
+        throw submissionError;
       }
-      await cancelProgressReminder(draft.email);
 
       const briefId = String(payload.id);
+      const accessToken = typeof payload.access_token === "string" ? payload.access_token : "";
+      if (!accessToken) {
+        throw new Error("Your brief was saved, but proposal access could not be prepared. Retry safely to finish that step.");
+      }
+      const deliveryIssue = getCcoBriefDeliveryIssue(payload.notification);
+      if (deliveryIssue) {
+        setResult({
+          briefId,
+          deliveryIssue,
+        });
+        setSubmitState("success");
+        if (deliveryIssue === "unknown") clearSubmittedDraft();
+        return;
+      }
 
       // Generate AI proposal
       setSubmitState("submitting");
@@ -560,49 +540,17 @@ export function BriefClientPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           briefId,
-          contact: {
-            name: draft.name,
-            email: draft.email,
-            company: draft.company,
-            role: draft.role,
-          },
-          project: {
-            projectTypes: draft.projectTypes,
-            projectName: draft.projectName || draft.projectTypes.join(", "),
-            industry: draft.industry,
-            audience: draft.audience,
-            projectContext: draft.projectContext,
-            outcome: draft.outcome,
-            placements: draft.placements,
-            deliverables: draft.deliverables,
-            enhancements: draft.enhancements,
-            targetRuntime: draft.targetRuntime,
-            shootDayCount: draft.shootDayCount,
-            filmingLocations: draft.filmingLocations,
-            travelScope: draft.travelScope,
-            productionNeeds: draft.productionNeeds,
-            styleLevel: draft.styleLevel,
-            revisionExpectation: draft.revisionExpectation,
-            companyScale: draft.companyScale,
-            quoteConfidence: quoteDiagnostics.confidence,
-            quoteMissingInputs: quoteDiagnostics.missing,
-            productionComplexity: quoteDiagnostics.productionComplexity,
-            postComplexity: quoteDiagnostics.postComplexity,
-            timeline: draft.timeline,
-            budgetRange: draft.budgetRange,
-            successDefinition: draft.successDefinition,
-          },
+          accessToken,
         }),
       });
 
       const proposalPayload = await proposalRes.json().catch(() => null);
-      if (!proposalRes.ok || !proposalPayload?.proposal) {
+      if (!proposalRes.ok || proposalPayload?.persisted !== true || proposalPayload?.proposal_ready !== true) {
         // The brief has a real CCO-DB receipt. Do not claim that a proposal
         // exists when its preview generation did not finish.
         setResult({
           briefId,
-          bookingUrl: String(payload.booking_url || "/book"),
-          adminUrl: String(payload.admin_url || "/admin"),
+          deliveryIssue: null,
         });
         setSubmitState("success");
         clearSubmittedDraft();
@@ -610,12 +558,12 @@ export function BriefClientPage() {
       }
 
       // Redirect to proposal page
-      const proposalEncoded = encodeURIComponent(JSON.stringify(proposalPayload.proposal));
-      window.location.href = `/brief/proposal/${briefId}?proposal=${proposalEncoded}&name=${encodeURIComponent(draft.name)}&company=${encodeURIComponent(draft.company)}`;
+      clearSubmittedDraft();
+      window.location.href = `/brief/proposal/${briefId}?token=${encodeURIComponent(accessToken)}`;
     } catch (error) {
       setSubmitState("error");
       setSubmitError(error instanceof Error ? error.message : "Brief submission failed");
-      setRetrySubmissionAvailable(true);
+      setRetrySubmissionAvailable((error as { retryable?: unknown } | null)?.retryable !== false);
     }
   }
 
@@ -634,6 +582,11 @@ export function BriefClientPage() {
   );
 
   if (submitState === "success" && result) {
+    const savedMessage = result.deliveryIssue === "failed"
+      ? "Your brief is safely saved, but we could not deliver one or more confirmation emails. You can retry email delivery; it will not create another brief."
+      : result.deliveryIssue === "unknown"
+        ? "Your brief is safely saved, but we cannot confirm whether one or more confirmation emails were delivered. We will not automatically resend them."
+        : "Your brief is safely saved. The proposal preview was unavailable, so we have not shown you a generated proposal.";
     return (
       <main className={s.page}>
         <section className={s.surface}>
@@ -646,7 +599,7 @@ export function BriefClientPage() {
             We have what we need to review it. Expect a response within 24 hours.
           </p>
           <p className={s.savedNotice} role="status">
-            Your brief is safely saved. The proposal preview was unavailable, so we have not shown you a generated proposal.
+            {savedMessage}
           </p>
           <div className={s.successGrid}>
             <div>
@@ -655,22 +608,25 @@ export function BriefClientPage() {
             </div>
             <div>
               <span>Next step</span>
-              <strong>Discovery call</strong>
+              <strong>Team follow-up</strong>
             </div>
             <div>
               <span>Response time</span>
               <strong>Within 24 hours</strong>
             </div>
             <div>
-              <span>Deposit</span>
-              <strong>50% to lock scope</strong>
+              <span>Scheduling</span>
+              <strong>Confirmed by the team</strong>
             </div>
           </div>
           <div className={s.actions}>
-            <Link className={s.ghost} href={result.bookingUrl}>
-              Book a 20 min discovery call
-            </Link>
+            {result.deliveryIssue === "failed" ? (
+              <button className={s.submitBtn} type="button" onClick={() => void submitBrief()} disabled={isBusy}>
+                Retry email delivery
+              </button>
+            ) : null}
           </div>
+          <p className={s.savedNotice}>We will contact you to arrange a discovery call after reviewing the scope.</p>
           <div className={s.nav} style={{ justifyContent: "center" }}>
             <Link className={s.ghost} href="/">
               Back to home
@@ -1180,9 +1136,7 @@ export function BriefClientPage() {
         {step === 3 ? (
           <div className={s.bookFallback}>
             <span>Rather talk it through?</span>
-            <Link className={s.bookFallbackButton} href={discoveryBookingHref}>
-              Book a 20 min discovery call
-            </Link>
+            <span className={s.bookFallbackButton}>Submit your brief and we will arrange a discovery call.</span>
           </div>
         ) : null}
       </section>

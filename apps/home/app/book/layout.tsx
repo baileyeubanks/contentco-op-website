@@ -3,22 +3,22 @@ import { SeoJsonLd } from "@/app/components/seo-json-ld";
 import { SITE_NAME, absoluteUrl, buildBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Book a 20 Min Discovery Call",
+  title: "Discovery Call",
   description:
-    "Book a strategy call with Content Co-op. Pick a time, confirm the invite, and keep the booking flow inside the branded calendar shell.",
+    "Contact Content Co-op to arrange a discovery call about your project.",
   alternates: {
     canonical: "https://contentco-op.com/book",
   },
   openGraph: {
-    title: "Book a 20 Min Discovery Call",
+    title: "Discovery Call",
     description:
-      "Book a strategy call with Content Co-op. Pick a time, confirm the invite, and keep the booking flow inside the branded calendar shell.",
+      "Contact Content Co-op to arrange a discovery call about your project.",
     url: "https://contentco-op.com/book",
   },
   twitter: {
-    title: "Book a 20 Min Discovery Call",
+    title: "Discovery Call",
     description:
-      "Book a strategy call with Content Co-op. Pick a time, confirm the invite, and keep the booking flow inside the branded calendar shell.",
+      "Contact Content Co-op to arrange a discovery call about your project.",
   },
 };
 
@@ -29,15 +29,15 @@ export default function BookLayout({ children }: { children: React.ReactNode }) 
         data={[
           buildBreadcrumbJsonLd([
             { name: "Home", path: "/" },
-            { name: "Book a 20 Min Discovery Call", path: "/book" },
+            { name: "Discovery Call", path: "/book" },
           ]),
           {
             "@context": "https://schema.org",
             "@type": "ContactPage",
-            name: "Book a 20 Min Discovery Call",
+            name: "Discovery Call",
             url: absoluteUrl("/book"),
             description:
-              "Book a strategy call with Content Co-op. Pick a time, confirm the invite, and keep the booking flow inside the branded calendar shell.",
+              "Contact Content Co-op to arrange a discovery call about your project.",
             isPartOf: {
               "@type": "WebSite",
               name: SITE_NAME,

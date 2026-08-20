@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
-import { getCcoFirebaseAdminStatus, getCcoFirebaseApp } from "@/lib/cco-firebase-server";
-import { getFirestore } from "firebase-admin/firestore";
+import {
+  getCcoGeneratedBriefProposal,
+  getOperatorCcoBrief,
+} from "@/lib/cco-public-intake";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const access = await enforceRoutePolicy(
     createRoutePolicy({
-      id: "root.marketing.brief.proposal.read",
+      id: "cco.marketing.brief.proposal.read",
       accessLevel: "internal",
       sessionPolicies: ["supabase_user", "operator_invite"],
       requiredPermissions: ["quote_read"],
@@ -21,50 +23,54 @@ export async function GET(
   if (!access.ok) return access.response;
 
   const { id } = await params;
-  if (!id) {
-    return NextResponse.json({ error: "missing_id" }, { status: 400 });
-  }
+  if (!id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
 
-  const status = getCcoFirebaseAdminStatus();
-  const app = getCcoFirebaseApp();
-  if (!status.configured || !app) {
-    return NextResponse.json(
-      { error: "firebase_not_configured", mode: status.mode },
-      { status: 503 }
-    );
-  }
-
+  let result: Awaited<ReturnType<typeof getOperatorCcoBrief>>;
   try {
-    const db = getFirestore(app);
-    const proposalsSnap = await db
-      .collection("proposalVersions")
-      .where("briefId", "==", id)
-      .orderBy("createdAt", "desc")
-      .limit(1)
-      .get();
-
-    if (proposalsSnap.empty) {
-      return NextResponse.json({ error: "proposal_not_found" }, { status: 404 });
+    result = await getOperatorCcoBrief(id);
+  } catch {
+    return NextResponse.json({ error: "cco_persistence_unavailable", retryable: true }, { status: 503 });
+  }
+  if (!result.ok) {
+    if (result.error === "brief_not_found") {
+      return NextResponse.json({ error: "brief_not_found" }, { status: 404 });
     }
-
-    const proposal = proposalsSnap.docs[0].data();
-    return NextResponse.json({ ok: true, proposal });
-  } catch (err) {
-    console.error("[admin/proposal] Fetch failed:", err);
     return NextResponse.json(
-      { error: "fetch_failed", message: err instanceof Error ? err.message : "Unknown" },
-      { status: 500 }
+      { error: "cco_persistence_unavailable", code: result.error, retryable: result.retryable },
+      { status: 503 },
     );
   }
+
+  const proposal = getCcoGeneratedBriefProposal(result.brief);
+  if (!proposal) return NextResponse.json({ error: "proposal_not_found" }, { status: 404 });
+
+  return NextResponse.json({
+    ok: true,
+    proposal: {
+      id: `cco-stored-${id}`,
+      briefId: id,
+      status: "stored",
+      snapshot: {
+        aiProposal: proposal,
+        estimate: {
+          low: proposal.investmentBreakdown.totalLow,
+          high: proposal.investmentBreakdown.totalHigh,
+          deposit: proposal.investmentBreakdown.deposit,
+        },
+      },
+    },
+  });
 }
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+/**
+ * The former review update wrote Firebase proposal versions. Approval and
+ * client delivery now belong to the canonical CCO estimate workflow, so this
+ * endpoint is explicit rather than silently retaining the retired store.
+ */
+export async function PATCH() {
   const access = await enforceRoutePolicy(
     createRoutePolicy({
-      id: "root.marketing.brief.proposal.write",
+      id: "cco.marketing.brief.proposal.manage",
       accessLevel: "internal",
       sessionPolicies: ["supabase_user", "operator_invite"],
       requiredPermissions: ["quote_manage"],
@@ -73,62 +79,8 @@ export async function PATCH(
   );
   if (!access.ok) return access.response;
 
-  const { id } = await params;
-  if (!id) {
-    return NextResponse.json({ error: "missing_id" }, { status: 400 });
-  }
-
-  let body: Record<string, unknown>;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid_json" }, { status: 400 });
-  }
-
-  const status = getCcoFirebaseAdminStatus();
-  const app = getCcoFirebaseApp();
-  if (!status.configured || !app) {
-    return NextResponse.json(
-      { error: "firebase_not_configured", mode: status.mode },
-      { status: 503 }
-    );
-  }
-
-  try {
-    const db = getFirestore(app);
-    const proposalsSnap = await db
-      .collection("proposalVersions")
-      .where("briefId", "==", id)
-      .orderBy("createdAt", "desc")
-      .limit(1)
-      .get();
-
-    if (proposalsSnap.empty) {
-      return NextResponse.json({ error: "proposal_not_found" }, { status: 404 });
-    }
-
-    const docRef = proposalsSnap.docs[0].ref;
-    const now = new Date().toISOString();
-
-    const updates: Record<string, unknown> = {
-      updatedAt: now,
-    };
-
-    if (body.status) updates.status = body.status;
-    if (body.approvedBy) updates.approvedBy = body.approvedBy;
-    if (body.approvedAt) updates.approvedAt = body.approvedAt;
-    if (body.sentAt) updates.sentAt = body.sentAt;
-    if (body.sentTo) updates.sentTo = body.sentTo;
-    if (body.notes) updates.notes = body.notes;
-
-    await docRef.update(updates);
-
-    return NextResponse.json({ ok: true, updated: true });
-  } catch (err) {
-    console.error("[admin/proposal] Update failed:", err);
-    return NextResponse.json(
-      { error: "update_failed", message: err instanceof Error ? err.message : "Unknown" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(
+    { error: "legacy_proposal_review_retired", retryable: false },
+    { status: 410 },
+  );
 }

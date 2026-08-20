@@ -12,6 +12,27 @@ const ALLOWED_ORIGINS = [
   "http://127.0.0.1:4100",
 ];
 
+function parseOrigin(value: string | null) {
+  if (!value) return null;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+function isExplicitLocalOrigin(value: string | null) {
+  const origin = parseOrigin(value);
+  if (!origin) return false;
+  const hostname = new URL(origin).hostname;
+  return hostname === "localhost" || hostname === "127.0.0.1";
+}
+
+function isAllowedOrigin(value: string | null) {
+  const origin = parseOrigin(value);
+  return origin !== null && ALLOWED_ORIGINS.includes(origin);
+}
+
 export function validateCsrf(req: Request): { valid: boolean; error?: string } {
   const method = req.method;
   if (method === "GET" || method === "HEAD" || method === "OPTIONS") {
@@ -29,19 +50,13 @@ export function validateCsrf(req: Request): { valid: boolean; error?: string } {
 
   // Development mode: allow localhost only with explicit opt-in
   const allowLocalhost = process.env.ALLOW_LOCALHOST_CSRF === "true";
-  if (allowLocalhost && (!origin || origin.includes("localhost") || origin.includes("127.0.0.1"))) {
+  if (allowLocalhost && isExplicitLocalOrigin(origin)) {
     return { valid: true };
   }
 
-  if (origin) {
-    const allowed = ALLOWED_ORIGINS.some((o) => origin === o || origin.startsWith(o));
-    if (allowed) return { valid: true };
-  }
+  if (isAllowedOrigin(origin)) return { valid: true };
 
-  if (referer) {
-    const allowed = ALLOWED_ORIGINS.some((o) => referer.startsWith(o));
-    if (allowed) return { valid: true };
-  }
+  if (isAllowedOrigin(referer)) return { valid: true };
 
   return { valid: false, error: `Invalid origin: ${origin || "none"}` };
 }

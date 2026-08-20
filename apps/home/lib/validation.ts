@@ -59,14 +59,11 @@ export const LeadSchema = z.object({
 });
 
 export const ProposalRequestSchema = z.object({
-  briefId: z.string().min(1),
-  contact: BriefContactSchema.pick({ name: true, email: true, company: true }).extend({
-    role: z.string().optional(),
-  }),
-  project: BriefProjectSchema,
-});
+  briefId: z.string().uuid(),
+  /** Opaque portal capability returned by the durable brief insert. */
+  accessToken: z.string().min(32),
+}).strict();
 
 export const DepositRequestSchema = z.object({
-  amount: z.number().positive("Amount must be positive"),
-  description: z.string().optional(),
-});
+  accessToken: z.string().min(32),
+}).strict();

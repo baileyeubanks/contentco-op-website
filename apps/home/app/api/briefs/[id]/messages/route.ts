@@ -49,7 +49,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { body: string; sender?: string };
+  let body: { body: string };
   try {
     body = await req.json();
   } catch {
@@ -64,7 +64,10 @@ export async function POST(
     .from("brief_messages")
     .insert({
       brief_id: id,
-      sender: body.sender === "team" ? "team" : "client",
+      // A public portal capability may only create client-authored messages.
+      // Team messages are an internal operator action and must not be selected
+      // by a caller-controlled request body.
+      sender: "client",
       body: body.body.trim(),
     })
     .select()
@@ -75,18 +78,16 @@ export async function POST(
   }
 
   // Notify cc-worker when client sends a message (non-fatal)
-  if (body.sender !== "team") {
-    try {
-      await supabase.from("events").insert({
-        type: "brief_message_from_client",
-        payload: {
-          brief_id: id,
-          message_preview: body.body.trim().slice(0, 300),
-        },
-      });
-    } catch {
-      // non-fatal
-    }
+  try {
+    await supabase.from("events").insert({
+      type: "brief_message_from_client",
+      payload: {
+        brief_id: id,
+        message_preview: body.body.trim().slice(0, 300),
+      },
+    });
+  } catch {
+    // non-fatal
   }
 
   return NextResponse.json({ message: data });

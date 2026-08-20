@@ -1,31 +1,17 @@
 import { NextResponse } from "next/server";
-import { getCcoFirebaseAdminStatus } from "@/lib/cco-firebase-server";
 
-export const dynamic = "force-dynamic";
-
-function publicConfigStatus() {
-  return {
-    apiKey: Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
-    authDomain: Boolean(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN),
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || null,
-    storageBucket: Boolean(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET),
-    messagingSenderId: Boolean(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID),
-    appId: Boolean(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
-  };
-}
-
+/**
+ * Public CCO intake no longer has a Firebase persistence path. Keep this
+ * historical URL explicit so health checks cannot mistake local-contract mode
+ * for a successful submission backend.
+ */
 export async function GET() {
-  const admin = getCcoFirebaseAdminStatus();
-
-  return NextResponse.json({
-    ok: true,
-    publicConfig: publicConfigStatus(),
-    admin: {
-      projectId: admin.projectId,
-      configured: admin.configured,
-      mode: admin.mode,
-      credentialSource: admin.credentialSource,
+  return NextResponse.json(
+    {
+      error: "legacy_firebase_status_retired",
+      message: "Public CCO intake uses CCO-DB; Firebase status is not a persistence health check.",
+      retryable: false,
     },
-    writePath: admin.configured ? "firestore_commit" : "local_contract_preview",
-  });
+    { status: 410 },
+  );
 }

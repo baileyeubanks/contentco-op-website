@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { generateProposal, type ProposalInput } from "@/lib/gemini";
 import { buildBriefPricingInputs, calculateEstimate } from "@/lib/pricing";
-import { getPersistedCcoBrief } from "@/lib/cco-public-intake";
+import {
+  getCcoGeneratedBriefProposal,
+  getCcoPersistedProposalScope,
+  getPersistedCcoBrief,
+  persistCcoGeneratedBriefProposal,
+} from "@/lib/cco-public-intake";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { ProposalRequestSchema } from "@/lib/validation";
@@ -37,10 +42,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const { briefId, contact, project } = parsed.data;
+  const { briefId, accessToken } = parsed.data;
   let persistedBrief: Awaited<ReturnType<typeof getPersistedCcoBrief>>;
   try {
-    persistedBrief = await getPersistedCcoBrief(briefId);
+    persistedBrief = await getPersistedCcoBrief(briefId, accessToken);
   } catch {
     return NextResponse.json(
       { error: "cco_persistence_unavailable", code: "cco_persistence_request_failed", retryable: true },
@@ -50,8 +55,8 @@ export async function POST(req: Request) {
   if (!persistedBrief.ok) {
     if (persistedBrief.error === "brief_not_found") {
       return NextResponse.json(
-        { error: "brief_not_found", retryable: false },
-        { status: 404 },
+      { error: "brief_not_found", retryable: false },
+      { status: 404 },
       );
     }
     return NextResponse.json(
@@ -64,59 +69,66 @@ export async function POST(req: Request) {
     );
   }
 
-  const estimate = calculateEstimate(buildBriefPricingInputs(project));
+  const existingProposal = getCcoGeneratedBriefProposal(persistedBrief.brief);
+  if (existingProposal) {
+    return NextResponse.json({
+      ok: true,
+      persisted: true,
+      briefId,
+      proposal_ready: true,
+      replayed: true,
+      persistence: { brief_id: persistedBrief.brief.id, database: "CCO-DB" },
+    });
+  }
+
+  const scope = getCcoPersistedProposalScope(persistedBrief.brief);
+  if (!scope) {
+    return NextResponse.json(
+      { error: "brief_scope_unavailable", retryable: false },
+      { status: 409 },
+    );
+  }
+
+  const estimate = calculateEstimate(buildBriefPricingInputs(scope.project));
 
   const proposalInput: ProposalInput = {
     briefId,
-    contact: {
-      name: contact.name || "",
-      email: contact.email || "",
-      company: contact.company || "",
-      role: contact.role,
-    },
-    project: {
-      projectTypes: (project.projectTypes as string[]) ?? [],
-      projectName: String(project.projectName || ""),
-      industry: String(project.industry || ""),
-      audience: String(project.audience || ""),
-      projectContext: String(project.projectContext || ""),
-      outcome: String(project.outcome || ""),
-      placements: (project.placements as string[]) ?? [],
-      deliverables: (project.deliverables as string[]) ?? [],
-      enhancements: (project.enhancements as string[]) ?? [],
-      targetRuntime: String(project.targetRuntime || ""),
-      shootDayCount: String(project.shootDayCount || ""),
-      filmingLocations: String(project.filmingLocations || ""),
-      travelScope: String(project.travelScope || ""),
-      productionNeeds: (project.productionNeeds as string[]) ?? [],
-      styleLevel: String(project.styleLevel || ""),
-      revisionExpectation: String(project.revisionExpectation || ""),
-      companyScale: String(project.companyScale || ""),
-      quoteConfidence: String(project.quoteConfidence || ""),
-      quoteMissingInputs: (project.quoteMissingInputs as string[]) ?? [],
-      productionComplexity: String(project.productionComplexity || ""),
-      postComplexity: String(project.postComplexity || ""),
-      timeline: String(project.timeline || ""),
-      budgetRange: String(project.budgetRange || ""),
-      successDefinition: String(project.successDefinition || ""),
-    },
+    ...scope,
     estimate,
   };
 
   try {
     const proposal = await generateProposal(proposalInput);
+    const persistedProposal = await persistCcoGeneratedBriefProposal({ briefId, accessToken, proposal });
+    if (!persistedProposal.ok) {
+      if (persistedProposal.error === "brief_not_found") {
+        return NextResponse.json({ error: "brief_not_found", retryable: false }, { status: 404 });
+      }
+      if (persistedProposal.error === "proposal_invalid") {
+        return NextResponse.json({ error: "proposal_generation_invalid", retryable: false }, { status: 409 });
+      }
+      return NextResponse.json(
+        {
+          error: "cco_persistence_unavailable",
+          code: persistedProposal.error,
+          retryable: persistedProposal.retryable,
+        },
+        { status: 503 },
+      );
+    }
 
     return NextResponse.json({
       ok: true,
+      persisted: true,
       briefId,
-      proposal,
-      estimate,
+      proposal_ready: true,
+      replayed: persistedProposal.replayed,
       persistence: { brief_id: persistedBrief.brief.id, database: "CCO-DB" },
     });
   } catch (err) {
     console.error("[proposal] Generation failed:", err);
     return NextResponse.json(
-      { error: "proposal_generation_failed", message: err instanceof Error ? err.message : "Unknown error" },
+      { error: "proposal_generation_failed", retryable: true },
       { status: 500 }
     );
   }

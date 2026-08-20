@@ -11,13 +11,13 @@ export default function BookPage() {
         <section className={s.shell}>
         <PublicPageIntro
           eyebrow="Discovery Call"
-          title={<>Book a <em>Call.</em></>}
-          description="Pick a time with Bailey to talk through the project."
+          title={<>Let&rsquo;s <em>Talk.</em></>}
+          description="Contact our team to arrange a discovery call about your project."
           align="center"
           className={s.header}
         />
 
-        <Suspense fallback={<div className={s.loadingPanel}>Loading booking times...</div>}>
+        <Suspense fallback={<div className={s.loadingPanel}>Loading contact options...</div>}>
           <BookingClient />
         </Suspense>
       </section>

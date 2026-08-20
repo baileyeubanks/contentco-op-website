@@ -110,7 +110,11 @@ describe("public CCO intake persistence boundary", () => {
 
   test("proposal generation refuses an unpersisted brief", async () => {
     const response = await proposalPOST(
-      request("/api/cco/briefs/proposal", { briefId: "brief_without_db_receipt", contact, project }, "198.51.100.13"),
+      request(
+        "/api/cco/briefs/proposal",
+        { briefId: "087f0d4f-76b6-4ed5-bb4c-0570c5752e73", accessToken: "a".repeat(32) },
+        "198.51.100.13",
+      ),
     );
 
     expect(response.status).toBe(503);
@@ -118,6 +122,25 @@ describe("public CCO intake persistence boundary", () => {
       error: "cco_persistence_unavailable",
       retryable: true,
     });
+    expect(mocks.generateProposal).not.toHaveBeenCalled();
+  });
+
+  test("proposal generation rejects caller-supplied contact and scope payloads", async () => {
+    const response = await proposalPOST(
+      request(
+        "/api/cco/briefs/proposal",
+        {
+          briefId: "087f0d4f-76b6-4ed5-bb4c-0570c5752e73",
+          accessToken: "a".repeat(32),
+          contact,
+          project,
+        },
+        "198.51.100.14",
+      ),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: "invalid_proposal_request" });
     expect(mocks.generateProposal).not.toHaveBeenCalled();
   });
 });

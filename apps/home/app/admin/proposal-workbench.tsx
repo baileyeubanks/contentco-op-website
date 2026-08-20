@@ -32,7 +32,7 @@ export function ProposalWorkbench({ estimate, brief, lead, handoffs }: Props) {
   const [paymentTerms, setPaymentTerms] = useState(estimate.paymentTerms);
   const [internalNotes, setInternalNotes] = useState("Review enrichment before sending. Confirm discovery call notes and any travel requirements.");
   const [approvalStatus, setApprovalStatus] = useState(estimate.status);
-  const [sendState, setSendState] = useState("Draft changes are local until Firebase credentials are attached.");
+  const [sendState] = useState("This legacy workbench cannot save or send estimates. Use the canonical CCO estimate workflow.");
 
   const totals = useMemo(() => {
     const subtotal = lineItems.reduce((sum, item) => sum + lineTotal(item), 0);
@@ -146,18 +146,18 @@ export function ProposalWorkbench({ estimate, brief, lead, handoffs }: Props) {
             </select>
           </label>
           <div className={s.actionStack}>
-            <button type="button" onClick={() => setSendState("Draft saved to the pending Firestore write lane.")}>
-              Save draft
+            <button type="button" disabled title="Legacy Firebase draft writes are retired.">
+              Draft save unavailable
             </button>
-            <a href={`/api/cco/proposals/${estimate.id}/pdf`} target="_blank" rel="noreferrer">
-              PDF preview/export
-            </a>
+            <button type="button" disabled title="A durable, authorized CCO estimate is required before PDF export.">
+              PDF export unavailable
+            </button>
             <button
               type="button"
-              onClick={() => setSendState("Estimate / bid email queued for Trigger Email after admin approval.")}
-              disabled={approvalStatus !== "approved_to_send"}
+              disabled
+              title="Legacy proposal email delivery is retired."
             >
-              Queue client email
+              Client email unavailable
             </button>
           </div>
           <p className={s.sendState}>{sendState}</p>

@@ -1,23 +1,12 @@
-"use client";
-
 import Link from "next/link";
-import { useState, useEffect } from "react";
 
 interface ProposalFallbackProps {
   briefId: string;
-  reason: "generating" | "unavailable";
+  reason: "not_ready" | "unavailable";
 }
 
 export function ProposalFallback({ briefId, reason }: ProposalFallbackProps) {
-  const [dots, setDots] = useState(1);
-
-  useEffect(() => {
-    if (reason !== "generating") return;
-    const interval = setInterval(() => setDots((d) => (d % 3) + 1), 800);
-    return () => clearInterval(interval);
-  }, [reason]);
-
-  const isGenerating = reason === "generating";
+  const isNotReady = reason === "not_ready";
 
   return (
     <main
@@ -48,8 +37,8 @@ export function ProposalFallback({ briefId, reason }: ProposalFallbackProps) {
             width: 56,
             height: 56,
             borderRadius: 14,
-            background: isGenerating ? "rgba(74,222,128,0.08)" : "rgba(251,191,36,0.08)",
-            border: `1px solid ${isGenerating ? "rgba(74,222,128,0.2)" : "rgba(251,191,36,0.2)"}`,
+            background: isNotReady ? "rgba(74,222,128,0.08)" : "rgba(251,191,36,0.08)",
+            border: `1px solid ${isNotReady ? "rgba(74,222,128,0.2)" : "rgba(251,191,36,0.2)"}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -57,7 +46,7 @@ export function ProposalFallback({ briefId, reason }: ProposalFallbackProps) {
             fontSize: 24,
           }}
         >
-          {isGenerating ? "✦" : "⚡"}
+          {isNotReady ? "✦" : "⚡"}
         </div>
 
         <h1
@@ -69,9 +58,7 @@ export function ProposalFallback({ briefId, reason }: ProposalFallbackProps) {
             color: "#fff",
           }}
         >
-          {isGenerating
-            ? `Generating your proposal${".".repeat(dots)}`
-            : "Proposal coming soon"}
+          {isNotReady ? "Proposal not ready" : "Proposal unavailable"}
         </h1>
 
         <p
@@ -82,9 +69,9 @@ export function ProposalFallback({ briefId, reason }: ProposalFallbackProps) {
             margin: "0 0 24px",
           }}
         >
-          {isGenerating
-            ? "Our AI producer is crafting your custom proposal. This usually takes 30–60 seconds. Refresh in a moment."
-            : "Your proposal is being finalized by our team. We'll email it to you shortly, or you can check back soon."}
+          {isNotReady
+            ? "Your brief is saved, but a durable proposal has not been generated. We will follow up after reviewing the scope."
+            : "We could not load a durable proposal record. Please contact our team if you need help."}
         </p>
 
         <div
@@ -95,21 +82,6 @@ export function ProposalFallback({ briefId, reason }: ProposalFallbackProps) {
             flexWrap: "wrap",
           }}
         >
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              padding: "10px 20px",
-              borderRadius: 8,
-              border: "none",
-              background: "#4ade80",
-              color: "#0a0a0a",
-              fontSize: "0.8rem",
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            Refresh Page
-          </button>
           <Link
             href="/"
             style={{

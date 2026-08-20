@@ -6,19 +6,25 @@
 
 ## Content Co-op Public Intake
 
-1. `POST /api/onboard/chat`
+1. `POST /api/cco/leads`
    Notes:
-   `Used by the public voice-brief assistant on /brief to extract structured intake fields before submission.`
-2. `POST /api/briefs`
+   `Persists the lead contact to CCO-DB before the form can advance.`
+2. `POST /api/cco/briefs`
    Notes:
-   `Canonical public creative-brief submit route for CCO HOME. Persists the public intake record, emits the versioned CCO OS handoff envelope into the event bridge, and may invoke OpenClaw for internal follow-up guidance.`
-3. `GET /api/briefs/:id?token=...`
+   `Canonical public /brief submit route. Persists the CCO contact and creative brief, records client/admin email outcomes, and returns an opaque portal capability only after a database receipt.`
+3. `POST /api/cco/briefs/proposal`
    Notes:
-   `Fetches the public portal brief record and status history for the client-facing portal.`
-4. `GET /api/briefs/:id/messages?token=...`
-5. `POST /api/briefs/:id/messages?token=...`
-6. `GET /api/briefs/:id/files?token=...`
-7. `POST /api/briefs/:id/files?token=...`
+   `Requires the stored brief id and portal capability. Builds the proposal only from persisted scope, stores it on the brief, then reports it ready.`
+4. `POST /api/cco/briefs/:id/deposit`
+   Notes:
+   `Explicitly unavailable until a canonical CCO payment rail can create an idempotent checkout and durable receipt.`
+5. Legacy portal routes under `/api/briefs/:id/*` remain outside this public
+   intake contract. They are not called by `/brief`, are not a CCO-DB-backed
+   submission or proposal path, and require a separately approved migration or
+   retirement before a broader public-portal release.
+
+Legacy note: `POST /api/briefs` is retired with `410 Gone`. It must not be
+used as a compatibility fallback for public intake.
 
 Handoff contract:
 
@@ -27,38 +33,37 @@ Handoff contract:
 3. CCO OS remains the downstream authority for contacts, proposals, quotes, and operational follow-up.
 4. Public route notes:
    `GET /brief` is the canonical public intake route.
-   `GET /book` remains available as the booking resolution reached from the brief flow.
+   `GET /book` remains a public contact surface, but online scheduling is explicitly unavailable until a canonical CCO booking receipt exists.
    `GET /cocreate` and `GET /onboard` remain compatibility aliases only.
 
-Live shared baseline:
+CCO-DB public-intake baseline:
 
-1. `creative_briefs` is the live stored record. The homepage must only write columns that exist in the onboarding baseline migrations:
-   `contact_name`, `contact_email`, `phone`, `company`, `role`, `location`, `content_type`, `deliverables`, `audience`, `tone`, `deadline`, `objective`, `key_messages`, `references`, `constraints`, plus the platform defaults (`id`, `access_token`, `status`, timestamps).
-2. `brief_status_history`, `brief_messages`, and `brief_files` are live support tables for the public portal.
-3. `events.payload` is the live shared bridge for richer structured handoff into CCO OS-managed follow-through.
-4. Richer intake structures may be derived in app code, but they are not assumed to be durable `creative_briefs` columns until the shared baseline actually grows.
+1. `creative_briefs` is the durable record. Public intake writes the flat portal fields plus the CCO fields established by `20260819000000_cco_public_brief_persistence.sql`: `company_account_id` and `data`.
+2. `data.public_submission_id` is the browser retry key; CCO-DB enforces one CCO brief per key.
+3. `data.proposal.content` is the only proposal a public proposal page may render.
+4. `notification_log` has one durable row per public brief, recipient, and delivery template. It records `sending`, provider-accepted `sent`, `failed`, or an explicit `unknown` delivery outcome. Recipient mailbox delivery/bounce confirmation requires provider-webhook reconciliation and is not inferred from `sent`.
+5. `brief_status_history`, `brief_messages`, and `brief_files` remain live support tables for the public portal.
 
 Structured handoff envelope:
 
-1. CCO HOME may normalize the public brief into a structured payload in memory.
-2. The structured payload is emitted through `events.payload`, not stored as extra columns on `creative_briefs`.
-3. The handoff envelope may include:
-   `version`, `event_type`, `target`, `brief_id`, `portal_url`, `booking_url`, `intake`, `brief`, `structured_intake`, `root_handoff`.
-4. This richer envelope is a handoff contract, not proof that those fields exist as live shared tables or columns.
+1. CCO HOME normalizes the public brief before persistence.
+2. `intake_payload`, `structured_intake`, and `handoff_payload` retain the complete CCO intake shape when available.
+3. The durable `data` envelope includes the public submission id, contact receipt, structured project scope, and (only after successful storage) the generated proposal.
+4. The public page never renders proposal JSON supplied in a URL or request body.
 
 Create-now vs later:
 
 1. Created now in CCO HOME:
-   `creative_briefs` row, client portal token, `events` bridge record, optional OpenClaw advisory.
+   CCO contact, `creative_briefs` row, client portal capability, client receipt email log, and Bailey admin alert log.
 2. Deferred to CCO OS-managed follow-through:
-   contact match/create, booking pairing, quote generation, proposal generation, operational follow-up.
+   booking pairing, quote generation, formal approval, and operational follow-up.
 
 End-to-end blockers:
 
-1. `booking_intent` is routing metadata only. It is not persisted on the live `creative_briefs` row today, and it does not create or confirm an appointment record.
-2. Quote/proposal readiness must be derived from the live flat brief fields or from the event handoff, not from assumed extra columns.
-3. The public brief can start quote follow-through only when the live row has enough scope signal; otherwise CCO OS or humans must collect the missing fields.
-4. Any future structured-intake persistence must land as an explicit shared-baseline migration before runtime code depends on it.
+1. `booking_intent` is routing metadata only and does not create or confirm an appointment record.
+2. A browser must see `persisted: true` from CCO-DB before it may show a received state or request a proposal.
+3. A proposal must be stored before the browser may navigate to its proposal page. Deposit checkout remains disabled pending the canonical payment rail.
+4. Any CCO-DB schema change used by the public route must land as an explicit CCO migration before its runtime release.
 
 ## Co-Cut
 

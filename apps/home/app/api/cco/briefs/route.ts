@@ -47,26 +47,25 @@ export async function POST(req: Request) {
   if (!persistence.ok) {
     return NextResponse.json(
       {
-        error: "cco_persistence_unavailable",
+        error: persistence.retryable ? "cco_persistence_unavailable" : "brief_submission_conflict",
         code: persistence.error,
-        retryable: true,
+        retryable: persistence.retryable,
         persisted: persistence.persisted,
+        partial: persistence.partial === true,
+        contact_id: persistence.contactId,
         brief_id: persistence.briefId,
       },
-      { status: 503 },
+      { status: persistence.retryable ? 503 : 409 },
     );
   }
-
-  const bookingUrl = `/book?brief=${encodeURIComponent(persistence.briefId)}&email=${encodeURIComponent(parsed.data.contact.email)}&name=${encodeURIComponent(parsed.data.contact.name)}&company=${encodeURIComponent(parsed.data.contact.company)}&duration=${parsed.data.bookingPreference}`;
 
   return NextResponse.json({
     ok: true,
     persisted: true,
     id: persistence.briefId,
+    access_token: persistence.accessToken,
     brief_number: persistence.briefNumber,
     status: persistence.status || "submitted",
-    admin_url: `/admin?brief=${encodeURIComponent(persistence.briefId)}`,
-    booking_url: bookingUrl,
     persistence: {
       database: "CCO-DB",
       contact_id: persistence.contactId,

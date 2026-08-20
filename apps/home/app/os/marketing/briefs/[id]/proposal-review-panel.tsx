@@ -10,7 +10,6 @@ interface ProposalReviewPanelProps {
 export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
   const [proposal, setProposal] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("");
 
@@ -21,59 +20,16 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
         if (data.ok && data.proposal) {
           setProposal(data.proposal);
           setStatus(String(data.proposal.status || "draft"));
+        } else {
+          setError(String(data?.error || "proposal_not_found"));
         }
         setLoading(false);
       })
       .catch(() => {
+        setError("proposal_lookup_failed");
         setLoading(false);
       });
   }, [briefId]);
-
-  async function handleApprove() {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/os/marketing/briefs/${briefId}/proposal`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "approved", approvedAt: new Date().toISOString() }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(String(data?.error || "approve_failed"));
-      setStatus("approved");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to approve");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleSend() {
-    setBusy(true);
-    setError(null);
-    try {
-      // Fetch brief to get client email
-      const briefRes = await fetch(`/api/cco/briefs/${briefId}`);
-      const briefData = await briefRes.json();
-      const clientEmail = briefData.person?.email;
-      if (!clientEmail) {
-        throw new Error("No client email found for this brief");
-      }
-
-      const res = await fetch(`/api/os/marketing/briefs/${briefId}/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: clientEmail }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(String(data?.error || "send_failed"));
-      setStatus("sent");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   if (loading) {
     return (
@@ -110,8 +66,8 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
           letterSpacing: "0.08em",
           padding: "4px 10px",
           borderRadius: 999,
-          border: status === "approved" ? "1px solid rgba(52,211,153,0.3)" : status === "sent" ? "1px solid rgba(96,165,250,0.3)" : "1px solid rgba(251,191,36,0.3)",
-          color: status === "approved" ? "#6ee7b7" : status === "sent" ? "#93c5fd" : "#fbbf24",
+          border: "1px solid rgba(251,191,36,0.3)",
+          color: "#fbbf24",
           background: "rgba(255,255,255,0.02)",
         }}>
           {status}
@@ -140,35 +96,8 @@ export function ProposalReviewPanel({ briefId }: ProposalReviewPanelProps) {
         </div>
       )}
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-        {status !== "approved" && status !== "sent" ? (
-          <button
-            type="button"
-            onClick={handleApprove}
-            disabled={busy}
-            className="os-atlas-button os-atlas-button-primary"
-          >
-            {busy ? "Approving…" : "Approve proposal"}
-          </button>
-        ) : null}
-        {status === "approved" ? (
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={busy}
-            className="os-atlas-button os-atlas-button-primary"
-          >
-            {busy ? "Sending…" : "Send to client"}
-          </button>
-        ) : null}
-        <a
-          href={`/brief/proposal/${briefId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="os-atlas-button os-atlas-button-secondary"
-        >
-          Preview public page
-        </a>
+      <div style={{ color: "var(--root-muted)", fontSize: "0.8rem", lineHeight: 1.5 }}>
+        This is the durable client-preview record. Public proposal access is capability-bound; commercial approval, client delivery, and payment use the canonical CCO estimate workflow.
       </div>
 
       {error ? (
