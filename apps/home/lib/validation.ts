@@ -42,6 +42,8 @@ export const BriefIntakeSchema = z.object({
   contact: BriefContactSchema,
   project: BriefProjectSchema,
   bookingPreference: z.enum(["15", "20", "30"]).default("20"),
+  /** Stable across a client-side retry so a lost response cannot create another brief. */
+  submissionId: z.string().uuid().optional(),
 });
 
 export const LeadSchema = z.object({

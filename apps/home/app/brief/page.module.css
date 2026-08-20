@@ -493,6 +493,45 @@
   color: #b02020;
   padding: 0.85rem 1rem;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.retryButton {
+  flex: 0 0 auto;
+  border: 1px solid rgba(176, 32, 32, 0.34);
+  border-radius: 999px;
+  background: #fff;
+  color: #8f1616;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.retryButton:hover:not(:disabled) {
+  background: rgba(176, 32, 32, 0.08);
+}
+
+.retryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.savedNotice {
+  margin: 0 0 1.2rem;
+  border-left: 3px solid #4c8ef5;
+  border-radius: 0 8px 8px 0;
+  background: rgba(76, 142, 245, 0.08);
+  color: #28446d;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.86rem;
+  line-height: 1.5;
 }
 
 /* ─── Small note ─── */
@@ -586,6 +625,15 @@
 
   .submitBtn,
   .ghost {
+    width: 100%;
+  }
+
+  .error {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .retryButton {
     width: 100%;
   }
 }

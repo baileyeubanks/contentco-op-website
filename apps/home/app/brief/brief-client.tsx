@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { buildBriefPricingInputs, calculateEstimate, formatCurrency } from "@/lib/pricing";
 import s from "./page.module.css";
 
@@ -205,6 +205,18 @@ function formatShootDayLabel(days: string) {
 }
 
 const STORAGE_KEY = "cco-brief-draft-v1";
+const SUBMISSION_ID_STORAGE_KEY = "cco-brief-submission-id-v1";
+
+function responseErrorMessage(payload: unknown, fallback: string) {
+  const body = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
+  if (body.persisted === true) {
+    return "Your brief was saved, but we could not complete its delivery record. Retry safely to finish that step.";
+  }
+  if (body.error === "cco_persistence_unavailable") {
+    return "We could not save your brief to our system. Nothing has been confirmed. Please retry.";
+  }
+  return typeof body.error === "string" && body.error.trim() ? body.error : fallback;
+}
 
 export function BriefClientPage() {
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
@@ -213,6 +225,8 @@ export function BriefClientPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof BriefDraft, boolean>>>({});
   const [result, setResult] = useState<{ briefId: string; bookingUrl: string; adminUrl: string } | null>(null);
+  const [retrySubmissionAvailable, setRetrySubmissionAvailable] = useState(false);
+  const submissionIdRef = useRef<string | null>(null);
 
   const [draft, setDraft] = useState<BriefDraft>(DEFAULT_DRAFT);
 
@@ -354,6 +368,36 @@ export function BriefClientPage() {
   function clearMessage() {
     if (submitError) setSubmitError("");
     if (submitState === "error") setSubmitState("idle");
+    if (retrySubmissionAvailable) setRetrySubmissionAvailable(false);
+  }
+
+  function getSubmissionId() {
+    if (submissionIdRef.current) return submissionIdRef.current;
+    try {
+      const saved = localStorage.getItem(SUBMISSION_ID_STORAGE_KEY);
+      if (saved) {
+        submissionIdRef.current = saved;
+        return saved;
+      }
+      const id = globalThis.crypto.randomUUID();
+      localStorage.setItem(SUBMISSION_ID_STORAGE_KEY, id);
+      submissionIdRef.current = id;
+      return id;
+    } catch {
+      const id = globalThis.crypto.randomUUID();
+      submissionIdRef.current = id;
+      return id;
+    }
+  }
+
+  function clearSubmittedDraft() {
+    submissionIdRef.current = null;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SUBMISSION_ID_STORAGE_KEY);
+    } catch {
+      // A persisted submission does not depend on local storage cleanup.
+    }
   }
 
   async function saveLeadSnapshot() {
@@ -373,7 +417,9 @@ export function BriefClientPage() {
       }),
     });
     const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.error || "Lead capture failed");
+    if (!response.ok || payload?.persisted !== true) {
+      throw new Error(responseErrorMessage(payload, "Lead capture failed"));
+    }
     return payload;
   }
 
@@ -437,14 +483,15 @@ export function BriefClientPage() {
     } catch (error) {
       setSubmitState("error");
       setSubmitError(error instanceof Error ? error.message : "Lead capture failed");
+      setRetrySubmissionAvailable(false);
     }
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function submitBrief() {
     if (!leadReady || !projectReady || !scopeReady) {
       setSubmitState("error");
       setSubmitError("Finish the required fields.");
+      setRetrySubmissionAvailable(false);
       return;
     }
 
@@ -495,10 +542,13 @@ export function BriefClientPage() {
             postComplexity: quoteDiagnostics.postComplexity,
           },
           bookingPreference: draft.bookingPreference,
+          submissionId: getSubmissionId(),
         }),
       });
       const payload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(payload?.error || "Brief submission failed");
+      if (!response.ok || payload?.persisted !== true) {
+        throw new Error(responseErrorMessage(payload, "Brief submission failed"));
+      }
       await cancelProgressReminder(draft.email);
 
       const briefId = String(payload.id);
@@ -547,14 +597,15 @@ export function BriefClientPage() {
 
       const proposalPayload = await proposalRes.json().catch(() => null);
       if (!proposalRes.ok || !proposalPayload?.proposal) {
-        // Fallback: show success without proposal redirect
+        // The brief has a real CCO-DB receipt. Do not claim that a proposal
+        // exists when its preview generation did not finish.
         setResult({
           briefId,
           bookingUrl: String(payload.booking_url || "/book"),
           adminUrl: String(payload.admin_url || "/admin"),
         });
         setSubmitState("success");
-        localStorage.removeItem(STORAGE_KEY);
+        clearSubmittedDraft();
         return;
       }
 
@@ -564,7 +615,13 @@ export function BriefClientPage() {
     } catch (error) {
       setSubmitState("error");
       setSubmitError(error instanceof Error ? error.message : "Brief submission failed");
+      setRetrySubmissionAvailable(true);
     }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await submitBrief();
   }
 
   /* ─── Status dots ─── */
@@ -588,6 +645,9 @@ export function BriefClientPage() {
           <p className={s.subtitle}>
             We have what we need to review it. Expect a response within 24 hours.
           </p>
+          <p className={s.savedNotice} role="status">
+            Your brief is safely saved. The proposal preview was unavailable, so we have not shown you a generated proposal.
+          </p>
           <div className={s.successGrid}>
             <div>
               <span>Brief ID</span>
@@ -607,9 +667,6 @@ export function BriefClientPage() {
             </div>
           </div>
           <div className={s.actions}>
-            <Link className={s.submitBtn} href={`/brief/proposal/${result.briefId}`}>
-              View your proposal
-            </Link>
             <Link className={s.ghost} href={result.bookingUrl}>
               Book a 20 min discovery call
             </Link>
@@ -1110,7 +1167,16 @@ export function BriefClientPage() {
           ) : null}
         </form>
 
-        {submitError ? <div className={s.error} role="alert">{submitError}</div> : null}
+        {submitError ? (
+          <div className={s.error} role="alert" aria-live="assertive">
+            <span>{submitError}</span>
+            {retrySubmissionAvailable && step === 3 ? (
+              <button className={s.retryButton} type="button" onClick={() => void submitBrief()} disabled={isBusy}>
+                Retry submission
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         {step === 3 ? (
           <div className={s.bookFallback}>
             <span>Rather talk it through?</span>

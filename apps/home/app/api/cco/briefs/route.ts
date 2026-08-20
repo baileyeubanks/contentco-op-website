@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  buildCcoIntakeTransaction,
-  validateCcoIntakePayload,
-} from "@/lib/cco-admin-model";
-import { commitCcoFirestoreWrites } from "@/lib/cco-firebase-server";
+import { persistCcoBrief } from "@/lib/cco-public-intake";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { BriefIntakeSchema } from "@/lib/validation";
@@ -39,33 +35,43 @@ export async function POST(req: Request) {
     );
   }
 
-  const transaction = buildCcoIntakeTransaction(body);
-  const errors = validateCcoIntakePayload(transaction.intake);
-  if (Object.keys(errors).length > 0) {
-    return NextResponse.json({ error: "invalid_intake", errors }, { status: 400 });
+  let persistence: Awaited<ReturnType<typeof persistCcoBrief>>;
+  try {
+    persistence = await persistCcoBrief(parsed.data);
+  } catch {
+    return NextResponse.json(
+      { error: "cco_persistence_unavailable", code: "cco_persistence_request_failed", retryable: true, persisted: false },
+      { status: 503 },
+    );
   }
-  const persistence = await commitCcoFirestoreWrites(transaction.writes);
+  if (!persistence.ok) {
+    return NextResponse.json(
+      {
+        error: "cco_persistence_unavailable",
+        code: persistence.error,
+        retryable: true,
+        persisted: persistence.persisted,
+        brief_id: persistence.briefId,
+      },
+      { status: 503 },
+    );
+  }
 
-  const bookingUrl = `/book?brief=${encodeURIComponent(transaction.records.brief.id)}&email=${encodeURIComponent(transaction.records.person.email)}&name=${encodeURIComponent(transaction.records.person.fullName)}&company=${encodeURIComponent(transaction.intake.contact.company)}&duration=${transaction.intake.bookingPreference}`;
+  const bookingUrl = `/book?brief=${encodeURIComponent(persistence.briefId)}&email=${encodeURIComponent(parsed.data.contact.email)}&name=${encodeURIComponent(parsed.data.contact.name)}&company=${encodeURIComponent(parsed.data.contact.company)}&duration=${parsed.data.bookingPreference}`;
 
   return NextResponse.json({
     ok: true,
-    id: transaction.records.brief.id,
-    brief_number: transaction.records.brief.briefNumber,
-    status: transaction.records.brief.status,
-    admin_url: `/admin?brief=${encodeURIComponent(transaction.records.brief.id)}`,
+    persisted: true,
+    id: persistence.briefId,
+    brief_number: persistence.briefNumber,
+    status: persistence.status || "submitted",
+    admin_url: `/admin?brief=${encodeURIComponent(persistence.briefId)}`,
     booking_url: bookingUrl,
-    firebase: transaction.firebase,
-    persistence,
-    collections: transaction.writes.map((write) => write.path),
-    records: transaction.records,
-    handoff: {
-      co_produce_ready: transaction.records.handoffs.some(
-        (handoff) => handoff.appKey === "co_produce" && handoff.status === "ready",
-      ),
-      app_handoffs: transaction.records.handoffs,
-      email_outbox: transaction.records.emailOutbox,
-      enrichment_run: transaction.records.enrichmentRun,
+    persistence: {
+      database: "CCO-DB",
+      contact_id: persistence.contactId,
+      replayed: persistence.replayed,
     },
+    notification: persistence.notification,
   });
 }

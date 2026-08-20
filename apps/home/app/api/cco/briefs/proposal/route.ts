@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateProposal, type ProposalInput } from "@/lib/gemini";
 import { buildBriefPricingInputs, calculateEstimate } from "@/lib/pricing";
-import { getCcoFirebaseApp, getCcoFirebaseAdminStatus } from "@/lib/cco-firebase-server";
-import { getFirestore } from "firebase-admin/firestore";
+import { getPersistedCcoBrief } from "@/lib/cco-public-intake";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { ProposalRequestSchema } from "@/lib/validation";
@@ -39,6 +38,31 @@ export async function POST(req: Request) {
   }
 
   const { briefId, contact, project } = parsed.data;
+  let persistedBrief: Awaited<ReturnType<typeof getPersistedCcoBrief>>;
+  try {
+    persistedBrief = await getPersistedCcoBrief(briefId);
+  } catch {
+    return NextResponse.json(
+      { error: "cco_persistence_unavailable", code: "cco_persistence_request_failed", retryable: true },
+      { status: 503 },
+    );
+  }
+  if (!persistedBrief.ok) {
+    if (persistedBrief.error === "brief_not_found") {
+      return NextResponse.json(
+        { error: "brief_not_found", retryable: false },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json(
+      {
+        error: "cco_persistence_unavailable",
+        code: persistedBrief.error,
+        retryable: persistedBrief.retryable,
+      },
+      { status: 503 },
+    );
+  }
 
   const estimate = calculateEstimate(buildBriefPricingInputs(project));
 
@@ -82,58 +106,12 @@ export async function POST(req: Request) {
   try {
     const proposal = await generateProposal(proposalInput);
 
-    // Persist AI proposal to Firestore
-    const status = getCcoFirebaseAdminStatus();
-    const app = getCcoFirebaseApp();
-    let firestoreResult = null;
-
-    if (status.configured && app) {
-      const db = getFirestore(app);
-      const now = new Date().toISOString();
-
-      // Find the existing proposalVersion for this brief
-      const proposalsSnap = await db
-        .collection("proposalVersions")
-        .where("briefId", "==", briefId)
-        .orderBy("createdAt", "desc")
-        .limit(1)
-        .get();
-
-      if (!proposalsSnap.empty) {
-        const docRef = proposalsSnap.docs[0].ref;
-        await docRef.update({
-          "snapshot.aiProposal": proposal,
-          "snapshot.estimate": estimate,
-          status: "draft",
-          updatedAt: now,
-        });
-        firestoreResult = { updated: true, path: docRef.path };
-      } else {
-        // Create a new proposal version if none exists
-        const proposalId = `prop_${globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 18)}`;
-        await db.collection("proposalVersions").doc(proposalId).set({
-          id: proposalId,
-          briefId,
-          version: 1,
-          status: "draft",
-          title: proposal.title,
-          snapshot: {
-            aiProposal: proposal,
-            estimate,
-          },
-          createdAt: now,
-          updatedAt: now,
-        });
-        firestoreResult = { created: true, path: `proposalVersions/${proposalId}` };
-      }
-    }
-
     return NextResponse.json({
       ok: true,
       briefId,
       proposal,
       estimate,
-      firestore: firestoreResult,
+      persistence: { brief_id: persistedBrief.brief.id, database: "CCO-DB" },
     });
   } catch (err) {
     console.error("[proposal] Generation failed:", err);

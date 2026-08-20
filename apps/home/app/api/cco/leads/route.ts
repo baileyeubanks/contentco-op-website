@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { commitCcoFirestoreWrites, getCcoFirebaseAdminStatus } from "@/lib/cco-firebase-server";
-import type { CcoFirestoreCollection } from "@/lib/cco-admin-model";
+import { persistCcoLead } from "@/lib/cco-public-intake";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { LeadSchema } from "@/lib/validation";
@@ -13,15 +12,6 @@ function cleanString(value: unknown) {
 
 function cleanEmail(value: unknown) {
   return cleanString(value).toLowerCase();
-}
-
-function firestoreWrite(collection: CcoFirestoreCollection, documentId: string, data: Record<string, unknown>) {
-  return {
-    collection,
-    documentId,
-    path: `${collection}/${documentId}`,
-    data,
-  };
 }
 
 export async function POST(req: Request) {
@@ -65,68 +55,40 @@ export async function POST(req: Request) {
     );
   }
 
-  const leadId = `lead_${globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 18)}`;
-  const organizationId = `org_${globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 18)}`;
-  const relationshipId = `rel_${leadId}`;
-  const auditId = `audit_${leadId}`;
-  const now = new Date().toISOString();
-  const phone = cleanString(contact.phone).replace(/[^\d+]/g, "");
-  const role = cleanString(contact.role);
-  const website = cleanString(contact.website);
-  const address = cleanString(contact.address);
-  const writes = [
-    firestoreWrite("people", leadId, {
-      id: leadId,
-      fullName: name,
-      email,
-      phone,
-      roles: ["lead", "stakeholder"],
-      lifecycleStage: "lead",
-      primaryOrganizationId: organizationId,
-      source: "contentco-op.com/brief/lead-first",
-      createdAt: now,
-      updatedAt: now,
-    }),
-    firestoreWrite("organizations", organizationId, {
-      id: organizationId,
-      name: company,
-      website,
-      address,
-      lifecycleStage: "lead",
-      source: "contentco-op.com/brief/lead-first",
-      createdAt: now,
-      updatedAt: now,
-    }),
-    firestoreWrite("relationships", relationshipId, {
-      id: relationshipId,
-      personId: leadId,
-      organizationId,
-      roles: ["lead_contact", role || "project_stakeholder"],
-      isPrimary: true,
-      createdAt: now,
-      updatedAt: now,
-    }),
-    firestoreWrite("auditEvents", auditId, {
-      id: auditId,
-      type: "public.lead_captured",
-      actorType: "public_lead",
-      personId: leadId,
-      organizationId,
-      source: "contentco-op.com/brief",
-      createdAt: now,
-    }),
-  ];
-  const persistence = await commitCcoFirestoreWrites(writes);
-  const firebase = getCcoFirebaseAdminStatus();
+  let persistence: Awaited<ReturnType<typeof persistCcoLead>>;
+  try {
+    persistence = await persistCcoLead({
+      contact: {
+        ...contact,
+        name,
+        email,
+        company,
+      },
+      sourcePath: "/brief",
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "cco_persistence_unavailable", code: "cco_persistence_request_failed", retryable: true, persisted: false },
+      { status: 503 },
+    );
+  }
+  if (!persistence.ok) {
+    return NextResponse.json(
+      {
+        error: "cco_persistence_unavailable",
+        code: persistence.error,
+        retryable: true,
+        persisted: false,
+      },
+      { status: 503 },
+    );
+  }
 
   return NextResponse.json({
     ok: true,
-    lead_id: leadId,
-    organization_id: organizationId,
-    firebase: {
-      mode: firebase.mode,
-      paths: writes.map((write) => write.path),
-    },
-    persistence,
+    persisted: true,
+    lead_id: persistence.contactId,
+    contact_id: persistence.contactId,
+    replayed: persistence.replayed,
   });
 }
