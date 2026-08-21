@@ -337,7 +337,6 @@ async function ensureCcoContact(
   };
   const payload: Record<string, unknown> = {
     name: cleanString(input.name),
-    full_name: cleanString(input.name),
     email,
     cco_public_email_key: email,
     phone: cleanString(input.phone) || null,

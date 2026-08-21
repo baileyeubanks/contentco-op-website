@@ -192,6 +192,9 @@ describe("CCO public intake persistence", () => {
       status: "lead",
       source: "contentco-op.com/brief",
     });
+    // CCO-DB defines full_name as generated always from name. Supplying it in
+    // an INSERT or UPDATE makes Postgres reject the entire contact receipt.
+    expect(db.rows("contacts")[0]).not.toHaveProperty("full_name");
     expect(db.rows("creative_briefs")[0]).toMatchObject({
       company_account_id: "content-co-op",
       contact_email: "avery@example.com",

@@ -65,6 +65,17 @@ alter table public.notification_log
   add column if not exists related_entity_type text,
   add column if not exists related_entity_id uuid;
 
+-- The existing CCO-DB table constrains status to queued/sent/failed. Public
+-- intake claims a delivery as `sending` before invoking the provider and may
+-- resolve a lost provider acknowledgement to `unknown`; both must be durable
+-- states or the notification write fails before any email attempt.
+alter table public.notification_log
+  drop constraint if exists notification_log_status_check;
+
+alter table public.notification_log
+  add constraint notification_log_status_check
+  check (status in ('queued', 'sending', 'sent', 'failed', 'unknown'));
+
 alter table public.notification_log enable row level security;
 
 -- CCO-DB has an array business_unit field, while older local schema snapshots
