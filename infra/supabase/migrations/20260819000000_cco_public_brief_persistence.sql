@@ -10,11 +10,31 @@ alter table public.creative_briefs
   add column if not exists data jsonb not null default '{}'::jsonb,
   add column if not exists company_account_id text not null default 'content-co-op';
 
--- Keep a lower-case, literal lookup key separate from the display email.
+-- Keep a trimmed, lower-case literal lookup key derived from the display email.
 -- PostgREST's ILIKE filter treats characters such as `_` as wildcards, so it
--- is not safe for identity lookup. Public CCO intake queries this exact key.
+-- is not safe for identity lookup. A generated column prevents operator/API
+-- writes from ever leaving the public-intake identity key stale.
 alter table public.contacts
-  add column if not exists cco_public_email_key text;
+  add column if not exists cco_public_email_key text
+    generated always as (nullif(lower(btrim(email)), '')) stored;
+
+-- This migration is target-specific. Fail closed if another environment
+-- already installed an ordinary, drift-prone column under the same name.
+do $$
+declare
+  email_key_generation text;
+begin
+  select is_generated
+    into email_key_generation
+    from information_schema.columns
+   where table_schema = 'public'
+     and table_name = 'contacts'
+     and column_name = 'cco_public_email_key';
+
+  if email_key_generation is distinct from 'ALWAYS' then
+    raise exception 'contacts.cco_public_email_key must be a generated column';
+  end if;
+end $$;
 
 create table if not exists public.notification_log (
   id uuid primary key default gen_random_uuid(),
@@ -92,12 +112,6 @@ begin
      and column_name = 'business_unit';
 
   if business_unit_udt = '_text' then
-    update public.contacts
-       set cco_public_email_key = lower(email)
-     where email is not null
-       and business_unit @> array['CC']::text[]
-       and cco_public_email_key is distinct from lower(email);
-
     execute $sql$
       create unique index if not exists idx_contacts_cco_public_email_unique
         on public.contacts (cco_public_email_key)
@@ -105,12 +119,6 @@ begin
           and business_unit @> array['CC']::text[]
     $sql$;
   elsif business_unit_udt = 'text' then
-    update public.contacts
-       set cco_public_email_key = lower(email)
-     where email is not null
-       and business_unit = 'CC'
-       and cco_public_email_key is distinct from lower(email);
-
     execute $sql$
       create unique index if not exists idx_contacts_cco_public_email_unique
         on public.contacts (cco_public_email_key)

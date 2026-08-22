@@ -195,6 +195,9 @@ describe("CCO public intake persistence", () => {
     // CCO-DB defines full_name as generated always from name. Supplying it in
     // an INSERT or UPDATE makes Postgres reject the entire contact receipt.
     expect(db.rows("contacts")[0]).not.toHaveProperty("full_name");
+    // The database derives the canonical lookup key from email. Public input
+    // must never be allowed to write or desynchronize that generated value.
+    expect(db.rows("contacts")[0]).not.toHaveProperty("cco_public_email_key");
     expect(db.rows("creative_briefs")[0]).toMatchObject({
       company_account_id: "content-co-op",
       contact_email: "avery@example.com",
@@ -228,11 +231,21 @@ describe("CCO public intake persistence", () => {
     });
   });
 
-  test("reuses a mixed-case CC contact through its canonical email key for lead and brief retries", async () => {
+  test("reuses a mixed-case CC contact without overwriting operator-owned contact fields", async () => {
     const db = new FakeDatabase();
     db.rows("contacts").push({
       id: "existing-contact",
+      name: "Operator Curated Name",
       email: "Avery@Example.com",
+      phone: "+17135550199",
+      company: "Authoritative Account",
+      title: "Chief Marketing Officer",
+      website: "https://authoritative.example",
+      address: "Austin, TX",
+      location: "Austin, TX",
+      status: "active_client",
+      contact_type: "client",
+      source: "operator_import",
       cco_public_email_key: "avery@example.com",
       business_unit: ["CC"],
       metadata: { preserved: true },
@@ -248,9 +261,29 @@ describe("CCO public intake persistence", () => {
     expect(brief).toMatchObject({ ok: true, contactId: "existing-contact" });
     expect(db.rows("contacts")).toHaveLength(1);
     expect(db.rows("contacts")[0]).toMatchObject({
-      email: "avery@example.com",
+      name: "Operator Curated Name",
+      email: "Avery@Example.com",
+      phone: "+17135550199",
+      company: "Authoritative Account",
+      title: "Chief Marketing Officer",
+      website: "https://authoritative.example",
+      address: "Austin, TX",
+      location: "Austin, TX",
+      status: "active_client",
+      contact_type: "client",
+      source: "operator_import",
       cco_public_email_key: "avery@example.com",
-      metadata: expect.objectContaining({ preserved: true }),
+      metadata: expect.objectContaining({
+        preserved: true,
+        cco_public_intake: expect.objectContaining({
+          source: "contentco-op.com/brief",
+          contact: expect.objectContaining({
+            name: "Avery Brooks",
+            email: "avery@example.com",
+            company: "Example Industrial",
+          }),
+        }),
+      }),
     });
   });
 
@@ -357,26 +390,67 @@ describe("CCO public intake persistence", () => {
     ]));
   });
 
-  test("records a thrown provider error as a failed delivery", async () => {
+  test("records a thrown provider error as unknown and never resends it", async () => {
     const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => {
+      throw new Error("provider_timeout");
+    });
     const result = await persistCcoBrief(submission, {
       db,
-      sendEmail: async () => {
-        throw new Error("provider_timeout");
-      },
+      sendEmail,
     });
 
     expect(result).toMatchObject({
       ok: true,
       persisted: true,
       notification: {
-        admin: { status: "failed" },
-        client: { status: "failed" },
+        admin: { status: "unknown" },
+        client: { status: "unknown" },
       },
     });
     expect(db.rows("notification_log")[0]).toMatchObject({
-      status: "failed",
-      error_message: "provider_timeout",
+      status: "unknown",
+      error_message: "delivery_outcome_unknown",
+      metadata: expect.objectContaining({ delivery_error: "provider_timeout" }),
+    });
+
+    const replay = await persistCcoBrief(submission, { db, sendEmail });
+    expect(replay).toMatchObject({
+      ok: true,
+      replayed: true,
+      notification: {
+        admin: { status: "unknown" },
+        client: { status: "unknown" },
+      },
+    });
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+  });
+
+  test("records an explicitly ambiguous provider result as unknown", async () => {
+    const db = new FakeDatabase();
+    const result = await persistCcoBrief(submission, {
+      db,
+      sendEmail: async () => ({
+        ok: false,
+        error: "provider_acknowledgement_lost",
+        deliveryUnknown: true,
+      }),
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      persisted: true,
+      notification: {
+        admin: { status: "unknown" },
+        client: { status: "unknown" },
+      },
+    });
+    expect(db.rows("notification_log")[0]).toMatchObject({
+      status: "unknown",
+      error_message: "delivery_outcome_unknown",
+      metadata: expect.objectContaining({
+        delivery_error: "provider_acknowledgement_lost",
+      }),
     });
   });
 

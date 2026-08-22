@@ -26,6 +26,8 @@ interface SendResult {
   ok: boolean;
   id?: string;
   error?: string;
+  /** The provider handoff may have succeeded, so automatic resend is unsafe. */
+  deliveryUnknown?: boolean;
 }
 
 const GMAIL_DWD_PYTHON = String.raw`
@@ -124,8 +126,15 @@ send_request = urllib.request.Request(
         "Content-Type": "application/json",
     },
 )
-with urllib.request.urlopen(send_request, timeout=20) as response:
-    result = json.loads(response.read() or b"{}")
+try:
+    with urllib.request.urlopen(send_request, timeout=20) as response:
+        result = json.loads(response.read() or b"{}")
+except Exception as error:
+    # Authentication and message construction completed. A transport failure
+    # here may occur after Gmail accepted the message, so callers must not
+    # automatically retry it through another provider.
+    sys.stderr.write(f"DELIVERY_UNKNOWN:{type(error).__name__}:{error}")
+    sys.exit(70)
 
 sys.stdout.write(json.dumps({"ok": True, "id": result.get("id")}))
 `;
@@ -191,8 +200,14 @@ send_request = urllib.request.Request(
         "Content-Type": "application/json",
     },
 )
-with urllib.request.urlopen(send_request, timeout=20) as response:
-    result = json.loads(response.read() or b"{}")
+try:
+    with urllib.request.urlopen(send_request, timeout=20) as response:
+        result = json.loads(response.read() or b"{}")
+except Exception as error:
+    # Token refresh completed and the send request was handed to Gmail. The
+    # absence of a response is an ambiguous outcome, not a confirmed failure.
+    sys.stderr.write(f"DELIVERY_UNKNOWN:{type(error).__name__}:{error}")
+    sys.exit(70)
 
 sys.stdout.write(json.dumps({"ok": True, "id": result.get("id")}))
 `;
@@ -315,13 +330,26 @@ async function sendViaGmailOauth(options: SendEmailOptions): Promise<SendResult>
         })),
         token_path: tokenPath,
       });
-      const parsed = JSON.parse(stdout) as { ok?: boolean; id?: string; error?: string };
+      let parsed: { ok?: boolean; id?: string; error?: string };
+      try {
+        parsed = JSON.parse(stdout) as { ok?: boolean; id?: string; error?: string };
+      } catch {
+        // The child exits successfully only after the Gmail send request
+        // returns. A missing receipt is therefore not safe to retry.
+        return { ok: false, error: "gmail_provider_receipt_invalid", deliveryUnknown: true };
+      }
       if (parsed.ok) {
-        return { ok: true, id: parsed.id || "gmail-oauth" };
+        return parsed.id
+          ? { ok: true, id: parsed.id }
+          : { ok: false, error: "gmail_provider_receipt_missing", deliveryUnknown: true };
       }
       lastError = parsed.error || lastError;
     } catch (error) {
-      lastError = error instanceof Error ? error.message : "gmail_oauth_send_failed";
+      const message = error instanceof Error ? error.message : "gmail_oauth_send_failed";
+      if (message.startsWith("DELIVERY_UNKNOWN:")) {
+        return { ok: false, error: message.slice("DELIVERY_UNKNOWN:".length), deliveryUnknown: true };
+      }
+      lastError = message;
     }
   }
 
@@ -346,13 +374,23 @@ async function sendViaGmailDwd(options: SendEmailOptions): Promise<SendResult> {
       sender_sub: getSenderSub(options),
       service_account_path: process.env.GOOGLE_DWD_SERVICE_ACCOUNT_FILE || undefined,
     });
-    const parsed = JSON.parse(stdout) as { ok?: boolean; id?: string; error?: string };
+    let parsed: { ok?: boolean; id?: string; error?: string };
+    try {
+      parsed = JSON.parse(stdout) as { ok?: boolean; id?: string; error?: string };
+    } catch {
+      return { ok: false, error: "gmail_provider_receipt_invalid", deliveryUnknown: true };
+    }
     if (!parsed.ok) {
       return { ok: false, error: parsed.error || "gmail_dwd_send_failed" };
     }
-    return { ok: true, id: parsed.id || "gmail-dwd" };
+    return parsed.id
+      ? { ok: true, id: parsed.id }
+      : { ok: false, error: "gmail_provider_receipt_missing", deliveryUnknown: true };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "gmail_dwd_send_failed" };
+    const message = error instanceof Error ? error.message : "gmail_dwd_send_failed";
+    return message.startsWith("DELIVERY_UNKNOWN:")
+      ? { ok: false, error: message.slice("DELIVERY_UNKNOWN:".length), deliveryUnknown: true }
+      : { ok: false, error: message };
   }
 }
 
@@ -364,6 +402,9 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
   if (!apiKey) {
     const gmailOauth = await sendViaGmailOauth({ ...options, from });
     if (gmailOauth.ok) {
+      return gmailOauth;
+    }
+    if (gmailOauth.deliveryUnknown) {
       return gmailOauth;
     }
     const gmailFallback = await sendViaGmailDwd({ ...options, from });
@@ -399,14 +440,25 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       console.error("[email-sender] Resend API error:", err);
-      return { ok: false, error: err.message || `HTTP ${res.status}` };
+      return {
+        ok: false,
+        error: err.message || `HTTP ${res.status}`,
+        deliveryUnknown: res.status === 408 || res.status >= 500,
+      };
     }
 
-    const data = await res.json();
-    return { ok: true, id: data.id };
+    const data = await res.json().catch(() => null) as { id?: unknown } | null;
+    const providerId = typeof data?.id === "string" ? data.id.trim() : "";
+    return providerId
+      ? { ok: true, id: providerId }
+      : { ok: false, error: "resend_provider_receipt_missing", deliveryUnknown: true };
   } catch (err) {
     console.error("[email-sender] Failed to send:", err);
-    return { ok: false, error: err instanceof Error ? err.message : "unknown" };
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "unknown",
+      deliveryUnknown: true,
+    };
   }
 }
 

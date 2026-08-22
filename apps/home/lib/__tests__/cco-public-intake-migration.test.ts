@@ -8,6 +8,16 @@ const migrationPath = path.resolve(
 );
 
 describe("CCO public brief persistence migration", () => {
+  test("derives the canonical public email key from normalized contact email", () => {
+    const sql = readFileSync(migrationPath, "utf8").toLowerCase();
+    const normalized = sql.replace(/\s+/g, " ");
+
+    expect(normalized).toContain(
+      "cco_public_email_key text generated always as (nullif(lower(btrim(email)), '')) stored",
+    );
+    expect(normalized).not.toContain("set cco_public_email_key =");
+  });
+
   test("widens an existing notification status constraint for the delivery state machine", () => {
     const sql = readFileSync(migrationPath, "utf8").toLowerCase();
     const normalized = sql.replace(/\s+/g, " ");

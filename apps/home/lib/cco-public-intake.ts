@@ -85,7 +85,13 @@ export type CcoEmailSender = (input: {
   html: string;
   text: string;
   businessUnit: string;
-}) => Promise<{ ok: boolean; id?: string; error?: string }>;
+}) => Promise<{
+  ok: boolean;
+  id?: string;
+  error?: string;
+  /** The provider may have accepted the message, so automatic resend is unsafe. */
+  deliveryUnknown?: boolean;
+}>;
 
 type Dependencies = {
   db?: CcoPublicIntakeDatabase;
@@ -330,15 +336,48 @@ async function ensureCcoContact(
   if (lookupError) return { ok: false, error: databaseErrorCode("contact_lookup", lookupError) };
 
   const existingId = asId(existing?.id);
+  const existingMetadata = asRecord(existing?.metadata);
+  const existingIntakeMetadata = asRecord(existingMetadata.cco_public_intake);
+  const receivedAt = new Date().toISOString();
+  const normalizedSourcePath = cleanString(sourcePath) || "/brief";
   const metadata = {
-    ...asRecord(existing?.metadata),
-    source: "contentco-op.com/brief",
-    source_path: sourcePath || "/brief",
+    ...existingMetadata,
+    // Public form fields are assertions from an unauthenticated caller. Keep
+    // the latest snapshot for follow-up without replacing operator-curated
+    // contact identity, lifecycle, or account fields.
+    cco_public_intake: {
+      ...existingIntakeMetadata,
+      source: "contentco-op.com/brief",
+      source_path: normalizedSourcePath,
+      first_received_at: cleanString(existingIntakeMetadata.first_received_at) || receivedAt,
+      last_received_at: receivedAt,
+      contact: {
+        name: cleanString(input.name),
+        email,
+        phone: cleanString(input.phone) || null,
+        company: cleanString(input.company) || null,
+        role: cleanString(input.role) || null,
+        website: cleanString(input.website) || null,
+        address: cleanString(input.address) || null,
+      },
+    },
   };
+
+  if (existingId) {
+    const { data, error } = await db
+      .from("contacts")
+      .update({ metadata })
+      .eq("id", existingId)
+      .select("id")
+      .single();
+    const contactId = asId(data?.id);
+    if (error || !contactId) return { ok: false, error: databaseErrorCode("contact_write", error) };
+    return { ok: true, contactId, replayed: true };
+  }
+
   const payload: Record<string, unknown> = {
     name: cleanString(input.name),
     email,
-    cco_public_email_key: email,
     phone: cleanString(input.phone) || null,
     company: cleanString(input.company) || null,
     title: cleanString(input.role) || null,
@@ -351,14 +390,15 @@ async function ensureCcoContact(
     metadata,
   };
 
-  const write = existingId
-    ? db.from("contacts").update(payload).eq("id", existingId)
-    : db.from("contacts").insert({ ...payload, business_unit: [CCO_BUSINESS_UNIT] });
-  const { data, error } = await write.select("id").single();
+  const { data, error } = await db
+    .from("contacts")
+    .insert({ ...payload, business_unit: [CCO_BUSINESS_UNIT] })
+    .select("id")
+    .single();
   const contactId = asId(data?.id);
   if (error || !contactId) return { ok: false, error: databaseErrorCode("contact_write", error) };
 
-  return { ok: true, contactId, replayed: Boolean(existingId) };
+  return { ok: true, contactId, replayed: false };
 }
 
 /**
@@ -566,7 +606,7 @@ async function deliverLoggedEmail(input: {
   const logId = asId(queuedLog?.id);
   if (queuedError || !logId) return { ok: false, error: databaseErrorCode("notification_log_write", queuedError) };
 
-  let delivery: { ok: boolean; id?: string; error?: string };
+  let delivery: { ok: boolean; id?: string; error?: string; deliveryUnknown?: boolean };
   try {
     delivery = await input.sendEmail({
       to: input.notification.recipient,
@@ -576,19 +616,29 @@ async function deliverLoggedEmail(input: {
       businessUnit: CCO_BUSINESS_UNIT,
     });
   } catch (error) {
-    delivery = { ok: false, error: boundedError(error instanceof Error ? error.message : error) };
+    delivery = {
+      ok: false,
+      error: boundedError(error instanceof Error ? error.message : error),
+      deliveryUnknown: true,
+    };
   }
-  const status = delivery.ok ? "sent" : "failed";
+  const status = delivery.ok ? "sent" : delivery.deliveryUnknown ? "unknown" : "failed";
+  const deliveryError = delivery.ok ? null : boundedError(delivery.error);
   const { error: outcomeError } = await input.db
     .from("notification_log")
     .update({
       status,
       sent_at: delivery.ok ? new Date().toISOString() : null,
-      error_message: delivery.ok ? null : boundedError(delivery.error),
+      error_message: delivery.ok
+        ? null
+        : status === "unknown"
+          ? "delivery_outcome_unknown"
+          : deliveryError,
       metadata: {
         ...metadata,
         provider_message_id: delivery.ok ? cleanString(delivery.id) || null : null,
         delivery_status: status,
+        delivery_error: deliveryError,
       },
     })
     .eq("id", logId)
