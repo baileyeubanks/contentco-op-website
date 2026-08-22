@@ -11,6 +11,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, test } from "vitest";
 
 const appRoot = path.resolve(__dirname, "../..");
@@ -18,6 +19,7 @@ const portableGuardPath = path.join(appRoot, "scripts", "assert-portable-standal
 const prepareStandalonePath = path.join(appRoot, "scripts", "prepare-standalone-build.mjs");
 const publishScriptPath = path.join(appRoot, "scripts", "publish-m4-runtime.mjs");
 const auditScriptPath = path.join(appRoot, "scripts", "audit-public-runtime.mjs");
+const runtimeIdentityPath = path.join(appRoot, "scripts", "runtime-identity.mjs");
 const temporaryPaths: string[] = [];
 
 function temporaryDirectory(label: string) {
@@ -60,6 +62,32 @@ function runPortableGuard(root: string) {
 
 function runPrepareStandalone(root: string) {
   return spawnSync(process.execPath, [prepareStandalonePath, root], {
+    encoding: "utf8",
+  });
+}
+
+function runRuntimeProofValidator(buildId: string, expectSha: string) {
+  const fixture = JSON.stringify({ status: "ok", build_id: buildId });
+  const script = `
+    import { validateRuntimeProofBody } from ${JSON.stringify(pathToFileURL(runtimeIdentityPath).href)};
+    validateRuntimeProofBody(${JSON.stringify(fixture)}, ${JSON.stringify(expectSha)});
+  `;
+  return spawnSync(process.execPath, ["--input-type=module", "--eval", script], {
+    encoding: "utf8",
+  });
+}
+
+function runPublishedRefValidator(remoteOutput: string, expectSha: string) {
+  const script = `
+    import { validatePublishedRef } from ${JSON.stringify(pathToFileURL(runtimeIdentityPath).href)};
+    validatePublishedRef(
+      ${JSON.stringify(remoteOutput)},
+      ${JSON.stringify(expectSha)},
+      "refs/heads/main",
+      "origin/main",
+    );
+  `;
+  return spawnSync(process.execPath, ["--input-type=module", "--eval", script], {
     encoding: "utf8",
   });
 }
@@ -368,6 +396,12 @@ describe("standalone release portability gate", () => {
     const buildIndex = source.indexOf('["run", "build", "-w", "@contentco-op/home"]');
     const afterBuildIndex = source.indexOf('assertSourceIdentity("after build")');
     const rsyncIndex = source.indexOf('run("rsync"');
+    const pinnedPushIndex = source.indexOf(
+      'run("git", ["push", "origin", `${sha}:main`])',
+    );
+    const publishedRefVerificationIndex = source.indexOf(
+      'capture("git", ["ls-remote", "--refs", "origin", "refs/heads/main"])',
+    );
 
     expect(source).not.toContain("--allow-dirty");
     expect(source).not.toContain("--skip-build");
@@ -377,6 +411,10 @@ describe("standalone release portability gate", () => {
     expect(buildIndex).toBeGreaterThan(removeStandaloneIndex);
     expect(afterBuildIndex).toBeGreaterThan(buildIndex);
     expect(rsyncIndex).toBeGreaterThan(afterBuildIndex);
+    expect(pinnedPushIndex).toBeGreaterThan(afterBuildIndex);
+    expect(publishedRefVerificationIndex).toBeGreaterThan(pinnedPushIndex);
+    expect(publishedRefVerificationIndex).toBeLessThan(rsyncIndex);
+    expect(source).not.toContain("HEAD:main");
     expect(source).toContain('receipt_id = "cco_home"');
     expect(source).not.toContain('for receipt_id in ["cco_home", "root_control_plane"]');
     expect(source).toContain('(receipt_dir / "root_control_plane.json").unlink(missing_ok=True)');
@@ -391,5 +429,37 @@ describe("public runtime audit source contracts", () => {
     expect(source).toContain('required: ["legacy_proposal_send_retired", "retryable: false"]');
     expect(source).toContain('forbidden: ["getCcoFirebaseApp", "emailOutbox", "proposalVersions"]');
     expect(source).not.toContain('label: "proposal email contact copy"');
+  });
+
+  test("requires both the live BUILD_ID and canonical receipt to match the expected SHA", () => {
+    const source = readFileSync(auditScriptPath, "utf8");
+    const runtimeIdentitySource = readFileSync(runtimeIdentityPath, "utf8");
+
+    expect(source).not.toContain("remoteText.includes(expectSha)");
+    expect(source).toContain("buildId !== expectSha || receiptSha !== expectSha");
+    expect(runtimeIdentitySource).not.toContain("startsWith(expectSha)");
+    expect(runtimeIdentitySource).not.toContain("expectSha.startsWith(buildId)");
+  });
+
+  test("rejects truncated public runtime build IDs when an exact SHA is required", () => {
+    const expectedSha = "0123456789abcdef0123456789abcdef01234567";
+
+    expect(runRuntimeProofValidator(expectedSha, expectedSha).status).toBe(0);
+    expect(runRuntimeProofValidator(expectedSha.slice(0, 1), expectedSha).status).not.toBe(0);
+    expect(runRuntimeProofValidator(expectedSha.slice(0, 12), expectedSha).status).not.toBe(0);
+  });
+
+  test("rejects an empty or mismatched published origin ref", () => {
+    const expectedSha = "0123456789abcdef0123456789abcdef01234567";
+    const exactRef = `${expectedSha}\trefs/heads/main\n`;
+    const staleRef = `${"f".repeat(40)}\trefs/heads/main\n`;
+    const decoyRef = `${expectedSha}\trefs/a/refs/heads/main\n`;
+    const mixedRefs = `${decoyRef}${staleRef}`;
+
+    expect(runPublishedRefValidator(exactRef, expectedSha).status).toBe(0);
+    expect(runPublishedRefValidator(staleRef, expectedSha).status).not.toBe(0);
+    expect(runPublishedRefValidator("", expectedSha).status).not.toBe(0);
+    expect(runPublishedRefValidator(decoyRef, expectedSha).status).not.toBe(0);
+    expect(runPublishedRefValidator(mixedRefs, expectedSha).status).not.toBe(0);
   });
 });

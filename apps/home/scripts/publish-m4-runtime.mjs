@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { assertPortableStandalone } from "./assert-portable-standalone.mjs";
 import { removeStandaloneBuild } from "./prepare-standalone-build.mjs";
+import { validatePublishedRef } from "./runtime-identity.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const appRoot = path.resolve(path.dirname(__filename), "..");
@@ -80,6 +81,14 @@ if (!fs.existsSync(path.join(standaloneDir, "apps", "home", "server.js"))) {
   throw new Error(`missing standalone build at ${standaloneDir}`);
 }
 assertPortableStandalone(standaloneDir);
+
+run("git", ["push", "origin", `${sha}:main`]);
+validatePublishedRef(
+  capture("git", ["ls-remote", "--refs", "origin", "refs/heads/main"]),
+  sha,
+  "refs/heads/main",
+  "origin/main",
+);
 
 const releaseDir = `${runtimeHome}/releases/${shortSha}`;
 run("rsync", [
@@ -296,8 +305,6 @@ if [ -n "$previous" ] && [ -e "$previous" ]; then
 fi
 exit 1
 `);
-
-run("git", ["push", "origin", `HEAD:main`]);
 
 const auditArgs = ["scripts/audit-public-runtime.mjs", `--expect-sha=${sha}`];
 if (strictIpv6) auditArgs.push("--strict-ipv6");

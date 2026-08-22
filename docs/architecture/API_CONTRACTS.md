@@ -38,7 +38,7 @@ Handoff contract:
 
 CCO-DB public-intake baseline:
 
-1. `creative_briefs` is the durable record. Public intake writes the flat portal fields plus the CCO fields established by `20260819000000_cco_public_brief_persistence.sql`: `company_account_id` and `data`.
+1. `creative_briefs` is the durable record. Public intake writes the flat portal fields plus the CCO fields established by `20260822012747_cco_public_brief_persistence_20260819000000.sql`: `company_account_id` and `data`.
 2. `contacts.cco_public_email_key` is the lower-case literal identity key; CCO-DB enforces one CCO contact per key without wildcard email matching.
 3. `data.public_submission_id` is the browser retry key; CCO-DB enforces one CCO brief per key.
 4. `data.proposal.content` is the only proposal a public proposal page may render.

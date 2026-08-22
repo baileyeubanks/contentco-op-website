@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateRuntimeProofBody } from "./runtime-identity.mjs";
 
 const args = new Set(process.argv.slice(2));
 const strictIpv6 = args.has("--strict-ipv6");
@@ -647,26 +648,6 @@ function validateHealthBody(bodyText) {
   };
 }
 
-function validateRuntimeProofBody(bodyText) {
-  const body = JSON.parse(bodyText);
-  const buildId = String(body.build_id || "");
-  if (body.status !== "ok") {
-    throw new Error(`status=${body.status || "unknown"}`);
-  }
-  if (!buildId) {
-    throw new Error("build_id missing");
-  }
-  const shaMatches = buildId === expectSha || buildId.startsWith(expectSha) || expectSha.startsWith(buildId);
-  if (expectSha && !shaMatches) {
-    throw new Error(`expected build_id ${expectSha}; got ${buildId}`);
-  }
-  return {
-    buildId,
-    releaseTimestamp: String(body.release_timestamp || ""),
-    runtimeDir: String(body.runtime_dir || ""),
-  };
-}
-
 function ssh(command) {
   return run("ssh", [
     "-o",
@@ -741,7 +722,7 @@ for (const host of ["contentco-op.com", "www.contentco-op.com"]) {
   for (const family of ["-4", "-6"]) {
     const label = `${family === "-4" ? "IPv4" : "IPv6"} ${host} runtime proof`;
     try {
-      const proof = validateRuntimeProofBody(curlText(url, family));
+      const proof = validateRuntimeProofBody(curlText(url, family), expectSha);
       const build = proof.buildId.slice(0, 12);
       add("ok", label, proof.releaseTimestamp ? `${build} ${proof.releaseTimestamp}` : build);
     } catch (error) {
@@ -787,15 +768,38 @@ for (const check of htmlChecks) {
 
 if (expectSha) {
   const remote = ssh(
-    "printf 'BUILD_ID='; cat /Users/_mxappservice/.contentco-op/home-runtime/current/BUILD_ID 2>/dev/null; printf '\\nreceipt='; python3 - <<'PY'\nimport json\nfrom pathlib import Path\npath = Path('/Users/_mxappservice/Projects/platform/run/deploy-receipts/cco_home.json')\nprint(json.loads(path.read_text()).get('sha', '') if path.exists() else '')\nPY"
+    "python3 - <<'PY'\nimport json\nfrom pathlib import Path\nbuild_path = Path('/Users/_mxappservice/.contentco-op/home-runtime/current/BUILD_ID')\nreceipt_path = Path('/Users/_mxappservice/Projects/platform/run/deploy-receipts/cco_home.json')\nreceipt = json.loads(receipt_path.read_text()) if receipt_path.exists() else {}\nprint(json.dumps({\n    'build_id': build_path.read_text().strip() if build_path.exists() else '',\n    'receipt_sha': str(receipt.get('sha') or ''),\n    'receipt_id': str(receipt.get('receipt_id') or ''),\n    'receipt_status': str(receipt.get('status') or ''),\n}))\nPY"
   );
-  const remoteText = `${remote.stdout || ""}${remote.stderr || ""}`.trim();
+  const remoteText = String(remote.stdout || "").trim();
   if (remote.status !== 0) {
-    add("warn", "M4 receipt", remoteText || "could not read M4 receipt");
-  } else if (remoteText.includes(expectSha)) {
-    add("ok", "M4 receipt", `current runtime reports ${expectSha.slice(0, 12)}`);
+    const remoteError = String(remote.stderr || remote.stdout || "").trim();
+    add("fail", "M4 receipt", remoteError || "could not read M4 receipt");
   } else {
-    add("fail", "M4 receipt", `expected ${expectSha}; got ${remoteText}`);
+    try {
+      const remoteIdentity = JSON.parse(remoteText);
+      const buildId = String(remoteIdentity.build_id || "");
+      const receiptSha = String(remoteIdentity.receipt_sha || "");
+      const receiptId = String(remoteIdentity.receipt_id || "");
+      const receiptStatus = String(remoteIdentity.receipt_status || "");
+      if (
+        buildId !== expectSha || receiptSha !== expectSha ||
+        receiptId !== "cco_home" || receiptStatus !== "ok"
+      ) {
+        add(
+          "fail",
+          "M4 receipt",
+          `expected build and cco_home receipt ${expectSha}; got build=${buildId || "missing"} receipt=${receiptSha || "missing"} id=${receiptId || "missing"} status=${receiptStatus || "missing"}`,
+        );
+      } else {
+        add("ok", "M4 receipt", `current runtime and receipt report ${expectSha.slice(0, 12)}`);
+      }
+    } catch (error) {
+      add(
+        "fail",
+        "M4 receipt",
+        `invalid identity payload: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 }
 

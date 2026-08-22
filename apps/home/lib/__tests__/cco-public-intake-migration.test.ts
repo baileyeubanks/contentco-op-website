@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 
 const migrationPath = path.resolve(
   __dirname,
-  "../../../../infra/supabase/migrations/20260819000000_cco_public_brief_persistence.sql",
+  "../../../../infra/supabase/migrations/20260822012747_cco_public_brief_persistence_20260819000000.sql",
 );
 
 describe("CCO public brief persistence migration", () => {
