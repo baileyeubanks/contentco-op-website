@@ -529,10 +529,10 @@ const htmlChecks = [
 
 const sourceFileChecks = [
   {
-    label: "proposal email contact copy",
+    label: "retired proposal send route",
     file: "app/api/os/marketing/briefs/[id]/send/route.ts",
-    required: ["501-351-5927", "Houston, TX"],
-    forbidden: ["(312) 555-0199", "Chicago, IL"],
+    required: ["legacy_proposal_send_retired", "retryable: false"],
+    forbidden: ["getCcoFirebaseApp", "emailOutbox", "proposalVersions"],
   },
 ];
 

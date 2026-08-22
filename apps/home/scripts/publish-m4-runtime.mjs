@@ -4,14 +4,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { assertPortableStandalone } from "./assert-portable-standalone.mjs";
+import { removeStandaloneBuild } from "./prepare-standalone-build.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const appRoot = path.resolve(path.dirname(__filename), "..");
 const repoRoot = path.resolve(appRoot, "../..");
 const host = process.env.CCO_M4_HOST || "_mxappservice@Blaze.local";
 const runtimeHome = "/Users/_mxappservice/.contentco-op/home-runtime";
-const allowDirty = process.argv.includes("--allow-dirty");
-const skipBuild = process.argv.includes("--skip-build");
 const strictIpv6 = process.argv.includes("--strict-ipv6");
 
 function run(command, args, options = {}) {
@@ -48,22 +48,38 @@ function ssh(script) {
 
 const sha = capture("git", ["rev-parse", "HEAD"]);
 const shortSha = sha.slice(0, 12);
-const dirty = capture("git", ["status", "--short"]);
-if (dirty && !allowDirty) {
-  throw new Error("working tree has uncommitted changes; commit or rerun with --allow-dirty");
+
+function assertSourceIdentity(stage) {
+  const currentSha = capture("git", ["rev-parse", "HEAD"]);
+  if (currentSha !== sha) {
+    throw new Error(`${stage}: HEAD changed from ${sha} to ${currentSha}`);
+  }
+  const dirty = capture("git", ["status", "--short"]);
+  if (dirty) {
+    throw new Error(`${stage}: working tree has uncommitted changes`);
+  }
 }
 
-if (!skipBuild) {
+assertSourceIdentity("before build");
+
+const standaloneDir = path.join(appRoot, ".next", "standalone");
+const nextEnvPath = path.join(appRoot, "next-env.d.ts");
+const nextEnvSnapshot = fs.readFileSync(nextEnvPath);
+try {
   run("npm", ["run", "ops:portfolio"]);
   run("npm", ["run", "ops:pwa"]);
   run("npm", ["run", "typecheck", "-w", "@contentco-op/home"]);
+  removeStandaloneBuild(appRoot);
   run("npm", ["run", "build", "-w", "@contentco-op/home"]);
+} finally {
+  fs.writeFileSync(nextEnvPath, nextEnvSnapshot);
 }
+assertSourceIdentity("after build");
 
-const standaloneDir = path.join(appRoot, ".next", "standalone");
 if (!fs.existsSync(path.join(standaloneDir, "apps", "home", "server.js"))) {
   throw new Error(`missing standalone build at ${standaloneDir}`);
 }
+assertPortableStandalone(standaloneDir);
 
 const releaseDir = `${runtimeHome}/releases/${shortSha}`;
 run("rsync", [
@@ -234,20 +250,21 @@ runtime = Path("${runtimeHome}")
 current_release = Path("${releaseDir}").resolve()
 receipt_dir = Path("/Users/_mxappservice/Projects/platform/run/deploy-receipts")
 receipt_dir.mkdir(parents=True, exist_ok=True)
-for receipt_id in ["cco_home", "root_control_plane"]:
-    (receipt_dir / f"{receipt_id}.json").write_text(json.dumps({
-        "receipt_id": receipt_id,
-        "surface": receipt_id,
-        "status": "ok",
-        "sha": sha,
-        "build_id": sha[:12],
-        "detail": "standalone runtime updated and local health passed",
-        "authority": "codex_publish_m4_runtime",
-        "runtime_host": "Blaze",
-        "runtime_user": "_mxappservice",
-        "updated_at": int(time.time()),
-        "updated_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-    }, indent=2))
+receipt_id = "cco_home"
+(receipt_dir / f"{receipt_id}.json").write_text(json.dumps({
+    "receipt_id": receipt_id,
+    "surface": receipt_id,
+    "status": "ok",
+    "sha": sha,
+    "build_id": sha[:12],
+    "detail": "standalone runtime updated and local health passed",
+    "authority": "codex_publish_m4_runtime",
+    "runtime_host": "Blaze",
+    "runtime_user": "_mxappservice",
+    "updated_at": int(time.time()),
+    "updated_at_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+}, indent=2))
+(receipt_dir / "root_control_plane.json").unlink(missing_ok=True)
 
 releases_dir = runtime / "releases"
 if releases_dir.exists():

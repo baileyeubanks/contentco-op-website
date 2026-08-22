@@ -23,6 +23,7 @@ vi.mock("@/lib/supabase", () => ({
 import { POST as legacyBriefPOST } from "@/app/api/briefs/route";
 import { POST as quoteDraftPOST } from "@/app/api/briefs/[id]/quote-draft/route";
 import { POST as messagePOST } from "@/app/api/briefs/[id]/messages/route";
+import { POST as legacyProposalSendPOST } from "@/app/api/os/marketing/briefs/[id]/send/route";
 
 describe("legacy CCO brief routes", () => {
   beforeEach(() => {
@@ -34,6 +35,18 @@ describe("legacy CCO brief routes", () => {
 
     expect(response.status).toBe(410);
     await expect(response.json()).resolves.toMatchObject({ error: "legacy_brief_intake_retired" });
+  });
+
+  test("retires the legacy proposal sender after an authorized request", async () => {
+    mocks.enforceRoutePolicy.mockResolvedValue({ ok: true, context: {} });
+
+    const response = await legacyProposalSendPOST();
+
+    expect(response.status).toBe(410);
+    await expect(response.json()).resolves.toEqual({
+      error: "legacy_proposal_send_retired",
+      retryable: false,
+    });
   });
 
   test("rejects unauthenticated quote-draft creation before the draft helper runs", async () => {
