@@ -38,6 +38,7 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -129,6 +130,10 @@ send_request = urllib.request.Request(
 try:
     with urllib.request.urlopen(send_request, timeout=20) as response:
         result = json.loads(response.read() or b"{}")
+except urllib.error.HTTPError as error:
+    prefix = "DELIVERY_UNKNOWN" if error.code == 408 or error.code >= 500 else "DELIVERY_FAILED"
+    sys.stderr.write(f"{prefix}:HTTPError:{error.code}")
+    sys.exit(70 if prefix == "DELIVERY_UNKNOWN" else 69)
 except Exception as error:
     # Authentication and message construction completed. A transport failure
     # here may occur after Gmail accepted the message, so callers must not
@@ -146,6 +151,7 @@ import os
 import sys
 import urllib.parse
 import urllib.request
+import urllib.error
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -203,6 +209,10 @@ send_request = urllib.request.Request(
 try:
     with urllib.request.urlopen(send_request, timeout=20) as response:
         result = json.loads(response.read() or b"{}")
+except urllib.error.HTTPError as error:
+    prefix = "DELIVERY_UNKNOWN" if error.code == 408 or error.code >= 500 else "DELIVERY_FAILED"
+    sys.stderr.write(f"{prefix}:HTTPError:{error.code}")
+    sys.exit(70 if prefix == "DELIVERY_UNKNOWN" else 69)
 except Exception as error:
     # Token refresh completed and the send request was handed to Gmail. The
     # absence of a response is an ambiguous outcome, not a confirmed failure.
@@ -349,7 +359,9 @@ async function sendViaGmailOauth(options: SendEmailOptions): Promise<SendResult>
       if (message.startsWith("DELIVERY_UNKNOWN:")) {
         return { ok: false, error: message.slice("DELIVERY_UNKNOWN:".length), deliveryUnknown: true };
       }
-      lastError = message;
+      lastError = message.startsWith("DELIVERY_FAILED:")
+        ? message.slice("DELIVERY_FAILED:".length)
+        : message;
     }
   }
 
@@ -390,7 +402,12 @@ async function sendViaGmailDwd(options: SendEmailOptions): Promise<SendResult> {
     const message = error instanceof Error ? error.message : "gmail_dwd_send_failed";
     return message.startsWith("DELIVERY_UNKNOWN:")
       ? { ok: false, error: message.slice("DELIVERY_UNKNOWN:".length), deliveryUnknown: true }
-      : { ok: false, error: message };
+      : {
+          ok: false,
+          error: message.startsWith("DELIVERY_FAILED:")
+            ? message.slice("DELIVERY_FAILED:".length)
+            : message,
+        };
   }
 }
 
@@ -411,8 +428,11 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
     if (gmailFallback.ok) {
       return gmailFallback;
     }
+    if (gmailFallback.deliveryUnknown) {
+      return gmailFallback;
+    }
     console.log(`[email-sender] RESEND_API_KEY not set and Gmail fallbacks failed. Would send:\n  To: ${options.to}\n  From: ${from}\n  Subject: ${options.subject}\n  OAuth error: ${gmailOauth.error || "unknown"}\n  DWD error: ${gmailFallback.error || "unknown"}`);
-    return gmailFallback.error ? { ok: false, error: gmailFallback.error } : gmailOauth;
+    return gmailFallback;
   }
 
   try {

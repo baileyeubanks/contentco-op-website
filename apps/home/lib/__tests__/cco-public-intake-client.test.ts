@@ -53,6 +53,10 @@ describe("CCO public brief retry storage", () => {
       client: { status: "sent" },
     })).toBe("unknown");
     expect(getCcoBriefDeliveryIssue({
+      admin: { status: "unknown" },
+      client: { status: "failed" },
+    })).toBe("unknown");
+    expect(getCcoBriefDeliveryIssue({
       admin: { status: "sent" },
       client: { status: "sent" },
     })).toBeNull();

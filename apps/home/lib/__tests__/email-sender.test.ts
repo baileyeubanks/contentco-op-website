@@ -1,4 +1,9 @@
+import { EventEmitter } from "node:events";
 import { afterEach, describe, expect, test, vi } from "vitest";
+
+const spawnMock = vi.hoisted(() => vi.fn());
+vi.mock("node:child_process", () => ({ spawn: spawnMock }));
+
 import { sendTransactionalEmail } from "../email-sender";
 
 const message = {
@@ -10,10 +15,30 @@ const message = {
 };
 
 afterEach(() => {
+  spawnMock.mockReset();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
+
+function pythonChild(result: { code: number; stdout?: string; stderr?: string }) {
+  const child = new EventEmitter() as EventEmitter & {
+    stdout: EventEmitter;
+    stderr: EventEmitter;
+    stdin: { write: (value: string) => void; end: () => void };
+  };
+  child.stdout = new EventEmitter();
+  child.stderr = new EventEmitter();
+  child.stdin = {
+    write: () => undefined,
+    end: () => queueMicrotask(() => {
+      if (result.stdout) child.stdout.emit("data", result.stdout);
+      if (result.stderr) child.stderr.emit("data", result.stderr);
+      child.emit("close", result.code);
+    }),
+  };
+  return child;
+}
 
 describe("transactional email delivery certainty", () => {
   test("marks a transport exception unknown so callers cannot auto-resend", async () => {
@@ -84,5 +109,55 @@ describe("transactional email delivery certainty", () => {
       ok: true,
       id: "provider-message-id",
     });
+  });
+
+  test("does not fall back to DWD after an ambiguous Gmail OAuth handoff", async () => {
+    vi.stubEnv("RESEND_API_KEY", "");
+    spawnMock.mockReturnValueOnce(pythonChild({
+      code: 70,
+      stderr: "DELIVERY_UNKNOWN:TimeoutError:timed out",
+    }));
+
+    await expect(sendTransactionalEmail(message)).resolves.toEqual({
+      ok: false,
+      error: "TimeoutError:timed out",
+      deliveryUnknown: true,
+    });
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("preserves an ambiguous Gmail DWD outcome after definite OAuth failures", async () => {
+    vi.stubEnv("RESEND_API_KEY", "");
+    spawnMock
+      .mockReturnValueOnce(pythonChild({ code: 1, stderr: "oauth_token_rejected" }))
+      .mockReturnValueOnce(pythonChild({ code: 1, stderr: "oauth_token_missing" }))
+      .mockReturnValueOnce(pythonChild({
+        code: 70,
+        stderr: "DELIVERY_UNKNOWN:TimeoutError:timed out",
+      }));
+
+    await expect(sendTransactionalEmail(message)).resolves.toEqual({
+      ok: false,
+      error: "TimeoutError:timed out",
+      deliveryUnknown: true,
+    });
+    expect(spawnMock).toHaveBeenCalledTimes(3);
+  });
+
+  test("keeps an explicit Gmail 4xx rejection definite", async () => {
+    vi.stubEnv("RESEND_API_KEY", "");
+    spawnMock
+      .mockReturnValueOnce(pythonChild({ code: 1, stderr: "oauth_token_rejected" }))
+      .mockReturnValueOnce(pythonChild({ code: 1, stderr: "oauth_token_missing" }))
+      .mockReturnValueOnce(pythonChild({
+        code: 69,
+        stderr: "DELIVERY_FAILED:HTTPError:422",
+      }));
+
+    await expect(sendTransactionalEmail(message)).resolves.toEqual({
+      ok: false,
+      error: "HTTPError:422",
+    });
+    expect(spawnMock).toHaveBeenCalledTimes(3);
   });
 });

@@ -13,8 +13,8 @@ export function getCcoBriefDeliveryIssue(notification: unknown): CcoBriefDeliver
         ? (delivery as Record<string, unknown>).status
         : undefined
     ));
-  if (statuses.includes("failed")) return "failed";
   if (statuses.includes("unknown")) return "unknown";
+  if (statuses.includes("failed")) return "failed";
   return null;
 }
 

@@ -454,6 +454,64 @@ describe("CCO public intake persistence", () => {
     });
   });
 
+  test("requires a provider message id before recording a sent notification", async () => {
+    const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => ({ ok: true }));
+
+    const result = await persistCcoBrief(submission, { db, sendEmail });
+
+    expect(result).toMatchObject({
+      ok: true,
+      persisted: true,
+      notification: {
+        admin: { status: "unknown" },
+        client: { status: "unknown" },
+      },
+    });
+    expect(db.rows("notification_log")[0]).toMatchObject({
+      status: "unknown",
+      error_message: "delivery_outcome_unknown",
+      metadata: expect.objectContaining({
+        provider_message_id: null,
+        delivery_error: "provider_receipt_missing",
+      }),
+    });
+
+    await persistCcoBrief(submission, { db, sendEmail });
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+  });
+
+  test("treats a provider id paired with failure as an ambiguous handoff", async () => {
+    const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => ({
+      ok: false,
+      id: "provider-id-despite-failure",
+      error: "provider_response_conflict",
+    }));
+
+    const result = await persistCcoBrief(submission, { db, sendEmail });
+
+    expect(result).toMatchObject({
+      ok: true,
+      persisted: true,
+      notification: {
+        admin: { status: "unknown" },
+        client: { status: "unknown" },
+      },
+    });
+    expect(db.rows("notification_log")[0]).toMatchObject({
+      status: "unknown",
+      error_message: "delivery_outcome_unknown",
+      metadata: expect.objectContaining({
+        provider_message_id: "provider-id-despite-failure",
+        delivery_error: "provider_response_conflict",
+      }),
+    });
+
+    await persistCcoBrief(submission, { db, sendEmail });
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+  });
+
   test("turns a stranded sending record into an explicit unknown outcome without resending", async () => {
     const db = new FakeDatabase();
     db.rows("creative_briefs").push({

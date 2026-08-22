@@ -622,21 +622,32 @@ async function deliverLoggedEmail(input: {
       deliveryUnknown: true,
     };
   }
-  const status = delivery.ok ? "sent" : delivery.deliveryUnknown ? "unknown" : "failed";
-  const deliveryError = delivery.ok ? null : boundedError(delivery.error);
+  const providerMessageId = cleanLine(delivery.id);
+  const hasProviderReceipt = delivery.ok && Boolean(providerMessageId) && delivery.deliveryUnknown !== true;
+  const providerResultConflicts = delivery.ok !== Boolean(providerMessageId);
+  const status = hasProviderReceipt
+    ? "sent"
+    : delivery.deliveryUnknown || providerResultConflicts
+      ? "unknown"
+      : "failed";
+  const deliveryError = hasProviderReceipt
+    ? null
+    : delivery.ok && !providerMessageId
+      ? "provider_receipt_missing"
+      : boundedError(delivery.error);
   const { error: outcomeError } = await input.db
     .from("notification_log")
     .update({
       status,
-      sent_at: delivery.ok ? new Date().toISOString() : null,
-      error_message: delivery.ok
+      sent_at: hasProviderReceipt ? new Date().toISOString() : null,
+      error_message: hasProviderReceipt
         ? null
         : status === "unknown"
           ? "delivery_outcome_unknown"
           : deliveryError,
       metadata: {
         ...metadata,
-        provider_message_id: delivery.ok ? cleanString(delivery.id) || null : null,
+        provider_message_id: providerMessageId || null,
         delivery_status: status,
         delivery_error: deliveryError,
       },
