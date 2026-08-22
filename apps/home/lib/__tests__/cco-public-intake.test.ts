@@ -512,6 +512,43 @@ describe("CCO public intake persistence", () => {
     expect(sendEmail).toHaveBeenCalledTimes(2);
   });
 
+  test("retries only the failed leg when the other delivery outcome is unknown", async () => {
+    const db = new FakeDatabase();
+    const first = await persistCcoBrief(submission, {
+      db,
+      sendEmail: async (message) => {
+        if (message.to === "bailey@contentco-op.com") {
+          throw new Error("admin_provider_timeout");
+        }
+        return { ok: false, error: "client_rejected" };
+      },
+    });
+    expect(first).toMatchObject({
+      ok: true,
+      notification: {
+        admin: { status: "unknown" },
+        client: { status: "failed" },
+      },
+    });
+
+    const resend = vi.fn(async () => ({ ok: true, id: "client-retry-provider-id" }));
+    const replay = await persistCcoBrief(submission, { db, sendEmail: resend });
+
+    expect(replay).toMatchObject({
+      ok: true,
+      replayed: true,
+      notification: {
+        admin: { status: "unknown" },
+        client: { status: "sent" },
+      },
+    });
+    expect(resend).toHaveBeenCalledTimes(1);
+    expect(resend).toHaveBeenCalledWith(expect.objectContaining({
+      to: "avery@example.com",
+    }));
+    expect(db.rows("notification_log")).toHaveLength(2);
+  });
+
   test("turns a stranded sending record into an explicit unknown outcome without resending", async () => {
     const db = new FakeDatabase();
     db.rows("creative_briefs").push({

@@ -1,7 +1,7 @@
 export const CCO_BRIEF_DRAFT_STORAGE_KEY = "cco-brief-draft-v1";
 export const CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY = "cco-brief-submission-id-v1";
 
-export type CcoBriefDeliveryIssue = "failed" | "unknown" | null;
+export type CcoBriefDeliveryIssue = "failed" | "unknown" | "mixed" | null;
 
 export function getCcoBriefDeliveryIssue(notification: unknown): CcoBriefDeliveryIssue {
   const record = notification && typeof notification === "object" && !Array.isArray(notification)
@@ -13,9 +13,20 @@ export function getCcoBriefDeliveryIssue(notification: unknown): CcoBriefDeliver
         ? (delivery as Record<string, unknown>).status
         : undefined
     ));
-  if (statuses.includes("unknown")) return "unknown";
-  if (statuses.includes("failed")) return "failed";
+  const hasUnknown = statuses.includes("unknown");
+  const hasFailed = statuses.includes("failed");
+  if (hasUnknown && hasFailed) return "mixed";
+  if (hasUnknown) return "unknown";
+  if (hasFailed) return "failed";
   return null;
+}
+
+/**
+ * A failed leg can be retried under the same submission UUID. An unknown leg
+ * is skipped by the server, so a mixed retry resends only the definite failure.
+ */
+export function canRetryCcoBriefDelivery(issue: CcoBriefDeliveryIssue) {
+  return issue === "failed" || issue === "mixed";
 }
 
 /**

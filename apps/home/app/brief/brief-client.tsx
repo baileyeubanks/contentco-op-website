@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   CCO_BRIEF_DRAFT_STORAGE_KEY,
+  canRetryCcoBriefDelivery,
   clearCcoBriefSubmissionStorage,
   getCcoBriefDeliveryIssue,
   type CcoBriefDeliveryIssue,
@@ -529,7 +530,7 @@ export function BriefClientPage() {
           deliveryIssue,
         });
         setSubmitState("success");
-        if (deliveryIssue === "unknown") clearSubmittedDraft();
+        if (!canRetryCcoBriefDelivery(deliveryIssue)) clearSubmittedDraft();
         return;
       }
 
@@ -584,6 +585,8 @@ export function BriefClientPage() {
   if (submitState === "success" && result) {
     const savedMessage = result.deliveryIssue === "failed"
       ? "Your brief is safely saved, but we could not deliver one or more confirmation emails. You can retry email delivery; it will not create another brief."
+      : result.deliveryIssue === "mixed"
+        ? "Your brief is safely saved. One confirmation email failed while another delivery outcome is unknown. You can safely retry the failed email; the unknown email will not be resent."
       : result.deliveryIssue === "unknown"
         ? "Your brief is safely saved, but we cannot confirm whether one or more confirmation emails were delivered. We will not automatically resend them."
         : "Your brief is safely saved. The proposal preview was unavailable, so we have not shown you a generated proposal.";
@@ -620,7 +623,7 @@ export function BriefClientPage() {
             </div>
           </div>
           <div className={s.actions}>
-            {result.deliveryIssue === "failed" ? (
+            {canRetryCcoBriefDelivery(result.deliveryIssue) ? (
               <button className={s.submitBtn} type="button" onClick={() => void submitBrief()} disabled={isBusy}>
                 Retry email delivery
               </button>

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   CCO_BRIEF_DRAFT_STORAGE_KEY,
   CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY,
+  canRetryCcoBriefDelivery,
   clearCcoBriefSubmissionStorage,
   getCcoBriefDeliveryIssue,
   getCcoBriefSubmissionId,
@@ -55,10 +56,17 @@ describe("CCO public brief retry storage", () => {
     expect(getCcoBriefDeliveryIssue({
       admin: { status: "unknown" },
       client: { status: "failed" },
-    })).toBe("unknown");
+    })).toBe("mixed");
     expect(getCcoBriefDeliveryIssue({
       admin: { status: "sent" },
       client: { status: "sent" },
     })).toBeNull();
+  });
+
+  test("retries only definite failed delivery legs while preserving unknown outcomes", () => {
+    expect(canRetryCcoBriefDelivery("failed")).toBe(true);
+    expect(canRetryCcoBriefDelivery("mixed")).toBe(true);
+    expect(canRetryCcoBriefDelivery("unknown")).toBe(false);
+    expect(canRetryCcoBriefDelivery(null)).toBe(false);
   });
 });
