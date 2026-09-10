@@ -43,10 +43,12 @@ const AGREEMENT_SECTIONS = [
 
 export function AgreementSection({
   quote,
+  acceptToken,
   onBack,
   onAccepted,
 }: {
   quote: QuoteData;
+  acceptToken: string | null;
   onBack: () => void;
   onAccepted: () => void;
 }) {
@@ -70,14 +72,21 @@ export function AgreementSection({
     setError(null);
 
     try {
-      const res = await fetch(`/api/client/quote/${quote.id}/accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          signature_name: signatureName.trim(),
-          agreement_sections: AGREEMENT_SECTIONS.map((s) => s.id),
-        }),
-      });
+      if (!acceptToken) {
+        throw new Error("Agreement acceptance is temporarily unavailable");
+      }
+      const res = await fetch(
+        `/api/share/quote/${quote.id}/accept?token=${encodeURIComponent(acceptToken)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "accept",
+            signature_name: signatureName.trim(),
+            agreement_sections: AGREEMENT_SECTIONS.map((s) => s.id),
+          }),
+        },
+      );
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

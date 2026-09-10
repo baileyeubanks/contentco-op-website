@@ -8,6 +8,27 @@ vi.mock("@/lib/supabase", () => ({
   supabase: new Proxy({}, { get: (_target, prop) => (fake.client as never as Record<PropertyKey, unknown>)[prop] }),
 }));
 
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ get: () => undefined }),
+  headers: async () => new Headers({ host: "admin.contentco-op.com" }),
+}));
+
+vi.mock("@/lib/supabase-server", () => ({
+  createClient: async () => ({
+    auth: {
+      getUser: async () => ({
+        data: { user: { id: "operator-1", email: "operator@contentco-op.com" } },
+        error: null,
+      }),
+    },
+  }),
+}));
+
+vi.mock("@/lib/os-auth", () => ({
+  getRootOperatorRoleForHost: () => "operator_admin",
+  isEmailAuthorizedForRootHost: () => true,
+}));
+
 import { POST } from "../../app/api/quotes/[id]/convert/route";
 
 const QUOTE_ID = "22222222-2222-4222-8222-222222222222";

@@ -57,11 +57,10 @@ const PUBLIC_ROUTE_ALLOWLIST: Record<string, string> = {
   "app/api/cron/brief-progress-reminders/route.ts": "Cron-secret authenticated reminder trigger.",
   "app/api/cron/invoice-reminders/route.ts": "Cron-secret authenticated reminder trigger.",
   "app/api/health/route.ts": "Public health probe.",
-  "app/api/media/hero/transcode/route.ts": "Legacy public media route outside this packet's route family.",
-  "app/api/media/thumbnail/approve/route.ts": "Legacy public media route outside this packet's route family.",
+  "app/api/media/hero/transcode/route.ts": "Invite-session authenticated media transcode trigger.",
+  "app/api/media/thumbnail/approve/route.ts": "Invite-session authenticated thumbnail approval.",
   "app/api/media/thumbnail/approved/route.ts": "Public approved-thumbnail lookup.",
-  "app/api/media/thumbnail/extract/route.ts": "Legacy public media route outside this packet's route family.",
-  "app/api/operations/crew/route.ts": "Legacy public operations route outside this packet's route family.",
+  "app/api/media/thumbnail/extract/route.ts": "Invite-session authenticated thumbnail extraction trigger.",
   "app/api/platform/manifest/route.ts": "Public platform manifest.",
   "app/api/runtime-proof/route.ts": "Public release identity proof.",
   "app/api/share/quote/[id]/accept/route.ts": "Share-token quote acceptance.",
@@ -292,6 +291,7 @@ if (process.env.VITEST) {
     { POST: legacyQuoteConvertPOST },
     { POST: legacyQuoteAcceptPOST },
     { POST: legacyDispatchPOST },
+    { GET: legacyCrewGET },
     { POST: legacyCrewOverridePOST },
   ] = await Promise.all([
     importTypeScriptModule("../../app/api/os/finance/overview/route.ts"),
@@ -308,6 +308,7 @@ if (process.env.VITEST) {
     importTypeScriptModule("../../app/api/quotes/[id]/convert/route.ts"),
     importTypeScriptModule("../../app/api/client/quote/[id]/accept/route.ts"),
     importTypeScriptModule("../../app/api/operations/dispatch/route.ts"),
+    importTypeScriptModule("../../app/api/operations/crew/route.ts"),
     importTypeScriptModule("../../app/api/operations/crew/override/route.ts"),
   ]);
 
@@ -346,6 +347,7 @@ if (process.env.VITEST) {
       ["legacy quote convert", () => legacyQuoteConvertPOST(getRequest(`/api/quotes/${QUOTE_ID}/convert`, { method: "POST" }), quoteContext())],
       ["legacy client quote accept", () => legacyQuoteAcceptPOST(getRequest(`/api/client/quote/${QUOTE_ID}/accept`, { method: "POST" }), quoteContext())],
       ["legacy dispatch", () => legacyDispatchPOST(getRequest("/api/operations/dispatch", { method: "POST" }))],
+      ["legacy crew positions", () => legacyCrewGET()],
       ["legacy crew override", () => legacyCrewOverridePOST(getRequest("/api/operations/crew/override", { method: "POST" }))],
     ];
 
@@ -375,6 +377,14 @@ if (process.env.VITEST) {
       expect(res.headers.get("content-type")).toContain("text/html");
     });
 
+    test("os quote preview with a tampered token -> 401", async () => {
+      const res = await quotePreviewGET(
+        getRequest(`/api/os/quotes/${QUOTE_ID}/preview?token=${QUOTE_ID}.9999999999.deadbeef`),
+        quoteContext(),
+      );
+      expect(res.status).toBe(401);
+    });
+
     test("os quote views POST -> 401", async () => {
       const res = await quoteViewsPOST(
         getRequest(`/api/os/quotes/${QUOTE_ID}/views`, { method: "POST" }),
@@ -394,6 +404,42 @@ if (process.env.VITEST) {
       );
       expect(res.status).toBe(401);
       expect((await res.json()).error).toBe("invalid_share_token");
+    });
+
+    test("share comment POST with a tampered token -> 401", async () => {
+      const res = await quoteCommentPOST(
+        getRequest(
+          `/api/share/quote/${QUOTE_ID}/comment?token=${QUOTE_ID}.9999999999.deadbeef`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: "hello" }),
+          },
+        ),
+        quoteContext(),
+      );
+      expect(res.status).toBe(401);
+    });
+
+    test("share comment POST with a valid share token -> 201", async () => {
+      supabaseResult = {
+        data: { id: "c1", sender: "client", body: "hello", created_at: "2026-08-11T00:00:00Z" },
+        error: null,
+      };
+      const token = signShareToken(QUOTE_ID)!;
+      const res = await quoteCommentPOST(
+        getRequest(
+          `/api/share/quote/${QUOTE_ID}/comment?token=${encodeURIComponent(token)}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: "hello" }),
+          },
+        ),
+        quoteContext(),
+      );
+      expect(res.status).toBe(201);
+      expect((await res.json()).comment.id).toBe("c1");
     });
   });
 }

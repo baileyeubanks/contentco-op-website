@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createFakeSupabase, type FakeSupabase } from "./helpers/fake-supabase";
 
@@ -12,6 +15,7 @@ import { GET } from "../../app/api/client/quote/[id]/route";
 
 const QUOTE_ID = "22222222-2222-4222-8222-222222222222";
 const VERSION_ID = "44444444-4444-4444-8444-444444444444";
+const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 function callGet() {
   return GET(new Request(`https://client.contentco-op.com/api/client/quote/${QUOTE_ID}`), {
@@ -84,5 +88,29 @@ describe("client quote display reads frozen money (review finding 5)", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.quote.canonical_deposit_due_cents).toBe(12345);
+  });
+});
+
+describe("client quote agreement acceptance route", () => {
+  test("threads a server-issued share token into the token-gated accept endpoint", () => {
+    const pageSource = readFileSync(
+      path.join(APP_ROOT, "app/client/quote/[id]/page.tsx"),
+      "utf8",
+    );
+    const viewSource = readFileSync(
+      path.join(APP_ROOT, "app/client/quote/[id]/quote-client-view.tsx"),
+      "utf8",
+    );
+    const agreementSource = readFileSync(
+      path.join(APP_ROOT, "app/client/quote/[id]/agreement-section.tsx"),
+      "utf8",
+    );
+
+    expect(pageSource).toContain('import { signShareToken } from "@/lib/share-token"');
+    expect(pageSource).toContain("const acceptToken = signShareToken(id)");
+    expect(pageSource).toContain("acceptToken={acceptToken}");
+    expect(viewSource).toContain("acceptToken={acceptToken}");
+    expect(agreementSource).toContain("/api/share/quote/${quote.id}/accept?token=");
+    expect(agreementSource).not.toContain("/api/client/quote/${quote.id}/accept");
   });
 });
