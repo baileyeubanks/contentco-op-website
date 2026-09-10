@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getFrozenEstimateForLegacyQuote } from "@/lib/os-estimate-versions";
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -60,6 +61,17 @@ function normalizeQuoteItems(value: unknown): QuoteItemInput[] {
  * GET /api/quotes/[id] — Fetch single quote with items + contact.
  */
 export async function GET(_req: Request, { params }: Props) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.legacy.quotes.detail.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
 
   const { data: quote, error } = await supabase
@@ -90,6 +102,17 @@ export async function GET(_req: Request, { params }: Props) {
  * PATCH /api/quotes/[id] — Update quote fields + upsert items.
  */
 export async function PATCH(req: Request, { params }: Props) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.legacy.quotes.detail.update",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const body = await parseBody(req);
   if (!body) {
