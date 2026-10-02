@@ -55,7 +55,13 @@ Structured handoff envelope:
 Create-now vs later:
 
 1. Created now in CCO HOME:
-   CCO contact, `creative_briefs` row, client portal capability, client receipt email log, and Bailey admin alert log.
+   CCO contact, `creative_briefs` row, one durable `events` row
+   (`type = brief_submitted`, `idempotency_key = brief_submitted:<brief_id>`,
+   payload carries `structured_intake` and the rule-based estimate), client
+   portal capability, client receipt email log, and an operator alert log per
+   recipient (`bailey@contentco-op.com` plus `CCO_ADMIN_ALERT_EMAILS`).
+   The instant estimate (`/api/cco/briefs/proposal`) is requested regardless of
+   email delivery outcome; email failure only changes the receipt screen.
 2. Deferred to CCO OS-managed follow-through:
    booking pairing, quote generation, formal approval, and operational follow-up.
 

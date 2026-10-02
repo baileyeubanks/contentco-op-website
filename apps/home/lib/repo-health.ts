@@ -2,6 +2,7 @@ import { access } from "node:fs/promises";
 import path from "node:path";
 import type { RepoHealthCheck, RepoHealthCheckStatus, RepoHealthSnapshot } from "@contentco-op/types";
 import { CREATIVE_BRIEF_HANDOFF_VERSION } from "@/lib/creative-brief";
+import { describeCcoEmailTransport } from "@/lib/email-sender";
 import { portfolioManifest, portfolioStudies } from "@/lib/content/portfolio";
 import { getRootHealthSnapshot } from "@/lib/os-health";
 
@@ -305,6 +306,9 @@ async function buildRuntimeCheck(scope: RepoHealthScope): Promise<RepoHealthChec
 }
 
 async function buildIntakeCheck(): Promise<RepoHealthCheck> {
+  const emailTransport = describeCcoEmailTransport();
+  const emailWarning = emailTransport.ready ? [] : [emailTransport.detail];
+
   if (await isStandaloneRuntime()) {
     const handoffVersionValid = CREATIVE_BRIEF_HANDOFF_VERSION.startsWith("cco.home.creative-brief.v");
     const missingRequired = REQUIRED_RUNTIME_ENV.filter((key) => !resolveEnvValue(key));
@@ -316,13 +320,17 @@ async function buildIntakeCheck(): Promise<RepoHealthCheck> {
     return {
       id: "intake_contract",
       label: "Creative brief intake",
-      status: issues.length ? "fail" : "ok",
+      status: issues.length ? "fail" : emailWarning.length ? "warn" : "ok",
       detail: issues.length
-        ? issues.join("; ")
-        : "Standalone production runtime detected and intake dependencies are configured.",
+        ? [...issues, ...emailWarning].join("; ")
+        : emailWarning.length
+          ? emailWarning.join("; ")
+          : `Standalone production runtime detected and intake dependencies are configured. Email transport: ${emailTransport.provider}.`,
       updatedAt: now(),
       meta: {
         handoffVersion: CREATIVE_BRIEF_HANDOFF_VERSION,
+        emailTransport: emailTransport.provider,
+        emailTransportReady: emailTransport.ready,
       },
     };
   }
@@ -347,13 +355,17 @@ async function buildIntakeCheck(): Promise<RepoHealthCheck> {
   return {
     id: "intake_contract",
     label: "Creative brief intake",
-    status: issues.length ? "fail" : "ok",
+    status: issues.length ? "fail" : emailWarning.length ? "warn" : "ok",
     detail: issues.length
-      ? issues.join("; ")
-      : "Brief route, normalization contract, Supabase adapter, and handoff version are aligned.",
+      ? [...issues, ...emailWarning].join("; ")
+      : emailWarning.length
+        ? emailWarning.join("; ")
+        : `Brief route, normalization contract, Supabase adapter, and handoff version are aligned. Email transport: ${emailTransport.provider}.`,
     updatedAt: now(),
     meta: {
       handoffVersion: CREATIVE_BRIEF_HANDOFF_VERSION,
+      emailTransport: emailTransport.provider,
+      emailTransportReady: emailTransport.ready,
     },
   };
 }

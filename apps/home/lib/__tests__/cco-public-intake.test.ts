@@ -6,6 +6,7 @@ import {
   persistCcoGeneratedBriefProposal,
   persistCcoBrief,
   persistCcoLead,
+  resolveCcoAdminAlertRecipients,
   type CcoPublicIntakeDatabase,
 } from "../cco-public-intake";
 
@@ -724,5 +725,111 @@ describe("CCO public intake persistence", () => {
       contactId: "contacts-1",
       error: "brief_write_failed",
     });
+  });
+});
+
+describe("CCO public intake operator alerting", () => {
+  test("alerts the pinned operator address and every additive CCO_ADMIN_ALERT_EMAILS entry", async () => {
+    const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "provider-message-1" }));
+
+    const result = await persistCcoBrief(submission, {
+      db,
+      sendEmail,
+      env: { CCO_ADMIN_ALERT_EMAILS: "baileyeubanks@gmail.com, ops@contentco-op.com;bailey@contentco-op.com" },
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      notification: {
+        admin: { status: "sent" },
+        client: { status: "sent" },
+      },
+    });
+    const adminRecipients = result.ok ? result.notification.admin_recipients.map((entry) => entry.recipient) : [];
+    expect(adminRecipients).toEqual(["bailey@contentco-op.com", "baileyeubanks@gmail.com", "ops@contentco-op.com"]);
+    expect(db.rows("notification_log").filter((row) => row.template_key === "cco_public_brief_admin_alert")).toHaveLength(3);
+    expect(db.rows("notification_log").filter((row) => row.template_key === "cco_public_brief_client_receipt")).toHaveLength(1);
+  });
+
+  test("ignores malformed roster entries and never drops the pinned default", () => {
+    expect(resolveCcoAdminAlertRecipients({ CCO_ADMIN_ALERT_EMAILS: "not-an-email,, ,x@y" })).toEqual([
+      "bailey@contentco-op.com",
+    ]);
+    expect(resolveCcoAdminAlertRecipients({})).toEqual(["bailey@contentco-op.com"]);
+  });
+
+  test("admin alert is sent if any operator recipient succeeded", async () => {
+    const db = new FakeDatabase();
+    const result = await persistCcoBrief(submission, {
+      db,
+      env: { CCO_ADMIN_ALERT_EMAILS: "baileyeubanks@gmail.com" },
+      sendEmail: async (message) => (
+        message.to === "baileyeubanks@gmail.com"
+          ? { ok: true, id: "gmail-provider-message" }
+          : { ok: false, error: "provider_unavailable" }
+      ),
+    });
+
+    expect(result).toMatchObject({ ok: true, notification: { admin: { status: "sent" } } });
+    expect(result.ok ? result.notification.admin_recipients : []).toEqual([
+      expect.objectContaining({ recipient: "bailey@contentco-op.com", status: "failed" }),
+      expect.objectContaining({ recipient: "baileyeubanks@gmail.com", status: "sent" }),
+    ]);
+  });
+
+  test("admin alert carries the CCO OS review link and the rule-based instant estimate", async () => {
+    const db = new FakeDatabase();
+    const sent: Array<{ to: string; text?: string }> = [];
+    const sendEmail = async (message: { to: string; text?: string }) => {
+      sent.push(message);
+      return { ok: true, id: "provider-message-1" };
+    };
+
+    const result = await persistCcoBrief(submission, { db, sendEmail });
+    const briefId = result.ok ? result.briefId : "";
+    const adminCall = sent.find((message) => message.to === "bailey@contentco-op.com");
+
+    expect(adminCall?.text).toContain(`https://admin.contentco-op.com/os/marketing/briefs/${briefId}`);
+    expect(adminCall?.text).toMatch(/Instant estimate: \$[\d,]+ – \$[\d,]+/);
+  });
+
+  test("records one durable brief_submitted event per brief, even across a retry", async () => {
+    const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => ({ ok: false, error: "provider_unavailable" }));
+
+    const first = await persistCcoBrief(submission, { db, sendEmail });
+    expect(first).toMatchObject({ ok: true, event: { ok: true, replayed: false } });
+
+    const briefId = first.ok ? first.briefId : "";
+    const events = db.rows("events");
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      type: "brief_submitted",
+      business_unit: "CC",
+      channel: "website",
+      idempotency_key: `brief_submitted:${briefId}`,
+    });
+    const payload = events[0].payload as Record<string, unknown>;
+    expect(payload.brief_id).toBe(briefId);
+    expect(payload.public_submission_id).toBe(submission.submissionId);
+    expect((payload.structured_intake as Record<string, unknown>).project).toMatchObject({ projectName: "Launch proof film" });
+
+    const retry = await persistCcoBrief(submission, { db, sendEmail });
+    expect(retry).toMatchObject({ ok: true, replayed: true, event: { ok: true, replayed: true } });
+    expect(db.rows("events")).toHaveLength(1);
+  });
+
+  test("a failed event write never blocks the brief receipt", async () => {
+    const db = new FakeDatabase();
+    db.insertErrorFor = "events";
+
+    const result = await persistCcoBrief(submission, {
+      db,
+      sendEmail: async () => ({ ok: true, id: "provider-message-1" }),
+    });
+
+    expect(result).toMatchObject({ ok: true, persisted: true, event: { ok: false } });
+    expect(db.rows("creative_briefs")).toHaveLength(1);
   });
 });
