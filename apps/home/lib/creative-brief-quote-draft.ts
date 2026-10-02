@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { buildBriefPricingInputs, calculateEstimate, type BriefPricingProject, type EstimateLine } from "@/lib/pricing";
 import { buildRenderPayload } from "@/lib/quote-payload-builder";
 import { renderQuotePdf } from "@/lib/blaze-documents";
 import { emitBlazeHandoff } from "@/lib/blaze-handoff";
@@ -60,7 +61,109 @@ function estimateBase(contentType: string | null | undefined) {
   return 4800;
 }
 
+/**
+ * The public /brief (2026-08+) stores its scope at `data.project` and mirrors
+ * it at `structured_intake.project` with the same keys the pricing engine
+ * reads (projectTypes, deliverables, shootDayCount, travelScope, ...). When
+ * that shape is present the draft quote is priced from the rate card instead
+ * of the legacy content_type keyword guess.
+ */
+function getPublicBriefProject(brief: Record<string, unknown>): (BriefPricingProject & Record<string, unknown>) | null {
+  const candidates = [
+    (brief.data as Record<string, unknown> | null | undefined)?.project,
+    (brief.structured_intake as Record<string, unknown> | null | undefined)?.project,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate === "object" && Array.isArray((candidate as Record<string, unknown>).projectTypes)) {
+      return candidate as BriefPricingProject & Record<string, unknown>;
+    }
+  }
+  return null;
+}
+
+function phaseItems(lines: EstimateLine[], phases: EstimateLine["phase"][]) {
+  return lines
+    .filter((line) => phases.includes(line.phase) && line.amount !== 0)
+    .map((line) => ({ description: line.label, quantity: 1, unit_price: line.amount }));
+}
+
+function buildRateCardDraft(brief: Record<string, unknown>, project: BriefPricingProject & Record<string, unknown>) {
+  const estimate = calculateEstimate(buildBriefPricingInputs(project));
+  const lines = estimate.breakdown ?? [];
+  const projectTypes = Array.isArray(project.projectTypes) ? project.projectTypes.map(String) : [];
+  const projectName = String(project.projectName || projectTypes.join(", ") || "Content Co-op Project").trim();
+  const company = String(brief.company || "").trim();
+  const projectTitle = company ? `${projectName} — ${company}` : projectName;
+  const deliverables = Array.isArray(project.deliverables) ? project.deliverables.map(String) : [];
+  const timeline = String(project.timeline || "").trim();
+  const travel = String(project.travelScope || "Houston / local");
+
+  const phases = [
+    {
+      title: "Phase 1 - Pre-production & Coordination",
+      scheduleLabel: timeline ? `Timeline: ${timeline}` : "Planning window",
+      narrative: [
+        String(project.projectContext || brief.objective || "Shape the story and lock logistics before production.").trim(),
+        projectTypes.length ? `Project type: ${projectTypes.join(", ")}` : "",
+      ].filter(Boolean),
+      items: phaseItems(lines, ["pre_production"]),
+    },
+    {
+      title: "Phase 2 - Production",
+      scheduleLabel: `${project.shootDayCount || "1"} capture day(s) · ${travel}`,
+      narrative: [
+        Array.isArray(project.productionNeeds) && project.productionNeeds.length ? `Capture: ${project.productionNeeds.join(", ")}` : "Field production.",
+        project.filmingLocations ? `Locations: ${project.filmingLocations}` : "",
+      ].filter(Boolean),
+      items: phaseItems(lines, ["production", "travel"]),
+    },
+    {
+      title: "Phase 3 - Edit, Review & Delivery",
+      scheduleLabel: project.styleLevel ? String(project.styleLevel) : "Standard review cycle",
+      narrative: [
+        deliverables.length ? `Deliverables: ${deliverables.join(", ")}` : "Edit, one review round, finishing, and delivery.",
+        project.targetRuntime ? `Target runtime: ${project.targetRuntime}` : "",
+        ...(estimate.notes ?? []),
+      ].filter(Boolean),
+      items: phaseItems(lines, ["post_production", "modifier"]),
+    },
+  ];
+
+  const items = phases.flatMap((phase) => phase.items);
+  return {
+    estimatedTotal: Math.round(items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0)),
+    items,
+    doc: {
+      title: "Price Quote",
+      reference: projectTitle,
+      payment_terms: "Net 30. 50% to reserve production dates, balance on final delivery.",
+      payment_note: "Rule-based draft from the Content Co-op rate card. Operator review required before sending.",
+      notes_terms: [
+        "Quote is valid for 30 days from issue date.",
+        "Travel and lodging are billed at actuals under the Out of Town terms.",
+        "One review round is included; additional rounds or deliverables require a change order.",
+      ],
+      project: {
+        title: projectTitle,
+        meta: [projectTypes.join(", "), brief.location, timeline].filter(Boolean),
+        summary: [project.projectContext, project.successDefinition, project.budgetRange ? `Client budget range: ${project.budgetRange}` : null]
+          .filter(Boolean)
+          .map((value) => String(value)),
+      },
+      bill_to: {
+        name: String(brief.contact_name || "").trim(),
+        company,
+        email: String(brief.contact_email || "").trim(),
+      },
+      phases,
+    },
+  };
+}
+
 function buildDraftFromBrief(brief: Record<string, unknown>) {
+  const publicProject = getPublicBriefProject(brief);
+  if (publicProject) return buildRateCardDraft(brief, publicProject);
+
   const structured = (brief.structured_intake && typeof brief.structured_intake === "object")
     ? (brief.structured_intake as Record<string, unknown>)
     : null;

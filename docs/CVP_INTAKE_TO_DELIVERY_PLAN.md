@@ -207,17 +207,23 @@ Existing folders are adopted, not recreated. No file ever leaves Drive.
 
 ---
 
-## 5. One rate card
+## 5. One rate card (landed in this PR)
 
-Decision: `apps/home/lib/pricing.ts` becomes the single rate-card module and
-is rewritten to encode the real July 2026 card (day rates, Alex, edit
-packages, soundbites, admin, mileage, lodging, drone, travel-day policy) with
-the Schneider precedents as regression fixtures. The public estimate shows a
-range from it; the operator draft quote and the canonical `estimates` engine
-read the same module and the same `structured_intake` shape the form writes.
-Quote-draft and estimate engines stop guessing from `content_type` keywords.
+`apps/home/lib/pricing.ts` is now the single rate-card module. It encodes the
+real July 2026 card (Director/Producer $2,750 with a 2-person crew or $3,000
+solo, Alex $1,250, main/recap edit $2,500, soundbites $200 × 5 per capture day,
+selects $350/day, admin $500, pre-production $250/$500, drone $500, mileage
+$0.724/mi, hotel $250/$350, airfare cap $800, discounted travel days $500,
+rush 15%). `estimateFromRateCard` reproduces the accepted precedents exactly
+and those are pinned as tests: EPC $8,600; Automation Days South $9,425.80;
+WEFTEC 2026 $15,706.80; El Paso VOC shoot #2 $5,800.
 
----
+Consumers now on the same module: the public live estimate, the AI proposal
+totals, the operator alert, and the operator "Generate draft quote" (which
+also stopped reading legacy keys the form never writes). The canonical
+`estimates` engine (`os-production-scope.ts`) still carries its own unit
+card; folding it onto `RATE_CARD` is the next step so the frozen quote and
+the public range come from one place.
 
 ## 6. Client accounts
 
@@ -298,7 +304,7 @@ End state: 6 active repos.
 
 | Slice | Outcome | Proof |
 |---|---|---|
-| **1 (this PR + host actions)** | Alert lands; client sees estimate; `brief_submitted` event exists | `notification_log` rows `sent`; `has_proposal = true`; `/api/health` ok |
+| **1 (this PR + host actions)** | Alert lands; client sees a rate-card estimate; `brief_submitted` event exists; client portal fails closed | `notification_log` rows `sent`; `has_proposal = true`; `/api/health` ok |
 | **2 Operator queue** | `/os/marketing/briefs` becomes an inbox with quick actions: Draft quote (from §5 rate card), Convert to project, Reply; badge count from `brief_submitted` events | one real brief → draft quote in < 2 min without leaving `/os` |
 | **3 Project + money** | `project_opened` creates `projects` + Drive folder; quote → approval → deposit via existing CCO OS Stripe rail (`/api/cco/briefs/[id]/deposit` re-enabled); client portal shows it | one test brief to paid deposit with a frozen estimate version |
 | **4 Production + delivery** | CCO OS → Co-VideoPro handoff (`commercial_handoffs` → `co_production.projects`) carries the frozen total; review/approval/locked delivery in CVP; invoice from the same version | WEFTEC-shaped project end to end on a test client |
