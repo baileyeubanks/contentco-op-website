@@ -804,14 +804,25 @@ describe("CCO public intake operator alerting", () => {
     const briefId = first.ok ? first.briefId : "";
     const events = db.rows("events");
     expect(events).toHaveLength(1);
+    // public.events has no idempotency_key or event_version columns
+    // (20260317_root_ontology_core.sql). A row that includes them is rejected
+    // by PostgREST and the durable event never lands.
+    const eventsColumns = new Set([
+      "id", "type", "business_id", "business_unit", "contact_id", "text",
+      "payload", "metadata", "channel", "direction", "created_at",
+      "object_type", "object_id", "event_category",
+    ]);
+    expect(Object.keys(events[0]).filter((key) => !eventsColumns.has(key))).toEqual([]);
     expect(events[0]).toMatchObject({
       type: "brief_submitted",
       business_unit: "CC",
       channel: "website",
-      idempotency_key: `brief_submitted:${briefId}`,
+      direction: "inbound",
+      metadata: { idempotency_key: `brief_submitted:${briefId}`, event_version: "cco.public-brief-submitted.v1" },
     });
     const payload = events[0].payload as Record<string, unknown>;
     expect(payload.brief_id).toBe(briefId);
+    expect(payload.idempotency_key).toBe(`brief_submitted:${briefId}`);
     expect(payload.public_submission_id).toBe(submission.submissionId);
     expect((payload.structured_intake as Record<string, unknown>).project).toMatchObject({ projectName: "Launch proof film" });
 

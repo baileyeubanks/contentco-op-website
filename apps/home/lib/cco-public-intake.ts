@@ -771,6 +771,12 @@ async function deliverBriefNotifications(input: {
  * Durable `brief_submitted` event so CCO OS consumers (quote draft, automations,
  * inbox) see the intake without polling `creative_briefs`. Best effort: a failure
  * here never blocks the client's receipt, but it is reported for operators.
+ *
+ * Writes only columns that exist on `public.events`
+ * (`infra/supabase/migrations/20260317_root_ontology_core.sql`, plus
+ * object_type / object_id / event_category). `idempotency_key` and
+ * `event_version` are not columns there; they live in payload and metadata.
+ * Replay matches `type` + `payload.brief_id`, the same lookup quote-draft uses.
  */
 async function emitBriefSubmittedEvent(input: {
   db: CcoPublicIntakeDatabase;
@@ -784,7 +790,8 @@ async function emitBriefSubmittedEvent(input: {
     const existing = await input.db
       .from("events")
       .select("id")
-      .eq("idempotency_key", idempotencyKey)
+      .eq("type", BRIEF_SUBMITTED_EVENT_TYPE)
+      .contains("payload", { brief_id: input.briefId })
       .maybeSingle();
     if (existing.error) return { ok: false, replayed: false, error: databaseErrorCode("event_lookup", existing.error) };
     if (asId(existing.data?.id)) return { ok: true, replayed: true };
@@ -795,12 +802,10 @@ async function emitBriefSubmittedEvent(input: {
       .from("events")
       .insert({
         type: BRIEF_SUBMITTED_EVENT_TYPE,
-        event_version: BRIEF_SUBMITTED_EVENT_VERSION,
         business_unit: CCO_BUSINESS_UNIT,
         channel: "website",
         direction: "inbound",
         contact_id: input.contactId,
-        idempotency_key: idempotencyKey,
         text: `New public creative brief from ${name} at ${company}`,
         payload: {
           brief_id: input.briefId,
@@ -808,6 +813,8 @@ async function emitBriefSubmittedEvent(input: {
           public_submission_id: resolveSubmissionId(input.submission.submissionId),
           source: "contentco-op.com/brief",
           source_path: cleanString(input.submission.sourcePath) || "/brief",
+          idempotency_key: idempotencyKey,
+          event_version: BRIEF_SUBMITTED_EVENT_VERSION,
           structured_intake: {
             contact: input.submission.contact,
             project: input.submission.project,
@@ -815,7 +822,12 @@ async function emitBriefSubmittedEvent(input: {
           },
           estimate: input.estimate,
         },
-        metadata: { source: "cco_public_intake", os_url: `${CCO_OS_BRIEF_URL_BASE}/${input.briefId}` },
+        metadata: {
+          source: "cco_public_intake",
+          os_url: `${CCO_OS_BRIEF_URL_BASE}/${input.briefId}`,
+          idempotency_key: idempotencyKey,
+          event_version: BRIEF_SUBMITTED_EVENT_VERSION,
+        },
       })
       .select("id")
       .single();

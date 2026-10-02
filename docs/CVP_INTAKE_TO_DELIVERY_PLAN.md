@@ -118,8 +118,10 @@ Code, all in `apps/home`, all covered by tests (178 passing, typecheck clean):
    estimate range, and a "Review in CCO OS" button to
    `/os/marketing/briefs/<id>`.
 3. **A durable `brief_submitted` event is written** (`events` table,
-   `idempotency_key = brief_submitted:<brief_id>`, payload has
-   `structured_intake` + estimate). `creative-brief-quote-draft.ts` already
+   replayed by `type` + `payload.brief_id`). The idempotency key
+   `brief_submitted:<brief_id>` is stored in payload and metadata because
+   `public.events` has no `idempotency_key` column. Payload has
+   `structured_intake` + estimate. `creative-brief-quote-draft.ts` already
    looks for exactly this event; it never existed before. Event failure never
    blocks the receipt.
 4. **The estimate no longer depends on email.** The browser requests the
