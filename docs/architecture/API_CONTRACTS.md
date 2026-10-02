@@ -56,8 +56,11 @@ Create-now vs later:
 
 1. Created now in CCO HOME:
    CCO contact, `creative_briefs` row, one durable `events` row
-   (`type = brief_submitted`, `idempotency_key = brief_submitted:<brief_id>`,
-   payload carries `structured_intake` and the rule-based estimate), client
+   (`type = brief_submitted`, replayed by `payload.brief_id`,
+   payload carries `structured_intake`, the rule-based estimate, and
+   `idempotency_key = brief_submitted:<brief_id>`). `public.events` has no
+   `idempotency_key` column, so that key is stored in payload and metadata.
+   Also created now: the client
    portal capability, client receipt email log, and an operator alert log per
    recipient (`bailey@contentco-op.com` plus `CCO_ADMIN_ALERT_EMAILS`).
    The instant estimate (`/api/cco/briefs/proposal`) is requested regardless of

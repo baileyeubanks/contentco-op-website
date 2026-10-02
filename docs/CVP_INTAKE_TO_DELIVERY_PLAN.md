@@ -118,8 +118,10 @@ Code, all in `apps/home`, all covered by tests (178 passing, typecheck clean):
    estimate range, and a "Review in CCO OS" button to
    `/os/marketing/briefs/<id>`.
 3. **A durable `brief_submitted` event is written** (`events` table,
-   `idempotency_key = brief_submitted:<brief_id>`, payload has
-   `structured_intake` + estimate). `creative-brief-quote-draft.ts` already
+   replayed by `type` + `payload.brief_id`). The idempotency key
+   `brief_submitted:<brief_id>` is stored in payload and metadata because
+   `public.events` has no `idempotency_key` column. Payload has
+   `structured_intake` + estimate. `creative-brief-quote-draft.ts` already
    looks for exactly this event; it never existed before. Event failure never
    blocks the receipt.
 4. **The estimate no longer depends on email.** The browser requests the
@@ -232,9 +234,9 @@ the public range come from one place.
   `client.contentco-op.com` (already modelled in Co-VideoPro). Identity joins
   on `contacts.cco_public_email_key`, so a brief submitted anonymously becomes
   the client's first project when they claim the account.
-- **Security to close first:** `GET /api/client/portal?email=` returns quotes,
-  invoices, payments and conversations by email with no token. Fail it closed
-  before any client-account launch.
+- **Closed in this PR:** `/client/portal` and `GET /api/client/portal` resolve a
+  contact only from `contacts.portal_token` (minimum 16 characters). A bare
+  `?email=` is ignored, and the email form routes to `/book` for a fresh link.
 
 ---
 
