@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
   const quotesPromise = sb
     .from("quotes")
     .select("*")
-    .or(`client_email.eq.${cEmail}`)
+    .eq("client_email", cEmail)
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -66,35 +66,21 @@ export async function GET(req: NextRequest) {
   const invoicesPromise = sb
     .from("invoices")
     .select("*")
-    .or(`client_email.eq.${cEmail}`)
+    .eq("client_email", cEmail)
     .order("created_at", { ascending: false })
     .limit(20);
 
-  // 5. Fetch payments — through quote_id or invoice_id
-  const paymentsPromise = sb
-    .from("payments")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  const [quotesRes, jobsRes, invoicesRes, paymentsRes] = await Promise.all([
+  const [quotesRes, jobsRes, invoicesRes] = await Promise.all([
     quotesPromise,
     jobsPromise,
     invoicesPromise,
-    paymentsPromise,
   ]);
 
-  // Filter payments to only those belonging to this client's quotes/invoices
-  const quoteIds = new Set(
-    (quotesRes.data ?? []).map((q: Record<string, unknown>) => q.id),
-  );
-  const invoiceIds = new Set(
-    (invoicesRes.data ?? []).map((i: Record<string, unknown>) => i.id),
-  );
-  const clientPayments = (paymentsRes.data ?? []).filter(
-    (p: Record<string, unknown>) =>
-      quoteIds.has(p.quote_id) || invoiceIds.has(p.invoice_id),
-  );
+  // 5. Fetch payments scoped to this client's quotes/invoices (not the latest
+  // 50 rows in the table, which could omit older payments).
+  const quoteIds = (quotesRes.data ?? []).map((q: Record<string, unknown>) => String(q.id));
+  const invoiceIds = (invoicesRes.data ?? []).map((i: Record<string, unknown>) => String(i.id));
+  const clientPayments = await fetchClientPayments(sb, quoteIds, invoiceIds);
 
   return NextResponse.json({
     contact,
@@ -103,4 +89,22 @@ export async function GET(req: NextRequest) {
     invoices: invoicesRes.data ?? [],
     payments: clientPayments,
   });
+}
+
+async function fetchClientPayments(
+  sb: ReturnType<typeof getSupabase>,
+  quoteIds: string[],
+  invoiceIds: string[],
+): Promise<Record<string, unknown>[]> {
+  const filters: string[] = [];
+  if (quoteIds.length) filters.push(`quote_id.in.(${quoteIds.join(",")})`);
+  if (invoiceIds.length) filters.push(`invoice_id.in.(${invoiceIds.join(",")})`);
+  if (!filters.length) return [];
+  const { data } = await sb
+    .from("payments")
+    .select("*")
+    .or(filters.join(","))
+    .order("created_at", { ascending: false })
+    .limit(200);
+  return (data ?? []) as Record<string, unknown>[];
 }

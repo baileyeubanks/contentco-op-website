@@ -45,8 +45,12 @@ upsert_env() {
     as_runtime_user grep -v "^${key}=" "$ENV_FILE" > "$tmp" || true
   fi
   printf '%s=%s\n' "$key" "$value" >> "$tmp"
+  # The temp file is mode 600 and owned by the invoking admin, so copy it as
+  # root and hand ownership to the runtime user instead of copying as that user.
   as_runtime_user mkdir -p "$(dirname "$ENV_FILE")"
-  as_runtime_user cp "$tmp" "$ENV_FILE"
+  sudo cp "$tmp" "$ENV_FILE"
+  sudo chown "$RUNTIME_USER" "$ENV_FILE"
+  sudo chmod 600 "$ENV_FILE"
   rm -f "$tmp"
   log "set ${key} in runtime .env.local"
 }
