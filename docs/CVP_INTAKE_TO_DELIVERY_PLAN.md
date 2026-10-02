@@ -305,7 +305,7 @@ End state: 6 active repos.
 | Slice | Outcome | Proof |
 |---|---|---|
 | **1 (this PR + host actions)** | Alert lands; client sees a rate-card estimate; `brief_submitted` event exists; client portal fails closed | `notification_log` rows `sent`; `has_proposal = true`; `/api/health` ok |
-| **2 Operator queue** | `/os/marketing/briefs` becomes an inbox with quick actions: Draft quote (from §5 rate card), Convert to project, Reply; badge count from `brief_submitted` events | one real brief → draft quote in < 2 min without leaving `/os` |
+| **2 Operator queue** (partly landed) | `/os/marketing/briefs` no longer crashes on public briefs; the detail page shows production scope, the rate-card estimate, "generate draft quote" and "open project from brief". Still to do: badge count from `brief_submitted` events, reply-from-queue, Drive folder on open | one real brief → draft quote in < 2 min without leaving `/os` |
 | **3 Project + money** | `project_opened` creates `projects` + Drive folder; quote → approval → deposit via existing CCO OS Stripe rail (`/api/cco/briefs/[id]/deposit` re-enabled); client portal shows it | one test brief to paid deposit with a frozen estimate version |
 | **4 Production + delivery** | CCO OS → Co-VideoPro handoff (`commercial_handoffs` → `co_production.projects`) carries the frozen total; review/approval/locked delivery in CVP; invoice from the same version | WEFTEC-shaped project end to end on a test client |
 | **5 AI along the way** | Hermes drafts: quote cover email, call sheet, release chase list, feedback summary, delivery note; operator approves each | drafts appear as proposals in the queue, never auto-send |
