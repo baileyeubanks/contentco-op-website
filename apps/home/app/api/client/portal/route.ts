@@ -3,28 +3,30 @@ import { getSupabase } from "../../../../lib/supabase";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Capability-gated: the contact is resolved only from the opaque portal token
+ * that was emailed to them. Email / contact_id lookups were removed because
+ * they exposed quotes, invoices and payments to anyone who knew an address.
+ */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const email = searchParams.get("email");
-  const contactId = searchParams.get("contact_id");
+  const token = (searchParams.get("token") || "").trim();
 
-  if (!email && !contactId) {
+  if (!token || token.length < 16) {
     return NextResponse.json(
-      { error: "Missing email or contact_id parameter" },
-      { status: 400 },
+      { error: "portal_token_required" },
+      { status: 401 },
     );
   }
 
   const sb = getSupabase();
 
-  // 1. Find the contact
-  let contactQuery = sb.from("contacts").select("*");
-  if (contactId) {
-    contactQuery = contactQuery.eq("id", contactId);
-  } else {
-    contactQuery = contactQuery.eq("email", email!);
-  }
-  const { data: contacts, error: contactError } = await contactQuery.limit(1);
+  // 1. Find the contact by portal capability
+  const { data: contacts, error: contactError } = await sb
+    .from("contacts")
+    .select("*")
+    .eq("portal_token", token)
+    .limit(1);
 
   if (contactError) {
     return NextResponse.json(
@@ -35,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   if (!contacts || contacts.length === 0) {
     return NextResponse.json(
-      { error: "No account found for this email" },
+      { error: "invalid_token" },
       { status: 404 },
     );
   }

@@ -190,7 +190,10 @@ function EmailLookup({
     if (!email.trim()) return;
     setLoading(true);
     setError("");
-    router.push(`/client/portal?email=${encodeURIComponent(email.trim())}`);
+    // The portal only opens from the private link we email. We never resolve
+    // an account from a typed address, so send the visitor to the contact
+    // path that gets a fresh link issued by the team.
+    router.push(`/book?intent=portal_link&email=${encodeURIComponent(email.trim())}`);
   }
 
   return (
@@ -700,9 +703,15 @@ function MessagesAndUpdates({ conversations }: { conversations: Conversation[] }
 interface PortalViewProps {
   data: PortalData | null;
   initialEmail: string;
+  /** True when a token was presented but did not resolve to a contact. */
+  tokenPresented?: boolean;
 }
 
-export function PortalView({ data, initialEmail }: PortalViewProps) {
+export function PortalView({ data, initialEmail, tokenPresented = false }: PortalViewProps) {
+  if (!data && tokenPresented) {
+    return <NotFound email={initialEmail || "this portal link"} />;
+  }
+
   // No data and no email = show lookup form
   if (!data && !initialEmail) {
     return <EmailLookup initialEmail="" />;

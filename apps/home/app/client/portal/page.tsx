@@ -4,22 +4,24 @@ import type { PortalData } from "./portal-view";
 
 export const dynamic = "force-dynamic";
 
-async function fetchPortalData(
-  email?: string,
-  contactId?: string,
-): Promise<PortalData | null> {
-  if (!email && !contactId) return null;
+/**
+ * The client portal is capability-gated: a contact is only ever resolved from
+ * the opaque `portal_token` we emailed them. Looking a client up by bare email
+ * or contact id would hand their quotes, invoices and payments to anyone who
+ * knows the address, so those parameters are deliberately ignored.
+ */
+async function fetchPortalData(token?: string): Promise<PortalData | null> {
+  const portalToken = typeof token === "string" ? token.trim() : "";
+  if (!portalToken || portalToken.length < 16) return null;
 
   const sb = getSupabase();
 
-  // Find the contact
-  let contactQuery = sb.from("contacts").select("*");
-  if (contactId) {
-    contactQuery = contactQuery.eq("id", contactId);
-  } else {
-    contactQuery = contactQuery.eq("email", email!);
-  }
-  const { data: contacts } = await contactQuery.limit(1);
+  // Resolve the contact from the portal capability only
+  const { data: contacts } = await sb
+    .from("contacts")
+    .select("*")
+    .eq("portal_token", portalToken)
+    .limit(1);
   if (!contacts || contacts.length === 0) return null;
 
   const contact = contacts[0];
@@ -82,18 +84,16 @@ async function fetchPortalData(
 export default async function PortalPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string; contact_id?: string }>;
+  searchParams: Promise<{ token?: string; email?: string }>;
 }) {
   const params = await searchParams;
-  const email = params.email;
-  const contactId = params.contact_id;
-
-  const data = await fetchPortalData(email, contactId);
+  const data = await fetchPortalData(params.token);
 
   return (
     <PortalView
       data={data}
-      initialEmail={email ?? ""}
+      initialEmail={params.email ?? ""}
+      tokenPresented={Boolean(params.token)}
     />
   );
 }
