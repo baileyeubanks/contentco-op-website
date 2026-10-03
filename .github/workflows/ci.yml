@@ -58,5 +58,36 @@ jobs:
       - name: Lint
         run: npm run lint -w @contentco-op/home
 
+      - name: Unit tests
+        run: npm test -w @contentco-op/home
+
       - name: Build
         run: npm run build -w @contentco-op/home
+
+  db-contract:
+    # Proves the CCO-DB RLS and brief_submitted contracts against a scratch
+    # Postgres built from infra/supabase/migrations. Never touches a Supabase project.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: RLS + event contract (scratch database)
+        run: bash infra/supabase/tests/rls/run.sh
