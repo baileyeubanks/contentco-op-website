@@ -74,6 +74,11 @@ End-to-end blockers:
 2. A browser must see `persisted: true` from CCO-DB before it may show a received state or request a proposal.
 3. A proposal must be stored before the browser may navigate to its proposal page. Deposit checkout remains disabled pending the canonical payment rail.
 4. Any CCO-DB schema change used by the public route must land as an explicit CCO migration before its runtime release.
+5. CCO-DB row level security contract: every CCO table is RLS-enabled with a
+   `service_role_only_<table>` policy (`20261003000000_cco_rls_service_role_lockdown.sql`).
+   The anon and authenticated roles have no policy on CCO tables and therefore
+   read zero rows and cannot write. `infra/supabase/tests/rls/run.sh` proves
+   this against a scratch Postgres built from the repo migrations.
 
 ## Co-Cut
 
