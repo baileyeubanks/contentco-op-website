@@ -5,12 +5,12 @@ import type { CSSProperties, ReactNode } from "react";
 import { PublicPageLayout } from "./components/public-page-layout";
 import { AnimatedHome } from "./components/animated-home";
 import { SeoJsonLd } from "./components/seo-json-ld";
-import { AmbientVideo } from "./ambient-video";
+import { HeroVideoSequence } from "./hero-video-sequence";
+import { weatherVaneVideo, weatherVanePoster } from "./hero-video-config";
 import {
   galleryImages,
   heroVideo,
   heroVideoMobile,
-  heroPoster,
 } from "./home-content";
 import { RotatingGallery } from "./rotating-gallery";
 import {
@@ -177,12 +177,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         {/* ─── S1: Hero — cinematic full-bleed video ─── */}
         <section className="hero" data-hero-preview={heroPreview}>
-          <AmbientVideo
-            src={heroVideo}
-            mobileSrc={heroVideoMobile}
-            poster={heroPoster}
-            label="Industrial energy production footage"
-            forcePlayback
+          <HeroVideoSequence
+            firstSrc={weatherVaneVideo}
+            nextSrc={heroVideo}
+            nextMobileSrc={heroVideoMobile}
+            poster={weatherVanePoster}
           />
           <div className="hero-content">
             <h1>
@@ -252,6 +251,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 These are not side quests. Every project moves through the same three rooms:
                 plan the story, shape the film, and deliver the work without losing the thread.
               </p>
+              <a className="button products-cvp-link" href="https://co-videopro.com/login?next=%2Fprojects">
+                Open Co-VideoPro
+              </a>
               <div className="products-grid">
                 {HOME_SUITE_PRODUCTS.map((product) => (
                   <Link
@@ -283,7 +285,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             </blockquote>
             <div className="trust-photo">
               <Image
-                src="/cc/photos/bailey-headshot.jpg"
+                src="/cc/photos/bailey-headshot-20261003.jpeg"
                 alt="Bailey Eubanks"
                 fill
                 sizes="(max-width:980px) 200px, 300px"
