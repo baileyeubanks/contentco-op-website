@@ -15,6 +15,14 @@ import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, test } from "vitest";
 
 const appRoot = path.resolve(__dirname, "../..");
+// The portable-standalone guard compares the packaged Next manifest against the
+// version locked at the repo root, so the fixtures must follow the lockfile
+// rather than pin a literal that drifts on every dependency bump.
+const lockedNextVersion = (
+  JSON.parse(readFileSync(path.join(appRoot, "../../package-lock.json"), "utf8")) as {
+    packages: Record<string, { version?: string }>;
+  }
+).packages["node_modules/next"].version!;
 const portableGuardPath = path.join(appRoot, "scripts", "assert-portable-standalone.mjs");
 const prepareStandalonePath = path.join(appRoot, "scripts", "prepare-standalone-build.mjs");
 const publishScriptPath = path.join(appRoot, "scripts", "publish-m4-runtime.mjs");
@@ -39,7 +47,7 @@ function makeStandaloneFixture() {
     path.join(root, "node_modules", "next", "package.json"),
     JSON.stringify({
       name: "next",
-      version: "16.2.12",
+      version: lockedNextVersion,
       main: "./dist/server/next.js",
     }),
   );
@@ -254,7 +262,7 @@ describe("standalone release portability gate", () => {
       path.join(wrongIdentityRoot, "node_modules", "next", "package.json"),
       JSON.stringify({
         name: "not-next",
-        version: "16.2.12",
+        version: lockedNextVersion,
         main: "./dist/server/next.js",
       }),
     );
@@ -263,7 +271,7 @@ describe("standalone release portability gate", () => {
     const wrongMainRoot = makeStandaloneFixture();
     writeFileSync(
       path.join(wrongMainRoot, "node_modules", "next", "package.json"),
-      JSON.stringify({ name: "next", version: "16.2.12", main: "./package.json" }),
+      JSON.stringify({ name: "next", version: lockedNextVersion, main: "./package.json" }),
     );
     const wrongMainResult = runPortableGuard(wrongMainRoot);
 
@@ -297,7 +305,7 @@ describe("standalone release portability gate", () => {
       path.join(normalizedMainRoot, "node_modules", "next", "package.json"),
       JSON.stringify({
         name: "next",
-        version: "16.2.12",
+        version: lockedNextVersion,
         main: "./x/../dist/server/next.js",
       }),
     );
@@ -308,7 +316,7 @@ describe("standalone release portability gate", () => {
       path.join(absoluteMainRoot, "node_modules", "next", "package.json"),
       JSON.stringify({
         name: "next",
-        version: "16.2.12",
+        version: lockedNextVersion,
         main: path.join(
           absoluteMainRoot,
           "node_modules",
@@ -349,7 +357,7 @@ describe("standalone release portability gate", () => {
     );
     writeFileSync(
       manifestFixturePath,
-      JSON.stringify({ name: "next", version: "16.2.12", main: "./dist/server/next.js" }),
+      JSON.stringify({ name: "next", version: lockedNextVersion, main: "./dist/server/next.js" }),
     );
     rmSync(manifestPath);
     symlinkSync("manifest-fixture.json", manifestPath);
