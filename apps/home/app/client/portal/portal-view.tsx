@@ -190,7 +190,10 @@ function EmailLookup({
     if (!email.trim()) return;
     setLoading(true);
     setError("");
-    router.push(`/client/portal?email=${encodeURIComponent(email.trim())}`);
+    // Portal data is only served behind a link issued by Content Co-Op. An
+    // email address is an identifier, not a credential, so it never resolves
+    // an account here; the visitor requests a fresh link instead.
+    router.push("/book");
   }
 
   return (
@@ -200,8 +203,9 @@ function EmailLookup({
           <Card.Header title="Client Portal" />
           <Card.Body>
             <p className="text-sm text-gray-600 mb-4">
-              Enter the email address associated with your account to view your
-              quotes, appointments, and invoices.
+              Your quotes, appointments, and invoices open from the private link
+              in your Content Co-Op emails. Enter your email to request a fresh
+              link.
             </p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -232,7 +236,7 @@ function EmailLookup({
                 fullWidth
                 loading={loading}
               >
-                View My Portal
+                Request My Portal Link
               </Button>
             </form>
           </Card.Body>
