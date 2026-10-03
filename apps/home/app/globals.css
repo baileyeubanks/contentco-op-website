@@ -3100,9 +3100,12 @@ h1, h2, h3, h4 {
   }
 
   /* Source opening vane is left of center; reposition only the required cover crop. */
-  .hero .hero-sequence-poster,
+  .hero .hero-sequence-poster {
+    object-position: 26.5% center;
+  }
+
   .hero .hero-video-sequence .hero-sequence-video--wide {
-    object-position: 32% center;
+    object-position: var(--weather-focal-x, 26.5%) center;
   }
 }
 
