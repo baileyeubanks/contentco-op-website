@@ -1366,6 +1366,24 @@ h1, h2, h3, h4 {
   background: linear-gradient(180deg, rgba(243, 237, 226, 0.1) 0%, rgba(22, 30, 42, 0.08) 52%, rgba(10, 16, 28, 0.36) 100%);
 }
 
+.hero .hero-sequence-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero .hero-video-sequence .hero-sequence-video {
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.hero .hero-video-sequence .hero-sequence-video.is-active {
+  opacity: 1;
+}
+
 .hero-content {
   display: grid;
   position: relative;

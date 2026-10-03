@@ -22,3 +22,7 @@ export function isCurrentHeroMedia(filename: string) {
 export const heroVideo = heroMediaAsset(HERO_VIDEO_FILENAME);
 export const heroVideoMobile = heroMediaAsset(HERO_VIDEO_MOBILE_FILENAME);
 export const heroPoster = heroMediaAsset(HERO_POSTER_FILENAME);
+
+// Exact owner-supplied Desktop/weather vane.mp4 derivative; first 180 frames, muted.
+export const weatherVaneVideo = "/media/hero-loop/weather-vane-hero-180f-muted.mp4?v=20261003";
+export const weatherVanePoster = "/media/hero-loop/weather-vane-poster.jpg?v=20261003";

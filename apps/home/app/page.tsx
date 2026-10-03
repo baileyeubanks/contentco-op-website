@@ -5,12 +5,12 @@ import type { CSSProperties, ReactNode } from "react";
 import { PublicPageLayout } from "./components/public-page-layout";
 import { AnimatedHome } from "./components/animated-home";
 import { SeoJsonLd } from "./components/seo-json-ld";
-import { AmbientVideo } from "./ambient-video";
+import { HeroVideoSequence } from "./hero-video-sequence";
+import { weatherVaneVideo, weatherVanePoster } from "./hero-video-config";
 import {
   galleryImages,
   heroVideo,
   heroVideoMobile,
-  heroPoster,
 } from "./home-content";
 import { RotatingGallery } from "./rotating-gallery";
 import {
@@ -177,12 +177,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         {/* ─── S1: Hero — cinematic full-bleed video ─── */}
         <section className="hero" data-hero-preview={heroPreview}>
-          <AmbientVideo
-            src={heroVideo}
-            mobileSrc={heroVideoMobile}
-            poster={heroPoster}
-            label="Industrial energy production footage"
-            forcePlayback
+          <HeroVideoSequence
+            firstSrc={weatherVaneVideo}
+            nextSrc={heroVideo}
+            nextMobileSrc={heroVideoMobile}
+            poster={weatherVanePoster}
           />
           <div className="hero-content">
             <h1>
