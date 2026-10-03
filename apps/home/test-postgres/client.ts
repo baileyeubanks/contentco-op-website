@@ -14,10 +14,11 @@ export class PgFixture {
   async rows(table: string) { return (await this.db.query(`SELECT * FROM ${table} ORDER BY id`)).rows as Row[]; }
 }
 class Query {
-  operation = "select"; payload: Row = {}; columns = "*"; filters: Array<[string, unknown]> = []; cap?: number;
+  operation = "select"; payload: Row = {}; columns = "*"; filters: Array<[string, unknown]> = []; cap?: number; nullFilters: string[] = [];
   constructor(public fixture: PgFixture, public schema: string, public table: string) {}
   select(columns = "*") { this.columns = columns; return this; }
   eq(column: string, value: unknown) { this.filters.push([column, value]); return this; }
+  is(column: string, value: null) { if (value !== null) throw new Error("Only SQL IS NULL is supported"); this.nullFilters.push(column); return this; }
   limit(value: number) { this.cap = value; return this; }
   insert(payload: Row) { this.operation = "insert"; this.payload = payload; return this; }
   update(payload: Row) { this.operation = "update"; this.payload = payload; return this; }
@@ -37,7 +38,8 @@ class Query {
     if (this.operation === "select") sql = `SELECT ${columns} FROM ${relation}`;
     if (this.operation === "insert") sql = `INSERT INTO ${relation} (${Object.keys(this.payload).map(quote).join(",")}) VALUES (${Object.values(this.payload).map(bind).join(",")}) RETURNING ${columns}`;
     if (this.operation === "update") sql = `UPDATE ${relation} SET ${Object.entries(this.payload).map(([k, v]) => `${quote(k)}=${bind(v)}`).join(",")}`;
-    if (this.operation !== "insert" && this.filters.length) sql += ` WHERE ${this.filters.map(([k, v]) => `${quote(k)}=${bind(v)}`).join(" AND ")}`;
+    const predicates = [...this.filters.map(([k, v]) => `${quote(k)}=${bind(v)}`), ...this.nullFilters.map((column) => `${quote(column)} IS NULL`)];
+    if (this.operation !== "insert" && predicates.length) sql += ` WHERE ${predicates.join(" AND ")}`;
     if (this.operation === "select" && this.cap !== undefined) sql += ` LIMIT ${this.cap}`;
     if (this.operation === "update") sql += ` RETURNING ${columns}`;
     try {

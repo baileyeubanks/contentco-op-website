@@ -26,6 +26,7 @@ let publicFake: FakeSupabase;
 let cvpFake: FakeSupabase;
 
 function seedApprovedFrozenEstimate(overrides: FakeRow = {}) {
+  publicFake.store.set("creative_briefs", [{ id: BRIEF_ID, company_account_id: "content-co-op" }]);
   publicFake.store.set("estimates", [
     {
       id: ESTIMATE_ID,
@@ -82,6 +83,13 @@ beforeEach(() => {
 });
 
 describe("cvp handoff (task 4.1)", () => {
+  test("missing saved brief link fails closed even with an approved frozen version", async () => {
+    seedApprovedFrozenEstimate({ brief_id: null });
+    const result = await runHandoff();
+    expect(result).toMatchObject({ error: "linked_brief_missing", retryable: false });
+    expect(cvpFake.store.get("projects") || []).toHaveLength(0);
+  });
+
   test("accepts equivalent PostgreSQL timestamptz representations", async () => {
     seedApprovedFrozenEstimate();
     const first = await runHandoff();

@@ -58,6 +58,62 @@ beforeEach(async () => {
 });
 
 describe("applied CCO PostgreSQL handoff contract", () => {
+  test.each(["declined", "triaged", "qualified"])("partial inquiry with operator status %s blocks before more writes", async (status) => {
+    await seedApproved(); fixture.fail("co_production.projects");
+    expect((await run()).error).toBeTruthy();
+    await pg.query(`UPDATE co_production.inquiries SET status=$1`, [status]); fixture.mutations = [];
+    const before = await fixture.rows("co_production.inquiries");
+    expect(await run()).toMatchObject({ error: "inquiry_workflow_changed", retryable: false });
+    expect(await fixture.rows("co_production.inquiries")).toEqual(before);
+    expect(fixture.mutations).toHaveLength(0);
+  });
+  test.each(["unlinked", "relinked"])("completed receipt rejects an inquiry that was %s without restoring it", async (kind) => {
+    await seedApproved(); expect((await run()).error).toBeNull();
+    if (kind === "unlinked") await pg.exec(`UPDATE co_production.inquiries SET project_id=NULL`);
+    else {
+      await pg.query(`INSERT INTO co_production.projects(id,owner_id,name) VALUES ($1,$2,'Other project')`, [ID.contact, ID.owner]);
+      await pg.query(`UPDATE co_production.inquiries SET project_id=$1`, [ID.contact]);
+    }
+    fixture.mutations = []; const before = await fixture.rows("co_production.inquiries");
+    expect((await run()).error).toBeTruthy();
+    expect(await fixture.rows("co_production.inquiries")).toEqual(before); expect(fixture.mutations).toHaveLength(0);
+  });
+  test.each(["relink", "status", "owner"])("concurrent inquiry %s immediately before compare-and-set survives", async (change) => {
+    await seedApproved();
+    await pg.query(`INSERT INTO auth.users(id) VALUES ($1)`, [ID.contact]);
+    await pg.query(`INSERT INTO co_production.projects(id,owner_id,name) VALUES ($1,$2,'Other project')`, [ID.contact, ID.owner]);
+    const client = fixture.client("co_production"); const originalFrom = client.from;
+    client.from = (table) => {
+      const query = originalFrom(table); const execute = query.execute.bind(query);
+      query.execute = async (mode) => {
+        if (table === "inquiries" && query.operation === "update") {
+          if (change === "relink") await pg.query(`UPDATE co_production.inquiries SET project_id=$1,status='declined'`, [ID.contact]);
+          if (change === "status") await pg.exec(`UPDATE co_production.inquiries SET status='qualified'`);
+          if (change === "owner") await pg.query(`UPDATE co_production.inquiries SET owner_id=$1`, [ID.contact]);
+        }
+        return execute(mode);
+      };
+      return query;
+    };
+    const result = await handoffBriefToProduction(ID.brief, "CC", { ...deps(), cvpSb: client as never });
+    expect(result).toMatchObject({ error: "inquiry_workflow_changed", retryable: false });
+    const inquiry = (await fixture.rows("co_production.inquiries"))[0];
+    if (change === "relink") expect(inquiry).toMatchObject({ project_id: ID.contact, status: "declined" });
+    if (change === "status") expect(inquiry).toMatchObject({ project_id: null, status: "qualified" });
+    if (change === "owner") expect(inquiry).toMatchObject({ project_id: null, owner_id: ID.contact });
+    expect(await fixture.rows("public.events")).toHaveLength(0);
+    expect(await fixture.rows("public.commercial_handoffs")).toHaveLength(0);
+  });
+  test("direct estimate endpoint also rejects a linked foreign-company brief", async () => {
+    await seedApproved(); await pg.exec(`UPDATE public.creative_briefs SET company_account_id='other-company'`);
+    expect(await handoffEstimateToCoVideoPro({ estimateId: ID.estimate }, deps())).toMatchObject({ error: "linked_brief_scope_mismatch", retryable: false });
+    expect(fixture.mutations).toHaveLength(0);
+  });
+  test("the applied estimate contract requires a saved brief link", async () => {
+    await seedApproved();
+    await expect(pg.exec(`UPDATE public.estimates SET brief_id=NULL`)).rejects.toMatchObject({ code: "23502" });
+  });
+
   test("completed replay preserves later production states and uses immutable client identity", async () => {
     await seedApproved(); expect((await run()).error).toBeNull();
     await pg.exec(`UPDATE co_production.projects SET name='Staff project name', stage='post', status='completed';

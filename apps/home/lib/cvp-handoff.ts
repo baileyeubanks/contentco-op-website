@@ -117,6 +117,14 @@ export async function handoffEstimateToCoVideoPro(
       blocked("estimate_not_approved", "Obtain approval for this estimate before opening production work.");
     }
     if (!estimate!.active_version_id) blocked("estimate_not_frozen", "Freeze the approved commercial version before handoff.");
+    // Direct estimate handoff shares the same tenant boundary as the brief
+    // route. A linked foreign-company brief cannot borrow a CC estimate's label.
+    // The applied estimates.brief_id column is required, not a standalone path.
+    if (!estimate!.brief_id) blocked("linked_brief_missing", "Restore the estimate's saved CCO brief link before opening production work.");
+    const linkedBrief = await find(sb, "creative_briefs", { id: estimate!.brief_id });
+    if (!linkedBrief || linkedBrief.company_account_id !== "content-co-op") {
+      blocked("linked_brief_scope_mismatch", "Reconcile the estimate's saved brief and CCO company scope before opening production work.");
+    }
     const version = await find(sb, "estimate_versions", { id: estimate!.active_version_id }) as EstimateVersionRow | null;
     if (!version) blocked("estimate_version_missing", "Restore the approved frozen estimate version.");
     const snapshot = version!.snapshot;
@@ -174,6 +182,18 @@ export async function handoffEstimateToCoVideoPro(
         blocked("handoff_receipt_link_conflict", "The saved receipt and production records disagree. Reconcile them before continuing.");
       }
     }
+    const priorInquiry = priorLinks.inquiries;
+    if (priorInquiry) {
+      if (priorInquiry.project_id && priorInquiry.project_id !== priorLinks.projects?.id) {
+        blocked("inquiry_project_conflict", "The inquiry is linked to different production work. Reconcile that relationship before continuing.");
+      }
+      if (saved && priorInquiry.project_id !== priorLinks.projects?.id) {
+        blocked("handoff_receipt_link_conflict", "The completed inquiry no longer links to the receipt's project. Reconcile it; retry will not restore the link.");
+      }
+      if (!saved && priorInquiry.status !== (priorInquiry.project_id ? "converted" : "new")) {
+        blocked("inquiry_workflow_changed", "The inquiry has a later workflow decision. Reconcile it before resuming this incomplete handoff.");
+      }
+    }
     // A committed receipt completes the handoff. Replays only verify its links;
     // they must never restore deleted work or reset later production decisions.
     if (saved) {
@@ -229,8 +249,30 @@ export async function handoffEstimateToCoVideoPro(
       status: "active", stage: "intake", organization_id: org.id, primary_contact_id: cvpContact.id });
     progress.cvpProjectId = String(project.id);
     for (const row of [inquiry, project]) {
-      if (row.cco_estimate_id !== estimateId || record(row.commercial_ref).payload_hash !== hash) {
+      if (row.owner_id !== ownerId || row.cco_estimate_version_id !== version!.id || row.cco_estimate_id !== estimateId || record(row.commercial_ref).payload_hash !== hash) {
         blocked("production_commercial_link_conflict", "Reconcile the existing production package with this approved version; existing work is preserved.");
+      }
+    }
+    stage = "inquiry_status";
+    if (inquiry.project_id && inquiry.project_id !== project.id) {
+      blocked("inquiry_project_conflict", "Reconcile the inquiry's existing project link before continuing.");
+    }
+    if (inquiry.status !== (inquiry.project_id ? "converted" : "new")) {
+      blocked("inquiry_workflow_changed", "The inquiry has a later workflow decision. Reconcile it before resuming this incomplete handoff.");
+    }
+    if (!inquiry.project_id) {
+      // Only transition the unlinked initial state we own. A concurrent handoff
+      // may win, but an operator's status/owner/link change must never be erased.
+      const marked = await cvp.from("inquiries").update({ status: "converted", project_id: project.id })
+        .eq("id", inquiry.id).eq("owner_id", ownerId).eq("cco_estimate_id", estimateId)
+        .eq("cco_estimate_version_id", version!.id).eq("status", "new").is("project_id", null)
+        .select("*").maybeSingle();
+      if (marked.error) databaseFailure(marked.error, "inquiry_conversion_not_saved");
+      const winner = marked.data || await find(cvp, "inquiries", { id: inquiry.id });
+      if (!winner || winner.owner_id !== ownerId || winner.cco_estimate_id !== estimateId ||
+        winner.cco_estimate_version_id !== version!.id || record(winner.commercial_ref).payload_hash !== hash ||
+        winner.project_id !== project.id || winner.status !== "converted") {
+        blocked("inquiry_workflow_changed", "The inquiry changed while handoff was running. Its owner, decision, and project link were preserved; reconcile before retrying.");
       }
     }
     stage = "deliverables";
@@ -243,13 +285,6 @@ export async function handoffEstimateToCoVideoPro(
         blocked("production_deliverable_link_conflict", "Reconcile the existing deliverable link; no existing work was changed.");
       }
       deliverableIds.push(String(row.id));
-    }
-    stage = "inquiry_status";
-    if (inquiry.project_id !== project.id) {
-      if (inquiry.project_id && inquiry.project_id !== project.id) blocked("inquiry_project_conflict", "Reconcile the inquiry's existing project link before continuing.");
-      const marked = await cvp.from("inquiries").update({ status: "converted", project_id: project.id })
-        .eq("id", inquiry.id).select("*").single();
-      if (marked.error || marked.data?.project_id !== project.id || marked.data?.status !== "converted") databaseFailure(marked.error, "inquiry_conversion_not_saved");
     }
     stage = "event";
     // Applied public.events binds objects inside payload, not missing top-level columns.
