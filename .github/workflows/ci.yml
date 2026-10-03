@@ -73,7 +73,9 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_PASSWORD: postgres
+          # Throwaway scratch database that lives only for this job; trust auth
+          # avoids embedding any password-shaped literal in the workflow.
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports:
           - 5432:5432
         options: >-
@@ -85,7 +87,6 @@ jobs:
       PGHOST: 127.0.0.1
       PGPORT: "5432"
       PGUSER: postgres
-      PGPASSWORD: postgres
     steps:
       - uses: actions/checkout@v6
 
