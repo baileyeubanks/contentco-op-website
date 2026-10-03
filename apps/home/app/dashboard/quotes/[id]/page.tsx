@@ -299,7 +299,6 @@ export default function QuoteDetailPage() {
   /* ─────────────────────────── OVERVIEW ─────────────────────────── */
   const overviewTab = (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "14px 12px" }}>
-      {quote.business_unit === "CC" && quote.id === quoteId && <CommercialHandoffStatusPanel key={quoteId} quoteId={quoteId} />}
       <div style={{ border: `1px solid ${LINE}`, borderRadius: 5, padding: "10px 12px" }}>
         <SHead label="Client" />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
@@ -535,6 +534,11 @@ export default function QuoteDetailPage() {
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", overflow: "hidden" }}>
       {topBar}
       {tabNav}
+      {tab === "overview" && quote.business_unit === "CC" && quote.id === quoteId && (
+        <div style={{ padding: "14px 12px 0" }}>
+          <CommercialHandoffStatusPanel key={quoteId} quoteId={quoteId} />
+        </div>
+      )}
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         <div style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
           {tab === "overview"   && overviewTab}
