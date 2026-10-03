@@ -219,12 +219,13 @@ function conversionManifest(value: unknown): ConversionManifest | null {
     (item.due_date === null || typeof item.due_date === "string")) ? manifest : null;
 }
 
-export async function createProjectFromBrief(briefId: string, businessUnit: string = "CC") {
+export async function createProjectFromBrief(requestedBriefId: string, businessUnit: string = "CC") {
   const sb = getSupabase();
   let project: Record<string, any> | null = null;
+  let canonicalBriefId: string | null = null;
   let replayed = false;
   const failed = (error: string, stage: string, retryable = true) => ({
-    project, error, stage, retryable, partial: Boolean(project), replayed,
+    project, briefId: canonicalBriefId, error, stage, retryable, partial: Boolean(project), replayed,
   });
   // This commercial handoff belongs only to CCO. A caller's scope must not
   // turn a CCO brief into an ACS project.
@@ -232,8 +233,14 @@ export async function createProjectFromBrief(briefId: string, businessUnit: stri
 
   try {
     const { data: brief, error: briefError } = await sb
-      .from("creative_briefs").select("*").eq("id", briefId).maybeSingle();
+      .from("creative_briefs").select("*").eq("id", requestedBriefId).maybeSingle();
     if (briefError || !brief) return failed(briefError?.message || "Brief not found", "brief", Boolean(briefError));
+    // PostgreSQL accepts several spellings of one UUID, while JSON values and
+    // replay-key hashes compare strings exactly. Only the saved ID is authority
+    // for every link and deterministic key after the initial database lookup.
+    if (typeof brief.id !== "string" || !brief.id) return failed("Brief ID receipt missing", "brief");
+    const briefId = brief.id;
+    canonicalBriefId = briefId;
     if (brief.company_account_id && brief.company_account_id !== "content-co-op") {
       return failed("Brief does not belong to CCO", "scope", false);
     }
@@ -391,7 +398,7 @@ export async function createProjectFromBrief(briefId: string, businessUnit: stri
       payload: { brief_id: briefId, deliverable_count: manifest.deliverables.length },
     });
     if (!event.ok) return failed(event.error || "Brief conversion handoff failed", "conversion_event");
-    return { project, error: null, replayed, partial: false, retryable: false, stage: "complete" };
+    return { project, briefId, error: null, replayed, partial: false, retryable: false, stage: "complete" };
   } catch {
     return failed("Brief conversion temporarily unavailable", "request");
   }

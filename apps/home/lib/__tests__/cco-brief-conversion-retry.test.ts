@@ -13,6 +13,8 @@ import { ccoRecordId } from "../cco-record-id";
 const briefId = "d2d31c2d-78a6-4923-809d-c713379ad405";
 const copy = <T>(row: T): T => JSON.parse(JSON.stringify(row));
 const field = (row: Row, key: string) => key.split("->").reduce((value, part) => value?.[part], row);
+const uuidValue = (value: unknown) => typeof value === "string" && /^[0-9a-f]{32}$/i.test(value.replace(/[{}-]/g, ""))
+  ? value.replace(/[{}-]/g, "").toLowerCase() : value;
 
 /** Models primary keys, conditional updates and row snapshots. Whole conversions
  * are intentionally not serialized, so simultaneous requests race on inserts. */
@@ -34,7 +36,12 @@ class Query {
   constructor(public db: Database, public table: string) {}
   select() { return this; }
   eq(key: string, value: unknown) {
-    this.filters.push((row) => key === "metadata" ? JSON.stringify(row.metadata) === value : field(row, key) === value);
+    this.filters.push((row) => {
+      if (key === "metadata") return JSON.stringify(row.metadata) === value;
+      // Model the UUID column comparison without changing JSON string equality.
+      if (this.table === "creative_briefs" && key === "id") return uuidValue(row.id) === uuidValue(value);
+      return field(row, key) === value;
+    });
     return this;
   }
   is(key: string, value: unknown) { this.filters.push((row) => (field(row, key) ?? null) === value); return this; }
@@ -91,6 +98,29 @@ function expectCompleteCounts() {
 }
 
 describe("brief conversion resumes persisted progress", () => {
+  const briefAliases = [briefId.toUpperCase(), `{${briefId}}`, briefId.replace(/-/g, "")];
+
+  test.each(briefAliases)("uses the stored brief ID when the first conversion uses a UUID alias (%s)", async (alias) => {
+    const initial = await createProjectFromBrief(alias);
+    expect(initial).toMatchObject({ error: null, briefId, replayed: false,
+      project: { id: ccoRecordId("brief-project", briefId), metadata: { source_brief_id: briefId } } });
+    for (const spelling of [briefId, ...briefAliases]) {
+      expect(await createProjectFromBrief(spelling)).toMatchObject({ error: null, briefId, replayed: true,
+        project: { id: initial.project?.id } });
+    }
+    expectCompleteCounts();
+    expect(db.rows("events").find((event) => event.type === "brief.converted")).toMatchObject({
+      id: ccoRecordId("typed-event", `CC:brief-converted:${briefId}`), payload: { brief_id: briefId },
+    });
+  });
+
+  test("simultaneous alternate UUID spellings share a single conversion", async () => {
+    const results = await Promise.all([briefId, ...briefAliases].map((alias) => createProjectFromBrief(alias)));
+    results.forEach((result) => expect(result).toMatchObject({ error: null, briefId,
+      project: { id: ccoRecordId("brief-project", briefId) } }));
+    expectCompleteCounts();
+  });
+
   test("concurrent conversions create one project, one set of deliverables and one handoff", async () => {
     const results = await Promise.all([createProjectFromBrief(briefId), createProjectFromBrief(briefId), createProjectFromBrief(briefId)]);
     results.forEach((result) => expect(result).toMatchObject({ error: null, stage: "complete" }));

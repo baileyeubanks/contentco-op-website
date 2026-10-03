@@ -29,10 +29,14 @@ describe("brief conversion recovery contract", () => {
   });
 
   test("returns an existing complete project as a replay instead of another creation", async () => {
-    mocks.convert.mockResolvedValue({ project: { id: "project-1" }, error: null, replayed: true });
+    mocks.convert.mockResolvedValue({ project: { id: "project-1" }, briefId: "stored-brief-id", error: null, replayed: true });
     const response = await POST(request(), params());
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ project: { id: "project-1" }, replayed: true });
+    expect(mocks.audit).toHaveBeenCalledWith(expect.objectContaining({
+      summary: "Brief stored-brief-id converted into project project-1",
+      metadata: { brief_id: "stored-brief-id", business_unit: "CC" },
+    }));
   });
 
   test("returns an explicit reconciliation state for ambiguous legacy work", async () => {

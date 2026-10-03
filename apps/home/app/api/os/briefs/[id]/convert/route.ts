@@ -32,9 +32,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       permission: "workflow_intervene",
       sourceSurface: "home.root",
       riskLevel: "high",
-      summary: `Brief ${id} converted into project ${result.project.id}`,
+      summary: `Brief ${result.briefId} converted into project ${result.project.id}`,
       metadata: {
-        brief_id: id,
+        brief_id: result.briefId,
         business_unit: scope || "CC",
       },
     });
