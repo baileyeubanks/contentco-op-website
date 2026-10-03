@@ -22,6 +22,11 @@
    intake contract. They are not called by `/brief`, are not a CCO-DB-backed
    submission or proposal path, and require a separately approved migration or
    retirement before a broader public-portal release.
+6. `GET /api/client/portal` and `GET /client/portal` are retired with `410 Gone`
+   and a request-a-link page. They resolved a contact from a bare `?email=` or
+   `?contact_id=` with the service-role client and returned quotes, invoices,
+   payments and conversations without any secret. Client portal data is only
+   served behind a bearer capability minted by CCO OS.
 
 Legacy note: `POST /api/briefs` is retired with `410 Gone`. It must not be
 used as a compatibility fallback for public intake.
@@ -55,7 +60,12 @@ Structured handoff envelope:
 Create-now vs later:
 
 1. Created now in CCO HOME:
-   CCO contact, `creative_briefs` row, client portal capability, client receipt email log, and Bailey admin alert log.
+   CCO contact, `creative_briefs` row, durable `events` row (`type = brief_submitted`,
+   `idempotency_key = cco_public_brief_submitted:<brief id>`, one per brief), client
+   portal capability, client receipt email log, and Bailey admin alert log.
+   The browser sees `persisted: true` only after the contact, the brief and the
+   `brief_submitted` event are all stored. Email delivery state is logged in
+   `notification_log` separately and never withdraws or gates those receipts.
 2. Deferred to CCO OS-managed follow-through:
    booking pairing, quote generation, formal approval, and operational follow-up.
 
@@ -65,6 +75,11 @@ End-to-end blockers:
 2. A browser must see `persisted: true` from CCO-DB before it may show a received state or request a proposal.
 3. A proposal must be stored before the browser may navigate to its proposal page. Deposit checkout remains disabled pending the canonical payment rail.
 4. Any CCO-DB schema change used by the public route must land as an explicit CCO migration before its runtime release.
+5. CCO-DB row level security contract: every CCO table is RLS-enabled with a
+   `service_role_only_<table>` policy (`20261003000000_cco_rls_service_role_lockdown.sql`).
+   The anon and authenticated roles have no policy on CCO tables and therefore
+   read zero rows and cannot write. `infra/supabase/tests/rls/run.sh` proves
+   this against a scratch Postgres built from the repo migrations.
 
 ## Co-Cut
 

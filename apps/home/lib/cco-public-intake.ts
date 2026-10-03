@@ -13,6 +13,39 @@ const ADMIN_ALERT_TEMPLATE = "cco_public_brief_admin_alert";
 const CLIENT_RECEIPT_TEMPLATE = "cco_public_brief_client_receipt";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
 
+/**
+ * Durable intake event contract. CCO OS consumers (os-marketing, the quote
+ * draft hydrator, automations) read `events.type = 'brief_submitted'` with
+ * `payload.brief_id`. The idempotency key namespace is enforced unique by
+ * `20261003000100_events_brief_submitted_contract.sql`.
+ */
+export const BRIEF_SUBMITTED_EVENT_TYPE = "brief_submitted";
+export const BRIEF_SUBMITTED_EVENT_VERSION = "cco.public-brief-submitted.v1";
+export const BRIEF_SUBMITTED_IDEMPOTENCY_PREFIX = "cco_public_brief_submitted:";
+
+/**
+ * The only `public.events` columns the public intake writer may touch. Every
+ * entry exists on live CCO-DB today and is declared by the repo migration
+ * above, so a scratch database built from source and the live database accept
+ * the same insert. Adding a column here requires a migration first.
+ */
+export const BRIEF_SUBMITTED_EVENT_COLUMNS = [
+  "type",
+  "business_unit",
+  "channel",
+  "direction",
+  "contact_id",
+  "text",
+  "payload",
+  "metadata",
+  "idempotency_key",
+  "event_version",
+] as const;
+
+export function briefSubmittedIdempotencyKey(briefId: string) {
+  return `${BRIEF_SUBMITTED_IDEMPOTENCY_PREFIX}${briefId}`;
+}
+
 type DatabaseError = { message?: string | null } | null;
 type DatabaseResult<T extends Record<string, unknown>> = Promise<{
   data: T | null;
@@ -130,6 +163,20 @@ type CcoBriefNotificationsReceipt = {
   error: string;
 };
 
+export type CcoBriefEvent = {
+  eventId: string;
+  replayed: boolean;
+  idempotencyKey: string;
+};
+
+type CcoBriefEventReceipt = {
+  ok: true;
+  event: CcoBriefEvent;
+} | {
+  ok: false;
+  error: string;
+};
+
 type EmailNotification = {
   recipient: string;
   templateKey: string;
@@ -161,6 +208,8 @@ export type CcoBriefPersistenceResult = {
   accessToken: string | null;
   status: string | null;
   briefNumber: string | null;
+  /** Durable `brief_submitted` receipt. Success is never reported without it. */
+  event: CcoBriefEvent;
   notification: CcoBriefNotification;
 } | {
   ok: false;
@@ -690,6 +739,79 @@ async function deliverBriefNotifications(input: {
   };
 }
 
+/**
+ * Writes the durable `brief_submitted` event for a persisted brief, or replays
+ * the one already stored. The brief row is the receipt the browser sees; this
+ * event is the receipt CCO OS acts on, so public success requires both.
+ *
+ * Only `BRIEF_SUBMITTED_EVENT_COLUMNS` are written, so the insert is valid on
+ * live CCO-DB and on a scratch database built from the repo migrations.
+ */
+async function ensureBriefSubmittedEvent(input: {
+  db: CcoPublicIntakeDatabase;
+  briefId: string;
+  contactId: string;
+  submission: CcoPublicBriefSubmission;
+}): Promise<CcoBriefEventReceipt> {
+  const idempotencyKey = briefSubmittedIdempotencyKey(input.briefId);
+  const lookup = () => input.db
+    .from("events")
+    .select("id")
+    .eq("type", BRIEF_SUBMITTED_EVENT_TYPE)
+    .eq("idempotency_key", idempotencyKey)
+    .maybeSingle();
+
+  const existing = await lookup();
+  if (existing.error) return { ok: false, error: databaseErrorCode("brief_event_lookup", existing.error) };
+  const existingId = asId(existing.data?.id);
+  if (existingId) return { ok: true, event: { eventId: existingId, replayed: true, idempotencyKey } };
+
+  const name = cleanLine(input.submission.contact.name, 160) || "New lead";
+  const company = cleanLine(input.submission.contact.company, 160) || "Unknown company";
+  const submissionId = resolveSubmissionId(input.submission.submissionId);
+  const row: Record<(typeof BRIEF_SUBMITTED_EVENT_COLUMNS)[number], unknown> = {
+    type: BRIEF_SUBMITTED_EVENT_TYPE,
+    business_unit: CCO_BUSINESS_UNIT,
+    channel: "website",
+    direction: "inbound",
+    contact_id: input.contactId,
+    text: `New public creative brief from ${name} at ${company}`,
+    payload: {
+      brief_id: input.briefId,
+      contact_id: input.contactId,
+      public_submission_id: submissionId,
+      source: "contentco-op.com/brief",
+      source_path: cleanString(input.submission.sourcePath) || "/brief",
+      idempotency_key: idempotencyKey,
+      event_version: BRIEF_SUBMITTED_EVENT_VERSION,
+      structured_intake: {
+        contact: input.submission.contact,
+        project: input.submission.project,
+        booking_preference: input.submission.bookingPreference,
+      },
+      intake_payload: input.submission,
+    },
+    metadata: {
+      source: "cco_public_intake",
+      idempotency_key: idempotencyKey,
+      event_version: BRIEF_SUBMITTED_EVENT_VERSION,
+    },
+    idempotency_key: idempotencyKey,
+    event_version: BRIEF_SUBMITTED_EVENT_VERSION,
+  };
+
+  const { data, error } = await input.db.from("events").insert(row).select("id").single();
+  const eventId = asId(data?.id);
+  if (!error && eventId) return { ok: true, event: { eventId, replayed: false, idempotencyKey } };
+
+  // A concurrent retry may have won the unique index race. Re-read before
+  // reporting a failure so the browser never retries a brief that is complete.
+  const raced = await lookup();
+  const racedId = asId(raced.data?.id);
+  if (!raced.error && racedId) return { ok: true, event: { eventId: racedId, replayed: true, idempotencyKey } };
+  return { ok: false, error: databaseErrorCode("brief_event_write", error) };
+}
+
 export async function persistCcoLead(
   input: { contact: CcoPublicContact; sourcePath?: string },
   deps?: Dependencies,
@@ -708,11 +830,27 @@ function briefResponse(
   brief: Record<string, unknown>,
   contactId: string,
   replayed: boolean,
+  event: CcoBriefEventReceipt,
   notifications: CcoBriefNotificationsReceipt,
 ): CcoBriefPersistenceResult {
   const briefId = asId(brief.id);
   if (!briefId) {
     return { ok: false, persisted: false, error: "brief_write_failed", retryable: true, contactId };
+  }
+  if (!event.ok) {
+    // The brief row exists, so the retry key must be kept and the browser must
+    // not show a received state until the OS-facing event is durable too.
+    return {
+      ok: false,
+      persisted: true,
+      error: event.error,
+      retryable: true,
+      contactId,
+      briefId,
+      accessToken: cleanString(brief.access_token) || null,
+      status: cleanString(brief.status) || null,
+      briefNumber: cleanString(brief.brief_number) || null,
+    };
   }
   if (!notifications.ok) {
     return {
@@ -736,6 +874,7 @@ function briefResponse(
     accessToken: cleanString(brief.access_token) || null,
     status: cleanString(brief.status) || null,
     briefNumber: cleanString(brief.brief_number) || null,
+    event: event.event,
     notification: notifications.notification,
   };
 }
@@ -802,6 +941,17 @@ export async function persistCcoBrief(
         briefNumber: cleanString(existingResult.data.brief_number) || null,
       };
     }
+    // A retry completes whichever durable steps are missing, in order: the
+    // OS-facing event first, then the delivery receipts.
+    const replayedEvent = await ensureBriefSubmittedEvent({
+      db,
+      briefId: existingBriefId,
+      contactId,
+      submission: persistedSubmission,
+    });
+    if (!replayedEvent.ok) {
+      return briefResponse(existingResult.data, contactId, true, replayedEvent, { ok: false, error: replayedEvent.error });
+    }
     const notifications = await deliverBriefNotifications({
       db,
       briefId: existingBriefId,
@@ -809,7 +959,7 @@ export async function persistCcoBrief(
       submission: persistedSubmission,
       sendEmail: deps?.sendEmail || sendTransactionalEmail,
     });
-    return briefResponse(existingResult.data, contactId, true, notifications);
+    return briefResponse(existingResult.data, contactId, true, replayedEvent, notifications);
   }
 
   const contact = await ensureCcoContact(db, submission.contact, submission.sourcePath);
@@ -899,6 +1049,12 @@ export async function persistCcoBrief(
       contactId: contact.contactId,
     };
   }
+  // Durable OS-facing event before any email is attempted: operator alerting
+  // is logged separately in notification_log and never gates this receipt.
+  const event = await ensureBriefSubmittedEvent({ db, briefId, contactId: contact.contactId, submission });
+  if (!event.ok) {
+    return briefResponse(brief, contact.contactId, false, event, { ok: false, error: event.error });
+  }
   const notifications = await deliverBriefNotifications({
     db,
     briefId,
@@ -906,7 +1062,7 @@ export async function persistCcoBrief(
     submission,
     sendEmail: deps?.sendEmail || sendTransactionalEmail,
   });
-  return briefResponse(brief, contact.contactId, false, notifications);
+  return briefResponse(brief, contact.contactId, false, event, notifications);
 }
 
 /** Builds AI input solely from the CCO-DB receipt, never from a proposal request body. */
