@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CCO_URLS, type CcoNavSurface, type CcoUrls } from "./cco-nav-config";
 
 interface NavProps {
@@ -13,7 +13,12 @@ export function Nav({ surface, urls }: NavProps) {
   const u = { ...CCO_URLS, ...urls };
   const [menuOpen, setMenuOpen] = useState(false);
   const [adminSurface, setAdminSurface] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const close = () => setMenuOpen(false);
+  const dismiss = () => {
+    setMenuOpen(false);
+    triggerRef.current?.focus();
+  };
 
   const briefActive = surface === "brief";
 
@@ -24,11 +29,14 @@ export function Nav({ surface, urls }: NavProps) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape" && menuOpen) {
+        setMenuOpen(false);
+        triggerRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [menuOpen]);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -60,6 +68,7 @@ export function Nav({ surface, urls }: NavProps) {
 
         <div className="cc-nav-actions">
           <button
+            ref={triggerRef}
             type="button"
             className={`cc-nav-rail-trigger ${menuOpen ? "active" : ""}`}
             aria-expanded={menuOpen}
@@ -77,7 +86,7 @@ export function Nav({ surface, urls }: NavProps) {
 
       <div
         className={`cc-nav-rail-backdrop ${menuOpen ? "open" : ""}`}
-        onClick={close}
+        onClick={dismiss}
         aria-hidden="true"
       />
 
@@ -86,12 +95,13 @@ export function Nav({ surface, urls }: NavProps) {
         className={`cc-nav-rail ${menuOpen ? "open" : ""}`}
         aria-label="Mobile navigation"
         aria-hidden={!menuOpen}
+        inert={!menuOpen}
       >
         <div className="cc-nav-rail-top">
           <button
             type="button"
             className="cc-nav-rail-close"
-            onClick={close}
+            onClick={dismiss}
             aria-label="Close menu"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
