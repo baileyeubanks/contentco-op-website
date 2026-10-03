@@ -80,6 +80,30 @@ const isId = (v: unknown): v is string => typeof v === "string" && uuid.test(v);
 const cents = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v >= 0;
 const record = (v: unknown): v is Row => Boolean(v && typeof v === "object" && !Array.isArray(v));
 const missing = (reason: string, state: Missing["state"] = "unavailable"): Missing => ({ state, reason });
+/** Compare RFC3339 instants at PostgreSQL microsecond precision without changing
+ * hashed snapshot bytes. Reject unsupported precision and normalized invalid dates. */
+function timestampMicros(value: unknown): bigint | null {
+    if (typeof value !== "string")
+        return null;
+    const parts = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?(Z|([+-])(\d{2}):(\d{2}))$/.exec(value);
+    if (!parts)
+        return null;
+    const wall = parts[1];
+    const milliseconds = Date.parse(`${wall}Z`);
+    if (!Number.isFinite(milliseconds) || new Date(milliseconds).toISOString().slice(0, 19) !== wall)
+        return null;
+    const hours = Number(parts[5] || 0);
+    const minutes = Number(parts[6] || 0);
+    if (hours > 23 || minutes > 59)
+        return null;
+    const offsetMinutes = (hours * 60 + minutes) * (parts[4] === "-" ? -1 : 1);
+    return BigInt(milliseconds) * 1000n + BigInt((parts[2] || "").padEnd(6, "0")) - BigInt(offsetMinutes) * 60000000n;
+}
+function sameTimestampInstant(left: unknown, right: unknown): boolean {
+    const a = timestampMicros(left);
+    const b = timestampMicros(right);
+    return a !== null && b !== null && a === b;
+}
 function initial(state: CommercialStatus["state"], reason: string): CommercialStatus {
     return { state, authority: "CCO_OS", projection: "read_only", quoteVersion: missing(reason), invoices: missing(reason), handoff: missing(reason), proposalLineage: missing("No verified mapping from CCO estimate versions to proposal-package Operating Record lineage."), nextAction: null };
 }
@@ -93,12 +117,12 @@ async function rows(query: CommercialReadQuery): Promise<Row[] | null> {
     }
 }
 function version(row: Row, estimateId: string, versionId: string, quoteId: string): Version | null {
-    if (row.id !== versionId || row.estimate_id !== estimateId || !Number.isSafeInteger(row.version) || Number(row.version) < 1 || typeof row.frozen_at !== "string" || !Number.isFinite(Date.parse(row.frozen_at)))
+    if (row.id !== versionId || row.estimate_id !== estimateId || !Number.isSafeInteger(row.version) || Number(row.version) < 1 || typeof row.frozen_at !== "string" || timestampMicros(row.frozen_at) === null)
         return null;
     if (!record(row.snapshot) || typeof row.sha256 !== "string" || !/^[0-9a-f]{64}$/.test(row.sha256))
         return null;
     const s = row.snapshot;
-    if (s.frozen_at !== row.frozen_at || !record(s.estimate) || !Array.isArray(s.line_items) || !record(s.totals))
+    if (!sameTimestampInstant(s.frozen_at, row.frozen_at) || !record(s.estimate) || !Array.isArray(s.line_items) || !record(s.totals))
         return null;
     if (s.estimate.id !== estimateId || s.estimate.business_unit !== "CC" || s.estimate.legacy_quote_id !== quoteId)
         return null;
@@ -130,7 +154,7 @@ function handoff(r: Row, source: Row, v: Version): CommercialHandoffStatus | nul
     const prefix = `cco:${number.trim().toLowerCase()}:v${v.version}:`;
     if (typeof r.idempotency_key !== "string" || !r.idempotency_key.startsWith(prefix) || !/^[A-Z][A-Z0-9]{0,2}$/.test(r.idempotency_key.slice(prefix.length)))
         return null;
-    if (ref.source !== "cco_os" || ref.estimate_id !== v.estimateId || ref.estimate_version_id !== v.versionId || ref.version !== v.version || ref.snapshot_sha256 !== v.snapshotSha256 || ref.frozen_at !== v.frozenAt || ref.estimate_number !== number || ref.idempotency_key !== r.idempotency_key || !record(ref.totals))
+    if (ref.source !== "cco_os" || ref.estimate_id !== v.estimateId || ref.estimate_version_id !== v.versionId || ref.version !== v.version || ref.snapshot_sha256 !== v.snapshotSha256 || !sameTimestampInstant(ref.frozen_at, v.frozenAt) || ref.estimate_number !== number || ref.idempotency_key !== r.idempotency_key || !record(ref.totals))
         return null;
     try {
         if (hashEstimateVersionSnapshot(ref.totals) !== hashEstimateVersionSnapshot(snapshot.totals))
