@@ -3,28 +3,30 @@ import { getSupabase } from "../../../../lib/supabase";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Capability-gated: the contact is resolved only from the opaque portal token
+ * that was emailed to them. Email / contact_id lookups were removed because
+ * they exposed quotes, invoices and payments to anyone who knew an address.
+ */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const email = searchParams.get("email");
-  const contactId = searchParams.get("contact_id");
+  const token = (searchParams.get("token") || "").trim();
 
-  if (!email && !contactId) {
+  if (!token || token.length < 16) {
     return NextResponse.json(
-      { error: "Missing email or contact_id parameter" },
-      { status: 400 },
+      { error: "portal_token_required" },
+      { status: 401 },
     );
   }
 
   const sb = getSupabase();
 
-  // 1. Find the contact
-  let contactQuery = sb.from("contacts").select("*");
-  if (contactId) {
-    contactQuery = contactQuery.eq("id", contactId);
-  } else {
-    contactQuery = contactQuery.eq("email", email!);
-  }
-  const { data: contacts, error: contactError } = await contactQuery.limit(1);
+  // 1. Find the contact by portal capability
+  const { data: contacts, error: contactError } = await sb
+    .from("contacts")
+    .select("*")
+    .eq("portal_token", token)
+    .limit(1);
 
   if (contactError) {
     return NextResponse.json(
@@ -35,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   if (!contacts || contacts.length === 0) {
     return NextResponse.json(
-      { error: "No account found for this email" },
+      { error: "invalid_token" },
       { status: 404 },
     );
   }
@@ -48,7 +50,7 @@ export async function GET(req: NextRequest) {
   const quotesPromise = sb
     .from("quotes")
     .select("*")
-    .or(`client_email.eq.${cEmail}`)
+    .eq("client_email", cEmail)
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -64,35 +66,21 @@ export async function GET(req: NextRequest) {
   const invoicesPromise = sb
     .from("invoices")
     .select("*")
-    .or(`client_email.eq.${cEmail}`)
+    .eq("client_email", cEmail)
     .order("created_at", { ascending: false })
     .limit(20);
 
-  // 5. Fetch payments — through quote_id or invoice_id
-  const paymentsPromise = sb
-    .from("payments")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  const [quotesRes, jobsRes, invoicesRes, paymentsRes] = await Promise.all([
+  const [quotesRes, jobsRes, invoicesRes] = await Promise.all([
     quotesPromise,
     jobsPromise,
     invoicesPromise,
-    paymentsPromise,
   ]);
 
-  // Filter payments to only those belonging to this client's quotes/invoices
-  const quoteIds = new Set(
-    (quotesRes.data ?? []).map((q: Record<string, unknown>) => q.id),
-  );
-  const invoiceIds = new Set(
-    (invoicesRes.data ?? []).map((i: Record<string, unknown>) => i.id),
-  );
-  const clientPayments = (paymentsRes.data ?? []).filter(
-    (p: Record<string, unknown>) =>
-      quoteIds.has(p.quote_id) || invoiceIds.has(p.invoice_id),
-  );
+  // 5. Fetch payments scoped to this client's quotes/invoices (not the latest
+  // 50 rows in the table, which could omit older payments).
+  const quoteIds = (quotesRes.data ?? []).map((q: Record<string, unknown>) => String(q.id));
+  const invoiceIds = (invoicesRes.data ?? []).map((i: Record<string, unknown>) => String(i.id));
+  const clientPayments = await fetchClientPayments(sb, quoteIds, invoiceIds);
 
   return NextResponse.json({
     contact,
@@ -101,4 +89,22 @@ export async function GET(req: NextRequest) {
     invoices: invoicesRes.data ?? [],
     payments: clientPayments,
   });
+}
+
+async function fetchClientPayments(
+  sb: ReturnType<typeof getSupabase>,
+  quoteIds: string[],
+  invoiceIds: string[],
+): Promise<Record<string, unknown>[]> {
+  const filters: string[] = [];
+  if (quoteIds.length) filters.push(`quote_id.in.(${quoteIds.join(",")})`);
+  if (invoiceIds.length) filters.push(`invoice_id.in.(${invoiceIds.join(",")})`);
+  if (!filters.length) return [];
+  const { data } = await sb
+    .from("payments")
+    .select("*")
+    .or(filters.join(","))
+    .order("created_at", { ascending: false })
+    .limit(200);
+  return (data ?? []) as Record<string, unknown>[];
 }

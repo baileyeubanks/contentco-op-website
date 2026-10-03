@@ -1,6 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "@/lib/email-sender";
 import type { ProposalInput, ProposalOutput } from "@/lib/gemini";
+import {
+  buildBriefPricingInputs,
+  calculateEstimate,
+  formatCurrency,
+  type BriefPricingProject,
+  type EstimateRange,
+} from "@/lib/pricing";
 import { BriefProjectSchema } from "@/lib/validation";
 
 /** The only database public Content Co-Op intake may write. */
@@ -8,7 +15,15 @@ export const CCO_DB_PROJECT_REF = "briokwdoonawhxisbydy";
 const CCO_DB_HOST = `${CCO_DB_PROJECT_REF}.supabase.co`;
 const CCO_BUSINESS_UNIT = "CC";
 const CCO_COMPANY_ACCOUNT_ID = "content-co-op";
-const CCO_ADMIN_EMAIL = "bailey@contentco-op.com";
+/**
+ * Operator alert roster. The default is code-pinned so a missing env never
+ * silences the alert; `CCO_ADMIN_ALERT_EMAILS` (comma-separated) can only ADD
+ * recipients, mirroring the ACS admin-alert roster rule.
+ */
+export const DEFAULT_CCO_ADMIN_ALERT_EMAILS = ["bailey@contentco-op.com"] as const;
+const CCO_OS_BRIEF_URL_BASE = "https://admin.contentco-op.com/os/marketing/briefs";
+const BRIEF_SUBMITTED_EVENT_TYPE = "brief_submitted";
+const BRIEF_SUBMITTED_EVENT_VERSION = "cco.public-brief-submitted.v1";
 const ADMIN_ALERT_TEMPLATE = "cco_public_brief_admin_alert";
 const CLIENT_RECEIPT_TEMPLATE = "cco_public_brief_client_receipt";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
@@ -117,9 +132,13 @@ type NotificationReceipt = {
   error: string;
 };
 
+type DeliveryStatus = "sent" | "failed" | "unknown";
+
 type CcoBriefNotification = {
-  admin: { status: "sent" | "failed" | "unknown"; logId: string };
-  client: { status: "sent" | "failed" | "unknown"; logId: string };
+  /** Aggregate over every operator recipient: sent if anyone got it. */
+  admin: { status: DeliveryStatus; logId: string };
+  admin_recipients: Array<{ recipient: string; status: DeliveryStatus; logId: string }>;
+  client: { status: DeliveryStatus; logId: string };
 };
 
 type CcoBriefNotificationsReceipt = {
@@ -162,6 +181,8 @@ export type CcoBriefPersistenceResult = {
   status: string | null;
   briefNumber: string | null;
   notification: CcoBriefNotification;
+  /** Durable `brief_submitted` event receipt; informational, never blocks intake. */
+  event?: { ok: boolean; replayed: boolean; error?: string };
 } | {
   ok: false;
   persisted: boolean;
@@ -438,35 +459,68 @@ function getPersistedBriefNotificationSubmission(
   };
 }
 
-function buildAdminAlert(input: CcoPublicBriefSubmission, briefId: string): EmailNotification {
+/** Resolves the operator alert roster: pinned defaults plus additive env entries. */
+export function resolveCcoAdminAlertRecipients(env: Record<string, string | undefined> = process.env): string[] {
+  const extra = cleanString(env.CCO_ADMIN_ALERT_EMAILS)
+    .split(/[,\s;]+/)
+    .map((value) => cleanEmail(value))
+    .filter((value) => /^\S+@\S+\.\S+$/.test(value));
+  return Array.from(new Set([...DEFAULT_CCO_ADMIN_ALERT_EMAILS, ...extra]));
+}
+
+/** Rule-based estimate for the operator alert; never blocks intake when inputs are thin. */
+function computeIntakeEstimate(project: CcoPublicBriefSubmission["project"]): EstimateRange | null {
+  try {
+    return calculateEstimate(buildBriefPricingInputs(project as unknown as BriefPricingProject));
+  } catch {
+    return null;
+  }
+}
+
+function buildAdminAlert(
+  input: CcoPublicBriefSubmission,
+  briefId: string,
+  recipient: string,
+  estimate: EstimateRange | null,
+): EmailNotification {
   const name = cleanLine(input.contact.name, 160) || "New lead";
   const company = cleanLine(input.contact.company, 160) || "Unknown company";
   const projectName = cleanLine(input.project.projectName, 240) || cleanLine(joinList(input.project.projectTypes), 240) || "Creative brief";
+  const estimateLine = estimate
+    ? `${formatCurrency(estimate.low)} – ${formatCurrency(estimate.high)} (rule-based, unreviewed)`
+    : "Not enough scope to estimate";
+  const osLink = `${CCO_OS_BRIEF_URL_BASE}/${briefId}`;
   const subject = `New Content Co-Op brief: ${name} — ${company}`;
   const text = [
     "A new public creative brief was persisted in CCO OS.",
     `Brief ID: ${briefId}`,
+    `Review in CCO OS: ${osLink}`,
     `Contact: ${name} <${cleanEmail(input.contact.email)}>`,
+    `Phone: ${cleanString(input.contact.phone) || "Not provided"}`,
     `Company: ${company}`,
     `Project: ${projectName}`,
     `Timeline: ${cleanString(input.project.timeline) || "Not provided"}`,
     `Budget: ${cleanString(input.project.budgetRange) || "Not provided"}`,
+    `Instant estimate: ${estimateLine}`,
     `Context: ${cleanString(input.project.projectContext).slice(0, 1200) || "Not provided"}`,
   ].join("\n");
   const html = `
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:620px;color:#0f172a;">
       <h1 style="font-size:20px;">New Content Co-Op creative brief</h1>
+      <p><a href="${escapeHtml(osLink)}" style="display:inline-block;padding:10px 16px;background:#0d5487;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Review in CCO OS</a></p>
       <p><strong>Brief ID:</strong> ${escapeHtml(briefId)}</p>
       <p><strong>Contact:</strong> ${escapeHtml(name)} &lt;${escapeHtml(cleanEmail(input.contact.email))}&gt;</p>
+      <p><strong>Phone:</strong> ${escapeHtml(cleanString(input.contact.phone) || "Not provided")}</p>
       <p><strong>Company:</strong> ${escapeHtml(company)}</p>
       <p><strong>Project:</strong> ${escapeHtml(projectName)}</p>
       <p><strong>Timeline:</strong> ${escapeHtml(input.project.timeline || "Not provided")}</p>
       <p><strong>Budget:</strong> ${escapeHtml(input.project.budgetRange || "Not provided")}</p>
+      <p><strong>Instant estimate:</strong> ${escapeHtml(estimateLine)}</p>
       <p><strong>Context:</strong><br>${escapeHtml(input.project.projectContext || "Not provided")}</p>
     </div>
   `;
   return {
-    recipient: CCO_ADMIN_EMAIL,
+    recipient,
     templateKey: ADMIN_ALERT_TEMPLATE,
     audience: "internal",
     subject,
@@ -661,33 +715,127 @@ async function deliverLoggedEmail(input: {
   return { ok: true, status, logId };
 }
 
+function aggregateDeliveryStatus(statuses: DeliveryStatus[]): DeliveryStatus {
+  if (statuses.includes("sent")) return "sent";
+  if (statuses.includes("unknown")) return "unknown";
+  return "failed";
+}
+
 async function deliverBriefNotifications(input: {
   db: CcoPublicIntakeDatabase;
   briefId: string;
   contactId: string;
   submission: CcoPublicBriefSubmission;
   sendEmail: CcoEmailSender;
+  adminRecipients: string[];
+  estimate: EstimateRange | null;
 }): Promise<CcoBriefNotificationsReceipt> {
-  const [admin, client] = await Promise.all([
-    deliverLoggedEmail({
-      ...input,
-      notification: buildAdminAlert(input.submission, input.briefId),
-    }),
+  const [adminResults, client] = await Promise.all([
+    Promise.all(
+      input.adminRecipients.map((recipient) =>
+        deliverLoggedEmail({
+          ...input,
+          notification: buildAdminAlert(input.submission, input.briefId, recipient, input.estimate),
+        }).then((receipt) => ({ recipient, receipt })),
+      ),
+    ),
     deliverLoggedEmail({
       ...input,
       notification: buildClientReceipt(input.submission, input.briefId),
     }),
   ]);
 
-  if (!admin.ok) return { ok: false, error: admin.error };
+  const adminFailure = adminResults.find(({ receipt }) => !receipt.ok);
+  if (adminFailure && !adminFailure.receipt.ok) return { ok: false, error: adminFailure.receipt.error };
   if (!client.ok) return { ok: false, error: client.error };
+
+  const adminRecipients = adminResults.flatMap(({ recipient, receipt }) =>
+    receipt.ok ? [{ recipient, status: receipt.status, logId: receipt.logId }] : [],
+  );
+  const primary = adminRecipients[0];
+  if (!primary) return { ok: false, error: "admin_alert_recipients_missing" };
   return {
     ok: true,
     notification: {
-      admin: { status: admin.status, logId: admin.logId },
+      admin: {
+        status: aggregateDeliveryStatus(adminRecipients.map((entry) => entry.status)),
+        logId: primary.logId,
+      },
+      admin_recipients: adminRecipients,
       client: { status: client.status, logId: client.logId },
     },
   };
+}
+
+/**
+ * Durable `brief_submitted` event so CCO OS consumers (quote draft, automations,
+ * inbox) see the intake without polling `creative_briefs`. Best effort: a failure
+ * here never blocks the client's receipt, but it is reported for operators.
+ *
+ * Writes only columns that exist on `public.events`
+ * (`infra/supabase/migrations/20260317_root_ontology_core.sql`, plus
+ * object_type / object_id / event_category). `idempotency_key` and
+ * `event_version` are not columns there; they live in payload and metadata.
+ * Replay matches `type` + `payload.brief_id`, the same lookup quote-draft uses.
+ */
+async function emitBriefSubmittedEvent(input: {
+  db: CcoPublicIntakeDatabase;
+  briefId: string;
+  contactId: string;
+  submission: CcoPublicBriefSubmission;
+  estimate: EstimateRange | null;
+}): Promise<{ ok: boolean; replayed: boolean; error?: string }> {
+  const idempotencyKey = `${BRIEF_SUBMITTED_EVENT_TYPE}:${input.briefId}`;
+  try {
+    const existing = await input.db
+      .from("events")
+      .select("id")
+      .eq("type", BRIEF_SUBMITTED_EVENT_TYPE)
+      .contains("payload", { brief_id: input.briefId })
+      .maybeSingle();
+    if (existing.error) return { ok: false, replayed: false, error: databaseErrorCode("event_lookup", existing.error) };
+    if (asId(existing.data?.id)) return { ok: true, replayed: true };
+
+    const name = cleanLine(input.submission.contact.name, 160) || "New lead";
+    const company = cleanLine(input.submission.contact.company, 160) || "Unknown company";
+    const { data, error } = await input.db
+      .from("events")
+      .insert({
+        type: BRIEF_SUBMITTED_EVENT_TYPE,
+        business_unit: CCO_BUSINESS_UNIT,
+        channel: "website",
+        direction: "inbound",
+        contact_id: input.contactId,
+        text: `New public creative brief from ${name} at ${company}`,
+        payload: {
+          brief_id: input.briefId,
+          contact_id: input.contactId,
+          public_submission_id: resolveSubmissionId(input.submission.submissionId),
+          source: "contentco-op.com/brief",
+          source_path: cleanString(input.submission.sourcePath) || "/brief",
+          idempotency_key: idempotencyKey,
+          event_version: BRIEF_SUBMITTED_EVENT_VERSION,
+          structured_intake: {
+            contact: input.submission.contact,
+            project: input.submission.project,
+            booking_preference: input.submission.bookingPreference,
+          },
+          estimate: input.estimate,
+        },
+        metadata: {
+          source: "cco_public_intake",
+          os_url: `${CCO_OS_BRIEF_URL_BASE}/${input.briefId}`,
+          idempotency_key: idempotencyKey,
+          event_version: BRIEF_SUBMITTED_EVENT_VERSION,
+        },
+      })
+      .select("id")
+      .single();
+    if (error || !asId(data?.id)) return { ok: false, replayed: false, error: databaseErrorCode("event_write", error) };
+    return { ok: true, replayed: false };
+  } catch (error) {
+    return { ok: false, replayed: false, error: boundedError(error instanceof Error ? error.message : error) };
+  }
 }
 
 export async function persistCcoLead(
@@ -709,6 +857,7 @@ function briefResponse(
   contactId: string,
   replayed: boolean,
   notifications: CcoBriefNotificationsReceipt,
+  event?: { ok: boolean; replayed: boolean; error?: string },
 ): CcoBriefPersistenceResult {
   const briefId = asId(brief.id);
   if (!briefId) {
@@ -737,6 +886,7 @@ function briefResponse(
     status: cleanString(brief.status) || null,
     briefNumber: cleanString(brief.brief_number) || null,
     notification: notifications.notification,
+    event,
   };
 }
 
@@ -802,14 +952,24 @@ export async function persistCcoBrief(
         briefNumber: cleanString(existingResult.data.brief_number) || null,
       };
     }
+    const replayEstimate = computeIntakeEstimate(persistedSubmission.project);
+    const replayEvent = await emitBriefSubmittedEvent({
+      db,
+      briefId: existingBriefId,
+      contactId,
+      submission: persistedSubmission,
+      estimate: replayEstimate,
+    });
     const notifications = await deliverBriefNotifications({
       db,
       briefId: existingBriefId,
       contactId,
       submission: persistedSubmission,
       sendEmail: deps?.sendEmail || sendTransactionalEmail,
+      adminRecipients: resolveCcoAdminAlertRecipients(deps?.env || process.env),
+      estimate: replayEstimate,
     });
-    return briefResponse(existingResult.data, contactId, true, notifications);
+    return briefResponse(existingResult.data, contactId, true, notifications, replayEvent);
   }
 
   const contact = await ensureCcoContact(db, submission.contact, submission.sourcePath);
@@ -899,14 +1059,21 @@ export async function persistCcoBrief(
       contactId: contact.contactId,
     };
   }
+  const estimate = computeIntakeEstimate(submission.project);
+  const event = await emitBriefSubmittedEvent({ db, briefId, contactId: contact.contactId, submission, estimate });
+  if (!event.ok) {
+    console.warn(`[cco-public-intake] brief_submitted event not recorded for ${briefId}: ${event.error}`);
+  }
   const notifications = await deliverBriefNotifications({
     db,
     briefId,
     contactId: contact.contactId,
     submission,
     sendEmail: deps?.sendEmail || sendTransactionalEmail,
+    adminRecipients: resolveCcoAdminAlertRecipients(deps?.env || process.env),
+    estimate,
   });
-  return briefResponse(brief, contact.contactId, false, notifications);
+  return briefResponse(brief, contact.contactId, false, notifications, event);
 }
 
 /** Builds AI input solely from the CCO-DB receipt, never from a proposal request body. */

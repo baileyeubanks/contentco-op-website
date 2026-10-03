@@ -5,12 +5,36 @@ import { useState } from "react";
 export function BriefOpsPanel({
   briefId,
   existingQuoteId,
+  briefStatus,
 }: {
   briefId: string;
   existingQuoteId?: string | null;
+  briefStatus?: string | null;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [converted, setConverted] = useState<{ id: string; title: string } | null>(null);
+  const alreadyConverted = briefStatus === "converted";
+
+  async function handleConvertToProject() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/os/briefs/${briefId}/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.project?.id) {
+        throw new Error(String(data?.error || "brief_convert_failed"));
+      }
+      setConverted({ id: String(data.project.id), title: String(data.project.title || "project") });
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "brief_convert_failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleGenerateDraft() {
     setBusy(true);
@@ -64,7 +88,20 @@ export function BriefOpsPanel({
         >
           {busy ? "building draft..." : existingQuoteId ? "generate fresh draft" : "generate draft quote"}
         </button>
+        <button
+          type="button"
+          onClick={handleConvertToProject}
+          disabled={busy || alreadyConverted || Boolean(converted)}
+          className="os-atlas-button os-atlas-button-secondary"
+        >
+          {converted || alreadyConverted ? "project opened" : busy ? "working..." : "open project from brief"}
+        </button>
       </div>
+      {converted ? (
+        <div style={{ fontSize: "0.78rem", color: "#6ee7b7" }}>
+          Project &ldquo;{converted.title}&rdquo; created ({converted.id.slice(0, 8)}). Deliverables were seeded from the brief.
+        </div>
+      ) : null}
       {error ? (
         <div style={{ fontSize: "0.78rem", color: "#fbbf24" }}>
           {error.replace(/_/g, " ")}

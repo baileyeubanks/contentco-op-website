@@ -4,33 +4,35 @@ import type { PortalData } from "./portal-view";
 
 export const dynamic = "force-dynamic";
 
-async function fetchPortalData(
-  email?: string,
-  contactId?: string,
-): Promise<PortalData | null> {
-  if (!email && !contactId) return null;
+/**
+ * The client portal is capability-gated: a contact is only ever resolved from
+ * the opaque `portal_token` we emailed them. Looking a client up by bare email
+ * or contact id would hand their quotes, invoices and payments to anyone who
+ * knows the address, so those parameters are deliberately ignored.
+ */
+async function fetchPortalData(token?: string): Promise<PortalData | null> {
+  const portalToken = typeof token === "string" ? token.trim() : "";
+  if (!portalToken || portalToken.length < 16) return null;
 
   const sb = getSupabase();
 
-  // Find the contact
-  let contactQuery = sb.from("contacts").select("*");
-  if (contactId) {
-    contactQuery = contactQuery.eq("id", contactId);
-  } else {
-    contactQuery = contactQuery.eq("email", email!);
-  }
-  const { data: contacts } = await contactQuery.limit(1);
+  // Resolve the contact from the portal capability only
+  const { data: contacts } = await sb
+    .from("contacts")
+    .select("*")
+    .eq("portal_token", portalToken)
+    .limit(1);
   if (!contacts || contacts.length === 0) return null;
 
   const contact = contacts[0];
   const cEmail = contact.email;
   const cId = contact.id;
 
-  const [quotesRes, jobsRes, invoicesRes, paymentsRes, conversationsRes] = await Promise.all([
+  const [quotesRes, jobsRes, invoicesRes, conversationsRes] = await Promise.all([
     sb
       .from("quotes")
       .select("*")
-      .or(`client_email.eq.${cEmail}`)
+      .eq("client_email", cEmail)
       .order("created_at", { ascending: false })
       .limit(20),
     sb
@@ -42,14 +44,9 @@ async function fetchPortalData(
     sb
       .from("invoices")
       .select("*")
-      .or(`client_email.eq.${cEmail}`)
+      .eq("client_email", cEmail)
       .order("created_at", { ascending: false })
       .limit(20),
-    sb
-      .from("payments")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50),
     sb
       .from("conversations")
       .select("id, channel, last_message_at, resolved, messages_json")
@@ -58,16 +55,22 @@ async function fetchPortalData(
       .limit(20),
   ]);
 
-  const quoteIds = new Set(
-    (quotesRes.data ?? []).map((q: Record<string, unknown>) => q.id),
-  );
-  const invoiceIds = new Set(
-    (invoicesRes.data ?? []).map((i: Record<string, unknown>) => i.id),
-  );
-  const clientPayments = (paymentsRes.data ?? []).filter(
-    (p: Record<string, unknown>) =>
-      quoteIds.has(p.quote_id) || invoiceIds.has(p.invoice_id),
-  );
+  // Payments scoped to this client's quotes/invoices rather than the latest
+  // 50 rows in the table, which could omit older payments.
+  const quoteIds = (quotesRes.data ?? []).map((q: Record<string, unknown>) => String(q.id));
+  const invoiceIds = (invoicesRes.data ?? []).map((i: Record<string, unknown>) => String(i.id));
+  const paymentFilters: string[] = [];
+  if (quoteIds.length) paymentFilters.push(`quote_id.in.(${quoteIds.join(",")})`);
+  if (invoiceIds.length) paymentFilters.push(`invoice_id.in.(${invoiceIds.join(",")})`);
+  const paymentsRes = paymentFilters.length
+    ? await sb
+      .from("payments")
+      .select("*")
+      .or(paymentFilters.join(","))
+      .order("created_at", { ascending: false })
+      .limit(200)
+    : { data: [] as Record<string, unknown>[] };
+  const clientPayments = paymentsRes.data ?? [];
 
   return {
     contact,
@@ -82,18 +85,16 @@ async function fetchPortalData(
 export default async function PortalPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string; contact_id?: string }>;
+  searchParams: Promise<{ token?: string; email?: string }>;
 }) {
   const params = await searchParams;
-  const email = params.email;
-  const contactId = params.contact_id;
-
-  const data = await fetchPortalData(email, contactId);
+  const data = await fetchPortalData(params.token);
 
   return (
     <PortalView
       data={data}
-      initialEmail={email ?? ""}
+      initialEmail={params.email ?? ""}
+      tokenPresented={Boolean(params.token)}
     />
   );
 }

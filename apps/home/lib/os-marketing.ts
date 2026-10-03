@@ -2,7 +2,8 @@
 import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { BOOKING_CALENDAR_URL } from "@/lib/public-booking";
-import { hydrateStructuredCreativeBriefIntake } from "@/lib/creative-brief";
+import { hydrateStructuredCreativeBriefIntake, isPublicBriefProjectShape } from "@/lib/creative-brief";
+import { buildBriefPricingInputs, calculateEstimate, type BriefPricingProject, type EstimateLine } from "@/lib/pricing";
 import { getSupabase } from "@/lib/supabase";
 import {
   portfolioFeaturedStudies,
@@ -228,6 +229,33 @@ export type RootMarketingBriefDetail = {
     estimatedTotal: number | null;
     createdAt: string | null;
   }>;
+  /** Present for public /brief submissions (2026-08+ shape). */
+  publicScope: {
+    projectTypes: string[];
+    projectName: string | null;
+    shootDayCount: string | null;
+    filmingLocations: string | null;
+    travelScope: string | null;
+    styleLevel: string | null;
+    targetRuntime: string | null;
+    productionNeeds: string[];
+    enhancements: string[];
+    placements: string[];
+    timeline: string | null;
+    budgetRange: string | null;
+    revisionExpectation: string | null;
+    projectContext: string | null;
+    successDefinition: string | null;
+  } | null;
+  /** Rule-based rate-card estimate for the public scope; never a quote. */
+  estimate: {
+    low: number;
+    high: number;
+    deposit: number;
+    subtotal: number;
+    lines: EstimateLine[];
+    notes: string[];
+  } | null;
 };
 
 function sentenceCase(value: string) {
@@ -776,6 +804,52 @@ export async function getRootMarketingBriefDetail(
       .order("created_at", { ascending: false })
     : { data: [], error: null };
 
+  const briefRecord = brief as unknown as Record<string, unknown>;
+  const storedData = isRecord(briefRecord.data) ? briefRecord.data : null;
+  const storedStructured = isRecord(briefRecord.structured_intake) ? briefRecord.structured_intake : null;
+  const publicProject = storedData && isPublicBriefProjectShape(storedData.project)
+    ? storedData.project
+    : storedStructured && isPublicBriefProjectShape(storedStructured.project)
+      ? storedStructured.project
+      : null;
+  const strings = (value: unknown) => (Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : []);
+  const text = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
+  const publicScope = publicProject
+    ? {
+      projectTypes: strings(publicProject.projectTypes),
+      projectName: text(publicProject.projectName),
+      shootDayCount: text(publicProject.shootDayCount),
+      filmingLocations: text(publicProject.filmingLocations),
+      travelScope: text(publicProject.travelScope),
+      styleLevel: text(publicProject.styleLevel),
+      targetRuntime: text(publicProject.targetRuntime),
+      productionNeeds: strings(publicProject.productionNeeds),
+      enhancements: strings(publicProject.enhancements),
+      placements: strings(publicProject.placements),
+      timeline: text(publicProject.timeline),
+      budgetRange: text(publicProject.budgetRange),
+      revisionExpectation: text(publicProject.revisionExpectation),
+      projectContext: text(publicProject.projectContext),
+      successDefinition: text(publicProject.successDefinition),
+    }
+    : null;
+  let estimate: RootMarketingBriefDetail["estimate"] = null;
+  if (publicProject) {
+    try {
+      const range = calculateEstimate(buildBriefPricingInputs(publicProject as unknown as BriefPricingProject));
+      estimate = {
+        low: range.low,
+        high: range.high,
+        deposit: range.deposit,
+        subtotal: range.subtotal ?? range.low,
+        lines: range.breakdown ?? [],
+        notes: range.notes ?? [],
+      };
+    } catch {
+      estimate = null;
+    }
+  }
+
   return {
     id: String(brief.id),
     workspace,
@@ -830,6 +904,8 @@ export async function getRootMarketingBriefDetail(
       estimatedTotal: typeof quote.estimated_total === "number" ? quote.estimated_total : null,
       createdAt: quote.created_at ? String(quote.created_at) : null,
     })),
+    publicScope,
+    estimate,
   };
 }
 
