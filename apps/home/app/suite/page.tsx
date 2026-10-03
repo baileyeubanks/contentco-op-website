@@ -138,6 +138,12 @@ export default function SuitePage() {
           plan the story, shape the film, and deliver the work without losing the thread.
         </p>
 
+        <p>
+          <a className={styles.primaryBtn} href="https://co-videopro.com/login?next=%2Fprojects">
+            Open Co-VideoPro
+          </a>
+        </p>
+
         <div className={styles.cardsRow}>
           {CARDS.map((card) => (
             <Link

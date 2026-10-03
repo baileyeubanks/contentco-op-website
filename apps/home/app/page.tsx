@@ -251,6 +251,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 These are not side quests. Every project moves through the same three rooms:
                 plan the story, shape the film, and deliver the work without losing the thread.
               </p>
+              <a className="button products-cvp-link" href="https://co-videopro.com/login?next=%2Fprojects">
+                Open Co-VideoPro
+              </a>
               <div className="products-grid">
                 {HOME_SUITE_PRODUCTS.map((product) => (
                   <Link
@@ -282,7 +285,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             </blockquote>
             <div className="trust-photo">
               <Image
-                src="/cc/photos/bailey-headshot.jpg"
+                src="/cc/photos/bailey-headshot-20261003.jpeg"
                 alt="Bailey Eubanks"
                 fill
                 sizes="(max-width:980px) 200px, 300px"
