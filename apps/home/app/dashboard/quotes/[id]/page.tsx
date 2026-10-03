@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { DT } from "@/app/os/components/dt";
 import { StatusPill } from "@/app/os/components/os-table";
+import { CommercialHandoffStatusPanel } from "@/app/os/components/commercial-handoff-status";
 import { QuoteLineItemEditor, type LineItem } from "@/app/os/components/quote-line-item-editor";
 
 /* ─── Types ─── */
@@ -298,6 +299,7 @@ export default function QuoteDetailPage() {
   /* ─────────────────────────── OVERVIEW ─────────────────────────── */
   const overviewTab = (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "14px 12px" }}>
+      {quote.business_unit === "CC" && quote.id === quoteId && <CommercialHandoffStatusPanel key={quoteId} quoteId={quoteId} />}
       <div style={{ border: `1px solid ${LINE}`, borderRadius: 5, padding: "10px 12px" }}>
         <SHead label="Client" />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
