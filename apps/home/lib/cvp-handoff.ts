@@ -1,412 +1,279 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { getSupabase } from "@/lib/supabase";
-import { getActiveEstimateVersion, type EstimateVersionRow } from "@/lib/os-estimate-versions";
-
-/**
- * Task 4.1 — accepted commercial package → Co-VideoPro project seam.
- *
- * Same-project service-role write: CCO OS and Co-VideoPro share one Supabase
- * project, so the handoff mirrors the CVP inquiry→project convert route's
- * exact writes through a schema-qualified service client (co_production).
- * No new HTTP surface on CVP, and CVP never mutates commercial totals.
- *
- * Idempotency key + payload-conflict semantics are ported from the ghost
- * (apps/home/lib/proposal-studio/handoff.ts on
- * codex/cco-proposal-studio-long-horizon :100-145) — minus the fake gateway.
- */
+import { ccoRecordId } from "@/lib/cco-record-id";
+import { CCO_DB_PROJECT_REF, getCcoOsDatabase } from "@/lib/cco-public-intake";
+import { hashEstimateVersionSnapshot, type EstimateVersionRow } from "@/lib/os-estimate-versions";
 
 type ClientLike = Pick<SupabaseClient, "from">;
+type Row = Record<string, any>;
+type Progress = { cvpInquiryId?: string; cvpProjectId?: string; organizationId?: string; contactId?: string };
+let _cvpClient: ClientLike | null = null;
 
-let _cvpClient: SupabaseClient | null = null;
-
-/** Service client bound to the co_production schema (Co-VideoPro tables). */
-export function getCvpSupabase(): SupabaseClient {
+/** Dedicated CCO production client; never change the global/public schema. */
+export function getCvpSupabase(): ClientLike {
   if (!_cvpClient) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? "";
-    const serviceKey = process.env.SUPABASE_SERVICE_KEY ?? "";
-    _cvpClient = createClient(url, serviceKey, { db: { schema: "co_production" } }) as unknown as SupabaseClient;
+    const url = process.env.CCO_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+    if (new URL(url).origin !== `https://${CCO_DB_PROJECT_REF}.supabase.co`) throw new Error("cco_db_binding_invalid");
+    const key = process.env.CCO_SUPABASE_SERVICE_ROLE_KEY || process.env.CCO_SUPABASE_SERVICE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
+    _cvpClient = createClient(url, key, { db: { schema: "co_production" } }) as unknown as ClientLike;
   }
   return _cvpClient;
 }
 
 export type CvpHandoffReceipt = {
-  status: "created";
-  replayed: boolean;
-  idempotencyKey: string;
-  payloadHash: `sha256:${string}`;
-  estimateId: string;
-  estimateVersionId: string;
-  cvpInquiryId: string;
-  cvpProjectId: string;
-  commercialRef: Record<string, unknown>;
+  status: "created"; replayed: boolean; idempotencyKey: string; payloadHash: `sha256:${string}`;
+  estimateId: string; estimateVersionId: string; cvpInquiryId: string; cvpProjectId: string;
+  commercialRef: Record<string, unknown>; deliverableIds: string[];
 };
-
-type HandoffResult = { receipt: CvpHandoffReceipt | null; error: string | null };
-
-function failure(error: string): HandoffResult {
-  return { receipt: null, error };
+export type HandoffResult = {
+  receipt: CvpHandoffReceipt | null; error: string | null; retryable: boolean;
+  partial: boolean; stage: string; action?: string; progress: Progress;
+};
+class HandoffError extends Error {
+  constructor(message: string, public retryable: boolean, public action?: string) { super(message); }
 }
-
+const blocked = (code: string, action: string): never => { throw new HandoffError(code, false, action); };
+const databaseFailure = (error: { message?: string; code?: string } | null, fallback: string): never => {
+  if (error?.code === "PGRST116") blocked("handoff_link_ambiguous", "Reconcile the multiple matching production records before retrying.");
+  if (error?.code === "23503") blocked("handoff_reference_missing", "Verify the configured production owner and linked records before retrying.");
+  if (error?.code === "42501" || error?.code === "PGRST106") blocked("handoff_access_not_ready", "Review the production schema access configuration; no permissions are changed automatically.");
+  if (["42703", "42P01", "PGRST204"].includes(error?.code || "")) blocked("handoff_schema_mismatch", "Run the reviewed schema preflight before enabling production handoff.");
+  throw new HandoffError(error?.message || fallback, true, "Retry this same approved estimate to resume the saved work.");
+};
 function stableJson(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `[${value.map(stableJson).join(",")}]`;
-  }
-  if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, item]) => `${JSON.stringify(key)}:${stableJson(item)}`);
-    return `{${entries.join(",")}}`;
-  }
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") return `{${Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${JSON.stringify(k)}:${stableJson(v)}`).join(",")}}`;
   return JSON.stringify(value);
 }
-
-function sha256(value: unknown): `sha256:${string}` {
-  return `sha256:${createHash("sha256").update(stableJson(value)).digest("hex")}`;
+const payloadHash = (value: unknown): `sha256:${string}` => `sha256:${createHash("sha256").update(stableJson(value)).digest("hex")}`;
+const record = (value: unknown): Row => value && typeof value === "object" && !Array.isArray(value) ? value as Row : {};
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function buildHandoffIdempotencyKey(number: string, version: number, variant: string): string | null {
+  const key = `cco:${String(number || "").trim().toLowerCase()}:v${version}:${String(variant || "").trim().toUpperCase()}`;
+  return Number.isSafeInteger(version) && version > 0 && /^cco:[a-z0-9-]+:v\d+:[A-Z][A-Z0-9]{0,2}$/.test(key) ? key : null;
 }
 
-const IDEMPOTENCY_KEY_PATTERN = /^cco:[a-z0-9-]+:v\d+:[A-Z][A-Z0-9]{0,2}$/;
-
-/** Ghost format: `cco:<pkg>:v<n>:<variant>` — binds package, version, variant. */
-export function buildHandoffIdempotencyKey(
-  estimateNumber: string,
-  version: number,
-  variant: string,
-): string | null {
-  const pkg = String(estimateNumber || "").trim().toLowerCase();
-  const normalizedVariant = String(variant || "").trim().toUpperCase();
-  if (!pkg || !Number.isSafeInteger(version) || version < 1) return null;
-  const key = `cco:${pkg}:v${version}:${normalizedVariant}`;
-  return IDEMPOTENCY_KEY_PATTERN.test(key) ? key : null;
+/** One production row per accepted scope item; quantity stays explicit in spec. */
+function acceptedDeliverables(version: EstimateVersionRow) {
+  const scope = record(record(version.snapshot.estimate).scope_snapshot).scope_items;
+  const items = Array.isArray(scope) ? scope.filter((item) => record(item).scope_bucket === "post_production_deliverables") : [];
+  if (!items.length) blocked("accepted_deliverables_missing", "Define the production deliverables in the estimate, then obtain approval on a new frozen version.");
+  return items.map((item, index) => {
+    const value = record(item);
+    const name = String(value.label || "").trim();
+    if (!name || name.length > 240 || !Number.isFinite(value.quantity) || value.quantity <= 0) {
+      blocked("accepted_deliverables_invalid", "Correct the accepted deliverable name or quantity through a new approved estimate version.");
+    }
+    return { name, spec: { source: "cco_os", estimate_version_id: version.id, scope_index: index,
+      item_type: value.item_type, quantity: value.quantity, metadata: record(value.metadata) } };
+  });
 }
 
-function canonicalHandoffPayload(input: {
-  idempotencyKey: string;
-  estimateId: string;
-  version: EstimateVersionRow;
-  variant: string;
-  ownerId: string;
-  contact: Record<string, unknown> | null;
-}) {
-  const snapshot = input.version.snapshot;
-  return {
-    idempotency_key: input.idempotencyKey,
-    estimate_id: input.estimateId,
-    estimate_version_id: input.version.id,
-    estimate_number: String(snapshot.estimate?.estimate_number || ""),
-    version: input.version.version,
-    variant: input.variant,
-    owner_id: input.ownerId,
-    contact: {
-      name: input.contact?.full_name ? String(input.contact.full_name) : null,
-      email: input.contact?.email ? String(input.contact.email) : null,
-      company: input.contact?.company ? String(input.contact.company) : null,
-      phone: input.contact?.phone ? String(input.contact.phone) : null,
-    },
-    totals: snapshot.totals,
-    snapshot_sha256: input.version.sha256,
-    frozen_at: input.version.frozen_at,
-  };
+async function find(client: ClientLike, table: string, match: Row): Promise<Row | null> {
+  let query = client.from(table).select("*");
+  for (const [key, value] of Object.entries(match)) query = query.eq(key, value);
+  const result = await query.maybeSingle();
+  if (result.error) databaseFailure(result.error, `${table}_lookup_failed`);
+  return result.data;
+}
+async function ensure(client: ClientLike, table: string, match: Row, values: Row, onReplay?: () => void): Promise<Row> {
+  const existing = await find(client, table, match);
+  if (existing) { onReplay?.(); return existing; }
+  const inserted = await client.from(table).insert(values).select("*").single();
+  if (inserted.error?.code === "23505") {
+    const winner = await find(client, table, match);
+    if (winner) { onReplay?.(); return winner; }
+    blocked("handoff_record_conflict", "Reconcile the existing production link before retrying; no existing record was overwritten.");
+  }
+  if (inserted.error || !inserted.data) databaseFailure(inserted.error, `${table}_write_failed`);
+  return inserted.data!;
 }
 
-function replayedReceiptFromRow(
-  row: Record<string, unknown>,
-  idempotencyKey: string,
-  payloadHash: `sha256:${string}`,
-  estimateId: string,
-): CvpHandoffReceipt {
-  const stored = (row.receipt || {}) as Record<string, unknown>;
-  return {
-    status: "created",
-    replayed: true,
-    idempotencyKey,
-    payloadHash,
-    estimateId,
-    estimateVersionId: String(row.estimate_version_id),
-    cvpInquiryId: String(row.cvp_inquiry_id || stored.cvp_inquiry_id || ""),
-    cvpProjectId: String(row.cvp_project_id || stored.cvp_project_id || ""),
-    commercialRef: (stored.commercial_ref || {}) as Record<string, unknown>,
-  };
-}
-
+/** Approved frozen commercial authority → explicitly qualified production rows.
+ * Completion lives in public.commercial_handoffs, not a made-up brief status. */
 export async function handoffEstimateToCoVideoPro(
-  input: { estimateId: string; variant?: string },
+  input: { estimateId: string; variant?: string; briefId?: string },
   deps?: { sb?: ClientLike; cvpSb?: ClientLike; env?: Record<string, string | undefined> },
 ): Promise<HandoffResult> {
-  const sb = deps?.sb ?? getSupabase();
-  const env = deps?.env ?? process.env;
-
-  const { data: estimate, error: estimateError } = await sb
-    .from("estimates")
-    .select("*")
-    .eq("id", input.estimateId)
-    .maybeSingle();
-  if (estimateError) return failure(estimateError.message);
-  if (!estimate) return failure("estimate_not_found");
-  if (String(estimate.internal_status || "").toLowerCase() !== "approved") {
-    return failure("estimate_not_approved");
-  }
-  if (!estimate.active_version_id) return failure("estimate_not_frozen");
-
-  const version = await getActiveEstimateVersion(sb, estimate as Record<string, unknown>);
-  if (!version) return failure("estimate_version_missing");
-
-  // Fail closed before ANY write: the CVP workspace owner is the one
-  // genuinely new config this seam requires.
-  const ownerId = String(env.CVP_OWNER_USER_ID || "").trim();
-  if (!ownerId) return failure("cvp_owner_user_id_missing");
-
-  const variant = String(input.variant || "A").toUpperCase();
-  const idempotencyKey = buildHandoffIdempotencyKey(
-    String(version.snapshot.estimate?.estimate_number || estimate.estimate_number || ""),
-    version.version,
-    variant,
-  );
-  if (!idempotencyKey) return failure("invalid_idempotency_key");
-
-  let contact: Record<string, unknown> | null = null;
-  if (estimate.contact_id) {
-    const { data } = await sb.from("contacts").select("*").eq("id", estimate.contact_id).maybeSingle();
-    contact = (data as Record<string, unknown> | null) || null;
-  }
-
-  const canonical = canonicalHandoffPayload({
-    idempotencyKey,
-    estimateId: input.estimateId,
-    version,
-    variant,
-    ownerId,
-    contact,
-  });
-  const payloadHash = sha256(canonical);
-
-  // Replay: same key + same payload returns the stored receipt, zero writes.
-  const { data: existingHandoff } = await sb
-    .from("commercial_handoffs")
-    .select("*")
-    .eq("idempotency_key", idempotencyKey)
-    .maybeSingle();
-  if (existingHandoff) {
-    if (existingHandoff.payload_hash !== payloadHash) return failure("idempotency_payload_conflict");
-    return {
-      receipt: replayedReceiptFromRow(existingHandoff, idempotencyKey, payloadHash, input.estimateId),
-      error: null,
-    };
-  }
-
-  const cvp = deps?.cvpSb ?? getCvpSupabase();
-  const totals = version.snapshot.totals;
-  const commercialRef = {
-    source: "cco_os",
-    estimate_id: input.estimateId,
-    estimate_version_id: version.id,
-    estimate_number: canonical.estimate_number,
-    version: version.version,
-    frozen_at: version.frozen_at,
-    snapshot_sha256: version.sha256,
-    totals,
-    idempotency_key: idempotencyKey,
-  };
-
-  // ── Mirror of CVP app/api/inquiries/[id]/convert/route.ts writes ──
-
-  // Organization (workspace-scoped CRM upsert by owner+name).
-  const orgName = String(contact?.company || contact?.full_name || canonical.estimate_number).trim();
-  const { data: existingOrg } = await cvp
-    .from("organizations")
-    .select("*")
-    .eq("owner_id", ownerId)
-    .eq("name", orgName)
-    .maybeSingle();
-  let organization = existingOrg as Record<string, unknown> | null;
-  if (!organization) {
-    const { data, error } = await cvp
-      .from("organizations")
-      .insert({ owner_id: ownerId, name: orgName })
-      .select("*")
-      .single();
-    if (error || !data) return failure(error?.message || "cvp_organization_write_failed");
-    organization = data as Record<string, unknown>;
-  }
-
-  // Contact (email is NOT NULL on co_production.contacts — skip without one).
-  let cvpContact: Record<string, unknown> | null = null;
-  const contactEmail = String(contact?.email || "").trim().toLowerCase();
-  const contactName = String(contact?.full_name || orgName).trim();
-  if (contactEmail) {
-    const { data: existingContact } = await cvp
-      .from("contacts")
-      .select("*")
-      .eq("owner_id", ownerId)
-      .eq("email", contactEmail)
-      .maybeSingle();
-    if (existingContact) {
-      const { data, error } = await cvp
-        .from("contacts")
-        .update({
-          name: contactName,
-          organization_id: organization.id,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingContact.id)
-        .select("*")
-        .single();
-      if (error) return failure(error.message);
-      cvpContact = (data as Record<string, unknown> | null) || (existingContact as Record<string, unknown>);
-    } else {
-      const { data, error } = await cvp
-        .from("contacts")
-        .insert({
-          owner_id: ownerId,
-          organization_id: organization.id,
-          name: contactName,
-          email: contactEmail,
-          is_primary: true,
-        })
-        .select("*")
-        .single();
-      if (error || !data) return failure(error?.message || "cvp_contact_write_failed");
-      cvpContact = data as Record<string, unknown>;
+  let stage = "commercial_gate";
+  const progress: Progress = {};
+  try {
+    const env = deps?.env ?? process.env;
+    let sb = deps?.sb;
+    if (!sb) {
+      const binding = getCcoOsDatabase(env);
+      if (!binding.ok) throw new HandoffError(binding.error, false, "Restore the existing CCO database binding before retrying.");
+      sb = binding.db as unknown as ClientLike;
     }
-  }
-
-  // Inquiry: source cco_os, summary = commercial reference. The writes are
-  // resumable: keyed by cco_estimate_version_id (unique in co_production),
-  // so a retry after a crash — or the loser of a concurrent race — reuses
-  // the existing rows instead of duplicating them.
-  const summary = `CCO OS accepted package ${canonical.estimate_number} v${version.version} — total $${(totals.total_cents / 100).toLocaleString("en-US")} (frozen ${version.frozen_at}, sha256 ${version.sha256.slice(0, 16)})`;
-  let inquiry: Record<string, unknown> | null = null;
-  const { data: existingInquiry } = await cvp
-    .from("inquiries")
-    .select("*")
-    .eq("owner_id", ownerId)
-    .eq("cco_estimate_version_id", version.id)
-    .maybeSingle();
-  if (existingInquiry) {
-    inquiry = existingInquiry as Record<string, unknown>;
-  } else {
-    const inserted = await cvp
-      .from("inquiries")
-      .insert({
-        owner_id: ownerId,
-        organization_id: organization.id,
-        contact_id: cvpContact?.id || null,
-        source: "cco_os",
-        summary,
-        status: "new",
-        cco_estimate_id: input.estimateId,
-        cco_estimate_version_id: version.id,
-        commercial_total_cents: totals.total_cents,
-        commercial_ref: commercialRef,
-      })
-      .select("*")
-      .single();
-    if (inserted.error) {
-      // Lost a concurrent race — the unique index serialized; recover the winner's row.
-      const { data: raced } = await cvp
-        .from("inquiries")
-        .select("*")
-        .eq("owner_id", ownerId)
-        .eq("cco_estimate_version_id", version.id)
-        .maybeSingle();
-      if (!raced) return failure(inserted.error.message || "cvp_inquiry_write_failed");
-      inquiry = raced as Record<string, unknown>;
-    } else {
-      inquiry = inserted.data as Record<string, unknown>;
+    const estimate = await find(sb, "estimates", { id: input.estimateId });
+    if (!estimate) blocked("estimate_not_found", "Choose an existing CCO estimate.");
+    const estimateId = String(estimate!.id);
+    if (estimate!.business_unit !== "CC" || (input.briefId && estimate!.brief_id !== input.briefId)) {
+      blocked("estimate_scope_mismatch", "Reconcile the brief and CCO estimate link before continuing.");
     }
-  }
-
-  // Project at stage 'intake' with org/contact links — exactly the convert
-  // route's write, plus the commercial handoff columns. Same resumable rule.
-  const projectName = `${orgName} — ${canonical.estimate_number}`.slice(0, 240);
-  let project: Record<string, unknown> | null = null;
-  const { data: existingProject } = await cvp
-    .from("projects")
-    .select("*")
-    .eq("owner_id", ownerId)
-    .eq("cco_estimate_version_id", version.id)
-    .maybeSingle();
-  if (existingProject) {
-    project = existingProject as Record<string, unknown>;
-  } else {
-    const inserted = await cvp
-      .from("projects")
-      .insert({
-        owner_id: ownerId,
-        name: projectName,
-        stage: "intake",
-        organization_id: organization.id ?? null,
-        primary_contact_id: cvpContact?.id ?? null,
-        cco_estimate_id: input.estimateId,
-        cco_estimate_version_id: version.id,
-        commercial_total_cents: totals.total_cents,
-        commercial_ref: commercialRef,
-      })
-      .select("*")
-      .single();
-    if (inserted.error) {
-      const { data: raced } = await cvp
-        .from("projects")
-        .select("*")
-        .eq("owner_id", ownerId)
-        .eq("cco_estimate_version_id", version.id)
-        .maybeSingle();
-      if (!raced) return failure(inserted.error.message || "cvp_project_write_failed");
-      project = raced as Record<string, unknown>;
-    } else {
-      project = inserted.data as Record<string, unknown>;
+    if (estimate!.superseded_by_estimate_id) blocked("estimate_superseded", "Choose the current approved estimate.");
+    if (estimate!.internal_status !== "approved" || estimate!.client_status !== "approved") {
+      blocked("estimate_not_approved", "Obtain approval for this estimate before opening production work.");
     }
+    if (!estimate!.active_version_id) blocked("estimate_not_frozen", "Freeze the approved commercial version before handoff.");
+    const version = await find(sb, "estimate_versions", { id: estimate!.active_version_id }) as EstimateVersionRow | null;
+    if (!version) blocked("estimate_version_missing", "Restore the approved frozen estimate version.");
+    const snapshot = version!.snapshot;
+    if (version!.estimate_id !== estimateId || !snapshot || record(snapshot.estimate).id !== estimateId ||
+      record(snapshot.estimate).brief_id !== estimate!.brief_id || record(snapshot.estimate).business_unit !== "CC") {
+      blocked("estimate_version_binding_invalid", "The frozen version does not belong to this CCO estimate and brief; reconcile it first.");
+    }
+    if (version!.sha256 !== hashEstimateVersionSnapshot(snapshot)) blocked("estimate_snapshot_hash_invalid", "The frozen snapshot has changed. Restore or reapprove a verified version.");
+    if (!Number.isSafeInteger(version!.version) || version!.version < 1 || !Number.isFinite(Date.parse(version!.frozen_at)) ||
+      Date.parse(snapshot.frozen_at) !== Date.parse(version!.frozen_at) || !Array.isArray(snapshot.line_items) || !snapshot.line_items.length ||
+      !Number.isSafeInteger(snapshot.totals?.total_cents) || snapshot.totals.total_cents < 0) {
+      blocked("estimate_snapshot_invalid", "Complete and freeze the commercial package before handoff.");
+    }
+    const approval = await sb.from("estimate_decisions").select("id")
+      .eq("estimate_id", estimateId).eq("estimate_version_id", version!.id)
+      .eq("decision_type", "approved").limit(1).maybeSingle();
+    if (approval.error) databaseFailure(approval.error, "estimate_approval_lookup_failed");
+    if (!approval.data?.id) blocked("estimate_version_approval_missing", "Obtain approval for this exact frozen estimate version before opening production work.");
+    const ownerId = String(env.CVP_OWNER_USER_ID || "").trim().toLowerCase();
+    if (!ownerId) blocked("cvp_owner_user_id_missing", "Configure the existing approved CVP owner identity; no owner will be invented.");
+    if (!UUID.test(ownerId)) blocked("cvp_owner_user_id_invalid", "Correct the configured CVP owner UUID before retrying.");
+    const variant = String(input.variant || "A").trim().toUpperCase();
+    // Applied production uniqueness is one project per estimate version, not per variant.
+    if (variant !== "A") blocked("handoff_variant_unsupported", "Use the approved default package or obtain a separate approved estimate version.");
+    const key = buildHandoffIdempotencyKey(String(snapshot.estimate.estimate_number || ""), version!.version, variant);
+    if (!key) blocked("invalid_idempotency_key", "Correct the estimate number or frozen version before handoff.");
+    const contact = record(snapshot.contact);
+    const contactName = String(contact.full_name || contact.name || "").trim();
+    const orgName = String(contact.company || contactName).trim();
+    const email = String(contact.email || "").trim().toLowerCase();
+    if (!orgName || orgName.length > 240 || !contactName || contactName.length > 240 || email.length < 3 || email.length > 320) {
+      blocked("frozen_contact_missing", "Include the client identity in a newly approved frozen estimate version.");
+    }
+    const deliverables = acceptedDeliverables(version!);
+    const canonical = { estimate_id: estimateId, estimate_version_id: version!.id, brief_id: estimate!.brief_id,
+      estimate_number: snapshot.estimate.estimate_number, idempotency_key: key, owner_id: ownerId, snapshot_sha256: version!.sha256, frozen_at: new Date(version!.frozen_at).toISOString(),
+      contact, totals: snapshot.totals, deliverables };
+    const hash = payloadHash(canonical);
+    const commercialRef = { ...canonical, payload_hash: hash, source: "cco_os" };
+    const saved = await find(sb, "commercial_handoffs", { idempotency_key: key });
+    if (saved && (saved.payload_hash !== hash || saved.estimate_id !== estimateId || saved.estimate_version_id !== version!.id)) {
+      blocked("idempotency_payload_conflict", "Reconcile the saved handoff with the approved frozen version; it will not be overwritten.");
+    }
+    const cvp = deps?.cvpSb ?? getCvpSupabase();
+    // Inspect existing commercial links before creating even CRM rows. Version
+    // uniqueness is global, so an owner change cannot manufacture another copy.
+    const priorLinks: Record<string, Row> = {};
+    for (const table of ["inquiries", "projects"]) {
+      const prior = await find(cvp, table, { cco_estimate_version_id: version!.id });
+      if (prior) priorLinks[table] = prior;
+      if (prior && (prior.owner_id !== ownerId || prior.cco_estimate_id !== estimateId || record(prior.commercial_ref).payload_hash !== hash)) {
+        blocked("production_commercial_link_conflict", "Reconcile the existing production package and configured owner; existing work is preserved.");
+      }
+      if (saved && (!prior || prior.id !== saved[table === "projects" ? "cvp_project_id" : "cvp_inquiry_id"])) {
+        blocked("handoff_receipt_link_conflict", "The saved receipt and production records disagree. Reconcile them before continuing.");
+      }
+    }
+    // A committed receipt completes the handoff. Replays only verify its links;
+    // they must never restore deleted work or reset later production decisions.
+    if (saved) {
+      stage = "receipt_verification";
+      const project = priorLinks.projects;
+      const inquiry = priorLinks.inquiries;
+      const deliverableIds = deliverables.map((_, index) => ccoRecordId("cvp-deliverable", `${version!.id}:${index}`));
+      for (const [index, id] of deliverableIds.entries()) {
+        const row = await find(cvp, "deliverables", { id });
+        if (!row || row.project_id !== project.id || record(row.spec).estimate_version_id !== version!.id || record(row.spec).scope_index !== index) {
+          blocked("handoff_receipt_link_conflict", "A completed handoff's deliverable link is missing or changed. Reconcile it; retry will not recreate deleted work.");
+        }
+      }
+      const event = await find(sb, "events", { id: ccoRecordId("cvp-handoff-event", version!.id) });
+      if (!event || event.business_unit !== "CC" || record(event.payload).payload_hash !== hash || record(event.payload).project_id !== project.id) {
+        blocked("handoff_event_conflict", "Reconcile the stored production handoff event before retrying.");
+      }
+      const receipt: CvpHandoffReceipt = { status: "created", replayed: true, idempotencyKey: key!, payloadHash: hash,
+        estimateId, estimateVersionId: version!.id, cvpInquiryId: String(inquiry.id), cvpProjectId: String(project.id), commercialRef, deliverableIds };
+      return { receipt, error: null, retryable: false, partial: false, stage: "complete",
+        progress: { cvpInquiryId: String(inquiry.id), cvpProjectId: String(project.id) } };
+    }
+    // Resolve both CRM links before writing. Email alone cannot authorize moving
+    // an existing production contact into the frozen client's organization.
+    const priorOrg = await find(cvp, "organizations", { owner_id: ownerId, name: orgName });
+    const priorContact = await find(cvp, "contacts", { owner_id: ownerId, email });
+    if (priorContact && (!priorOrg || priorContact.organization_id !== priorOrg.id)) {
+      blocked("production_contact_organization_conflict", "The production contact belongs to a different organization. Reconcile that relationship before continuing.");
+    }
+    stage = "organization";
+    const org = await ensure(cvp, "organizations", { owner_id: ownerId, name: orgName }, {
+      id: ccoRecordId("cvp-organization", `${ownerId}:${orgName}`), owner_id: ownerId, name: orgName });
+    progress.organizationId = String(org.id);
+    stage = "contact";
+    const cvpContact = await ensure(cvp, "contacts", { owner_id: ownerId, email }, {
+      id: ccoRecordId("cvp-contact", `${ownerId}:${email}`), owner_id: ownerId,
+      name: contactName, email, organization_id: org.id, is_primary: true });
+    progress.contactId = String(cvpContact.id);
+    if (cvpContact.organization_id !== org.id) {
+      blocked("production_contact_organization_conflict", "The production contact belongs to a different organization. Reconcile that relationship before continuing.");
+    }
+    const binding = { owner_id: ownerId, cco_estimate_version_id: version!.id };
+    const common = { owner_id: ownerId, cco_estimate_id: estimateId, cco_estimate_version_id: version!.id,
+      commercial_total_cents: snapshot.totals.total_cents, commercial_ref: commercialRef };
+    stage = "inquiry";
+    const inquiry = await ensure(cvp, "inquiries", binding, { ...common,
+      id: ccoRecordId("cvp-inquiry", version!.id), organization_id: org.id, contact_id: cvpContact.id,
+      source: "cco_os", summary: `Accepted CCO estimate ${snapshot.estimate.estimate_number} v${version!.version}`, status: "new" });
+    progress.cvpInquiryId = String(inquiry.id);
+    stage = "project";
+    const project = await ensure(cvp, "projects", binding, { ...common,
+      id: ccoRecordId("cvp-project", version!.id), name: `${orgName} — ${snapshot.estimate.estimate_number}`.slice(0, 240),
+      status: "active", stage: "intake", organization_id: org.id, primary_contact_id: cvpContact.id });
+    progress.cvpProjectId = String(project.id);
+    for (const row of [inquiry, project]) {
+      if (row.cco_estimate_id !== estimateId || record(row.commercial_ref).payload_hash !== hash) {
+        blocked("production_commercial_link_conflict", "Reconcile the existing production package with this approved version; existing work is preserved.");
+      }
+    }
+    stage = "deliverables";
+    const deliverableIds: string[] = [];
+    for (const [index, item] of deliverables.entries()) {
+      const id = ccoRecordId("cvp-deliverable", `${version!.id}:${index}`);
+      const row = await ensure(cvp, "deliverables", { id }, { id, project_id: project.id,
+        created_by: ownerId, name: item.name, spec: item.spec, status: "specced" });
+      if (row.project_id !== project.id || record(row.spec).estimate_version_id !== version!.id || record(row.spec).scope_index !== index) {
+        blocked("production_deliverable_link_conflict", "Reconcile the existing deliverable link; no existing work was changed.");
+      }
+      deliverableIds.push(String(row.id));
+    }
+    stage = "inquiry_status";
+    if (inquiry.project_id !== project.id) {
+      if (inquiry.project_id && inquiry.project_id !== project.id) blocked("inquiry_project_conflict", "Reconcile the inquiry's existing project link before continuing.");
+      const marked = await cvp.from("inquiries").update({ status: "converted", project_id: project.id })
+        .eq("id", inquiry.id).select("*").single();
+      if (marked.error || marked.data?.project_id !== project.id || marked.data?.status !== "converted") databaseFailure(marked.error, "inquiry_conversion_not_saved");
+    }
+    stage = "event";
+    // Applied public.events binds objects inside payload, not missing top-level columns.
+    const event = await ensure(sb, "events", { id: ccoRecordId("cvp-handoff-event", version!.id) }, {
+      id: ccoRecordId("cvp-handoff-event", version!.id), type: "cco_production_handoff_completed", business_unit: "CC",
+      channel: "cco_os", direction: "internal", payload: { brief_id: estimate!.brief_id, estimate_id: estimateId,
+        estimate_version_id: version!.id, project_id: project.id, inquiry_id: inquiry.id, deliverable_ids: deliverableIds, payload_hash: hash },
+      metadata: { source: "cco_os", idempotency_key: key } });
+    if (event.business_unit !== "CC" || record(event.payload).payload_hash !== hash || record(event.payload).project_id !== project.id) {
+      blocked("handoff_event_conflict", "Reconcile the stored production handoff event before retrying.");
+    }
+    const receipt: CvpHandoffReceipt = { status: "created", replayed: Boolean(saved), idempotencyKey: key!, payloadHash: hash,
+      estimateId, estimateVersionId: version!.id, cvpInquiryId: String(inquiry.id), cvpProjectId: String(project.id), commercialRef, deliverableIds };
+    stage = "receipt";
+    if (!saved) {
+      const winner = await ensure(sb, "commercial_handoffs", { idempotency_key: key }, {
+        id: ccoRecordId("cvp-handoff-receipt", key!), estimate_id: estimateId, estimate_version_id: version!.id,
+        idempotency_key: key, payload_hash: hash, cvp_inquiry_id: inquiry.id, cvp_project_id: project.id, receipt }, () => { receipt.replayed = true; });
+      if (winner.payload_hash !== hash || winner.cvp_project_id !== project.id) blocked("idempotency_payload_conflict", "Reconcile the saved commercial handoff before retrying.");
+    }
+    return { receipt, error: null, retryable: false, partial: false, stage: "complete", progress };
+  } catch (error) {
+    const known = error instanceof HandoffError ? error : new HandoffError("handoff_temporarily_unavailable", true);
+    return { receipt: null, error: known.message, retryable: known.retryable, partial: Object.keys(progress).length > 0,
+      stage, action: known.action, progress };
   }
-
-  // Mark the inquiry converted, pointing at the project (idempotent).
-  const { error: convertError } = await cvp
-    .from("inquiries")
-    .update({
-      status: "converted",
-      project_id: project.id,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", inquiry.id);
-  if (convertError) return failure(convertError.message);
-
-  const receipt: CvpHandoffReceipt = {
-    status: "created",
-    replayed: false,
-    idempotencyKey,
-    payloadHash,
-    estimateId: input.estimateId,
-    estimateVersionId: version.id,
-    cvpInquiryId: String(inquiry.id),
-    cvpProjectId: String(project.id),
-    commercialRef,
-  };
-
-  // Persist the receipt — the unique idempotency key makes this the guard
-  // against duplicate CVP writes on retry.
-  const { error: handoffError } = await sb.from("commercial_handoffs").insert({
-    estimate_id: input.estimateId,
-    estimate_version_id: version.id,
-    idempotency_key: idempotencyKey,
-    payload_hash: payloadHash,
-    cvp_inquiry_id: receipt.cvpInquiryId,
-    cvp_project_id: receipt.cvpProjectId,
-    receipt,
-  });
-  if (handoffError) {
-    // Lost a concurrent race on the unique key: return the winner's stored
-    // receipt, or an honest conflict if the payloads differ.
-    const { data: winner } = await sb
-      .from("commercial_handoffs")
-      .select("*")
-      .eq("idempotency_key", idempotencyKey)
-      .maybeSingle();
-    if (!winner) return failure(handoffError.message);
-    if (winner.payload_hash !== payloadHash) return failure("idempotency_payload_conflict");
-    return {
-      receipt: replayedReceiptFromRow(winner, idempotencyKey, payloadHash, input.estimateId),
-      error: null,
-    };
-  }
-
-  return { receipt, error: null };
 }

@@ -1,3 +1,4 @@
+import { hashEstimateVersionSnapshot } from "../os-estimate-versions";
 import { beforeEach, describe, expect, test } from "vitest";
 import { createFakeSupabase, fakeUuid, type FakeRow, type FakeSupabase } from "./helpers/fake-supabase";
 import {
@@ -7,6 +8,7 @@ import {
 
 const ESTIMATE_ID = "11111111-1111-4111-8111-111111111111";
 const VERSION_ID = "44444444-4444-4444-8444-444444444444";
+const BRIEF_ID = "77777777-7777-4777-8777-777777777777";
 const CONTACT_ID = "55555555-5555-4555-8555-555555555555";
 const CVP_OWNER = "66666666-6666-4666-8666-666666666666";
 
@@ -28,7 +30,7 @@ function seedApprovedFrozenEstimate(overrides: FakeRow = {}) {
     {
       id: ESTIMATE_ID,
       business_unit: "CC",
-      brief_id: fakeUuid(),
+      brief_id: BRIEF_ID,
       contact_id: CONTACT_ID,
       estimate_number: "CC-EST-2026-0007",
       internal_status: "approved",
@@ -44,7 +46,9 @@ function seedApprovedFrozenEstimate(overrides: FakeRow = {}) {
       version: 1,
       frozen_at: "2026-08-11T12:00:00.000Z",
       snapshot: {
-        estimate: { estimate_number: "CC-EST-2026-0007" },
+        estimate: { id: ESTIMATE_ID, brief_id: BRIEF_ID, business_unit: "CC", estimate_number: "CC-EST-2026-0007",
+          scope_snapshot: { scope_items: [{ scope_bucket: "post_production_deliverables", item_type: "main_edits", label: "Main edit", quantity: 1, metadata: {} }] } },
+        contact: { full_name: "Jordan Client", email: "jordan@example.com", company: "Client Co", phone: null },
         line_items: [{ description: "Main edit", quantity: 1, unit: "project", unit_price_cents: 500000, line_total_cents: 500000 }],
         totals: { ...SNAPSHOT_TOTALS },
         frozen_at: "2026-08-11T12:00:00.000Z",
@@ -52,6 +56,8 @@ function seedApprovedFrozenEstimate(overrides: FakeRow = {}) {
       sha256: "b".repeat(64),
     },
   ]);
+  publicFake.store.get("estimate_versions")![0].sha256 = hashEstimateVersionSnapshot(publicFake.store.get("estimate_versions")![0].snapshot);
+  publicFake.store.set("estimate_decisions", [{ id: fakeUuid(), estimate_id: ESTIMATE_ID, estimate_version_id: VERSION_ID, decision_type: "approved" }]);
   publicFake.store.set("contacts", [
     {
       id: CONTACT_ID,
@@ -76,6 +82,15 @@ beforeEach(() => {
 });
 
 describe("cvp handoff (task 4.1)", () => {
+  test("accepts equivalent PostgreSQL timestamptz representations", async () => {
+    seedApprovedFrozenEstimate();
+    const first = await runHandoff();
+    publicFake.store.get("estimate_versions")![0].frozen_at = "2026-08-11T12:00:00+00:00";
+    const replay = await runHandoff();
+    expect(replay.error).toBeNull();
+    expect(replay.receipt?.payloadHash).toBe(first.receipt?.payloadHash);
+  });
+
   test("creates org, contact, inquiry, converted project, and receipt from the frozen snapshot", async () => {
     seedApprovedFrozenEstimate();
 
@@ -110,7 +125,7 @@ describe("cvp handoff (task 4.1)", () => {
 
     // Totals carried across are byte-equal to the frozen snapshot.
     expect(projects[0].commercial_total_cents).toBe(SNAPSHOT_TOTALS.total_cents);
-    expect(JSON.stringify((projects[0].commercial_ref as FakeRow).totals)).toBe(JSON.stringify(SNAPSHOT_TOTALS));
+    expect((projects[0].commercial_ref as FakeRow).totals).toEqual(SNAPSHOT_TOTALS);
     expect((projects[0].commercial_ref as FakeRow).estimate_version_id).toBe(VERSION_ID);
     expect(projects[0].cco_estimate_id).toBe(ESTIMATE_ID);
     expect(projects[0].cco_estimate_version_id).toBe(VERSION_ID);
@@ -157,7 +172,7 @@ describe("cvp handoff (task 4.1)", () => {
     };
 
     const conflict = await runHandoff();
-    expect(conflict.error).toBe("idempotency_payload_conflict");
+    expect(conflict.error).toBe("estimate_snapshot_hash_invalid");
     expect(conflict.receipt).toBeNull();
   });
 
@@ -225,49 +240,13 @@ describe("cvp handoff race + crash recovery (review finding 4)", () => {
     expect(publicFake.store.get("commercial_handoffs") || []).toHaveLength(1);
   });
 
-  test("retry after a crash before the receipt insert reuses orphaned CVP rows", async () => {
+  test("old orphaned production rows without a matching frozen handoff receipt require reconciliation", async () => {
     seedApprovedFrozenEstimate();
-    // Prior attempt crashed after the CVP writes but before the
-    // commercial_handoffs insert: orphan org + inquiry + project exist.
-    const orgId = fakeUuid();
-    cvpFake.store.set("organizations", [{ id: orgId, owner_id: CVP_OWNER, name: "Client Co" }]);
-    cvpFake.store.set("inquiries", [
-      {
-        id: fakeUuid(),
-        owner_id: CVP_OWNER,
-        organization_id: orgId,
-        contact_id: null,
-        source: "cco_os",
-        summary: "orphan from crashed attempt",
-        status: "new",
-        cco_estimate_id: ESTIMATE_ID,
-        cco_estimate_version_id: VERSION_ID,
-      },
-    ]);
-    cvpFake.store.set("projects", [
-      {
-        id: fakeUuid(),
-        owner_id: CVP_OWNER,
-        name: "orphan project",
-        stage: "intake",
-        organization_id: orgId,
-        primary_contact_id: null,
-        cco_estimate_id: ESTIMATE_ID,
-        cco_estimate_version_id: VERSION_ID,
-        commercial_total_cents: 500000,
-      },
-    ]);
-    const orphanProjectId = String(cvpFake.store.get("projects")![0].id);
-
+    cvpFake.store.set("projects", [{ id: fakeUuid(), owner_id: CVP_OWNER, name: "Existing unverified project",
+      stage: "intake", cco_estimate_id: ESTIMATE_ID, cco_estimate_version_id: VERSION_ID }]);
+    const before = JSON.stringify([...cvpFake.store]);
     const result = await runHandoff();
-
-    expect(result.error).toBeNull();
-    expect(result.receipt!.replayed).toBe(false);
-    expect(result.receipt!.cvpProjectId).toBe(orphanProjectId);
-    expect(cvpFake.store.get("projects") || []).toHaveLength(1);
-    expect(cvpFake.store.get("inquiries") || []).toHaveLength(1);
-    expect(cvpFake.store.get("inquiries")![0].status).toBe("converted");
-    expect(cvpFake.store.get("inquiries")![0].project_id).toBe(orphanProjectId);
-    expect(publicFake.store.get("commercial_handoffs") || []).toHaveLength(1);
+    expect(result).toMatchObject({ error: "production_commercial_link_conflict", retryable: false });
+    expect(JSON.stringify([...cvpFake.store])).toBe(before);
   });
 });

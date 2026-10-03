@@ -170,6 +170,9 @@ class FakeQuery {
 
     if (op.kind === "insert") {
       const table = this.store.get(this.table) || [];
+      if (op.rows.some((row) => row.id != null && table.some((existing) => existing.id === row.id))) {
+        return this.shape(null, { message: "duplicate primary key", code: "23505" });
+      }
       const uniqueCols = this.uniques[this.table];
       if (uniqueCols) {
         const violates = op.rows.some((row) =>

@@ -37,21 +37,21 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const result = await handoffEstimateToCoVideoPro({ estimateId: id });
   if (result.error || !result.receipt) {
-    const status = CLIENT_ERRORS[result.error || ""] || 500;
-    return NextResponse.json({ error: result.error || "handoff_failed" }, { status });
+    const status = CLIENT_ERRORS[result.error || ""] || (result.retryable ? 503 : 409);
+    return NextResponse.json(result, { status });
   }
 
   await recordAuditEvent({
     actor: access.actor,
     type: "platform.audit.estimate_handed_off_to_covideopro",
     targetType: "estimate",
-    targetId: id,
+    targetId: result.receipt.estimateId,
     permission: "quote_manage",
     sourceSurface: "home.root",
     riskLevel: "high",
-    summary: `Handed estimate ${id} off to Co-VideoPro project ${result.receipt.cvpProjectId}`,
+    summary: `Handed estimate ${result.receipt.estimateId} off to Co-VideoPro project ${result.receipt.cvpProjectId}`,
     metadata: {
-      estimate_id: id,
+      estimate_id: result.receipt.estimateId,
       estimate_version_id: result.receipt.estimateVersionId,
       idempotency_key: result.receipt.idempotencyKey,
       cvp_inquiry_id: result.receipt.cvpInquiryId,

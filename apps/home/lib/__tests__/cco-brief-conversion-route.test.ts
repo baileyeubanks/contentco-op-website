@@ -2,22 +2,33 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const mocks = vi.hoisted(() => ({ convert: vi.fn(), audit: vi.fn() }));
+const mocks = vi.hoisted(() => ({ convert: vi.fn(), audit: vi.fn(), allowQuoteManage: true }));
 vi.mock("@/lib/os-projects-engine", () => ({ createProjectFromBrief: mocks.convert }));
 vi.mock("@/lib/platform-access", () => ({
   createRoutePolicy: (value: unknown) => value,
-  enforceRoutePolicy: async () => ({ ok: true, actor: { id: "operator" } }),
+  enforceRoutePolicy: async (policy: { requiredPermissions: string[] }) => {
+    if (policy.requiredPermissions.includes("quote_manage") && !mocks.allowQuoteManage) {
+      return { ok: false, response: new Response("forbidden", { status: 403 }) };
+    }
+    return { ok: true, actor: { id: "operator" } };
+  },
   recordAuditEvent: mocks.audit,
 }));
 vi.mock("@/lib/os-request-scope", () => ({ getRootBusinessScopeFromRequest: () => "CC" }));
 import { POST } from "@/app/api/os/briefs/[id]/convert/route";
 import { BriefOpsPanel } from "@/app/os/marketing/briefs/[id]/brief-ops-panel";
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => { vi.clearAllMocks(); mocks.allowQuoteManage = true; });
 const request = () => new Request("https://admin.contentco-op.com/api/os/briefs/brief-1/convert", { method: "POST" });
 const params = () => ({ params: Promise.resolve({ id: "brief-1" }) });
 
 describe("brief conversion recovery contract", () => {
+  test("workflow intervention alone cannot invoke a commercial handoff", async () => {
+    mocks.allowQuoteManage = false;
+    const response = await POST(request(), params());
+    expect(response.status).toBe(403);
+    expect(mocks.convert).not.toHaveBeenCalled();
+  });
   test("keeps the partial project and retry instructions without recording success", async () => {
     mocks.convert.mockResolvedValue({ project: { id: "project-1" }, error: "event_write_failed",
       stage: "conversion_event", partial: true, retryable: true, replayed: true });
