@@ -33,28 +33,13 @@ export default async function OverviewPage() {
   return (
     <main className={styles.surface}>
       <section className={styles.hero}>
-        <div className={styles.eyebrow}>
-          <span className={styles.eyebrowDot} />
-          CCO OS runtime reset
-        </div>
         <div>
-          <h1 className={styles.heroTitle}>Now first. Work visible. System honest.</h1>
+          <h1 className={styles.heroTitle}>Operations overview</h1>
           <p className={styles.heroCopy}>
-            CCO OS is mounted inside HOME right now, so this surface is tuned for the operator
-            moment that matters first: what is moving, what is at risk, what needs attention,
-            and whether the runtime itself can be trusted.
+            Scheduled work, recent quotes and contact activity.
           </p>
         </div>
-        <div className={styles.heroMeta}>
-          <span className={styles.metaBadge}>status: {model.diagnostics.status}</span>
-          <span className={styles.metaBadge}>server load: {formatLatency(model.diagnostics.totalMs)}</span>
-          <span className={styles.metaBadge}>payload: {model.diagnostics.payloadBytes} bytes</span>
-          {slowestEntry ? (
-            <span className={styles.metaBadge}>
-              slowest read: {slowestEntry[0]} · {formatLatency(slowestEntry[1])}
-            </span>
-          ) : null}
-        </div>
+        <span className={styles.metaBadge}>Data reads: {model.diagnostics.status}</span>
       </section>
 
       <section className={styles.gridFour}>
@@ -81,40 +66,8 @@ export default async function OverviewPage() {
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <p className={styles.panelKicker}>Movement</p>
-              <h2 className={styles.panelTitle}>Recent commercial motion</h2>
-            </div>
-            <Link className={styles.panelAction} href="/os/quotes">
-              Open quotes
-            </Link>
-          </div>
-          <div className={styles.list}>
-            {model.recentQuotes.length > 0 ? (
-              model.recentQuotes.map((quote) => (
-                <div key={quote.id} className={styles.row}>
-                  <div>
-                    <p className={styles.rowTitle}>{quote.clientName}</p>
-                    <p className={styles.rowMeta}>
-                      {quote.quoteNumber} · {quote.businessUnit} · created {formatDate(quote.createdAt)}
-                    </p>
-                  </div>
-                  <div className={styles.rowValue}>
-                    <div>{formatCurrency(quote.estimatedTotal)}</div>
-                    <span className={styles.pill}>{quote.status}</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className={styles.empty}>No recent quote activity was loaded for this workspace.</p>
-            )}
-          </div>
-        </article>
-
-        <article className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div>
               <p className={styles.panelKicker}>Work</p>
-              <h2 className={styles.panelTitle}>Dispatch and closeout pulse</h2>
+              <h2 className={styles.panelTitle}>Scheduled work and closeout</h2>
             </div>
             <Link className={styles.panelAction} href="/os/dispatch">
               Open dispatch
@@ -141,6 +94,38 @@ export default async function OverviewPage() {
               ))
             ) : (
               <p className={styles.empty}>No recent job activity was loaded for this workspace.</p>
+            )}
+          </div>
+        </article>
+
+        <article className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.panelKicker}>Movement</p>
+              <h2 className={styles.panelTitle}>Recent quotes</h2>
+            </div>
+            <Link className={styles.panelAction} href="/os/quotes">
+              Open quotes
+            </Link>
+          </div>
+          <div className={styles.list}>
+            {model.recentQuotes.length > 0 ? (
+              model.recentQuotes.map((quote) => (
+                <div key={quote.id} className={styles.row}>
+                  <div>
+                    <p className={styles.rowTitle}>{quote.clientName}</p>
+                    <p className={styles.rowMeta}>
+                      {quote.quoteNumber} · {quote.businessUnit} · created {formatDate(quote.createdAt)}
+                    </p>
+                  </div>
+                  <div className={styles.rowValue}>
+                    <div>{formatCurrency(quote.estimatedTotal)}</div>
+                    <span className={styles.pill}>{quote.status}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className={styles.empty}>No recent quote activity was loaded for this workspace.</p>
             )}
           </div>
         </article>
@@ -202,6 +187,16 @@ export default async function OverviewPage() {
               <strong>{formatLatency(model.diagnostics.totalMs)}</strong>
             </div>
             <div className={styles.diagnosticsRow}>
+              <span>Payload</span>
+              <strong>{model.diagnostics.payloadBytes.toLocaleString()} bytes</strong>
+            </div>
+            {slowestEntry ? (
+              <div className={styles.diagnosticsRow}>
+                <span>Slowest read: {slowestEntry[0]}</span>
+                <strong>{formatLatency(slowestEntry[1])}</strong>
+              </div>
+            ) : null}
+            <div className={styles.diagnosticsRow}>
               <span>Quotes lane</span>
               <strong>{model.summary.quotesTotal.toLocaleString()} total</strong>
             </div>
@@ -218,7 +213,7 @@ export default async function OverviewPage() {
             </ul>
           ) : (
             <p className={styles.empty}>
-              No query warnings were emitted on this overview render. This is the new baseline.
+              No query warnings on this render.
             </p>
           )}
         </article>
