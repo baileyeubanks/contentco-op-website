@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "@/lib/email-sender";
+import { ccoRecordId } from "@/lib/cco-record-id";
 import type { ProposalInput, ProposalOutput } from "@/lib/gemini";
 import {
   buildBriefPricingInputs,
@@ -28,7 +29,7 @@ const ADMIN_ALERT_TEMPLATE = "cco_public_brief_admin_alert";
 const CLIENT_RECEIPT_TEMPLATE = "cco_public_brief_client_receipt";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
 
-type DatabaseError = { message?: string | null } | null;
+type DatabaseError = { message?: string | null; code?: string } | null;
 type DatabaseResult<T extends Record<string, unknown>> = Promise<{
   data: T | null;
   error: DatabaseError;
@@ -181,8 +182,9 @@ export type CcoBriefPersistenceResult = {
   status: string | null;
   briefNumber: string | null;
   notification: CcoBriefNotification;
-  /** Durable `brief_submitted` event receipt; informational, never blocks intake. */
+  /** The intake is complete only once its durable handoff is recorded. */
   event?: { ok: boolean; replayed: boolean; error?: string };
+  submissionId?: string;
 } | {
   ok: false;
   persisted: boolean;
@@ -194,6 +196,9 @@ export type CcoBriefPersistenceResult = {
   accessToken?: string | null;
   status?: string | null;
   briefNumber?: string | null;
+  submissionId?: string;
+  notification?: CcoBriefNotification;
+  event?: { ok: boolean; replayed: boolean; error?: string };
 };
 
 export type CcoBriefLookupResult = {
@@ -769,8 +774,8 @@ async function deliverBriefNotifications(input: {
 
 /**
  * Durable `brief_submitted` event so CCO OS consumers (quote draft, automations,
- * inbox) see the intake without polling `creative_briefs`. Best effort: a failure
- * here never blocks the client's receipt, but it is reported for operators.
+ * inbox) see the intake without polling `creative_briefs`. A failed handoff
+ * retains the brief and notification receipts and can be retried safely.
  *
  * Writes only columns that exist on `public.events`
  * (`infra/supabase/migrations/20260317_root_ontology_core.sql`, plus
@@ -790,6 +795,7 @@ async function emitBriefSubmittedEvent(input: {
     const existing = await input.db
       .from("events")
       .select("id")
+      .eq("business_unit", CCO_BUSINESS_UNIT)
       .eq("type", BRIEF_SUBMITTED_EVENT_TYPE)
       .contains("payload", { brief_id: input.briefId })
       .maybeSingle();
@@ -801,6 +807,7 @@ async function emitBriefSubmittedEvent(input: {
     const { data, error } = await input.db
       .from("events")
       .insert({
+        id: ccoRecordId("brief-submitted-event", input.briefId),
         type: BRIEF_SUBMITTED_EVENT_TYPE,
         business_unit: CCO_BUSINESS_UNIT,
         channel: "website",
@@ -831,6 +838,14 @@ async function emitBriefSubmittedEvent(input: {
       })
       .select("id")
       .single();
+    if (error?.code === "23505") {
+      const winner = await input.db.from("events").select("id")
+        .eq("id", ccoRecordId("brief-submitted-event", input.briefId))
+        .eq("business_unit", CCO_BUSINESS_UNIT)
+        .eq("type", BRIEF_SUBMITTED_EVENT_TYPE)
+        .contains("payload", { brief_id: input.briefId }).maybeSingle();
+      if (!winner.error && asId(winner.data?.id)) return { ok: true, replayed: true };
+    }
     if (error || !asId(data?.id)) return { ok: false, replayed: false, error: databaseErrorCode("event_write", error) };
     return { ok: true, replayed: false };
   } catch (error) {
@@ -863,17 +878,21 @@ function briefResponse(
   if (!briefId) {
     return { ok: false, persisted: false, error: "brief_write_failed", retryable: true, contactId };
   }
-  if (!notifications.ok) {
+  if (!notifications.ok || !event?.ok) {
     return {
       ok: false,
       persisted: true,
-      error: notifications.error,
+      error: !event?.ok ? event?.error || "brief_handoff_missing" : !notifications.ok ? notifications.error : "brief_handoff_missing",
       retryable: true,
+      partial: true,
       contactId,
       briefId,
       accessToken: cleanString(brief.access_token) || null,
       status: cleanString(brief.status) || null,
       briefNumber: cleanString(brief.brief_number) || null,
+      submissionId: cleanString(asRecord(brief.data).public_submission_id) || undefined,
+      notification: notifications.ok ? notifications.notification : undefined,
+      event,
     };
   }
   return {
@@ -887,6 +906,7 @@ function briefResponse(
     briefNumber: cleanString(brief.brief_number) || null,
     notification: notifications.notification,
     event,
+    submissionId: cleanString(asRecord(brief.data).public_submission_id) || undefined,
   };
 }
 

@@ -1,0 +1,44 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+const mocks = vi.hoisted(() => ({ convert: vi.fn(), audit: vi.fn() }));
+vi.mock("@/lib/os-projects-engine", () => ({ createProjectFromBrief: mocks.convert }));
+vi.mock("@/lib/platform-access", () => ({
+  createRoutePolicy: (value: unknown) => value,
+  enforceRoutePolicy: async () => ({ ok: true, actor: { id: "operator" } }),
+  recordAuditEvent: mocks.audit,
+}));
+vi.mock("@/lib/os-request-scope", () => ({ getRootBusinessScopeFromRequest: () => "CC" }));
+import { POST } from "@/app/api/os/briefs/[id]/convert/route";
+import { BriefOpsPanel } from "@/app/os/marketing/briefs/[id]/brief-ops-panel";
+
+beforeEach(() => vi.clearAllMocks());
+const request = () => new Request("https://admin.contentco-op.com/api/os/briefs/brief-1/convert", { method: "POST" });
+const params = () => ({ params: Promise.resolve({ id: "brief-1" }) });
+
+describe("brief conversion recovery contract", () => {
+  test("keeps the partial project and retry instructions without recording success", async () => {
+    mocks.convert.mockResolvedValue({ project: { id: "project-1" }, error: "event_write_failed",
+      stage: "conversion_event", partial: true, retryable: true, replayed: true });
+    const response = await POST(request(), params());
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ project: { id: "project-1" }, partial: true,
+      stage: "conversion_event", retryable: true });
+    expect(mocks.audit).not.toHaveBeenCalled();
+  });
+
+  test("returns an existing complete project as a replay instead of another creation", async () => {
+    mocks.convert.mockResolvedValue({ project: { id: "project-1" }, error: null, replayed: true });
+    const response = await POST(request(), params());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ project: { id: "project-1" }, replayed: true });
+  });
+
+  test("a previously converted brief still offers a recovery action after reloading", () => {
+    const html = renderToStaticMarkup(createElement(BriefOpsPanel, { briefId: "brief-1", briefStatus: "converted" }));
+    const button = html.match(/<button[^>]*>check project setup<\/button>/)?.[0];
+    expect(button).toBeTruthy();
+    expect(button).not.toContain("disabled");
+  });
+});

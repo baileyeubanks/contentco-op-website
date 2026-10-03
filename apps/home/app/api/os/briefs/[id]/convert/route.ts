@@ -21,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const scope = getRootBusinessScopeFromRequest(req);
 
   const result = await createProjectFromBrief(id, scope || "CC");
-  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
+  if (result.error) return NextResponse.json(result, { status: result.retryable ? 503 : 409 });
 
   if (result.project) {
     await recordAuditEvent({
@@ -40,5 +40,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
   }
 
-  return NextResponse.json(result, { status: 201 });
+  return NextResponse.json(result, { status: result.replayed ? 200 : 201 });
 }

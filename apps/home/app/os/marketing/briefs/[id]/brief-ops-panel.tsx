@@ -26,6 +26,9 @@ export function BriefOpsPanel({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.project?.id) {
+        if (data?.partial && data?.retryable) {
+          throw new Error("Your project is saved, but setup is incomplete. Try again to finish; your existing work will be kept.");
+        }
         throw new Error(String(data?.error || "brief_convert_failed"));
       }
       setConverted({ id: String(data.project.id), title: String(data.project.title || "project") });
@@ -91,15 +94,15 @@ export function BriefOpsPanel({
         <button
           type="button"
           onClick={handleConvertToProject}
-          disabled={busy || alreadyConverted || Boolean(converted)}
+          disabled={busy || Boolean(converted)}
           className="os-atlas-button os-atlas-button-secondary"
         >
-          {converted || alreadyConverted ? "project opened" : busy ? "working..." : "open project from brief"}
+          {converted ? "project ready" : busy ? "working..." : alreadyConverted ? "check project setup" : "open project from brief"}
         </button>
       </div>
       {converted ? (
         <div style={{ fontSize: "0.78rem", color: "#6ee7b7" }}>
-          Project &ldquo;{converted.title}&rdquo; created ({converted.id.slice(0, 8)}). Deliverables were seeded from the brief.
+          Project &ldquo;{converted.title}&rdquo; is ready ({converted.id.slice(0, 8)}). Existing work has been kept.
         </div>
       ) : null}
       {error ? (

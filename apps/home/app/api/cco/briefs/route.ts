@@ -54,6 +54,9 @@ export async function POST(req: Request) {
         partial: persistence.partial === true,
         contact_id: persistence.contactId,
         brief_id: persistence.briefId,
+        submission_id: persistence.submissionId || parsed.data.submissionId,
+        notification: persistence.notification,
+        event: persistence.event,
       },
       { status: persistence.retryable ? 503 : 409 },
     );
@@ -72,5 +75,7 @@ export async function POST(req: Request) {
       replayed: persistence.replayed,
     },
     notification: persistence.notification,
+    event: persistence.event,
+    submission_id: persistence.submissionId || parsed.data.submissionId,
   });
 }

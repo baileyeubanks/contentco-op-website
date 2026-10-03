@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { resolveRootAuthorityForHost } from "@/lib/os-auth";
 import { getEventCategory, type RootEventType } from "@/lib/os-event-taxonomy";
+import { ccoRecordId } from "@/lib/cco-record-id";
 
 type EventObjectType =
   | "contact"
@@ -31,6 +32,8 @@ type RootAuditPayload = {
 };
 
 type TypedEventPayload = {
+  /** Stable server-owned key for repeatable multi-step operations. */
+  idempotencyKey?: string;
   type: RootEventType;
   objectType: EventObjectType;
   objectId: string;
@@ -90,7 +93,19 @@ export async function emitTypedEvent(input: TypedEventPayload) {
   const category = getEventCategory(input.type);
 
   try {
+    // Reuse both legacy receipts (random IDs) and current deterministic ones.
+    // The primary key below arbitrates two concurrent first-time emissions.
+    const findExisting = () => supabase.from("events").select("id")
+      .eq("business_unit", businessUnit).eq("type", input.type)
+      .eq("object_type", input.objectType).eq("object_id", input.objectId)
+      .limit(1).maybeSingle();
+    if (input.idempotencyKey) {
+      const existing = await findExisting();
+      if (existing.error) return { ok: false as const, error: existing.error.message, eventId: null };
+      if (existing.data?.id) return { ok: true as const, eventId: existing.data.id };
+    }
     const { data, error } = await supabase.from("events").insert({
+      ...(input.idempotencyKey ? { id: ccoRecordId("typed-event", `${businessUnit}:${input.idempotencyKey}`) } : {}),
       type: input.type,
       business_unit: businessUnit,
       contact_id: input.contactId || null,
@@ -109,10 +124,16 @@ export async function emitTypedEvent(input: TypedEventPayload) {
     }).select("id").single();
 
     if (error) {
+      if (input.idempotencyKey && error.code === "23505") {
+        const winner = await findExisting();
+        if (!winner.error && winner.data?.id) return { ok: true as const, eventId: winner.data.id };
+      }
       return { ok: false as const, error: error.message, eventId: null };
     }
 
-    return { ok: true as const, eventId: data?.id || null };
+    return data?.id
+      ? { ok: true as const, eventId: data.id }
+      : { ok: false as const, error: "event_receipt_missing", eventId: null };
   } catch (error) {
     return {
       ok: false as const,
