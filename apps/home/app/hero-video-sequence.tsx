@@ -15,7 +15,10 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
   const [sources, setSources] = useState<readonly string[]>([]);
   const [active, setActive] = useState(0);
   const [started, setStarted] = useState(false);
+  const [handoff, setHandoff] = useState<number | null>(null);
+  const handoffTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRef = useRef(0);
+  const pendingRef = useRef<number | null>(null);
   const failedRef = useRef([false, false]);
 
   useEffect(() => {
@@ -25,9 +28,12 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
     const update = () => {
       videos.current.forEach((video) => video?.pause());
       activeRef.current = 0;
+      pendingRef.current = null;
       failedRef.current = [false, false];
       setActive(0);
       setStarted(false);
+      setHandoff(null);
+      if (handoffTimer.current) clearTimeout(handoffTimer.current);
       if (motion.matches || connection?.saveData) {
         setSources([]);
         return;
@@ -40,6 +46,7 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
     return () => {
       motion.removeEventListener("change", update);
       mountedVideos.forEach((video) => video?.pause());
+      if (handoffTimer.current) clearTimeout(handoffTimer.current);
     };
   }, [firstSrc, nextSrc, nextMobileSrc]);
 
@@ -51,7 +58,7 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
       void first.play().catch(() => {});
     }
     const resume = () => {
-      const video = videos.current[activeRef.current];
+      const video = videos.current[pendingRef.current ?? activeRef.current];
       if (document.visibilityState === "hidden") video?.pause();
       else if (video) void video.play().catch(() => {});
     };
@@ -71,10 +78,12 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
     if (failedRef.current[nextIndex]) {
       setStarted(false);
       setSources([]);
+      pendingRef.current = null;
       return;
     }
     const next = videos.current[nextIndex];
     if (!next) return;
+    pendingRef.current = nextIndex;
     next.currentTime = 0;
     next.muted = true;
     void next.play().catch(() => {});
@@ -88,7 +97,7 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
         <video
           key={source}
           ref={(video) => { videos.current[index] = video; }}
-          className={`ambient-video hero-sequence-video${active === index && started ? " is-active" : ""}`}
+          className={`ambient-video hero-sequence-video${index === 0 ? " hero-sequence-video--wide" : ""}${active === index && started ? " is-active" : ""}${handoff === index ? " is-outgoing" : ""}${handoff !== null && active === index ? " is-incoming" : ""}`}
           src={source}
           muted
           playsInline
@@ -100,16 +109,25 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
             if (index === 0 && !started) void event.currentTarget.play().catch(() => {});
           }}
           onPlaying={() => {
-            const previous = videos.current[activeRef.current];
-            if (activeRef.current !== index) previous?.pause();
+            const previousIndex = activeRef.current;
+            const previous = videos.current[previousIndex];
+            if (previousIndex !== index) {
+              previous?.pause();
+              setHandoff(previousIndex);
+              if (handoffTimer.current) clearTimeout(handoffTimer.current);
+              // Animation cleanup only: clip advancement remains exclusively onEnded/onError.
+              handoffTimer.current = setTimeout(() => setHandoff(null), 420);
+            }
             activeRef.current = index;
+            pendingRef.current = null;
             setActive(index);
             setStarted(true);
           }}
           onEnded={() => advance(index)}
           onError={() => {
             failedRef.current[index] = true;
-            advance(index);
+            // Failed background preloading must not rewind the currently playing clip.
+            if (index === activeRef.current || index === pendingRef.current) advance(index);
           }}
         />
       ))}
