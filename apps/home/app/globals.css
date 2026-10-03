@@ -2180,7 +2180,7 @@ h1, h2, h3, h4 {
 .gallery-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 320;
   display: flex;
   align-items: center;
   justify-content: center;
