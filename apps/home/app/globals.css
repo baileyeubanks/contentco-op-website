@@ -1790,6 +1790,10 @@ h1, h2, h3, h4 {
   overflow-wrap: anywhere;
 }
 
+.products .products-cvp-link {
+  margin-bottom: 1.5rem;
+}
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

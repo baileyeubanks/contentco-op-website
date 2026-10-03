@@ -122,14 +122,12 @@ export function Nav({ surface, urls }: NavProps) {
             <span className="cc-nav-rail-index">05</span>
             <span>Suite</span>
           </Link>
-          <Link
-            href={adminSurface ? "/os/login" : u.client}
-            className="cc-nav-rail-link cc-nav-rail-login"
-            onClick={close}
-          >
-            <span className="cc-nav-rail-index">06</span>
-            <span>{adminSurface ? "CCO OS Login" : "Co\u2060-\u2060VideoPro Login"}</span>
-          </Link>
+          {adminSurface ? (
+            <Link href="/os/login" className="cc-nav-rail-link cc-nav-rail-login" onClick={close}>
+              <span className="cc-nav-rail-index">06</span>
+              <span>CCO OS Login</span>
+            </Link>
+          ) : null}
         </nav>
 
         <Link href={u.brief} className="cc-nav-rail-cta" onClick={close}>
