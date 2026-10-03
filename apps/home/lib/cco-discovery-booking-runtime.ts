@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { google, calendar_v3 } from "googleapis";
-import { BOOKING_CONTRACT, type BookingRecord, type BookingStore, type EventReceipt, type BookingProvider } from "./cco-discovery-booking-rail";
+import { BOOKING_CONTRACT, type AcceptanceScope, type BookingRecord, type BookingStore, type EventReceipt, type BookingProvider } from "./cco-discovery-booking-rail";
 import { buildDiscoverySlots } from "./cco-booking";
 
 function record(value: Record<string, unknown>): BookingRecord {
@@ -9,6 +9,19 @@ function record(value: Record<string, unknown>): BookingRecord {
 function eventReceipt(event: calendar_v3.Schema$Event): EventReceipt {
   return { eventId: event.id || "", bookingId: event.extendedProperties?.private?.ccoBookingId || "", startsAt: event.start?.dateTime || "", endsAt: event.end?.dateTime || "", organizerEmail: event.organizer?.email?.toLowerCase() || "", attendees: (event.attendees || []).map((attendee) => attendee.email?.toLowerCase() || ""), meetUrl: event.conferenceData?.createRequest?.status?.statusCode === "success" ? event.conferenceData.entryPoints?.find((point) => point.entryPointType === "video")?.uri || "" : "", htmlLink: event.htmlLink || "" };
 }
+/** An absent scope retains the contract gate; any configured invalid scope blocks
+ * initialization. One submission UUID limits acceptance to one durable booking. */
+function acceptanceScope(raw: string | undefined): AcceptanceScope | null | undefined {
+  if (raw === undefined) return undefined;
+  try {
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).sort().join(",") !== "calendarId,guestEmail,organizerEmail,submissionId") return null;
+    if (typeof value.calendarId !== "string" || !value.calendarId.trim() || value.calendarId !== value.calendarId.trim() || value.calendarId.length > 1024) return null;
+    if (typeof value.organizerEmail !== "string" || typeof value.guestEmail !== "string" || !/^\S+@\S+\.\S+$/.test(value.organizerEmail) || !/^\S+@\S+\.\S+$/.test(value.guestEmail) || value.organizerEmail.length > 254 || value.guestEmail.length > 254) return null;
+    if (typeof value.submissionId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.submissionId)) return null;
+    return { calendarId: value.calendarId, organizerEmail: value.organizerEmail.toLowerCase(), guestEmail: value.guestEmail.toLowerCase(), submissionId: value.submissionId.toLowerCase() };
+  } catch { return null; }
+}
 /** Explicit version gate prevents an ordinary deploy from enabling invitations.
  * Root release owner must verify schema, identity and isolated live acceptance
  * before setting this gate. Credential contents are never read by this module. */
@@ -16,6 +29,8 @@ export async function discoveryRuntime() {
   const env = process.env;
   const calendarId = env.CCO_DISCOVERY_CALENDAR_ID || "";
   const organizerEmail = (env.CCO_DISCOVERY_ORGANIZER_EMAIL || "").trim().toLowerCase();
+  const scope = acceptanceScope(env.CCO_DISCOVERY_ACCEPTANCE_SCOPE);
+  if (scope === null || (scope !== undefined && (scope.calendarId !== calendarId || scope.organizerEmail !== organizerEmail))) return null;
   const url = env.CCO_SUPABASE_URL || env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL || "";
   const serviceKey = env.CCO_SUPABASE_SERVICE_ROLE_KEY || env.CCO_SUPABASE_SERVICE_KEY || env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_KEY || "";
   if (env.CCO_DISCOVERY_BOOKING_CONTRACT !== BOOKING_CONTRACT || !calendarId || !/^\S+@\S+\.\S+$/.test(organizerEmail) || !env.GOOGLE_APPLICATION_CREDENTIALS || !serviceKey) return null;
@@ -81,5 +96,5 @@ export async function discoveryRuntime() {
     if (busy.some((range) => !Number.isFinite(Date.parse(range.start || "")) || !Number.isFinite(Date.parse(range.end || "")) || Date.parse(range.end || "") <= Date.parse(range.start || ""))) throw new Error("calendar_invalid");
     return candidates.filter((slot) => !busy.some((range) => Date.parse(range.start || "") < Date.parse(slot.endsAt) && Date.parse(range.end || "") > Date.parse(slot.startsAt))).map((slot) => ({ ...slot, source: "google_freebusy_ready" as const }));
   }
-  return { config: { calendarId, organizerEmail }, store, provider, availability };
+  return { config: { calendarId, organizerEmail, acceptanceScope: scope }, store, provider, availability };
 }

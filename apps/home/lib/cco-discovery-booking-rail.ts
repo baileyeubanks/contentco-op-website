@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 
 export const BOOKING_CONTRACT = "cco.discovery-booking.v1";
 export type BookingInput = { submissionId: string; name: string; email: string; startsAt: string; endsAt: string };
+export type AcceptanceScope = { calendarId: string; organizerEmail: string; guestEmail: string; submissionId: string };
+export type BookingConfig = { calendarId: string; organizerEmail: string; acceptanceScope?: AcceptanceScope | null };
 export type BookingRecord = BookingInput & { id: string; calendarId: string; organizerEmail: string; fingerprint: string; state: "pending" | "confirmed" | "needs_reconcile"; receipt: EventReceipt | null };
 export type EventReceipt = { eventId: string; startsAt: string; endsAt: string; organizerEmail: string; attendees: string[]; meetUrl: string; htmlLink: string; bookingId: string };
 export interface BookingStore {
@@ -31,12 +33,19 @@ export function receiptMatches(record: BookingRecord, receipt: EventReceipt): bo
 }
 /** The provider and CCO-DB cannot share a transaction. Reserve durably first;
  * retain uncertain claims, reconcile by event ID, and never blindly reinsert. */
-export async function reserveDiscovery(input: BookingInput, config: { calendarId: string; organizerEmail: string }, store: BookingStore, provider: BookingProvider, slotIsOffered: (input: BookingInput) => boolean = () => false) {
-  const fingerprint = createHash("sha256").update(JSON.stringify({ ...input, ...config })).digest("hex");
+export async function reserveDiscovery(input: BookingInput, config: BookingConfig, store: BookingStore, provider: BookingProvider, slotIsOffered: (input: BookingInput) => boolean = () => false) {
+  const scope = config.acceptanceScope;
+  const scopeMatches = (request: BookingInput, calendarId: string, organizerEmail: string) => scope === undefined || (scope !== null && request.email === scope.guestEmail && request.submissionId.toLowerCase() === scope.submissionId && calendarId === scope.calendarId && organizerEmail === scope.organizerEmail);
+  if (!scopeMatches(input, config.calendarId, config.organizerEmail)) return { ok: false as const, error: "booking_acceptance_scope_mismatch", retryable: false };
+  // Acceptance policy is not part of canonical booking identity; changing that
+  // optional guard must preserve the existing same-key receipt and fingerprint.
+  const fingerprint = createHash("sha256").update(JSON.stringify({ ...input, calendarId: config.calendarId, organizerEmail: config.organizerEmail })).digest("hex");
   let claim: { record: BookingRecord; fresh: boolean };
   try { claim = await store.claim(input, config.calendarId, config.organizerEmail, fingerprint, slotIsOffered(input)); }
   catch { return { ok: false as const, error: "booking_claim_failed", retryable: false }; }
   const record = claim.record;
+  // Check returned canonical identity before confirmed replay or provider access.
+  if (!scopeMatches(record, record.calendarId, record.organizerEmail)) return { ok: false as const, error: "booking_acceptance_scope_mismatch", retryable: false };
   if (record.fingerprint !== fingerprint) return { ok: false as const, error: "booking_submission_conflict", retryable: false };
   if (record.state === "confirmed" && record.receipt && receiptMatches(record, record.receipt)) return { ok: true as const, bookingId: record.id, receipt: record.receipt, replayed: true };
   try {
@@ -53,6 +62,7 @@ export async function reserveDiscovery(input: BookingInput, config: { calendarId
     }
     if (!receiptMatches(record, receipt)) throw new Error("receipt_incomplete");
     const saved = await store.settle(record.id, fingerprint, receipt);
+    if (!scopeMatches(saved, saved.calendarId, saved.organizerEmail)) throw new Error("booking_acceptance_scope_mismatch");
     if (saved.state !== "confirmed" || !saved.receipt || !receiptMatches(saved, saved.receipt)) throw new Error("receipt_not_durable");
     return { ok: true as const, bookingId: saved.id, receipt: saved.receipt, replayed: !claim.fresh };
   } catch {

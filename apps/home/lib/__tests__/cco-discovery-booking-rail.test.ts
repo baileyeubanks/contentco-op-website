@@ -95,3 +95,81 @@ describe("canonical direct discovery booking", () => {
     expect(eventIdentity("22222222-2222-4222-8222-222222222222")).toBe("cco22222222222242228222222222222222");
   });
 });
+
+const acceptanceScope = { ...config, guestEmail: input.email, submissionId: input.submissionId };
+describe("isolated acceptance scope", () => {
+  test.each([
+    { ...input, email: "other@example.test" },
+    { ...input, submissionId: "33333333-3333-4333-8333-333333333333" },
+  ])("rejects an unapproved guest or new submission before any claim", async (request) => {
+    const f = fixture();
+    expect(await reserveDiscovery(request, { ...config, acceptanceScope }, f.store, f.provider, () => true)).toEqual({ ok: false, error: "booking_acceptance_scope_mismatch", retryable: false });
+    expect(f.getSaved()).toBeNull();
+    expect(f.store.claim).not.toHaveBeenCalled();
+    expect(f.provider.find).not.toHaveBeenCalled();
+    expect(f.provider.available).not.toHaveBeenCalled();
+    expect(f.provider.insert).not.toHaveBeenCalled();
+  });
+  test.each([
+    { ...config, calendarId: "another-calendar" },
+    { ...config, organizerEmail: "other-owner@example.test" },
+  ])("rejects a different calendar or organizer before any claim", async (runtimeConfig) => {
+    const f = fixture();
+    expect(await reserveDiscovery(input, { ...runtimeConfig, acceptanceScope }, f.store, f.provider, () => true)).toMatchObject({ ok: false, error: "booking_acceptance_scope_mismatch" });
+    expect(f.getSaved()).toBeNull();
+    expect(f.store.claim).not.toHaveBeenCalled();
+    expect(f.provider.find).not.toHaveBeenCalled();
+    expect(f.provider.insert).not.toHaveBeenCalled();
+  });
+  test("invalid configured scope fails closed before any claim", async () => {
+    const f = fixture();
+    expect(await reserveDiscovery(input, { ...config, acceptanceScope: null }, f.store, f.provider, () => true)).toMatchObject({ ok: false, error: "booking_acceptance_scope_mismatch" });
+    expect(f.getSaved()).toBeNull();
+    expect(f.store.claim).not.toHaveBeenCalled();
+    expect(f.provider.find).not.toHaveBeenCalled();
+  });
+  test.each(["email", "submissionId", "calendarId", "organizerEmail"] as const)("rejects cross-scope stored %s before confirmed replay or provider access", async (field) => {
+    const f = fixture();
+    const claim = f.store.claim;
+    f.store.claim = vi.fn(async (...args: Parameters<BookingStore["claim"]>) => {
+      const result = await claim(...args);
+      result.record[field] = field === "submissionId" ? "33333333-3333-4333-8333-333333333333" : field.endsWith("Email") || field === "email" ? "other@example.test" : "another-calendar";
+      result.record.state = "confirmed";
+      result.record.receipt = f.receipt(result.record, eventIdentity(result.record.id));
+      return result;
+    });
+    expect(await reserveDiscovery(input, { ...config, acceptanceScope }, f.store, f.provider, () => true)).toMatchObject({ ok: false, error: "booking_acceptance_scope_mismatch" });
+    expect(f.provider.find).not.toHaveBeenCalled();
+    expect(f.provider.available).not.toHaveBeenCalled();
+    expect(f.provider.insert).not.toHaveBeenCalled();
+    expect(f.store.settle).not.toHaveBeenCalled();
+  });
+  test("does not expose a confirmed receipt from cross-scope settlement readback", async () => {
+    const f = fixture();
+    const settle = f.store.settle;
+    f.store.settle = vi.fn(async (...args: Parameters<BookingStore["settle"]>) => {
+      const saved = await settle(...args);
+      saved.email = "other@example.test";
+      saved.receipt = f.receipt(saved, eventIdentity(saved.id));
+      return saved;
+    });
+    const result = await reserveDiscovery(input, { ...config, acceptanceScope }, f.store, f.provider, () => true);
+    expect(result).toMatchObject({ ok: false });
+    expect(result).not.toHaveProperty("receipt");
+    expect(f.provider.insert).toHaveBeenCalledTimes(1);
+  });
+  test("removing acceptance scope preserves the durable identity and confirmed replay", async () => {
+    const f = fixture();
+    expect(await reserveDiscovery(input, { ...config, acceptanceScope }, f.store, f.provider, () => true)).toMatchObject({ ok: true });
+    expect(await reserveDiscovery(input, config, f.store, f.provider, () => true)).toMatchObject({ ok: true, replayed: true });
+    expect(f.provider.insert).toHaveBeenCalledTimes(1);
+  });
+  test("exact approved submission reconciles a lost acknowledgement without another invitation", async () => {
+    const f = fixture();
+    vi.mocked(f.provider.insert).mockImplementationOnce(async (booking, eventId) => { f.setExternal(f.receipt(booking, eventId)); throw new Error("lost acknowledgement"); });
+    expect(await reserveDiscovery(input, { ...config, acceptanceScope }, f.store, f.provider, () => true)).toMatchObject({ ok: false, retryable: true });
+    expect(await reserveDiscovery(input, { ...config, acceptanceScope }, f.store, f.provider, () => true)).toMatchObject({ ok: true, replayed: true });
+    expect(f.getSaved()?.state).toBe("confirmed");
+    expect(f.provider.insert).toHaveBeenCalledTimes(1);
+  });
+});
