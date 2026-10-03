@@ -1,10 +1,14 @@
+import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, expect, test, vi } from "vitest";
 import type { RootOverviewReadModel } from "../os-overview";
 
-const controls = vi.hoisted(() => ({ read: vi.fn() }));
+const controls = vi.hoisted(() => ({ read: vi.fn(), pathname: "/os/overview" }));
 vi.mock("@/lib/os-overview", () => ({ buildRootOverviewReadModel: controls.read }));
+vi.mock("next/navigation", () => ({ usePathname: () => controls.pathname }));
 import OverviewPage from "../../app/os/overview/page";
+import { OsShell } from "../../app/os/components/os-shell";
+import { getRootModulesForWorkspace } from "../os-module-registry";
 
 function fixture(): RootOverviewReadModel {
   return {
@@ -43,8 +47,13 @@ let model: RootOverviewReadModel;
 beforeEach(() => {
   model = fixture();
   controls.read.mockReset().mockImplementation(async () => model);
+  controls.pathname = "/os/overview";
 });
 const render = async () => renderToStaticMarkup(await OverviewPage());
+const renderShell = (children: ReactNode) => {
+  const props = { brandKey: "cc" as const, children };
+  return renderToStaticMarkup(createElement(OsShell, props));
+};
 
 test("uses one canonical snapshot and puts the work destination before quote activity", async () => {
   const html = await render();
@@ -112,6 +121,7 @@ test("empty snapshots preserve each unavailable-data message, warning and its ne
   expect(html).toContain("No recent quote activity was loaded for this workspace.");
   expect(html).toContain("No contact snapshot is available for this workspace yet.");
   expect(html).toContain("jobs_upcoming: &lt;unavailable&gt;");
+  expect(html.indexOf("jobs_upcoming: &lt;unavailable&gt;")).toBeLessThan(html.indexOf('href="/os/dispatch"'));
   expect(html).not.toContain("No query warnings on this render.");
   for (const href of ["/os/dispatch", "/os/quotes", "/os/contacts", "/os/system"]) {
     expect(html).toContain(`href="${href}"`);
@@ -124,4 +134,31 @@ test("an absent timing map produces no invented slowest read", async () => {
   expect(html).not.toContain("Slowest read:");
   expect(html).not.toContain("NaN");
   expect(html).toContain("No query warnings on this render.");
+});
+
+test("the complete overview and shell expose one main landmark", async () => {
+  const html = renderShell(await OverviewPage());
+  expect(html.match(/<main[ >]/g)).toHaveLength(1);
+  expect(html).toContain("Operations overview");
+  expect(html).toContain("Work record 9");
+});
+
+test.each(["/os/overview", "/os/quotes", "/os/contacts", "/os/dispatch"])(
+  "CCO shell keeps the registered navigation and page content on %s", pathname => {
+    controls.pathname = pathname;
+    const html = renderShell("Existing route content");
+    const modules = [
+      ...getRootModulesForWorkspace("cc", "core"),
+      ...getRootModulesForWorkspace("cc", "advanced"),
+    ];
+    for (const entry of modules) expect(html).toContain(`href="${entry.href}"`);
+    expect(html).toContain("Existing route content");
+    for (const scope of ["ALL", "ACS", "CC"]) expect(html).toContain(`>${scope}</button>`);
+  },
+);
+
+test.each(["/os", "/os/login", "/os/system/map"])("bare route %s retains its own surface", pathname => {
+  controls.pathname = pathname;
+  const html = renderShell("Bare route content");
+  expect(html).toBe("Bare route content");
 });
