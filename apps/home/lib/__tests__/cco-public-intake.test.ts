@@ -804,13 +804,13 @@ describe("CCO public intake operator alerting", () => {
     const briefId = first.ok ? first.briefId : "";
     const events = db.rows("events");
     expect(events).toHaveLength(1);
-    // Columns verified on live CCO-DB public.events (2026-10-03) and declared
-    // by 20261003000100_events_brief_submitted_contract.sql. Live has
-    // idempotency_key and event_version; the writer may use nothing else.
+    // public.events has no idempotency_key or event_version columns
+    // (20260317_root_ontology_core.sql). A row that includes them is rejected
+    // by PostgREST and the durable event never lands.
     const eventsColumns = new Set([
       "id", "type", "business_id", "business_unit", "contact_id", "text",
       "payload", "metadata", "channel", "direction", "created_at",
-      "idempotency_key", "event_version",
+      "object_type", "object_id", "event_category",
     ]);
     expect(Object.keys(events[0]).filter((key) => !eventsColumns.has(key))).toEqual([]);
     expect(events[0]).toMatchObject({
@@ -818,13 +818,11 @@ describe("CCO public intake operator alerting", () => {
       business_unit: "CC",
       channel: "website",
       direction: "inbound",
-      idempotency_key: `cco_public_brief_submitted:${briefId}`,
-      event_version: "cco.public-brief-submitted.v1",
-      metadata: { idempotency_key: `cco_public_brief_submitted:${briefId}`, event_version: "cco.public-brief-submitted.v1" },
+      metadata: { idempotency_key: `brief_submitted:${briefId}`, event_version: "cco.public-brief-submitted.v1" },
     });
     const payload = events[0].payload as Record<string, unknown>;
     expect(payload.brief_id).toBe(briefId);
-    expect(payload.idempotency_key).toBe(`cco_public_brief_submitted:${briefId}`);
+    expect(payload.idempotency_key).toBe(`brief_submitted:${briefId}`);
     expect(payload.public_submission_id).toBe(submission.submissionId);
     expect((payload.structured_intake as Record<string, unknown>).project).toMatchObject({ projectName: "Launch proof film" });
 
@@ -833,24 +831,16 @@ describe("CCO public intake operator alerting", () => {
     expect(db.rows("events")).toHaveLength(1);
   });
 
-  test("a failed event write is an honest retryable state, never a success", async () => {
-    // The brief row is kept and reported (persisted: true) so the browser
-    // retains its retry key; success is withheld until the OS-facing event is
-    // durable, because that event is what CCO OS acts on.
+  test("a failed event write never blocks the brief receipt", async () => {
     const db = new FakeDatabase();
     db.insertErrorFor = "events";
-    const sendEmail = vi.fn(async () => ({ ok: true, id: "provider-message-1" }));
 
-    const result = await persistCcoBrief(submission, { db, sendEmail });
-
-    expect(result).toMatchObject({
-      ok: false,
-      persisted: true,
-      retryable: true,
-      error: "brief_event_write_failed",
-      briefId: "creative_briefs-1",
+    const result = await persistCcoBrief(submission, {
+      db,
+      sendEmail: async () => ({ ok: true, id: "provider-message-1" }),
     });
+
+    expect(result).toMatchObject({ ok: true, persisted: true, event: { ok: false } });
     expect(db.rows("creative_briefs")).toHaveLength(1);
-    expect(sendEmail).not.toHaveBeenCalled();
   });
 });

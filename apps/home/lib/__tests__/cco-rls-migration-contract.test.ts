@@ -1,12 +1,10 @@
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
-import { BRIEF_SUBMITTED_EVENT_COLUMNS, BRIEF_SUBMITTED_IDEMPOTENCY_PREFIX } from "../cco-public-intake";
 
 const infraMigrations = path.resolve(__dirname, "../../../../infra/supabase/migrations");
 const appMigrations = path.resolve(__dirname, "../../supabase/migrations");
 const lockdownPath = path.join(infraMigrations, "20261003000000_cco_rls_service_role_lockdown.sql");
-const eventsContractPath = path.join(infraMigrations, "20261003000100_events_brief_submitted_contract.sql");
 
 const ACS_FILES = /acs_v1|job_applicants/;
 
@@ -66,28 +64,6 @@ describe("CCO RLS lockdown migration (source contract)", () => {
     expect(lockdown).not.toMatch(/acs_/);
     expect(lockdown).not.toContain("job_applicants");
     expect(lockdown).not.toContain("cviggizfmelffvpfzkmh");
-  });
-});
-
-describe("events brief_submitted contract migration (source contract)", () => {
-  const contract = normalize(readFileSync(eventsContractPath, "utf8"));
-
-  test("declares every column the intake writer uses", () => {
-    for (const column of BRIEF_SUBMITTED_EVENT_COLUMNS) {
-      expect(contract).toContain(`('${column}')`);
-    }
-    expect(contract).toContain("add column if not exists idempotency_key text");
-    expect(contract).toContain("add column if not exists event_version text");
-  });
-
-  test("enforces one brief_submitted event per public brief", () => {
-    expect(contract).toContain(
-      `create unique index if not exists idx_events_cco_public_brief_submitted_unique on public.events (idempotency_key) where idempotency_key like '${BRIEF_SUBMITTED_IDEMPOTENCY_PREFIX}%'`,
-    );
-  });
-
-  test("fails closed when the live table drifts", () => {
-    expect(contract).toContain("raise exception 'events_brief_submitted_contract: public.events is missing columns: %'");
   });
 });
 

@@ -1,5 +1,18 @@
 # CCO intake + RLS inventory — 2026-10-03
 
+> **Scope split (2026-10-03 06:06 UTC):** this lane is **RLS only**. A separate
+> worker owns durable-event failure honesty, `brief_submitted` insertion, the
+> success UI, retry logic, operator alerts and portal filtering, working from
+> `main` `8c442f1`. The intake, event, alert and portal findings below are kept
+> as **inventory evidence** for that worker; every code, test and migration
+> change this branch had made in those areas was reverted to `main`
+> (`cco-public-intake.ts`, `api/cco/briefs/route.ts`, `brief-client.tsx`,
+> the portal files, `cco-public-intake.test.ts`, `API_CONTRACTS.md` intake
+> text, and the two migrations `20261003000100_events_brief_submitted_contract.sql`
+> and `20261003000300_contacts_portal_token.sql`). Dependency changes were
+> dropped too; `main` already carries the `next` 16.3.8 bump.
+
+
 Read-only inventory for the CCO lane (constitution §6.4, §6.8, §9.3, §18.5,
 §20.2). Every claim carries a label:
 

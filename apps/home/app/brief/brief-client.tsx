@@ -226,9 +226,6 @@ function responseErrorMessage(payload: unknown, fallback: string) {
   if (body.code === "brief_submission_conflict") {
     return "This saved retry cannot be matched to your brief. Your draft is still here; please submit it again.";
   }
-  if (body.code === "brief_event_write_failed" || body.code === "brief_event_lookup_failed") {
-    return "Your brief was saved, but our production queue has not recorded it yet. Retry safely to finish that step.";
-  }
   if (body.persisted === true) {
     return "Your brief was saved, but we could not complete its delivery record. Retry safely to finish that step.";
   }

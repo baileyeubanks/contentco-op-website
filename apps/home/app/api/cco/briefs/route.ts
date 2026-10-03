@@ -71,14 +71,6 @@ export async function POST(req: Request) {
       contact_id: persistence.contactId,
       replayed: persistence.replayed,
     },
-    event: {
-      type: "brief_submitted",
-      id: persistence.event.eventId,
-      replayed: persistence.event.replayed,
-    },
-    // Operator alert and client receipt delivery state. Logged in
-    // notification_log independently of the brief and event receipts above;
-    // a failed or unknown delivery never withdraws the persisted brief.
     notification: persistence.notification,
   });
 }

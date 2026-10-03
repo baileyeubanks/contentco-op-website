@@ -84,23 +84,6 @@ begin
   if n <> 1 then raise exception 'service_role notification_log insert failed (count=%)', n; end if;
 end $$;
 
--- Idempotency: a second brief_submitted event for the same brief is rejected.
-do $$
-declare
-  dup_blocked boolean := false;
-begin
-  begin
-    insert into public.events (type, business_unit, idempotency_key, payload)
-    select 'brief_submitted', 'CC', 'cco_public_brief_submitted:' || b.id::text, '{}'::jsonb
-      from public.creative_briefs b;
-  exception when unique_violation then
-    dup_blocked := true;
-  end;
-  if not dup_blocked then
-    raise exception 'duplicate brief_submitted event was accepted';
-  end if;
-end $$;
-
 reset role;
 
 -- ---------------------------------------------------------------------------
@@ -179,28 +162,6 @@ begin
   if n <> 1 then raise exception 'brief_submitted events were deleted by an unauthorized role (count=%)', n; end if;
   select count(*) into n from public.contacts;
   if n <> 1 then raise exception 'contacts rows were deleted by an unauthorized role (count=%)', n; end if;
-end $$;
-
--- ---------------------------------------------------------------------------
--- 4. Event schema contract: the intake writer's columns exist.
--- ---------------------------------------------------------------------------
-do $$
-declare missing text;
-begin
-  select string_agg(r.column_name, ', ') into missing
-    from (values ('type'), ('business_unit'), ('channel'), ('direction'), ('contact_id'), ('text'),
-                 ('payload'), ('metadata'), ('idempotency_key'), ('event_version'),
-                 ('object_type'), ('object_id'), ('event_category')) as r(column_name)
-   where not exists (
-     select 1 from information_schema.columns c
-      where c.table_schema = 'public' and c.table_name = 'events' and c.column_name = r.column_name);
-  if missing is not null then
-    raise exception 'public.events missing columns: %', missing;
-  end if;
-  if not exists (select 1 from pg_indexes where schemaname = 'public' and tablename = 'events'
-                   and indexname = 'idx_events_cco_public_brief_submitted_unique') then
-    raise exception 'brief_submitted unique index missing';
-  end if;
 end $$;
 
 -- converted status accepted by creative_briefs (20261002120000).
