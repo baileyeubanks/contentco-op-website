@@ -31,18 +31,27 @@ export default async function OverviewPage() {
     Object.entries(model.diagnostics.timingsMs).sort((a, b) => b[1] - a[1])[0] ?? null;
 
   return (
-    <main className={styles.surface}>
-      <section className={styles.hero}>
+    <div className={styles.surface} data-cco-overview>
+      <header className={styles.hero}>
         <div>
           <h1 className={styles.heroTitle}>Operations overview</h1>
           <p className={styles.heroCopy}>
             Scheduled work, recent quotes and contact activity.
           </p>
         </div>
-        <span className={styles.metaBadge}>Data reads: {model.diagnostics.status}</span>
-      </section>
+        <span className={styles.metaBadge} data-status={model.diagnostics.status}>
+          Data reads: {model.diagnostics.status}
+        </span>
+        {model.diagnostics.warnings.length > 0 ? (
+          <ul className={styles.warningList} aria-label="Read warnings">
+            {model.diagnostics.warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        ) : null}
+      </header>
 
-      <section className={styles.gridFour}>
+      <section className={styles.gridFour} aria-label="Overview totals">
         {model.summary.cards.map((card) => (
           <article
             key={card.label}
@@ -63,11 +72,10 @@ export default async function OverviewPage() {
       </section>
 
       <section className={styles.sectionGrid}>
-        <article className={styles.panel}>
+        <article className={`${styles.panel} ${styles.workPanel}`}>
           <div className={styles.panelHeader}>
             <div>
-              <p className={styles.panelKicker}>Work</p>
-              <h2 className={styles.panelTitle}>Scheduled work and closeout</h2>
+              <h2 className={styles.panelTitle}>Work and closeout</h2>
             </div>
             <Link className={styles.panelAction} href="/os/dispatch">
               Open dispatch
@@ -98,10 +106,9 @@ export default async function OverviewPage() {
           </div>
         </article>
 
-        <article className={styles.panel}>
+        <article className={`${styles.panel} ${styles.quotePanel}`}>
           <div className={styles.panelHeader}>
             <div>
-              <p className={styles.panelKicker}>Movement</p>
               <h2 className={styles.panelTitle}>Recent quotes</h2>
             </div>
             <Link className={styles.panelAction} href="/os/quotes">
@@ -132,11 +139,10 @@ export default async function OverviewPage() {
       </section>
 
       <section className={styles.systemGrid}>
-        <article className={styles.panel}>
+        <article className={`${styles.panel} ${styles.contactPanel}`}>
           <div className={styles.panelHeader}>
             <div>
-              <p className={styles.panelKicker}>Risk / Trust</p>
-              <h2 className={styles.panelTitle}>Contact stewardship</h2>
+              <h2 className={styles.panelTitle}>Contacts</h2>
             </div>
             <Link className={styles.panelAction} href="/os/contacts">
               Open contacts
@@ -167,10 +173,9 @@ export default async function OverviewPage() {
           </div>
         </article>
 
-        <article className={styles.panel}>
+        <article className={`${styles.panel} ${styles.systemPanel}`}>
           <div className={styles.panelHeader}>
             <div>
-              <p className={styles.panelKicker}>System</p>
               <h2 className={styles.panelTitle}>Runtime diagnostics</h2>
             </div>
             <Link className={styles.panelAction} href="/os/system">
@@ -205,19 +210,13 @@ export default async function OverviewPage() {
               <strong>{model.summary.jobsTotal.toLocaleString()} total</strong>
             </div>
           </div>
-          {model.diagnostics.warnings.length > 0 ? (
-            <ul className={styles.warningList}>
-              {model.diagnostics.warnings.map((warning) => (
-                <li key={warning}>{warning}</li>
-              ))}
-            </ul>
-          ) : (
+          {model.diagnostics.warnings.length === 0 ? (
             <p className={styles.empty}>
               No query warnings on this render.
             </p>
-          )}
+          ) : null}
         </article>
       </section>
-    </main>
+    </div>
   );
 }
