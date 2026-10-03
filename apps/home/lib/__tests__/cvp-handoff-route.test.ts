@@ -5,6 +5,11 @@ import { createFakeSupabase, fakeUuid, type FakeSupabase } from "./helpers/fake-
 let fake: FakeSupabase;
 let accessDecision: { ok: boolean; status?: number };
 
+vi.mock("@/lib/cco-public-intake", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/lib/cco-public-intake")>(),
+  getCcoOsDatabase: () => ({ ok: true, db: fake.client }),
+}));
+
 vi.mock("@/lib/supabase", () => ({
   getSupabase: () => fake.client,
   supabase: new Proxy({}, { get: (_target, prop) => (fake.client as never as Record<PropertyKey, unknown>)[prop] }),

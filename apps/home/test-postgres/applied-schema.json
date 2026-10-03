@@ -1,0 +1,2783 @@
+{
+  "columns": [
+    {
+      "udt_name": "uuid",
+      "table_name": "contacts",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "contacts",
+      "column_name": "organization_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "contacts",
+      "column_name": "owner_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "contacts",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "contacts",
+      "column_name": "email",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "contacts",
+      "column_name": "role",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "bool",
+      "table_name": "contacts",
+      "column_name": "is_primary",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "false",
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "contacts",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "contacts",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 9,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "deliverables",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "deliverables",
+      "column_name": "project_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "deliverables",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "deliverables",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "deliverables",
+      "column_name": "spec",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "deliverables",
+      "column_name": "source_version_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "deliverables",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "'specced'::text",
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "deliverables",
+      "column_name": "qc_notes",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "''::text",
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "deliverables",
+      "column_name": "delivered_at",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 9,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "deliverables",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 10,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "deliverables",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 11,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "deliverables",
+      "column_name": "qc_checks",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "'[]'::jsonb",
+      "ordinal_position": 12,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "deliverables",
+      "column_name": "locked_at",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 13,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "deliverables",
+      "column_name": "locked_by",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 14,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "deliverables",
+      "column_name": "approval_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 15,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "inquiries",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "inquiries",
+      "column_name": "owner_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "inquiries",
+      "column_name": "project_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "inquiries",
+      "column_name": "organization_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "inquiries",
+      "column_name": "contact_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "inquiries",
+      "column_name": "source",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "'direct'::text",
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "inquiries",
+      "column_name": "summary",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "''::text",
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "inquiries",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "inquiries",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "'new'::text",
+      "ordinal_position": 9,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "inquiries",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 10,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "inquiries",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 11,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "inquiries",
+      "column_name": "cco_estimate_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 12,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "inquiries",
+      "column_name": "cco_estimate_version_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 13,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int8",
+      "table_name": "inquiries",
+      "column_name": "commercial_total_cents",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 14,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "inquiries",
+      "column_name": "commercial_ref",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 15,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "organizations",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "organizations",
+      "column_name": "owner_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "organizations",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "organizations",
+      "column_name": "industry",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "organizations",
+      "column_name": "website",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "organizations",
+      "column_name": "notes",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "organizations",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "organizations",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "project_members",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "project_members",
+      "column_name": "project_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "project_members",
+      "column_name": "user_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "project_members",
+      "column_name": "role",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "'reviewer'::text",
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "project_members",
+      "column_name": "invited_by",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "project_members",
+      "column_name": "expires_at",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "project_members",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "project_members",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "projects",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "projects",
+      "column_name": "team_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "projects",
+      "column_name": "owner_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "projects",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "projects",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "projects",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "'active'::text",
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "projects",
+      "column_name": "thumbnail_url",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "projects",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "projects",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "now()",
+      "ordinal_position": 9,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "projects",
+      "column_name": "stage",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": "'post'::text",
+      "ordinal_position": 10,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "projects",
+      "column_name": "organization_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 11,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "projects",
+      "column_name": "primary_contact_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 12,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "projects",
+      "column_name": "cco_estimate_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 13,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "projects",
+      "column_name": "cco_estimate_version_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 14,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int8",
+      "table_name": "projects",
+      "column_name": "commercial_total_cents",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 15,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "projects",
+      "column_name": "commercial_ref",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "co_production",
+      "column_default": null,
+      "ordinal_position": 16,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "commercial_handoffs",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "commercial_handoffs",
+      "column_name": "estimate_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "commercial_handoffs",
+      "column_name": "estimate_version_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "commercial_handoffs",
+      "column_name": "idempotency_key",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "commercial_handoffs",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "commercial_handoffs",
+      "column_name": "cvp_inquiry_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "commercial_handoffs",
+      "column_name": "cvp_project_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "commercial_handoffs",
+      "column_name": "receipt",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "commercial_handoffs",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "now()",
+      "ordinal_position": 9,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "creative_briefs",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "access_token",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "encode(gen_random_bytes(32), 'hex'::text)",
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'submitted'::text",
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "contact_name",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "contact_email",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "company",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "role",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "content_type",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "deliverables",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 9,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "audience",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 10,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "tone",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 11,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "date",
+      "table_name": "creative_briefs",
+      "column_name": "deadline",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 12,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "objective",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 13,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "key_messages",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 14,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "references",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 15,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "constraints",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 16,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "creative_briefs",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "now()",
+      "ordinal_position": 17,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "creative_briefs",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "now()",
+      "ordinal_position": 18,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "phone",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 19,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "location",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 20,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "vector",
+      "table_name": "creative_briefs",
+      "column_name": "embedding",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 21,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "tsvector",
+      "table_name": "creative_briefs",
+      "column_name": "fts",
+      "is_nullable": "YES",
+      "is_generated": "ALWAYS",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 22,
+      "generation_expression": "to_tsvector('english'::regconfig, ((((((((COALESCE(contact_name, ''::text) || ' '::text) || COALESCE(company, ''::text)) || ' '::text) || COALESCE(objective, ''::text)) || ' '::text) || COALESCE(key_messages, ''::text)) || ' '::text) || COALESCE(audience, ''::text)))"
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "booking_intent",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 23,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "source_surface",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 24,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "source_path",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 25,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "submission_mode",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 26,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "creative_briefs",
+      "column_name": "intake_payload",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 27,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "creative_briefs",
+      "column_name": "structured_intake",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 28,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "creative_briefs",
+      "column_name": "handoff_payload",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 29,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "creative_briefs",
+      "column_name": "data",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 30,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "company_account_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'content-co-op'::text",
+      "ordinal_position": 31,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "brief_number",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 32,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "numeric",
+      "table_name": "creative_briefs",
+      "column_name": "readiness_score",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "0",
+      "ordinal_position": 33,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "creative_briefs",
+      "column_name": "internal_status",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'submitted'::text",
+      "ordinal_position": 34,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "creative_briefs",
+      "column_name": "normalized_scope_metadata",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 35,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimate_versions",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimate_versions",
+      "column_name": "estimate_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int4",
+      "table_name": "estimate_versions",
+      "column_name": "version",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimate_versions",
+      "column_name": "frozen_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "now()",
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "estimate_versions",
+      "column_name": "snapshot",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimate_versions",
+      "column_name": "sha256",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimate_versions",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "now()",
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimates",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "business_unit",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'CC'::text",
+      "ordinal_position": 2,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimates",
+      "column_name": "brief_id",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 3,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimates",
+      "column_name": "contact_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 4,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimates",
+      "column_name": "legacy_quote_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 5,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "estimate_number",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 6,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int4",
+      "table_name": "estimates",
+      "column_name": "document_version",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "1",
+      "ordinal_position": 7,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "currency",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'USD'::text",
+      "ordinal_position": 8,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int8",
+      "table_name": "estimates",
+      "column_name": "subtotal_cents",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "0",
+      "ordinal_position": 9,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int8",
+      "table_name": "estimates",
+      "column_name": "tax_cents",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "0",
+      "ordinal_position": 10,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int8",
+      "table_name": "estimates",
+      "column_name": "total_cents",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "0",
+      "ordinal_position": 11,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int4",
+      "table_name": "estimates",
+      "column_name": "deposit_percent",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "50",
+      "ordinal_position": 12,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int8",
+      "table_name": "estimates",
+      "column_name": "deposit_due_cents",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "0",
+      "ordinal_position": 13,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "int8",
+      "table_name": "estimates",
+      "column_name": "balance_remaining_cents",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "0",
+      "ordinal_position": 14,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "_text",
+      "table_name": "estimates",
+      "column_name": "assumptions",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'{}'::text[]",
+      "ordinal_position": 15,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "_text",
+      "table_name": "estimates",
+      "column_name": "exclusions",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'{}'::text[]",
+      "ordinal_position": 16,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "payment_terms",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 17,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "delivery_timeline",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 18,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "internal_status",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'draft'::text",
+      "ordinal_position": 19,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "client_status",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'not_sent'::text",
+      "ordinal_position": 20,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "approval_status",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'not_required'::text",
+      "ordinal_position": 21,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "estimates",
+      "column_name": "scope_snapshot",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 22,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "estimates",
+      "column_name": "pricing_snapshot",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 23,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimates",
+      "column_name": "valid_until",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 24,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimates",
+      "column_name": "sent_at",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 25,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimates",
+      "column_name": "viewed_at",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 26,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimates",
+      "column_name": "approved_at",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 27,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimates",
+      "column_name": "rejected_at",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 28,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimates",
+      "column_name": "rejection_reason",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 29,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimates",
+      "column_name": "superseded_by_estimate_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 30,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimates",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "now()",
+      "ordinal_position": 31,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimates",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": "now()",
+      "ordinal_position": 32,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimates",
+      "column_name": "active_version_id",
+      "is_nullable": "YES",
+      "is_generated": "NEVER",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 33,
+      "generation_expression": null
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimate_decisions",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimate_decisions",
+      "column_name": "estimate_id",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimate_decisions",
+      "column_name": "decision_type",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimate_decisions",
+      "column_name": "actor_type",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'unknown'::text",
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimate_decisions",
+      "column_name": "actor_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "table_name": "estimate_decisions",
+      "column_name": "actor_email",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "jsonb",
+      "table_name": "estimate_decisions",
+      "column_name": "payload",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "timestamptz",
+      "table_name": "estimate_decisions",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "table_schema": "public",
+      "column_default": "now()",
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "uuid",
+      "table_name": "estimate_decisions",
+      "column_name": "estimate_version_id",
+      "is_nullable": "YES",
+      "table_schema": "public",
+      "column_default": null,
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "uuid",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()",
+      "ordinal_position": 1,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "uuid",
+      "column_name": "owner_id",
+      "is_nullable": "NO",
+      "column_default": "auth.uid()",
+      "ordinal_position": 2,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "column_default": "'active'::text",
+      "ordinal_position": 5,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "thumbnail_url",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "timestamptz",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 7,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "timestamptz",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 8,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "uuid",
+      "column_name": "org_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10,
+      "table_schema": "public",
+      "table_name": "projects"
+    },
+    {
+      "udt_name": "uuid",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "uuid",
+      "column_name": "contact_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 2,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "uuid",
+      "column_name": "business_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "type",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "jsonb",
+      "column_name": "payload",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 5,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "timestamptz",
+      "column_name": "created_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 6,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "timestamptz",
+      "column_name": "processed_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "processed_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "process_error",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "int4",
+      "column_name": "attempts",
+      "is_nullable": "YES",
+      "column_default": "0",
+      "ordinal_position": 10,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "event_version",
+      "is_nullable": "NO",
+      "column_default": "'v1'::text",
+      "ordinal_position": 11,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "business_unit",
+      "is_nullable": "YES",
+      "column_default": "'ACS'::text",
+      "ordinal_position": 12,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "channel",
+      "is_nullable": "YES",
+      "column_default": "'legacy'::text",
+      "ordinal_position": 13,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "direction",
+      "is_nullable": "YES",
+      "column_default": "'inbound'::text",
+      "ordinal_position": 14,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "external_thread_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 15,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "text",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 16,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "jsonb",
+      "column_name": "metadata",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 17,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "timestamptz",
+      "column_name": "received_at",
+      "is_nullable": "YES",
+      "column_default": "now()",
+      "ordinal_position": 18,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "processing_state",
+      "is_nullable": "YES",
+      "column_default": "'queued'::text",
+      "ordinal_position": 19,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "locked_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 20,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "timestamptz",
+      "column_name": "locked_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 21,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "decision_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 22,
+      "table_schema": "public",
+      "table_name": "events"
+    },
+    {
+      "udt_name": "text",
+      "column_name": "idempotency_key",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 23,
+      "table_schema": "public",
+      "table_name": "events"
+    }
+  ],
+  "indexes": [
+    {
+      "indexdef": "CREATE UNIQUE INDEX contacts_pkey ON co_production.contacts USING btree (id)",
+      "indexname": "contacts_pkey",
+      "tablename": "contacts",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_contacts_org ON co_production.contacts USING btree (organization_id)",
+      "indexname": "idx_contacts_org",
+      "tablename": "contacts",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX deliverables_pkey ON co_production.deliverables USING btree (id)",
+      "indexname": "deliverables_pkey",
+      "tablename": "deliverables",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_deliverables_project ON co_production.deliverables USING btree (project_id, status)",
+      "indexname": "idx_deliverables_project",
+      "tablename": "deliverables",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_inquiries_cco_estimate ON co_production.inquiries USING btree (cco_estimate_id) WHERE (cco_estimate_id IS NOT NULL)",
+      "indexname": "idx_inquiries_cco_estimate",
+      "tablename": "inquiries",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX idx_inquiries_cco_estimate_version_unique ON co_production.inquiries USING btree (cco_estimate_version_id) WHERE (cco_estimate_version_id IS NOT NULL)",
+      "indexname": "idx_inquiries_cco_estimate_version_unique",
+      "tablename": "inquiries",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_inquiries_owner_status ON co_production.inquiries USING btree (owner_id, status)",
+      "indexname": "idx_inquiries_owner_status",
+      "tablename": "inquiries",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX inquiries_pkey ON co_production.inquiries USING btree (id)",
+      "indexname": "inquiries_pkey",
+      "tablename": "inquiries",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX organizations_pkey ON co_production.organizations USING btree (id)",
+      "indexname": "organizations_pkey",
+      "tablename": "organizations",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX project_members_pkey ON co_production.project_members USING btree (id)",
+      "indexname": "project_members_pkey",
+      "tablename": "project_members",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX project_members_project_id_user_id_key ON co_production.project_members USING btree (project_id, user_id)",
+      "indexname": "project_members_project_id_user_id_key",
+      "tablename": "project_members",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE INDEX project_members_user_idx ON co_production.project_members USING btree (user_id, project_id)",
+      "indexname": "project_members_user_idx",
+      "tablename": "project_members",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_projects_cco_estimate ON co_production.projects USING btree (cco_estimate_id) WHERE (cco_estimate_id IS NOT NULL)",
+      "indexname": "idx_projects_cco_estimate",
+      "tablename": "projects",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX idx_projects_cco_estimate_version_unique ON co_production.projects USING btree (cco_estimate_version_id) WHERE (cco_estimate_version_id IS NOT NULL)",
+      "indexname": "idx_projects_cco_estimate_version_unique",
+      "tablename": "projects",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE INDEX projects_owner_updated_idx ON co_production.projects USING btree (owner_id, updated_at DESC)",
+      "indexname": "projects_owner_updated_idx",
+      "tablename": "projects",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX projects_pkey ON co_production.projects USING btree (id)",
+      "indexname": "projects_pkey",
+      "tablename": "projects",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE INDEX projects_team_updated_idx ON co_production.projects USING btree (team_id, updated_at DESC)",
+      "indexname": "projects_team_updated_idx",
+      "tablename": "projects",
+      "schemaname": "co_production"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX commercial_handoffs_idempotency_key_key ON public.commercial_handoffs USING btree (idempotency_key)",
+      "indexname": "commercial_handoffs_idempotency_key_key",
+      "tablename": "commercial_handoffs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX commercial_handoffs_pkey ON public.commercial_handoffs USING btree (id)",
+      "indexname": "commercial_handoffs_pkey",
+      "tablename": "commercial_handoffs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_commercial_handoffs_estimate ON public.commercial_handoffs USING btree (estimate_id, created_at DESC)",
+      "indexname": "idx_commercial_handoffs_estimate",
+      "tablename": "commercial_handoffs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_commercial_handoffs_version ON public.commercial_handoffs USING btree (estimate_version_id)",
+      "indexname": "idx_commercial_handoffs_version",
+      "tablename": "commercial_handoffs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX briefs_fts_gin ON public.creative_briefs USING gin (fts)",
+      "indexname": "briefs_fts_gin",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX creative_briefs_access_token_key ON public.creative_briefs USING btree (access_token)",
+      "indexname": "creative_briefs_access_token_key",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX creative_briefs_pkey ON public.creative_briefs USING btree (id)",
+      "indexname": "creative_briefs_pkey",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_briefs_company ON public.creative_briefs USING btree (company_account_id, created_at DESC)",
+      "indexname": "idx_briefs_company",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_briefs_email ON public.creative_briefs USING btree (contact_email)",
+      "indexname": "idx_briefs_email",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_briefs_phone ON public.creative_briefs USING btree (phone) WHERE (phone IS NOT NULL)",
+      "indexname": "idx_briefs_phone",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_briefs_status ON public.creative_briefs USING btree (status, created_at DESC)",
+      "indexname": "idx_briefs_status",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_briefs_token ON public.creative_briefs USING btree (access_token)",
+      "indexname": "idx_briefs_token",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX idx_creative_briefs_brief_number ON public.creative_briefs USING btree (brief_number) WHERE (brief_number IS NOT NULL)",
+      "indexname": "idx_creative_briefs_brief_number",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX idx_creative_briefs_cco_public_submission_unique ON public.creative_briefs USING btree (((data ->> 'public_submission_id'::text))) WHERE ((company_account_id = 'content-co-op'::text) AND (data ? 'public_submission_id'::text))",
+      "indexname": "idx_creative_briefs_cco_public_submission_unique",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_creative_briefs_source_surface ON public.creative_briefs USING btree (source_surface) WHERE (source_surface IS NOT NULL)",
+      "indexname": "idx_creative_briefs_source_surface",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_creative_briefs_submission_mode ON public.creative_briefs USING btree (submission_mode) WHERE (submission_mode IS NOT NULL)",
+      "indexname": "idx_creative_briefs_submission_mode",
+      "tablename": "creative_briefs",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX estimate_versions_estimate_id_version_key ON public.estimate_versions USING btree (estimate_id, version)",
+      "indexname": "estimate_versions_estimate_id_version_key",
+      "tablename": "estimate_versions",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX estimate_versions_pkey ON public.estimate_versions USING btree (id)",
+      "indexname": "estimate_versions_pkey",
+      "tablename": "estimate_versions",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimate_versions_estimate ON public.estimate_versions USING btree (estimate_id, version DESC)",
+      "indexname": "idx_estimate_versions_estimate",
+      "tablename": "estimate_versions",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX estimates_pkey ON public.estimates USING btree (id)",
+      "indexname": "estimates_pkey",
+      "tablename": "estimates",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimates_active_version ON public.estimates USING btree (active_version_id) WHERE (active_version_id IS NOT NULL)",
+      "indexname": "idx_estimates_active_version",
+      "tablename": "estimates",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimates_brief ON public.estimates USING btree (brief_id, created_at DESC)",
+      "indexname": "idx_estimates_brief",
+      "tablename": "estimates",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimates_client_status ON public.estimates USING btree (client_status, created_at DESC)",
+      "indexname": "idx_estimates_client_status",
+      "tablename": "estimates",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimates_contact ON public.estimates USING btree (contact_id, created_at DESC)",
+      "indexname": "idx_estimates_contact",
+      "tablename": "estimates",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimates_internal_status ON public.estimates USING btree (internal_status, created_at DESC)",
+      "indexname": "idx_estimates_internal_status",
+      "tablename": "estimates",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimates_legacy_quote ON public.estimates USING btree (legacy_quote_id) WHERE (legacy_quote_id IS NOT NULL)",
+      "indexname": "idx_estimates_legacy_quote",
+      "tablename": "estimates",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX idx_estimates_number ON public.estimates USING btree (estimate_number)",
+      "indexname": "idx_estimates_number",
+      "tablename": "estimates",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX estimate_decisions_pkey ON public.estimate_decisions USING btree (id)",
+      "indexname": "estimate_decisions_pkey",
+      "tablename": "estimate_decisions",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimate_decisions_estimate ON public.estimate_decisions USING btree (estimate_id, created_at DESC)",
+      "indexname": "idx_estimate_decisions_estimate",
+      "tablename": "estimate_decisions",
+      "schemaname": "public"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_estimate_decisions_version ON public.estimate_decisions USING btree (estimate_version_id) WHERE (estimate_version_id IS NOT NULL)",
+      "indexname": "idx_estimate_decisions_version",
+      "tablename": "estimate_decisions",
+      "schemaname": "public"
+    }
+  ],
+  "constraints": [
+    {
+      "definition": "CHECK (((length(btrim(email)) >= 3) AND (length(btrim(email)) <= 320)))",
+      "table_name": "contacts",
+      "schema_name": "co_production",
+      "constraint_name": "contacts_email_check"
+    },
+    {
+      "definition": "CHECK (((length(btrim(name)) >= 1) AND (length(btrim(name)) <= 240)))",
+      "table_name": "contacts",
+      "schema_name": "co_production",
+      "constraint_name": "contacts_name_check"
+    },
+    {
+      "definition": "FOREIGN KEY (organization_id) REFERENCES co_production.organizations(id) ON DELETE SET NULL",
+      "table_name": "contacts",
+      "schema_name": "co_production",
+      "constraint_name": "contacts_organization_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE RESTRICT",
+      "table_name": "contacts",
+      "schema_name": "co_production",
+      "constraint_name": "contacts_owner_id_fkey"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "contacts",
+      "schema_name": "co_production",
+      "constraint_name": "contacts_pkey"
+    },
+    {
+      "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL",
+      "table_name": "deliverables",
+      "schema_name": "co_production",
+      "constraint_name": "deliverables_created_by_fkey"
+    },
+    {
+      "definition": "CHECK (((status <> 'delivered'::text) OR (locked_at IS NOT NULL)))",
+      "table_name": "deliverables",
+      "schema_name": "co_production",
+      "constraint_name": "deliverables_delivered_requires_lock"
+    },
+    {
+      "definition": "FOREIGN KEY (locked_by) REFERENCES auth.users(id) ON DELETE SET NULL",
+      "table_name": "deliverables",
+      "schema_name": "co_production",
+      "constraint_name": "deliverables_locked_by_fkey"
+    },
+    {
+      "definition": "CHECK (((length(btrim(name)) >= 1) AND (length(btrim(name)) <= 240)))",
+      "table_name": "deliverables",
+      "schema_name": "co_production",
+      "constraint_name": "deliverables_name_check"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "deliverables",
+      "schema_name": "co_production",
+      "constraint_name": "deliverables_pkey"
+    },
+    {
+      "definition": "FOREIGN KEY (project_id) REFERENCES co_production.projects(id) ON DELETE CASCADE",
+      "table_name": "deliverables",
+      "schema_name": "co_production",
+      "constraint_name": "deliverables_project_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (source_version_id) REFERENCES co_production.versions(id) ON DELETE SET NULL",
+      "table_name": "deliverables",
+      "schema_name": "co_production",
+      "constraint_name": "deliverables_source_version_id_fkey"
+    },
+    {
+      "definition": "CHECK ((status = ANY (ARRAY['specced'::text, 'encoding'::text, 'qc'::text, 'ready'::text, 'delivered'::text, 'expired'::text])))",
+      "table_name": "deliverables",
+      "schema_name": "co_production",
+      "constraint_name": "deliverables_status_check"
+    },
+    {
+      "definition": "CHECK (((commercial_total_cents IS NULL) OR (commercial_total_cents >= 0)))",
+      "table_name": "inquiries",
+      "schema_name": "co_production",
+      "constraint_name": "inquiries_commercial_total_cents_check"
+    },
+    {
+      "definition": "FOREIGN KEY (contact_id) REFERENCES co_production.contacts(id) ON DELETE SET NULL",
+      "table_name": "inquiries",
+      "schema_name": "co_production",
+      "constraint_name": "inquiries_contact_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (organization_id) REFERENCES co_production.organizations(id) ON DELETE SET NULL",
+      "table_name": "inquiries",
+      "schema_name": "co_production",
+      "constraint_name": "inquiries_organization_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE RESTRICT",
+      "table_name": "inquiries",
+      "schema_name": "co_production",
+      "constraint_name": "inquiries_owner_id_fkey"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "inquiries",
+      "schema_name": "co_production",
+      "constraint_name": "inquiries_pkey"
+    },
+    {
+      "definition": "FOREIGN KEY (project_id) REFERENCES co_production.projects(id) ON DELETE SET NULL",
+      "table_name": "inquiries",
+      "schema_name": "co_production",
+      "constraint_name": "inquiries_project_id_fkey"
+    },
+    {
+      "definition": "CHECK ((status = ANY (ARRAY['new'::text, 'triaged'::text, 'qualified'::text, 'converted'::text, 'declined'::text])))",
+      "table_name": "inquiries",
+      "schema_name": "co_production",
+      "constraint_name": "inquiries_status_check"
+    },
+    {
+      "definition": "CHECK (((length(btrim(name)) >= 1) AND (length(btrim(name)) <= 240)))",
+      "table_name": "organizations",
+      "schema_name": "co_production",
+      "constraint_name": "organizations_name_check"
+    },
+    {
+      "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE RESTRICT",
+      "table_name": "organizations",
+      "schema_name": "co_production",
+      "constraint_name": "organizations_owner_id_fkey"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "organizations",
+      "schema_name": "co_production",
+      "constraint_name": "organizations_pkey"
+    },
+    {
+      "definition": "FOREIGN KEY (invited_by) REFERENCES auth.users(id) ON DELETE SET NULL",
+      "table_name": "project_members",
+      "schema_name": "co_production",
+      "constraint_name": "project_members_invited_by_fkey"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "project_members",
+      "schema_name": "co_production",
+      "constraint_name": "project_members_pkey"
+    },
+    {
+      "definition": "FOREIGN KEY (project_id) REFERENCES co_production.projects(id) ON DELETE CASCADE",
+      "table_name": "project_members",
+      "schema_name": "co_production",
+      "constraint_name": "project_members_project_id_fkey"
+    },
+    {
+      "definition": "UNIQUE (project_id, user_id)",
+      "table_name": "project_members",
+      "schema_name": "co_production",
+      "constraint_name": "project_members_project_id_user_id_key"
+    },
+    {
+      "definition": "CHECK ((role = ANY (ARRAY['admin'::text, 'producer'::text, 'editor'::text, 'reviewer'::text, 'viewer'::text])))",
+      "table_name": "project_members",
+      "schema_name": "co_production",
+      "constraint_name": "project_members_role_check"
+    },
+    {
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "table_name": "project_members",
+      "schema_name": "co_production",
+      "constraint_name": "project_members_user_id_fkey"
+    },
+    {
+      "definition": "CHECK (((commercial_total_cents IS NULL) OR (commercial_total_cents >= 0)))",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_commercial_total_cents_check"
+    },
+    {
+      "definition": "CHECK (((length(btrim(name)) >= 1) AND (length(btrim(name)) <= 240)))",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_name_check"
+    },
+    {
+      "definition": "FOREIGN KEY (organization_id) REFERENCES co_production.organizations(id) ON DELETE SET NULL",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_organization_fk"
+    },
+    {
+      "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE RESTRICT",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_owner_id_fkey"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_pkey"
+    },
+    {
+      "definition": "FOREIGN KEY (primary_contact_id) REFERENCES co_production.contacts(id) ON DELETE SET NULL",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_primary_contact_fk"
+    },
+    {
+      "definition": "CHECK ((stage = ANY (ARRAY['inquiry'::text, 'intake'::text, 'development'::text, 'preproduction'::text, 'production'::text, 'post'::text, 'review'::text, 'delivery'::text, 'archived'::text])))",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_stage_check"
+    },
+    {
+      "definition": "CHECK ((status = ANY (ARRAY['active'::text, 'archived'::text, 'completed'::text])))",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_status_check"
+    },
+    {
+      "definition": "FOREIGN KEY (team_id) REFERENCES co_production.teams(id) ON DELETE RESTRICT",
+      "table_name": "projects",
+      "schema_name": "co_production",
+      "constraint_name": "projects_team_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE CASCADE",
+      "table_name": "commercial_handoffs",
+      "schema_name": "public",
+      "constraint_name": "commercial_handoffs_estimate_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (estimate_version_id) REFERENCES estimate_versions(id) ON DELETE RESTRICT",
+      "table_name": "commercial_handoffs",
+      "schema_name": "public",
+      "constraint_name": "commercial_handoffs_estimate_version_id_fkey"
+    },
+    {
+      "definition": "UNIQUE (idempotency_key)",
+      "table_name": "commercial_handoffs",
+      "schema_name": "public",
+      "constraint_name": "commercial_handoffs_idempotency_key_key"
+    },
+    {
+      "definition": "CHECK ((payload_hash ~ '^sha256:[0-9a-f]{64}$'::text))",
+      "table_name": "commercial_handoffs",
+      "schema_name": "public",
+      "constraint_name": "commercial_handoffs_payload_hash_check"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "commercial_handoffs",
+      "schema_name": "public",
+      "constraint_name": "commercial_handoffs_pkey"
+    },
+    {
+      "definition": "UNIQUE (access_token)",
+      "table_name": "creative_briefs",
+      "schema_name": "public",
+      "constraint_name": "creative_briefs_access_token_key"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "creative_briefs",
+      "schema_name": "public",
+      "constraint_name": "creative_briefs_pkey"
+    },
+    {
+      "definition": "CHECK ((status = ANY (ARRAY['submitted'::text, 'reviewed'::text, 'in_progress'::text, 'delivered'::text, 'closed'::text])))",
+      "table_name": "creative_briefs",
+      "schema_name": "public",
+      "constraint_name": "creative_briefs_status_check"
+    },
+    {
+      "definition": "FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE CASCADE",
+      "table_name": "estimate_versions",
+      "schema_name": "public",
+      "constraint_name": "estimate_versions_estimate_id_fkey"
+    },
+    {
+      "definition": "UNIQUE (estimate_id, version)",
+      "table_name": "estimate_versions",
+      "schema_name": "public",
+      "constraint_name": "estimate_versions_estimate_id_version_key"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "estimate_versions",
+      "schema_name": "public",
+      "constraint_name": "estimate_versions_pkey"
+    },
+    {
+      "definition": "CHECK ((sha256 ~ '^[0-9a-f]{64}$'::text))",
+      "table_name": "estimate_versions",
+      "schema_name": "public",
+      "constraint_name": "estimate_versions_sha256_check"
+    },
+    {
+      "definition": "CHECK ((version > 0))",
+      "table_name": "estimate_versions",
+      "schema_name": "public",
+      "constraint_name": "estimate_versions_version_check"
+    },
+    {
+      "definition": "FOREIGN KEY (active_version_id) REFERENCES estimate_versions(id) ON DELETE SET NULL",
+      "table_name": "estimates",
+      "schema_name": "public",
+      "constraint_name": "estimates_active_version_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (brief_id) REFERENCES creative_briefs(id) ON DELETE CASCADE",
+      "table_name": "estimates",
+      "schema_name": "public",
+      "constraint_name": "estimates_brief_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL",
+      "table_name": "estimates",
+      "schema_name": "public",
+      "constraint_name": "estimates_contact_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (legacy_quote_id) REFERENCES quotes(id) ON DELETE SET NULL",
+      "table_name": "estimates",
+      "schema_name": "public",
+      "constraint_name": "estimates_legacy_quote_id_fkey"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "table_name": "estimates",
+      "schema_name": "public",
+      "constraint_name": "estimates_pkey"
+    },
+    {
+      "definition": "FOREIGN KEY (superseded_by_estimate_id) REFERENCES estimates(id) ON DELETE SET NULL",
+      "table_name": "estimates",
+      "schema_name": "public",
+      "constraint_name": "estimates_superseded_by_estimate_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE CASCADE",
+      "constraint_name": "estimate_decisions_estimate_id_fkey",
+      "schema_name": "public",
+      "table_name": "estimate_decisions"
+    },
+    {
+      "definition": "FOREIGN KEY (estimate_version_id) REFERENCES estimate_versions(id) ON DELETE SET NULL",
+      "constraint_name": "estimate_decisions_estimate_version_id_fkey",
+      "schema_name": "public",
+      "table_name": "estimate_decisions"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "constraint_name": "estimate_decisions_pkey",
+      "schema_name": "public",
+      "table_name": "estimate_decisions"
+    },
+    {
+      "definition": "FOREIGN KEY (business_id) REFERENCES businesses(id) ON DELETE SET NULL",
+      "schema_name": "public",
+      "table_name": "events",
+      "constraint_name": "events_business_id_fkey"
+    },
+    {
+      "definition": "CHECK (((business_unit IS NULL) OR (business_unit = ANY (ARRAY['ACS'::text, 'CC'::text])))) NOT VALID",
+      "schema_name": "public",
+      "table_name": "events",
+      "constraint_name": "events_business_unit_contract_check"
+    },
+    {
+      "definition": "FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL",
+      "schema_name": "public",
+      "table_name": "events",
+      "constraint_name": "events_contact_id_fkey"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "schema_name": "public",
+      "table_name": "events",
+      "constraint_name": "events_pkey"
+    },
+    {
+      "definition": "FOREIGN KEY (org_id) REFERENCES orgs(id) ON DELETE CASCADE",
+      "schema_name": "public",
+      "table_name": "projects",
+      "constraint_name": "projects_org_id_fkey"
+    },
+    {
+      "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "schema_name": "public",
+      "table_name": "projects",
+      "constraint_name": "projects_owner_id_fkey"
+    },
+    {
+      "definition": "PRIMARY KEY (id)",
+      "schema_name": "public",
+      "table_name": "projects",
+      "constraint_name": "projects_pkey"
+    },
+    {
+      "definition": "CHECK ((status = ANY (ARRAY['active'::text, 'archived'::text, 'completed'::text])))",
+      "schema_name": "public",
+      "table_name": "projects",
+      "constraint_name": "projects_status_check"
+    }
+  ],
+  "captured_at": "2026-10-03",
+  "source": "Read-only CCO catalog metadata, no customer rows. See docs/cco-production-handoff.md for fixture limits."
+}
