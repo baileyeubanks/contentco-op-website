@@ -1371,12 +1371,17 @@ h1, h2, h3, h4 {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
 }
 
-.hero .hero-video-sequence {
-  background: #101925;
+.hero:has(.hero-video-sequence) {
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+}
+
+.hero:has(.hero-video-sequence) .hero-content {
+  min-height: 0;
 }
 
 .hero .hero-video-sequence::after {
@@ -1384,8 +1389,7 @@ h1, h2, h3, h4 {
 }
 
 .hero .hero-video-sequence .hero-sequence-video--wide {
-  object-fit: contain;
-  background: #101925;
+  object-fit: cover;
 }
 
 .hero .hero-video-sequence .hero-sequence-video {
@@ -3090,30 +3094,17 @@ h1, h2, h3, h4 {
 
 @media (max-width: 640px) {
   .hero:has(.hero-video-sequence) {
+    height: calc(100vw * 9 / 16 + 4.4rem);
     min-height: 0;
-    flex-direction: column;
+    aspect-ratio: auto;
     padding-bottom: 0;
-    background: #101925;
-  }
-
-  .hero .hero-video-sequence {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    flex: 0 0 auto;
-  }
-
-  .hero .hero-video-sequence::after {
-    background: linear-gradient(180deg, transparent 60%, rgba(10, 16, 28, 0.16) 100%);
   }
 
   .hero:has(.hero-video-sequence) .hero-content {
     width: 100%;
     min-height: 0;
     margin: 0;
-    padding: 1.25rem 1rem 1.8rem;
+    padding: 1rem 1rem 1.15rem;
   }
 }
 
