@@ -190,10 +190,10 @@ function EmailLookup({
     if (!email.trim()) return;
     setLoading(true);
     setError("");
-    // Portal data is only served behind a link issued by Content Co-Op. An
-    // email address is an identifier, not a credential, so it never resolves
-    // an account here; the visitor requests a fresh link instead.
-    router.push("/book");
+    // The portal only opens from the private link we email. We never resolve
+    // an account from a typed address, so send the visitor to the contact
+    // path that gets a fresh link issued by the team.
+    router.push(`/book?intent=portal_link&email=${encodeURIComponent(email.trim())}`);
   }
 
   return (
@@ -203,9 +203,8 @@ function EmailLookup({
           <Card.Header title="Client Portal" />
           <Card.Body>
             <p className="text-sm text-gray-600 mb-4">
-              Your quotes, appointments, and invoices open from the private link
-              in your Content Co-Op emails. Enter your email to request a fresh
-              link.
+              Enter the email address associated with your account to view your
+              quotes, appointments, and invoices.
             </p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -236,7 +235,7 @@ function EmailLookup({
                 fullWidth
                 loading={loading}
               >
-                Request My Portal Link
+                View My Portal
               </Button>
             </form>
           </Card.Body>
@@ -704,9 +703,15 @@ function MessagesAndUpdates({ conversations }: { conversations: Conversation[] }
 interface PortalViewProps {
   data: PortalData | null;
   initialEmail: string;
+  /** True when a token was presented but did not resolve to a contact. */
+  tokenPresented?: boolean;
 }
 
-export function PortalView({ data, initialEmail }: PortalViewProps) {
+export function PortalView({ data, initialEmail, tokenPresented = false }: PortalViewProps) {
+  if (!data && tokenPresented) {
+    return <NotFound email={initialEmail || "this portal link"} />;
+  }
+
   // No data and no email = show lookup form
   if (!data && !initialEmail) {
     return <EmailLookup initialEmail="" />;

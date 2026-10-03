@@ -217,10 +217,29 @@ export async function createProjectFromBrief(briefId: string, businessUnit: stri
 
   if (briefError || !brief) return { project: null, error: briefError?.message || "Brief not found" };
 
-  // Extract project details from brief
-  const structuredIntake = brief.structured_intake as Record<string, any> || {};
-  const projectData = structuredIntake.project || {};
-  const contactData = structuredIntake.contact || {};
+  // Extract project details from brief. The public /brief stores the current
+  // shape at data.project (and mirrors it at structured_intake.project); the
+  // flat contact columns are always present. Legacy v3 keys stay as fallback.
+  const structuredIntake = (brief.structured_intake as Record<string, any>) || {};
+  const briefData = (brief.data as Record<string, any>) || {};
+  const publicProject = (briefData.project && typeof briefData.project === "object" ? briefData.project : structuredIntake.project) || {};
+  const legacyProject = structuredIntake.project || {};
+  const projectTypes: string[] = Array.isArray(publicProject.projectTypes) ? publicProject.projectTypes.map(String) : [];
+  const projectData = {
+    ...legacyProject,
+    content_type: publicProject.projectName || projectTypes.join(", ") || legacyProject.content_type || brief.content_type || null,
+    deliverables: Array.isArray(publicProject.deliverables) ? publicProject.deliverables : legacyProject.deliverables,
+    deadline: publicProject.timeline || legacyProject.deadline || null,
+    audience: publicProject.audience || legacyProject.audience || brief.audience,
+    tone: publicProject.styleLevel || legacyProject.tone || brief.tone,
+    objective: publicProject.projectContext || legacyProject.objective || brief.objective,
+  };
+  const contactData = {
+    ...(structuredIntake.contact || {}),
+    email: structuredIntake.contact?.email || brief.contact_email,
+    name: structuredIntake.contact?.name || brief.contact_name,
+    company: structuredIntake.contact?.company || brief.company,
+  };
 
   // Find or match contact
   let contactId: string | null = null;

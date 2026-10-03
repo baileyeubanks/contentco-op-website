@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   getSupabase: vi.fn(),
@@ -13,15 +14,18 @@ import { GET } from "@/app/api/client/portal/route";
 
 describe("client portal lookup", () => {
   test("never resolves an account from a bare email or contact id", async () => {
-    // The handler takes no request input at all: there is no query string it
-    // could honour, so a leaked or guessed email cannot select an account.
-    const response = await GET();
+    for (const query of [
+      "?email=avery@example.com",
+      "?contact_id=00000000-0000-0000-0000-000000000001",
+      "?email=avery@example.com&token=short",
+      "",
+    ]) {
+      const response = await GET(new NextRequest(`https://contentco-op.com/api/client/portal${query}`));
 
-    expect(response.status).toBe(410);
-    expect(await response.json()).toMatchObject({
-      error: "client_portal_lookup_retired",
-      retryable: false,
-    });
+      expect(response.status).toBe(401);
+      expect(await response.json()).toMatchObject({ error: "portal_token_required" });
+    }
+    // No query shape without a portal capability reaches the database.
     expect(mocks.getSupabase).not.toHaveBeenCalled();
   });
 });

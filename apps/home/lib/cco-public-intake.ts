@@ -1,6 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { sendTransactionalEmail } from "@/lib/email-sender";
 import type { ProposalInput, ProposalOutput } from "@/lib/gemini";
+import {
+  buildBriefPricingInputs,
+  calculateEstimate,
+  formatCurrency,
+  type BriefPricingProject,
+  type EstimateRange,
+} from "@/lib/pricing";
 import { BriefProjectSchema } from "@/lib/validation";
 
 /** The only database public Content Co-Op intake may write. */
@@ -8,11 +15,13 @@ export const CCO_DB_PROJECT_REF = "briokwdoonawhxisbydy";
 const CCO_DB_HOST = `${CCO_DB_PROJECT_REF}.supabase.co`;
 const CCO_BUSINESS_UNIT = "CC";
 const CCO_COMPANY_ACCOUNT_ID = "content-co-op";
-const CCO_ADMIN_EMAIL = "bailey@contentco-op.com";
-const ADMIN_ALERT_TEMPLATE = "cco_public_brief_admin_alert";
-const CLIENT_RECEIPT_TEMPLATE = "cco_public_brief_client_receipt";
-const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
-
+/**
+ * Operator alert roster. The default is code-pinned so a missing env never
+ * silences the alert; `CCO_ADMIN_ALERT_EMAILS` (comma-separated) can only ADD
+ * recipients, mirroring the ACS admin-alert roster rule.
+ */
+export const DEFAULT_CCO_ADMIN_ALERT_EMAILS = ["bailey@contentco-op.com"] as const;
+const CCO_OS_BRIEF_URL_BASE = "https://admin.contentco-op.com/os/marketing/briefs";
 /**
  * Durable intake event contract. CCO OS consumers (os-marketing, the quote
  * draft hydrator, automations) read `events.type = 'brief_submitted'` with
@@ -25,9 +34,10 @@ export const BRIEF_SUBMITTED_IDEMPOTENCY_PREFIX = "cco_public_brief_submitted:";
 
 /**
  * The only `public.events` columns the public intake writer may touch. Every
- * entry exists on live CCO-DB today and is declared by the repo migration
- * above, so a scratch database built from source and the live database accept
- * the same insert. Adding a column here requires a migration first.
+ * entry exists on live CCO-DB today (verified 2026-10-03) and is declared by
+ * the repo migration above, so a scratch database built from source and the
+ * live database accept the same insert. Adding a column here requires a
+ * migration first.
  */
 export const BRIEF_SUBMITTED_EVENT_COLUMNS = [
   "type",
@@ -45,6 +55,9 @@ export const BRIEF_SUBMITTED_EVENT_COLUMNS = [
 export function briefSubmittedIdempotencyKey(briefId: string) {
   return `${BRIEF_SUBMITTED_IDEMPOTENCY_PREFIX}${briefId}`;
 }
+const ADMIN_ALERT_TEMPLATE = "cco_public_brief_admin_alert";
+const CLIENT_RECEIPT_TEMPLATE = "cco_public_brief_client_receipt";
+const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
 
 type DatabaseError = { message?: string | null } | null;
 type DatabaseResult<T extends Record<string, unknown>> = Promise<{
@@ -150,9 +163,13 @@ type NotificationReceipt = {
   error: string;
 };
 
+type DeliveryStatus = "sent" | "failed" | "unknown";
+
 type CcoBriefNotification = {
-  admin: { status: "sent" | "failed" | "unknown"; logId: string };
-  client: { status: "sent" | "failed" | "unknown"; logId: string };
+  /** Aggregate over every operator recipient: sent if anyone got it. */
+  admin: { status: DeliveryStatus; logId: string };
+  admin_recipients: Array<{ recipient: string; status: DeliveryStatus; logId: string }>;
+  client: { status: DeliveryStatus; logId: string };
 };
 
 type CcoBriefNotificationsReceipt = {
@@ -164,15 +181,13 @@ type CcoBriefNotificationsReceipt = {
 };
 
 export type CcoBriefEvent = {
+  ok: true;
   eventId: string;
   replayed: boolean;
   idempotencyKey: string;
 };
 
-type CcoBriefEventReceipt = {
-  ok: true;
-  event: CcoBriefEvent;
-} | {
+type CcoBriefEventReceipt = CcoBriefEvent | {
   ok: false;
   error: string;
 };
@@ -208,9 +223,9 @@ export type CcoBriefPersistenceResult = {
   accessToken: string | null;
   status: string | null;
   briefNumber: string | null;
+  notification: CcoBriefNotification;
   /** Durable `brief_submitted` receipt. Success is never reported without it. */
   event: CcoBriefEvent;
-  notification: CcoBriefNotification;
 } | {
   ok: false;
   persisted: boolean;
@@ -487,35 +502,68 @@ function getPersistedBriefNotificationSubmission(
   };
 }
 
-function buildAdminAlert(input: CcoPublicBriefSubmission, briefId: string): EmailNotification {
+/** Resolves the operator alert roster: pinned defaults plus additive env entries. */
+export function resolveCcoAdminAlertRecipients(env: Record<string, string | undefined> = process.env): string[] {
+  const extra = cleanString(env.CCO_ADMIN_ALERT_EMAILS)
+    .split(/[,\s;]+/)
+    .map((value) => cleanEmail(value))
+    .filter((value) => /^\S+@\S+\.\S+$/.test(value));
+  return Array.from(new Set([...DEFAULT_CCO_ADMIN_ALERT_EMAILS, ...extra]));
+}
+
+/** Rule-based estimate for the operator alert; never blocks intake when inputs are thin. */
+function computeIntakeEstimate(project: CcoPublicBriefSubmission["project"]): EstimateRange | null {
+  try {
+    return calculateEstimate(buildBriefPricingInputs(project as unknown as BriefPricingProject));
+  } catch {
+    return null;
+  }
+}
+
+function buildAdminAlert(
+  input: CcoPublicBriefSubmission,
+  briefId: string,
+  recipient: string,
+  estimate: EstimateRange | null,
+): EmailNotification {
   const name = cleanLine(input.contact.name, 160) || "New lead";
   const company = cleanLine(input.contact.company, 160) || "Unknown company";
   const projectName = cleanLine(input.project.projectName, 240) || cleanLine(joinList(input.project.projectTypes), 240) || "Creative brief";
+  const estimateLine = estimate
+    ? `${formatCurrency(estimate.low)} – ${formatCurrency(estimate.high)} (rule-based, unreviewed)`
+    : "Not enough scope to estimate";
+  const osLink = `${CCO_OS_BRIEF_URL_BASE}/${briefId}`;
   const subject = `New Content Co-Op brief: ${name} — ${company}`;
   const text = [
     "A new public creative brief was persisted in CCO OS.",
     `Brief ID: ${briefId}`,
+    `Review in CCO OS: ${osLink}`,
     `Contact: ${name} <${cleanEmail(input.contact.email)}>`,
+    `Phone: ${cleanString(input.contact.phone) || "Not provided"}`,
     `Company: ${company}`,
     `Project: ${projectName}`,
     `Timeline: ${cleanString(input.project.timeline) || "Not provided"}`,
     `Budget: ${cleanString(input.project.budgetRange) || "Not provided"}`,
+    `Instant estimate: ${estimateLine}`,
     `Context: ${cleanString(input.project.projectContext).slice(0, 1200) || "Not provided"}`,
   ].join("\n");
   const html = `
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:620px;color:#0f172a;">
       <h1 style="font-size:20px;">New Content Co-Op creative brief</h1>
+      <p><a href="${escapeHtml(osLink)}" style="display:inline-block;padding:10px 16px;background:#0d5487;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Review in CCO OS</a></p>
       <p><strong>Brief ID:</strong> ${escapeHtml(briefId)}</p>
       <p><strong>Contact:</strong> ${escapeHtml(name)} &lt;${escapeHtml(cleanEmail(input.contact.email))}&gt;</p>
+      <p><strong>Phone:</strong> ${escapeHtml(cleanString(input.contact.phone) || "Not provided")}</p>
       <p><strong>Company:</strong> ${escapeHtml(company)}</p>
       <p><strong>Project:</strong> ${escapeHtml(projectName)}</p>
       <p><strong>Timeline:</strong> ${escapeHtml(input.project.timeline || "Not provided")}</p>
       <p><strong>Budget:</strong> ${escapeHtml(input.project.budgetRange || "Not provided")}</p>
+      <p><strong>Instant estimate:</strong> ${escapeHtml(estimateLine)}</p>
       <p><strong>Context:</strong><br>${escapeHtml(input.project.projectContext || "Not provided")}</p>
     </div>
   `;
   return {
-    recipient: CCO_ADMIN_EMAIL,
+    recipient,
     templateKey: ADMIN_ALERT_TEMPLATE,
     audience: "internal",
     subject,
@@ -710,30 +758,53 @@ async function deliverLoggedEmail(input: {
   return { ok: true, status, logId };
 }
 
+function aggregateDeliveryStatus(statuses: DeliveryStatus[]): DeliveryStatus {
+  if (statuses.includes("sent")) return "sent";
+  if (statuses.includes("unknown")) return "unknown";
+  return "failed";
+}
+
 async function deliverBriefNotifications(input: {
   db: CcoPublicIntakeDatabase;
   briefId: string;
   contactId: string;
   submission: CcoPublicBriefSubmission;
   sendEmail: CcoEmailSender;
+  adminRecipients: string[];
+  estimate: EstimateRange | null;
 }): Promise<CcoBriefNotificationsReceipt> {
-  const [admin, client] = await Promise.all([
-    deliverLoggedEmail({
-      ...input,
-      notification: buildAdminAlert(input.submission, input.briefId),
-    }),
+  const [adminResults, client] = await Promise.all([
+    Promise.all(
+      input.adminRecipients.map((recipient) =>
+        deliverLoggedEmail({
+          ...input,
+          notification: buildAdminAlert(input.submission, input.briefId, recipient, input.estimate),
+        }).then((receipt) => ({ recipient, receipt })),
+      ),
+    ),
     deliverLoggedEmail({
       ...input,
       notification: buildClientReceipt(input.submission, input.briefId),
     }),
   ]);
 
-  if (!admin.ok) return { ok: false, error: admin.error };
+  const adminFailure = adminResults.find(({ receipt }) => !receipt.ok);
+  if (adminFailure && !adminFailure.receipt.ok) return { ok: false, error: adminFailure.receipt.error };
   if (!client.ok) return { ok: false, error: client.error };
+
+  const adminRecipients = adminResults.flatMap(({ recipient, receipt }) =>
+    receipt.ok ? [{ recipient, status: receipt.status, logId: receipt.logId }] : [],
+  );
+  const primary = adminRecipients[0];
+  if (!primary) return { ok: false, error: "admin_alert_recipients_missing" };
   return {
     ok: true,
     notification: {
-      admin: { status: admin.status, logId: admin.logId },
+      admin: {
+        status: aggregateDeliveryStatus(adminRecipients.map((entry) => entry.status)),
+        logId: primary.logId,
+      },
+      admin_recipients: adminRecipients,
       client: { status: client.status, logId: client.logId },
     },
   };
@@ -742,16 +813,20 @@ async function deliverBriefNotifications(input: {
 /**
  * Writes the durable `brief_submitted` event for a persisted brief, or replays
  * the one already stored. The brief row is the receipt the browser sees; this
- * event is the receipt CCO OS acts on, so public success requires both.
+ * event is the receipt CCO OS acts on (quote draft, automations, inbox), so
+ * public success requires both.
  *
  * Only `BRIEF_SUBMITTED_EVENT_COLUMNS` are written, so the insert is valid on
  * live CCO-DB and on a scratch database built from the repo migrations.
+ * Replay and the unique partial index both key on `idempotency_key`;
+ * `payload.brief_id` is kept for the OS readers that look the event up that way.
  */
 async function ensureBriefSubmittedEvent(input: {
   db: CcoPublicIntakeDatabase;
   briefId: string;
   contactId: string;
   submission: CcoPublicBriefSubmission;
+  estimate: EstimateRange | null;
 }): Promise<CcoBriefEventReceipt> {
   const idempotencyKey = briefSubmittedIdempotencyKey(input.briefId);
   const lookup = () => input.db
@@ -764,11 +839,10 @@ async function ensureBriefSubmittedEvent(input: {
   const existing = await lookup();
   if (existing.error) return { ok: false, error: databaseErrorCode("brief_event_lookup", existing.error) };
   const existingId = asId(existing.data?.id);
-  if (existingId) return { ok: true, event: { eventId: existingId, replayed: true, idempotencyKey } };
+  if (existingId) return { ok: true, eventId: existingId, replayed: true, idempotencyKey };
 
   const name = cleanLine(input.submission.contact.name, 160) || "New lead";
   const company = cleanLine(input.submission.contact.company, 160) || "Unknown company";
-  const submissionId = resolveSubmissionId(input.submission.submissionId);
   const row: Record<(typeof BRIEF_SUBMITTED_EVENT_COLUMNS)[number], unknown> = {
     type: BRIEF_SUBMITTED_EVENT_TYPE,
     business_unit: CCO_BUSINESS_UNIT,
@@ -779,7 +853,7 @@ async function ensureBriefSubmittedEvent(input: {
     payload: {
       brief_id: input.briefId,
       contact_id: input.contactId,
-      public_submission_id: submissionId,
+      public_submission_id: resolveSubmissionId(input.submission.submissionId),
       source: "contentco-op.com/brief",
       source_path: cleanString(input.submission.sourcePath) || "/brief",
       idempotency_key: idempotencyKey,
@@ -790,9 +864,11 @@ async function ensureBriefSubmittedEvent(input: {
         booking_preference: input.submission.bookingPreference,
       },
       intake_payload: input.submission,
+      estimate: input.estimate,
     },
     metadata: {
       source: "cco_public_intake",
+      os_url: `${CCO_OS_BRIEF_URL_BASE}/${input.briefId}`,
       idempotency_key: idempotencyKey,
       event_version: BRIEF_SUBMITTED_EVENT_VERSION,
     },
@@ -802,13 +878,13 @@ async function ensureBriefSubmittedEvent(input: {
 
   const { data, error } = await input.db.from("events").insert(row).select("id").single();
   const eventId = asId(data?.id);
-  if (!error && eventId) return { ok: true, event: { eventId, replayed: false, idempotencyKey } };
+  if (!error && eventId) return { ok: true, eventId, replayed: false, idempotencyKey };
 
   // A concurrent retry may have won the unique index race. Re-read before
   // reporting a failure so the browser never retries a brief that is complete.
   const raced = await lookup();
   const racedId = asId(raced.data?.id);
-  if (!raced.error && racedId) return { ok: true, event: { eventId: racedId, replayed: true, idempotencyKey } };
+  if (!raced.error && racedId) return { ok: true, eventId: racedId, replayed: true, idempotencyKey };
   return { ok: false, error: databaseErrorCode("brief_event_write", error) };
 }
 
@@ -874,7 +950,7 @@ function briefResponse(
     accessToken: cleanString(brief.access_token) || null,
     status: cleanString(brief.status) || null,
     briefNumber: cleanString(brief.brief_number) || null,
-    event: event.event,
+    event,
     notification: notifications.notification,
   };
 }
@@ -943,14 +1019,16 @@ export async function persistCcoBrief(
     }
     // A retry completes whichever durable steps are missing, in order: the
     // OS-facing event first, then the delivery receipts.
-    const replayedEvent = await ensureBriefSubmittedEvent({
+    const replayEstimate = computeIntakeEstimate(persistedSubmission.project);
+    const replayEvent = await ensureBriefSubmittedEvent({
       db,
       briefId: existingBriefId,
       contactId,
       submission: persistedSubmission,
+      estimate: replayEstimate,
     });
-    if (!replayedEvent.ok) {
-      return briefResponse(existingResult.data, contactId, true, replayedEvent, { ok: false, error: replayedEvent.error });
+    if (!replayEvent.ok) {
+      return briefResponse(existingResult.data, contactId, true, replayEvent, { ok: false, error: replayEvent.error });
     }
     const notifications = await deliverBriefNotifications({
       db,
@@ -958,8 +1036,10 @@ export async function persistCcoBrief(
       contactId,
       submission: persistedSubmission,
       sendEmail: deps?.sendEmail || sendTransactionalEmail,
+      adminRecipients: resolveCcoAdminAlertRecipients(deps?.env || process.env),
+      estimate: replayEstimate,
     });
-    return briefResponse(existingResult.data, contactId, true, replayedEvent, notifications);
+    return briefResponse(existingResult.data, contactId, true, replayEvent, notifications);
   }
 
   const contact = await ensureCcoContact(db, submission.contact, submission.sourcePath);
@@ -1051,7 +1131,8 @@ export async function persistCcoBrief(
   }
   // Durable OS-facing event before any email is attempted: operator alerting
   // is logged separately in notification_log and never gates this receipt.
-  const event = await ensureBriefSubmittedEvent({ db, briefId, contactId: contact.contactId, submission });
+  const estimate = computeIntakeEstimate(submission.project);
+  const event = await ensureBriefSubmittedEvent({ db, briefId, contactId: contact.contactId, submission, estimate });
   if (!event.ok) {
     return briefResponse(brief, contact.contactId, false, event, { ok: false, error: event.error });
   }
@@ -1061,6 +1142,8 @@ export async function persistCcoBrief(
     contactId: contact.contactId,
     submission,
     sendEmail: deps?.sendEmail || sendTransactionalEmail,
+    adminRecipients: resolveCcoAdminAlertRecipients(deps?.env || process.env),
+    estimate,
   });
   return briefResponse(brief, contact.contactId, false, event, notifications);
 }

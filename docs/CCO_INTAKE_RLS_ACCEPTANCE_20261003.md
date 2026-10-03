@@ -18,7 +18,7 @@ asks for it.
 | 1. Read-only inventory | DONE | `docs/CCO_INTAKE_RLS_INVENTORY_20261003.md` (file:line + live read-only evidence, labelled) |
 | 2. RLS first: migrations + tests | DONE (source-only; apply is Bailey's) | `infra/supabase/migrations/20261003000000_cco_rls_service_role_lockdown.sql`; `20261003000200_cco_codeliver_project_tables_rls.sql` (flagged); `infra/supabase/tests/rls/run.sh` (scratch Postgres, passes; fails without the migration); `apps/home/lib/__tests__/cco-rls-migration-contract.test.ts` |
 | 3. Intake integrity | DONE | `apps/home/lib/cco-public-intake.ts` (`ensureBriefSubmittedEvent`, ordered receipts); `20261003000100_events_brief_submitted_contract.sql`; `20261002120000_creative_briefs_status_converted.sql`; `apps/home/lib/__tests__/cco-public-intake-event.test.ts` (6 tests) |
-| 4. Portal filtering / temp-file ownership | DONE (portal) / NOT IN CODE (temp file) | `apps/home/app/api/client/portal/route.ts`, `apps/home/app/client/portal/page.tsx`, `portal-view.tsx`; `cco-client-portal-route.test.ts`. The temp-file report maps to host token-file ownership on M4, not to any file in `main` (inventory §5). |
+| 4. Portal filtering / temp-file ownership | DONE (portal) / NOT IN CODE (temp file) | Portal is token-only on `main` since PR #1 merged; this branch adds `20261003000300_contacts_portal_token.sql` (the column the lookup needs, absent live) and `cco-client-portal-route.test.ts` (bare email/contact id → 401, no database call). The temp-file report maps to host token-file ownership on M4, not to any file in `main` (inventory §5). |
 | 5. Dependency work | see PR body (last step; outcome recorded there) | `npm audit --omit=dev --audit-level=high` |
 
 ## B. Acceptance properties and their proofs
@@ -35,13 +35,13 @@ asks for it.
 | P8 | Exactly one `brief_submitted` event per public brief, enforced by the database. | `assertions.sql` §2 duplicate insert raises `unique_violation`; negative run without `events_brief_submitted_contract` fails. | CI; Bailey apply |
 | P9 | Operator alert state is logged separately and never gates or withdraws the brief. | `cco-public-intake-event.test.ts` "operator alert state is logged separately"; route returns `event` and `notification` as separate fields. | Blaze live: `notification_log` row per template with `failed`/`sent`, brief and event intact |
 | P10 | No new email send and no recipient change. | `git diff main -- apps/home/lib/cco-public-intake.ts` touches no `sendEmail` call site, template, or recipient constant. | Reviewer |
-| P11 | Client portal cannot be read with a bare email or contact id. | `cco-client-portal-route.test.ts`: handler takes no input, returns 410, never touches the database. | Blaze live: `GET /api/client/portal?email=…` → 410; `/client/portal?email=…` renders the request-a-link page |
+| P11 | Client portal cannot be read with a bare email or contact id. | `cco-client-portal-route.test.ts`: any request without a 16+ char `token` returns 401 and never touches the database. | Blaze live: `GET /api/client/portal?email=…` → 401; `/client/portal?email=…` renders the token-required state; after `20261003000300` is applied, a minted token resolves exactly one contact |
 | P12 | `creative_briefs.status = 'converted'` is accepted after apply. | `assertions.sql` final update; migration identical to PR #1. | Bailey apply; Blaze live |
 | P13 | Repo checks are green and tests now run in CI. | typecheck clean; lint 0 errors (69 pre-existing warnings); vitest 31 files / 184 tests; `ci.yml` gains `Unit tests` step and `db-contract` job. | CI on the PR |
 
 ## C. Reserved for Bailey (nothing executed)
 
-1. Apply migrations `20261003000000`, `20261003000100`, `20261002120000` to CCO-DB.
+1. Apply migrations `20261003000000`, `20261003000100`, `20261003000300` to CCO-DB (`20261002120000` is already on `main` via PR #1 and is also unapplied).
 2. Apply `20261003000200` only after Blaze verifies Co-Deliver read paths.
 3. Any dependency bump that changes `next` (see PR body for the attempted scope).
 4. Credentials: this container cannot reach the M4/M2 env files or vaults; the

@@ -181,6 +181,7 @@ describe("public brief durable brief_submitted event", () => {
       persisted: true,
       briefId: "creative_briefs-1",
       event: {
+        ok: true,
         eventId: "events-1",
         replayed: false,
         idempotencyKey: briefSubmittedIdempotencyKey("creative_briefs-1"),
@@ -201,7 +202,7 @@ describe("public brief durable brief_submitted event", () => {
         contact_id: "contacts-1",
         public_submission_id: submission.submissionId,
         source: "contentco-op.com/brief",
-        structured_intake: { project, booking_preference: "20" },
+        structured_intake: { contact, project, booking_preference: "20" },
       },
     });
     // The OS hydrators read these keys (os-marketing.ts, creative-brief-quote-draft.ts).

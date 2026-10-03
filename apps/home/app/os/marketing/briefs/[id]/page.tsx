@@ -108,6 +108,74 @@ export default async function RootMarketingBriefDetailPage({
           </div>
         </section>
 
+        {detail.publicScope || detail.estimate ? (
+          <section style={splitGrid}>
+            <div style={card}>
+              <div style={sectionTitle}>Production Scope (public brief)</div>
+              {detail.publicScope ? (
+                <div style={stack}>
+                  <Field label="project" value={detail.publicScope.projectName || detail.publicScope.projectTypes.join(", ") || "unknown"} />
+                  <Field label="types" value={detail.publicScope.projectTypes.join(", ") || "unknown"} />
+                  <Field label="capture days" value={detail.publicScope.shootDayCount || "1"} />
+                  <Field label="locations" value={detail.publicScope.filmingLocations || "1"} />
+                  <Field label="travel" value={detail.publicScope.travelScope || "Houston / local"} />
+                  <Field label="finish" value={detail.publicScope.styleLevel || "Polished Commercial"} />
+                  <Field label="runtime" value={detail.publicScope.targetRuntime || "unknown"} />
+                  <Field label="capture needs" value={detail.publicScope.productionNeeds.join(", ") || "none"} />
+                  <Field label="enhancements" value={detail.publicScope.enhancements.join(", ") || "none"} />
+                  <Field label="placements" value={detail.publicScope.placements.join(", ") || "unknown"} />
+                  <Field label="timeline" value={detail.publicScope.timeline || "unknown"} />
+                  <Field label="client budget" value={detail.publicScope.budgetRange || "unknown"} />
+                  <Field label="revisions" value={detail.publicScope.revisionExpectation || "unknown"} />
+                  <Field label="context" value={detail.publicScope.projectContext || "unknown"} />
+                  <Field label="success looks like" value={detail.publicScope.successDefinition || "unknown"} />
+                </div>
+              ) : (
+                <div style={muted}>Legacy brief shape; no public scope fields.</div>
+              )}
+            </div>
+
+            <div style={card}>
+              <div style={sectionTitle}>Instant Estimate (rate card, unreviewed)</div>
+              {detail.estimate ? (
+                <div style={{ display: "grid", gap: 12 }}>
+                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "baseline" }}>
+                    <div>
+                      <div style={smallLabel}>range shown to client</div>
+                      <div style={bigValue}>{formatMoney(detail.estimate.low)} – {formatMoney(detail.estimate.high)}</div>
+                    </div>
+                    <div>
+                      <div style={smallLabel}>rate-card total</div>
+                      <div style={{ fontWeight: 700 }}>{formatMoney(detail.estimate.subtotal)}</div>
+                    </div>
+                    <div>
+                      <div style={smallLabel}>50% deposit</div>
+                      <div style={{ fontWeight: 700 }}>{formatMoney(detail.estimate.deposit)}</div>
+                    </div>
+                  </div>
+                  <div style={stack}>
+                    {detail.estimate.lines.map((line, index) => (
+                      <div key={`${line.label}-${index}`} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                        <div style={muted}>
+                          {line.label}
+                          {line.quantity && line.unitPrice ? ` · ${line.quantity} ${line.unit || ""} × ${formatMoney(line.unitPrice)}` : ""}
+                        </div>
+                        <div style={monoText}>{formatMoney(Math.round(line.amount))}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {detail.estimate.notes.length > 0 ? (
+                    <div style={muted}>{detail.estimate.notes.join(" ")}</div>
+                  ) : null}
+                  <div style={muted}>Generate the draft quote to freeze a version; this card is informational.</div>
+                </div>
+              ) : (
+                <div style={muted}>No rate-card estimate for this brief shape.</div>
+              )}
+            </div>
+          </section>
+        ) : null}
+
         <section style={splitGrid}>
           <div style={card}>
             <div style={sectionTitle}>Readiness</div>
@@ -149,7 +217,7 @@ export default async function RootMarketingBriefDetailPage({
 
           <div style={card}>
             <div style={sectionTitle}>Commercial Handoff</div>
-            <BriefOpsPanel briefId={detail.id} existingQuoteId={detail.relatedQuotes[0]?.id || null} />
+            <BriefOpsPanel briefId={detail.id} existingQuoteId={detail.relatedQuotes[0]?.id || null} briefStatus={detail.status} />
             <ProposalReviewPanel briefId={id} />
           </div>
         </section>

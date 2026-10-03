@@ -1511,12 +1511,203 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+/* ─── Public /brief (2026-08+) shape → structured intake ───
+ * The current public form stores `{ contact, project, booking_preference }` at
+ * `structured_intake` (mirrored at `data.project`). It has no readiness,
+ * recommendation or diagnostic blocks, so returning it verbatim crashes every
+ * consumer that reads `structured.readiness.*`. This adapter maps the public
+ * fields onto the diagnostic so the operator queue, detail page and quote
+ * draft keep working for public briefs.
+ */
+
+const PUBLIC_PROJECT_TYPE_GOAL: Record<string, CreativeDiagnosticGoal> = {
+  brand: "Build trust",
+  product: "Product/service showcase",
+  social: "Support sales",
+  executive: "Leadership message",
+  training: "Train people",
+  testimonials: "Build trust",
+};
+
+const PUBLIC_PROJECT_TYPE_LABEL: Record<string, string> = {
+  brand: "Brand film",
+  product: "Product / explainer",
+  social: "Social content",
+  executive: "Executive message",
+  training: "Training",
+  testimonials: "Testimonials",
+};
+
+const PUBLIC_PLACEMENT_MAP: Record<string, CreativeDiagnosticPlacement> = {
+  Website: "Website",
+  Social: "Social",
+  "Business to Business": "Sales deck",
+  Internal: "Training portal",
+  TV: "Event screen",
+  "Trade Show": "Event screen",
+  Theatre: "Event screen",
+  Stadium: "Event screen",
+  Billboard: "Event screen",
+};
+
+const PUBLIC_PRODUCTION_NEED_MAP: Record<string, CreativeDiagnosticProductionNeed> = {
+  Interviews: "Interviews",
+  Voiceover: "Voiceover",
+  Drone: "Drone",
+  "Script Help": "Script help",
+  "Location Sound": "Location sound",
+};
+
+function publicStrings(value: unknown): string[] {
+  return Array.isArray(value) ? value.map((item) => cleanString(item)).filter(Boolean) : [];
+}
+
+export function isPublicBriefProjectShape(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && Array.isArray(value.projectTypes);
+}
+
+export function normalizePublicBriefRecord(
+  record: Record<string, unknown>,
+  project: Record<string, unknown>,
+): NormalizedCreativeBriefSubmission {
+  const storedStructured = isRecord(record.structured_intake) ? record.structured_intake : {};
+  const storedContact = isRecord(storedStructured.contact) ? storedStructured.contact : {};
+  const projectTypes = publicStrings(project.projectTypes);
+  const placements = publicStrings(project.placements);
+  const deliverables = publicStrings(project.deliverables);
+  const needs = publicStrings(project.productionNeeds);
+  const enhancements = publicStrings(project.enhancements);
+  const audienceText = cleanString(project.audience);
+  const shootDays = Number(cleanString(project.shootDayCount) || "1");
+  const travelScope = cleanString(project.travelScope);
+  const styleLevel = cleanString(project.styleLevel);
+  const timeline = cleanString(project.timeline);
+  const budgetRange = cleanString(project.budgetRange);
+
+  const mappedPlacements = Array.from(new Set(placements.map((item) => PUBLIC_PLACEMENT_MAP[item]).filter(Boolean)));
+  const placement: CreativeDiagnosticPlacement | "" =
+    mappedPlacements.length > 1 ? "Multiple places" : mappedPlacements[0] ?? "Website";
+  const primaryPlacement = mappedPlacements[0] ?? "Website";
+
+  const inferredAudiences = AUDIENCE_OPTIONS.filter((option) => audienceText.toLowerCase().includes(option.toLowerCase()));
+  const defaultAudience: CreativeDiagnosticAudience =
+    projectTypes.includes("training") ? "Internal team"
+      : projectTypes.includes("executive") ? "Leadership"
+        : projectTypes.includes("social") ? "Public"
+          : "Prospects";
+  const audiences = inferredAudiences.length ? inferredAudiences : [defaultAudience];
+
+  const productionNeeds = needs.map((item) => PUBLIC_PRODUCTION_NEED_MAP[item]).filter(Boolean) as CreativeDiagnosticProductionNeed[];
+  if (needs.includes("B-roll Capture") && !needs.includes("Interviews")) productionNeeds.push("B-roll only");
+  if (enhancements.includes("motiongfx")) productionNeeds.push("Motion graphics");
+  if (enhancements.includes("subtitles")) productionNeeds.push("Subtitles");
+  if (enhancements.includes("multiformat")) productionNeeds.push("Vertical versions");
+
+  const goal = PUBLIC_PROJECT_TYPE_GOAL[projectTypes[0] ?? ""] ?? "Not sure yet";
+  const wantsCutdowns = deliverables.includes("Social Cutdowns") || enhancements.includes("multiformat");
+
+  const diagnostic = normalizeDiagnosticInput({
+    goal,
+    audiences,
+    placement,
+    primary_placement: primaryPlacement,
+    main_video_count: "1",
+    need_cutdowns: wantsCutdowns,
+    cutdown_volume: wantsCutdowns ? "1-2" : "",
+    target_runtime: cleanString(project.targetRuntime) || "60-90 sec",
+    production_needs: productionNeeds,
+    multiple_shoot_days: Number.isFinite(shootDays) ? shootDays > 1 : null,
+    shoot_day_count: Number.isFinite(shootDays) && shootDays >= 4 ? "4+" : shootDays >= 2 ? String(Math.ceil(shootDays)) : "",
+    need_message_shaping: Boolean(cleanString(project.projectContext)),
+    filming_locations: cleanString(project.filmingLocations) || "1",
+    travel_needed: travelScope ? travelScope !== "Houston / local" : null,
+    travel_scope: travelScope === "Houston / local" ? "" : travelScope,
+    timeline: timeline || "Flexible",
+    hard_deadline: "",
+    engagement_model: "One-time",
+    comfort_on_camera: "",
+    additional_context: [cleanString(project.projectContext), cleanString(project.successDefinition)].filter(Boolean).join(" | "),
+    reference_link: "",
+    polish_level: styleLevel === "Cinematic Campaign" ? "Cinematic and premium" : styleLevel === "Clean Editorial" ? "Simple and direct" : "Polished and professional",
+    editing_style: enhancements.includes("motiongfx") ? "Edit with advanced motion design" : enhancements.length ? "Edit with graphics" : "Basic clean edit",
+    revision_expectation: cleanString(project.revisionExpectation) || "2 rounds",
+    budget_comfort: budgetRange,
+    need_fast_quote: true,
+  });
+
+  const email = cleanString(storedContact.email) || cleanString(record.contact_email);
+  const phone = cleanString(storedContact.phone) || cleanString(record.phone);
+  const contactInput = normalizeContactInput({
+    name: cleanString(storedContact.name) || cleanString(record.contact_name),
+    company: cleanString(storedContact.company) || cleanString(record.company),
+    email,
+    confirm_email: email,
+    phone,
+    confirm_phone: phone,
+    best_contact_method: "Email",
+    notes: cleanString(project.projectName),
+    reference_link: cleanString(storedContact.website),
+    attachments: [],
+  });
+
+  const bookingIntent: CreativeBriefBookingIntent = isCreativeBriefBookingIntent(record.booking_intent)
+    ? record.booking_intent
+    : "book_after_brief";
+  const { recommendation, quoteSignal, summaryCard } = evaluateCreativeBriefDiagnostic(diagnostic);
+  const readiness = computeReadiness(diagnostic, contactInput, summaryCard);
+  const legacyForm = buildLegacyFormData(contactInput, diagnostic, recommendation, quoteSignal, bookingIntent);
+  const typeLabels = projectTypes.map((type) => PUBLIC_PROJECT_TYPE_LABEL[type] ?? type);
+  legacyForm.content_type = cleanString(project.projectName) || typeLabels.join(", ") || legacyForm.content_type;
+  legacyForm.deliverables = deliverables.length ? deliverables : legacyForm.deliverables;
+  legacyForm.audience = audienceText || legacyForm.audience;
+  legacyForm.objective = cleanString(project.projectContext) || legacyForm.objective;
+  legacyForm.deadline = timeline || legacyForm.deadline;
+  legacyForm.tone = styleLevel || legacyForm.tone;
+
+  return {
+    version: "cco.home.creative-brief.v3",
+    intake: {
+      source_surface: "cco_home",
+      source_path: cleanString(record.source_path) || CREATIVE_BRIEF_PATH,
+      handoff_version: CREATIVE_BRIEF_HANDOFF_VERSION,
+      submission_mode: record.submission_mode === "voice" ? "voice" : "form",
+      booking_intent: bookingIntent,
+    },
+    contact_input: contactInput,
+    diagnostic,
+    attachments: [],
+    legacy_form: legacyForm,
+    recommendation,
+    quote_signal: quoteSignal,
+    summary_card: summaryCard,
+    readiness,
+  };
+}
+
 export function hydrateStructuredCreativeBriefIntake(
   record: Record<string, unknown>,
   fallbackBookingUrl: string,
 ): CreativeBriefStructuredIntake {
   const storedStructured = record.structured_intake;
-  if (isRecord(storedStructured) && isRecord(storedStructured.contact) && isRecord(storedStructured.project)) {
+  const storedData = isRecord(record.data) ? record.data : null;
+  const publicProject = isRecord(storedStructured) && isPublicBriefProjectShape(storedStructured.project)
+    ? storedStructured.project
+    : storedData && isPublicBriefProjectShape(storedData.project)
+      ? storedData.project
+      : null;
+  if (publicProject) {
+    const structured = buildStructuredCreativeBriefIntake(normalizePublicBriefRecord(record, publicProject));
+    if (structured.routing) {
+      structured.routing.booking_url = fallbackBookingUrl;
+    }
+    return structured;
+  }
+  if (
+    isRecord(storedStructured)
+    && isRecord(storedStructured.contact)
+    && isRecord(storedStructured.project)
+    && isRecord(storedStructured.readiness)
+  ) {
     return storedStructured as CreativeBriefStructuredIntake;
   }
 

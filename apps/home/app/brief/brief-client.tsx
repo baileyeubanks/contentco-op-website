@@ -18,6 +18,8 @@ type FieldErrors = Partial<Record<keyof BriefDraft, string>>;
 type BriefResult = {
   briefId: string;
   deliveryIssue: CcoBriefDeliveryIssue;
+  /** Set when the instant estimate was generated even though an email leg failed. */
+  proposalHref?: string;
 };
 
 const PROJECT_TYPES = [
@@ -527,18 +529,12 @@ export function BriefClientPage() {
         throw new Error("Your brief was saved, but proposal access could not be prepared. Retry safely to finish that step.");
       }
       const deliveryIssue = getCcoBriefDeliveryIssue(payload.notification);
-      if (deliveryIssue) {
-        setResult({
-          briefId,
-          deliveryIssue,
-        });
-        setSubmitState("success");
-        if (!canRetryCcoBriefDelivery(deliveryIssue)) clearSubmittedDraft();
-        return;
-      }
 
-      // Generate AI proposal
+      // Generate the instant estimate. Email delivery is a separate concern:
+      // a failed confirmation email must not withhold the estimate the client
+      // came here for, and the brief already has a durable CCO-DB receipt.
       setSubmitState("submitting");
+      const proposalHref = `/brief/proposal/${briefId}?token=${encodeURIComponent(accessToken)}`;
       const proposalRes = await fetch("/api/cco/briefs/proposal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -549,7 +545,22 @@ export function BriefClientPage() {
       });
 
       const proposalPayload = await proposalRes.json().catch(() => null);
-      if (!proposalRes.ok || proposalPayload?.persisted !== true || proposalPayload?.proposal_ready !== true) {
+      const proposalReady = proposalRes.ok && proposalPayload?.persisted === true && proposalPayload?.proposal_ready === true;
+
+      if (deliveryIssue) {
+        // Keep the retry-email path (same submission UUID, no duplicate brief)
+        // but still hand over the estimate when it was generated.
+        setResult({
+          briefId,
+          deliveryIssue,
+          proposalHref: proposalReady ? proposalHref : undefined,
+        });
+        setSubmitState("success");
+        if (!canRetryCcoBriefDelivery(deliveryIssue)) clearSubmittedDraft();
+        return;
+      }
+
+      if (!proposalReady) {
         // The brief has a real CCO-DB receipt. Do not claim that a proposal
         // exists when its preview generation did not finish.
         setResult({
@@ -563,7 +574,7 @@ export function BriefClientPage() {
 
       // Redirect to proposal page
       clearSubmittedDraft();
-      window.location.href = `/brief/proposal/${briefId}?token=${encodeURIComponent(accessToken)}`;
+      window.location.href = proposalHref;
     } catch (error) {
       setSubmitState("error");
       setSubmitError(error instanceof Error ? error.message : "Brief submission failed");
@@ -626,8 +637,13 @@ export function BriefClientPage() {
             </div>
           </div>
           <div className={s.actions}>
+            {result.proposalHref ? (
+              <Link className={s.submitBtn} href={result.proposalHref}>
+                View your estimate
+              </Link>
+            ) : null}
             {canRetryCcoBriefDelivery(result.deliveryIssue) ? (
-              <button className={s.submitBtn} type="button" onClick={() => void submitBrief()} disabled={isBusy}>
+              <button className={s.ghost} type="button" onClick={() => void submitBrief()} disabled={isBusy}>
                 Retry email delivery
               </button>
             ) : null}

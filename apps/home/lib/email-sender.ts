@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 
 const PYTHON_SAFE_CWD = process.env.HOME || "/tmp";
 const DEFAULT_BLAZE_GMAIL_TOKEN_PATH = "~/.config/blaze/google/blaze_contentcoop.json";
@@ -409,6 +410,59 @@ async function sendViaGmailDwd(options: SendEmailOptions): Promise<SendResult> {
             : message,
         };
   }
+}
+
+export type EmailTransportReadiness = {
+  provider: "resend" | "gmail_oauth" | "gmail_dwd" | "none";
+  ready: boolean;
+  detail: string;
+  checkedPaths: string[];
+};
+
+/**
+ * Reports which outbound email transport the Content Co-Op intake will use on
+ * this host, without sending anything. Used by `/api/health` so a missing
+ * token file or API key is visible before a client submits a brief.
+ */
+export function describeCcoEmailTransport(
+  env: Record<string, string | undefined> = process.env,
+  fileExists: (filePath: string) => boolean = (filePath) => existsSync(filePath),
+): EmailTransportReadiness {
+  if (env.RESEND_API_KEY?.trim()) {
+    return { provider: "resend", ready: true, detail: "RESEND_API_KEY is set; Resend will deliver intake email.", checkedPaths: [] };
+  }
+  const oauthCandidates = Array.from(new Set([
+    env.GOOGLE_OAUTH_TOKEN_FILE_BLAZE,
+    DEFAULT_BLAZE_GMAIL_TOKEN_PATH,
+    DEFAULT_BLAZE_GMAIL_SERVICE_TOKEN_PATH,
+  ].filter((value): value is string => Boolean(value && value.trim()))));
+  const resolvedOauth = oauthCandidates.map((candidate) => expandHomePath(candidate, env));
+  const oauthHit = resolvedOauth.find((candidate) => fileExists(candidate));
+  if (oauthHit) {
+    return { provider: "gmail_oauth", ready: true, detail: `Gmail OAuth token present at ${oauthHit}.`, checkedPaths: resolvedOauth };
+  }
+  const dwdCandidates = Array.from(new Set([
+    env.GOOGLE_DWD_SERVICE_ACCOUNT_FILE,
+    env.GOOGLE_APPLICATION_CREDENTIALS,
+    "~/.config/blaze/google/service_account.json",
+  ].filter((value): value is string => Boolean(value && value.trim()))));
+  const resolvedDwd = dwdCandidates.map((candidate) => expandHomePath(candidate, env));
+  const dwdHit = resolvedDwd.find((candidate) => fileExists(candidate));
+  const checkedPaths = [...resolvedOauth, ...resolvedDwd];
+  if (dwdHit) {
+    return { provider: "gmail_dwd", ready: true, detail: `Gmail domain-wide delegation credentials present at ${dwdHit}.`, checkedPaths };
+  }
+  return {
+    provider: "none",
+    ready: false,
+    detail: `No email transport: RESEND_API_KEY unset and no Gmail credential file found (checked ${checkedPaths.join(", ")}). Intake emails will be logged as failed.`,
+    checkedPaths,
+  };
+}
+
+function expandHomePath(candidate: string, env: Record<string, string | undefined>): string {
+  const home = env.HOME || "";
+  return candidate.startsWith("~/") && home ? `${home}/${candidate.slice(2)}` : candidate;
 }
 
 export async function sendTransactionalEmail(options: SendEmailOptions): Promise<SendResult> {

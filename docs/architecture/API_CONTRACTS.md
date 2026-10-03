@@ -22,11 +22,12 @@
    intake contract. They are not called by `/brief`, are not a CCO-DB-backed
    submission or proposal path, and require a separately approved migration or
    retirement before a broader public-portal release.
-6. `GET /api/client/portal` and `GET /client/portal` are retired with `410 Gone`
-   and a request-a-link page. They resolved a contact from a bare `?email=` or
-   `?contact_id=` with the service-role client and returned quotes, invoices,
-   payments and conversations without any secret. Client portal data is only
-   served behind a bearer capability minted by CCO OS.
+6. `GET /api/client/portal` and `GET /client/portal` resolve a contact only
+   from `contacts.portal_token` (a bearer capability of at least 16
+   characters); a bare `?email=` or `?contact_id=` is ignored and answered
+   `401 portal_token_required`. The column is declared by
+   `20261003000300_contacts_portal_token.sql` and does not exist on live
+   CCO-DB until that is applied, so the portal fails closed until then.
 
 Legacy note: `POST /api/briefs` is retired with `410 Gone`. It must not be
 used as a compatibility fallback for public intake.
@@ -60,12 +61,22 @@ Structured handoff envelope:
 Create-now vs later:
 
 1. Created now in CCO HOME:
-   CCO contact, `creative_briefs` row, durable `events` row (`type = brief_submitted`,
-   `idempotency_key = cco_public_brief_submitted:<brief id>`, one per brief), client
-   portal capability, client receipt email log, and Bailey admin alert log.
+   CCO contact, `creative_briefs` row, one durable `events` row
+   (`type = brief_submitted`, `idempotency_key = cco_public_brief_submitted:<brief_id>`,
+   payload carries `brief_id`, `structured_intake`, `intake_payload` and the
+   rule-based estimate). `public.events` has an `idempotency_key` column on
+   live CCO-DB and in `20261003000100_events_brief_submitted_contract.sql`,
+   which enforces one event per brief; the key is mirrored into payload and
+   metadata for readers that look the event up by `payload.brief_id`.
    The browser sees `persisted: true` only after the contact, the brief and the
-   `brief_submitted` event are all stored. Email delivery state is logged in
+   `brief_submitted` event are all stored; an event write failure is reported
+   as `persisted: true, retryable: true` so the retry replays only the missing
+   steps. Also created now: the client portal capability, client receipt email
+   log, and an operator alert log per recipient (`bailey@contentco-op.com` plus
+   `CCO_ADMIN_ALERT_EMAILS`). Email delivery state is logged in
    `notification_log` separately and never withdraws or gates those receipts.
+   The instant estimate (`/api/cco/briefs/proposal`) is requested regardless of
+   email delivery outcome; email failure only changes the receipt screen.
 2. Deferred to CCO OS-managed follow-through:
    booking pairing, quote generation, formal approval, and operational follow-up.
 
