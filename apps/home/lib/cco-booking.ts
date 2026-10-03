@@ -9,7 +9,7 @@ export interface CcoBookingSlot {
   durationMinutes: DiscoveryDuration;
   label: string;
   available: boolean;
-  source: "google_freebusy_ready" | "local_preview";
+  source: "google_freebusy_ready" | "local_preview" | "pending_verification";
 }
 
 export interface CcoBookingRequest {
@@ -24,19 +24,11 @@ export interface CcoBookingRequest {
   notes?: string;
 }
 
-type CalendarEventResult =
-  | {
-      ok: true;
-      mode: "google_calendar_ready";
-      eventId: string | null;
-      htmlLink: string | null;
-    }
-  | {
-      ok: true;
-      mode: "local_preview";
-      eventId: null;
-      htmlLink: null;
-    };
+type CalendarEventResult = {
+  ok: false;
+  error: "canonical_booking_receipt_required";
+  retryable: false;
+};
 
 const DEFAULT_ZONE = "America/Chicago";
 
@@ -59,23 +51,29 @@ function addMinutes(date: Date, minutes: number) {
   return new Date(date.getTime() + minutes * 60_000);
 }
 
-function isWeekend(date: Date) {
-  const day = date.getDay();
-  return day === 0 || day === 6;
+function chicagoParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: DEFAULT_ZONE, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(date);
+  const field = (name: string) => Number(parts.find((part) => part.type === name)?.value);
+  return { year: field("year"), month: field("month"), day: field("day"), hour: field("hour"), minute: field("minute") };
 }
-
+function chicagoTime(day: Date, hour: number, minute: number) {
+  const desired = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), hour, minute);
+  const observed = chicagoParts(new Date(desired));
+  const observedLocal = Date.UTC(observed.year, observed.month - 1, observed.day, observed.hour, observed.minute);
+  return new Date(desired + desired - observedLocal);
+}
 function firstSchedulableDay() {
-  const now = new Date();
-  const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 14, 0, 0));
-  return tomorrow;
+  const today = chicagoParts(new Date());
+  return new Date(Date.UTC(today.year, today.month - 1, today.day + 1));
 }
 
 export function getCalendarIntegrationStatus() {
   const calendarId = process.env.CCO_DISCOVERY_CALENDAR_ID || process.env.GOOGLE_CALENDAR_ID || "";
   const hasCredential = Boolean(
-    process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-      process.env.GOOGLE_DWD_SERVICE_ACCOUNT_FILE ||
-      process.env.GOOGLE_OAUTH_TOKEN_FILE_BLAZE,
+    process.env.GOOGLE_APPLICATION_CREDENTIALS,
   );
 
   return {
@@ -101,17 +99,17 @@ export function buildDiscoverySlots(durationMinutes: DiscoveryDuration = 20, day
   const status = getCalendarIntegrationStatus();
   const slots: CcoBookingSlot[] = [];
   const start = firstSchedulableDay();
-  const hourStarts = [15, 16.5, 19, 20.5];
+  const hourStarts = [10, 11.5, 14, 15.5];
 
   for (let dayOffset = 0; slots.length < 16 && dayOffset < days + 6; dayOffset += 1) {
     const day = new Date(start);
     day.setUTCDate(start.getUTCDate() + dayOffset);
-    if (isWeekend(day)) continue;
+    if (day.getUTCDay() === 0 || day.getUTCDay() === 6) continue;
 
     for (const hour of hourStarts) {
       const wholeHour = Math.floor(hour);
       const minute = hour % 1 === 0 ? 0 : 30;
-      const slotStart = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), wholeHour, minute, 0));
+      const slotStart = chicagoTime(day, wholeHour, minute);
       const slotEnd = addMinutes(slotStart, durationMinutes);
       const id = `${dateKey(slotStart)}-${String(wholeHour).padStart(2, "0")}${String(minute).padStart(2, "0")}-${durationMinutes}`;
       slots.push({
@@ -139,74 +137,64 @@ function overlapsBusy(start: string, end: string, busy: Array<{ start?: string |
   });
 }
 
+/** Provider availability only; this is not a booking or a durable receipt. */
 export async function getDiscoveryAvailability(durationMinutes: DiscoveryDuration = 20) {
   const status = getCalendarIntegrationStatus();
-  const previewSlots = buildDiscoverySlots(durationMinutes);
+  const unavailable = (error: string) => ({
+    calendar: { ...status, mode: "unavailable" as const, error },
+    slots: [] as CcoBookingSlot[],
+  });
   if (!status.configured || !status.calendarId) {
-    return { calendar: status, slots: previewSlots };
+    return unavailable("google_calendar_not_configured");
   }
 
+  const candidates = buildDiscoverySlots(durationMinutes);
   try {
     const client = await getCalendarClient();
-    if (!client) return { calendar: status, slots: previewSlots };
+    if (!client) return unavailable("google_calendar_not_configured");
     const response = await client.calendar.freebusy.query({
       requestBody: {
-        timeMin: previewSlots[0]?.startsAt,
-        timeMax: previewSlots[previewSlots.length - 1]?.endsAt,
+        timeMin: candidates[0]?.startsAt,
+        timeMax: candidates[candidates.length - 1]?.endsAt,
         items: [{ id: client.calendarId }],
       },
     });
-    const busy = response.data.calendars?.[client.calendarId]?.busy || [];
+    const result = response.data.calendars?.[client.calendarId];
+    // Google can return HTTP 200 with errors for an individual calendar.
+    // Missing or malformed data must never be interpreted as an empty diary.
+    if (!result || result.errors?.length || !Array.isArray(result.busy)) {
+      return unavailable("google_calendar_freebusy_unavailable");
+    }
+    if (result.busy.some((range) => {
+      const start = Date.parse(range.start || "");
+      const end = Date.parse(range.end || "");
+      return !Number.isFinite(start) || !Number.isFinite(end) || end <= start;
+    })) {
+      return unavailable("google_calendar_freebusy_invalid");
+    }
     return {
       calendar: status,
-      slots: previewSlots.map((slot) => ({
+      slots: candidates.map((slot) => ({
         ...slot,
-        available: !overlapsBusy(slot.startsAt, slot.endsAt, busy),
+        available: !overlapsBusy(slot.startsAt, slot.endsAt, result.busy || []),
         source: "google_freebusy_ready" as const,
       })),
     };
-  } catch (error) {
-    return {
-      calendar: {
-        ...status,
-        mode: "local_preview",
-        error: error instanceof Error ? error.message : "google_calendar_freebusy_failed",
-      },
-      slots: previewSlots,
-    };
+  } catch {
+    // Provider messages can contain identity/configuration details. Keep them
+    // out of the public result and expose a stable failure code instead.
+    return unavailable("google_calendar_freebusy_failed");
   }
 }
 
-export async function createDiscoveryCalendarEvent(request: CcoBookingRequest): Promise<CalendarEventResult> {
-  const status = getCalendarIntegrationStatus();
-  if (!status.configured || !status.calendarId) {
-    return { ok: true, mode: "local_preview", eventId: null, htmlLink: null };
-  }
-
-  const client = await getCalendarClient();
-  if (!client) return { ok: true, mode: "local_preview", eventId: null, htmlLink: null };
-  const response = await client.calendar.events.insert({
-    calendarId: client.calendarId,
-    sendUpdates: "all",
-    requestBody: {
-      summary: `CCO discovery call: ${request.company || request.name}`,
-      description: [
-        request.briefId ? `Brief: ${request.briefId}` : null,
-        request.notes ? `Notes: ${request.notes}` : null,
-        "Created by CCO native booking flow.",
-      ].filter(Boolean).join("\n"),
-      start: { dateTime: request.startsAt, timeZone: DEFAULT_ZONE },
-      end: { dateTime: request.endsAt, timeZone: DEFAULT_ZONE },
-      attendees: [{ email: request.email, displayName: request.name }],
-    },
-  });
-
-  return {
-    ok: true,
-    mode: "google_calendar_ready",
-    eventId: response.data.id || null,
-    htmlLink: response.data.htmlLink || null,
-  };
+/**
+ * Deliberately guarded until a canonical CCO-DB claim, deterministic event ID,
+ * durable event receipt, and reconciliation contract have been implemented.
+ * Re-enabling a retired caller must not issue an invite before those exist.
+ */
+export async function createDiscoveryCalendarEvent(_request: CcoBookingRequest): Promise<CalendarEventResult> {
+  void _request;
+  return { ok: false, error: "canonical_booking_receipt_required", retryable: false };
 }
 
 export function validateBookingRequest(body: Record<string, unknown>) {
