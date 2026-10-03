@@ -1,10 +1,11 @@
-export const CONTENT_VIDEO_VERSION = "20260609a";
+export const CONTENT_VIDEO_VERSION = "20261003b";
 
-// Delivery renditions encoded from apps/home/media/cco-hero-supreme-master-2160-hevc.mp4.
+// Delivery renditions from the existing supreme reel, removing only its white
+// leader/tail fades (retain original frames 12–2789, 115.75s at 24fps).
 // The master is an upscaled-1080p HEVC file, so 1080p H.264 is the highest real
 // quality we can serve — and it plays in every browser (the HEVC original did not).
-export const HERO_VIDEO_FILENAME = "hero-loop/cco-hero-supreme-1080.mp4";
-export const HERO_VIDEO_MOBILE_FILENAME = "hero-loop/cco-hero-supreme-720.mp4";
+export const HERO_VIDEO_FILENAME = "hero-loop/cco-hero-seamless-1080.mp4";
+export const HERO_VIDEO_MOBILE_FILENAME = "hero-loop/cco-hero-seamless-720.mp4";
 export const HERO_POSTER_FILENAME = "hero-loop/cco-hero-poster.jpg";
 
 export function heroMediaAsset(filename: string) {
@@ -23,6 +24,6 @@ export const heroVideo = heroMediaAsset(HERO_VIDEO_FILENAME);
 export const heroVideoMobile = heroMediaAsset(HERO_VIDEO_MOBILE_FILENAME);
 export const heroPoster = heroMediaAsset(HERO_POSTER_FILENAME);
 
-// Exact owner-supplied Desktop/weather vane.mp4 derivative; first 180 frames, muted.
-export const weatherVaneVideo = "/media/hero-loop/weather-vane-hero-180f-muted.mp4?v=20261003";
-export const weatherVanePoster = "/media/hero-loop/weather-vane-poster.jpg?v=20261003";
+// Exact owner-supplied Desktop/weather vane.mp4: all 331 frames, muted, uncropped.
+export const weatherVaneVideo = "/media/hero-loop/weather-vane-full-sequence-1080-muted.mp4?v=20261003b";
+export const weatherVanePoster = "/media/hero-loop/weather-vane-wide-poster.jpg?v=20261003b";
