@@ -240,3 +240,84 @@ describe("exact-count exhaustion", () => {
         expect(f.queries).not.toContain("invoices");
     });
 });
+
+describe("frozen timestamp instant integrity", () => {
+    function timed(snapshotAt: string, rowAt = snapshotAt, refAt = snapshotAt) {
+        const f = fixture();
+        f.snapshot.frozen_at = snapshotAt;
+        const v = row(f, "estimate_versions");
+        v.frozen_at = rowAt;
+        v.sha256 = createHash("sha256").update(stable(f.snapshot)).digest("hex");
+        const receipt = row(f, "commercial_handoffs").receipt as Record<string, unknown>;
+        const ref = receipt.commercialRef as Record<string, unknown>;
+        ref.frozen_at = refAt;
+        ref.snapshot_sha256 = v.sha256;
+        return f;
+    }
+    test.each([
+        ["2026-10-03T12:00:00.000Z", "2026-10-03T12:00:00+00:00", "2026-10-03T12:00:00.0Z"],
+        ["2026-10-03T12:00:00.123Z", "2026-10-03T12:00:00.123000+00:00", "2026-10-03T12:00:00.1230Z"],
+        ["2026-10-03T12:00:00.123400Z", "2026-10-03T12:00:00.1234+00:00", "2026-10-03T12:00:00.123400+00:00"],
+        ["2026-10-03T12:00:00.000001Z", "2026-10-03T12:00:00.000001+00:00", "2026-10-03T12:00:00.000001Z"],
+        ["2026-10-03T12:00:00Z", "2026-10-03T07:00:00-05:00", "2026-10-03T14:00:00+02:00"],
+        ["2026-10-03T23:30:00.000Z", "2026-10-04T01:30:00+02:00", "2026-10-03T23:30:00.000000Z"],
+        ["2024-02-29T12:00:00Z", "2024-02-29T12:00:00.000000+00:00", "2024-02-29T12:00:00Z"],
+    ])("equivalent instants retain frozen hash and both evidence links (%s, %s, %s)", async (snapshotAt, rowAt, refAt) => {
+        const f = timed(snapshotAt, rowAt, refAt);
+        const hash = row(f, "estimate_versions").sha256;
+        const before = JSON.stringify([...f.fake.store]);
+        const r = await f.run();
+        expect(r.quoteVersion).toMatchObject({ state: "available", frozenAt: rowAt, snapshotSha256: hash });
+        expect(r.invoices.state).toBe("available");
+        expect(r.handoff).toMatchObject({ state: "available", records: [{ projectId }] });
+        expect(f.snapshot.frozen_at).toBe(snapshotAt);
+        expect(row(f, "estimate_versions").sha256).toBe(hash);
+        expect(JSON.stringify([...f.fake.store])).toBe(before);
+    });
+    test.each(["2026-10-03T12:00:00+00:00", "2026-10-03T12:00:00.000000Z"])("equivalent handoff-only timestamp %s retains its project receipt", async (refAt) => {
+        const f = timed("2026-10-03T12:00:00.000Z", "2026-10-03T12:00:00.000Z", refAt);
+        const before = JSON.stringify([...f.fake.store]);
+        const r = await f.run();
+        expect(r.quoteVersion.state).toBe("available");
+        expect(r.handoff).toMatchObject({ state: "available", records: [{ projectId }] });
+        expect(JSON.stringify([...f.fake.store])).toBe(before);
+    });
+    test.each([
+        "2026-10-03T12:00:01Z",
+        "2026-10-03T12:00:00.124Z",
+        "2026-10-03T12:00:00.123401Z",
+        "2026-10-03T12:00:00.1234001Z",
+        "2026-10-03T12:00:00+24:00",
+        "2026-10-03T12:00:00",
+        "invalid",
+    ])("different or invalid row instant %s stops child reads", async (rowAt) => {
+        const f = timed("2026-10-03T12:00:00.123400Z", rowAt);
+        const r = await f.run();
+        expect(r.quoteVersion.state).toBe("unavailable");
+        expect(f.queries).not.toContain("invoices");
+        expect(f.queries).not.toContain("commercial_handoffs");
+        expect(r.nextAction).toBeNull();
+    });
+    test.each([
+        "2026-02-30T12:00:00Z", "2026-02-29T12:00:00Z", "2026-10-03T24:00:00Z",
+        "2026-10-03T12:00:00.1230000Z", "2026-10-03T12:00:00.1230001Z",
+        "2026-10-03T12:00:00", "invalid",
+    ])("identical invalid or unsupported-precision timestamps %s never establish authority", async (at) => {
+        const f = timed(at);
+        const r = await f.run();
+        expect(r.quoteVersion.state).toBe("unavailable");
+        expect(f.queries).not.toContain("invoices");
+        expect(f.queries).not.toContain("commercial_handoffs");
+    });
+    test.each([
+        "2026-10-03T12:00:01Z", "2026-10-03T12:00:00.123401Z",
+        "2026-10-03T12:00:00.1234001Z", "2026-10-03T12:00:00", "invalid",
+    ])("different or invalid handoff reference instant %s exposes no project receipt", async (refAt) => {
+        const f = timed("2026-10-03T12:00:00.123400Z", "2026-10-03T12:00:00.123400Z", refAt);
+        const r = await f.run();
+        expect(r.quoteVersion.state).toBe("available");
+        expect(r.invoices.state).toBe("available");
+        expect(r.handoff.state).toBe("unavailable");
+        expect(JSON.stringify(r.handoff)).not.toContain("https://");
+    });
+});
