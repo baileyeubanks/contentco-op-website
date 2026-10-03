@@ -3094,10 +3094,26 @@ h1, h2, h3, h4 {
 
 @media (max-width: 640px) {
   .hero:has(.hero-video-sequence) {
-    height: calc(100vw * 9 / 16 + 4.4rem);
+    height: auto;
     min-height: 0;
     aspect-ratio: auto;
+    flex-direction: column;
+    padding-top: 3rem;
     padding-bottom: 0;
+    background: var(--home-bg, #f3ede2);
+  }
+
+  .hero .hero-video-sequence {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    flex: 0 0 auto;
+  }
+
+  .hero .hero-video-sequence::after {
+    background: linear-gradient(180deg, transparent 60%, rgba(10, 16, 28, 0.16) 100%);
   }
 
   .hero:has(.hero-video-sequence) .hero-content {
@@ -3105,6 +3121,22 @@ h1, h2, h3, h4 {
     min-height: 0;
     margin: 0;
     padding: 1rem 1rem 1.15rem;
+  }
+
+  .hero:has(.hero-video-sequence) h1,
+  .hero:has(.hero-video-sequence) .hero-lede {
+    color: var(--home-ink-strong, #46556d);
+    text-shadow: none;
+  }
+
+  .hero:has(.hero-video-sequence) h1 em {
+    color: var(--home-blue-deep, #244d8f);
+    text-shadow: none;
+  }
+
+  .hero:has(.hero-video-sequence) .hero-actions .button {
+    color: var(--home-blue-deep, #244d8f);
+    border-color: var(--home-line-strong, rgba(47, 93, 169, 0.22));
   }
 }
 
