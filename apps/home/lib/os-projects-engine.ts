@@ -266,10 +266,10 @@ export async function createProjectFromBrief(briefId: string, businessUnit: stri
     replayed = Boolean(project);
 
     const projectId = project?.id || ccoRecordId("brief-project", briefId);
-    const buildManifest = (prior: Array<{ id: string; title: string }>): ConversionManifest => {
+    const buildManifest = (prior: Array<{ id: string; title: string }>): ConversionManifest | null => {
       const available = [...prior];
       const names = Array.isArray(projectData.deliverables) ? projectData.deliverables : [];
-      return { version: 1, deliverables: names.map((name: unknown, index: number) => {
+      const deliverables = names.map((name: unknown, index: number) => {
         const title = String(name);
         const priorIndex = available.findIndex((item) => item.title === title);
         const reused = priorIndex >= 0 ? available.splice(priorIndex, 1)[0] : null;
@@ -279,7 +279,11 @@ export async function createProjectFromBrief(briefId: string, businessUnit: stri
           // Public timelines are usually ranges such as "2–4 weeks", not dates.
           due_date: /^\d{4}-\d{2}-\d{2}$/.test(projectData.deadline || "") ? projectData.deadline : null,
         };
-      }) };
+      });
+      // Legacy rows have no stable link to the original brief item. An unmatched
+      // row may be renamed or additional operator work. Never guess that the
+      // unmatched brief item is missing and create another copy of that work.
+      return available.length ? null : { version: 1, deliverables };
     };
 
     if (!project) {
@@ -325,8 +329,15 @@ export async function createProjectFromBrief(briefId: string, businessUnit: stri
       const prior = await sb.from("deliverables").select("id, title").eq("project_id", project.id)
         .order("created_at", { ascending: true }).order("id", { ascending: true });
       if (prior.error) return failed(prior.error.message, "deliverable_lookup");
+      const adoptedManifest = buildManifest(prior.data || []);
+      if (!adoptedManifest) {
+        return failed(
+          "Existing project work no longer matches the original brief. Review and reconcile those items before continuing; no work has been changed.",
+          "legacy_deliverable_reconciliation", false,
+        );
+      }
       const saved = await sb.from("projects").update({ metadata: {
-        ...project.metadata, brief_conversion: buildManifest(prior.data || []),
+        ...project.metadata, brief_conversion: adoptedManifest,
       } }).eq("id", project.id).is("metadata->brief_conversion", null)
         // Do not overwrite a simultaneous operator metadata edit while adopting
         // a legacy project. A changed row is re-read and retried instead.

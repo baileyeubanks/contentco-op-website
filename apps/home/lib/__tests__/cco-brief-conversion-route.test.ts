@@ -35,6 +35,17 @@ describe("brief conversion recovery contract", () => {
     expect(await response.json()).toMatchObject({ project: { id: "project-1" }, replayed: true });
   });
 
+  test("returns an explicit reconciliation state for ambiguous legacy work", async () => {
+    mocks.convert.mockResolvedValue({ project: { id: "legacy-project" },
+      error: "Review and reconcile existing work before continuing; no work has been changed.",
+      stage: "legacy_deliverable_reconciliation", partial: true, retryable: false, replayed: true });
+    const response = await POST(request(), params());
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ project: { id: "legacy-project" },
+      stage: "legacy_deliverable_reconciliation", retryable: false });
+    expect(mocks.audit).not.toHaveBeenCalled();
+  });
+
   test("a previously converted brief still offers a recovery action after reloading", () => {
     const html = renderToStaticMarkup(createElement(BriefOpsPanel, { briefId: "brief-1", briefStatus: "converted" }));
     const button = html.match(/<button[^>]*>check project setup<\/button>/)?.[0];

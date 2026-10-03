@@ -151,6 +151,26 @@ describe("brief conversion resumes persisted progress", () => {
     expect(db.rows("deliverables")).toHaveLength(0);
   });
 
+  test.each(["submitted", "converted"])("preserves renamed approved legacy work and requires reconciliation on every retry (%s)", async (status) => {
+    db.rows("creative_briefs")[0].status = status;
+    db.rows("projects").push({ id: "legacy-project", business_unit: "CC", title: "Existing project",
+      metadata: { source_brief_id: briefId, operator_note: "Approved scope" } });
+    db.rows("deliverables").push({ id: "legacy-film", project_id: "legacy-project", title: "Approved launch film", status: "approved" });
+    db.rows("events").push({ id: "legacy-event", business_unit: "CC", type: "deliverable.created", object_type: "deliverable", object_id: "legacy-film" });
+    if (status === "converted") db.rows("events").push({ id: "legacy-converted", business_unit: "CC",
+      type: "brief.converted", object_type: "project", object_id: "legacy-project", payload: { brief_id: briefId } });
+    const before = copy(Object.fromEntries(db.tables));
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      expect(await createProjectFromBrief(briefId)).toMatchObject({ project: { id: "legacy-project" },
+        partial: true, replayed: true, retryable: false, stage: "legacy_deliverable_reconciliation",
+        error: expect.stringContaining("no work has been changed") });
+      expect(Object.fromEntries(db.tables)).toEqual(before);
+    }
+    expect(db.rows("deliverables")).toHaveLength(1);
+    expect(db.rows("projects")[0].metadata).not.toHaveProperty("brief_conversion");
+  });
+
   test("does not overwrite an operator's simultaneous metadata edit when adopting a legacy project", async () => {
     db.rows("projects").push({ id: "legacy-project", business_unit: "CC", title: "Existing project",
       metadata: { source_brief_id: briefId } });
