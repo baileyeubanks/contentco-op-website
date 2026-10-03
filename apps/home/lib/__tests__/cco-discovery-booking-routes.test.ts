@@ -8,10 +8,16 @@ afterEach(() => { vi.resetAllMocks(); });
 function runtime() { return { availability: vi.fn(async () => []), config: { calendarId: "isolated", organizerEmail: "owner@example.test" }, store: {}, provider: {} }; }
 function request(body: unknown, origin = "https://contentco-op.com") { return new Request("https://contentco-op.com/api/cco/bookings", { method: "POST", headers: { "Content-Type": "application/json", origin }, body: JSON.stringify(body) }); }
 describe("direct booking public contract", () => {
+  test("production POST requires exactly a Request parameter", () => {
+    type Parameter = Parameters<typeof POST>[0];
+    type ExactRequest = [Parameter] extends [Request] ? [Request] extends [Parameter] ? true : false : false;
+    const matches: ExactRequest = true;
+    expect(matches).toBe(true);
+  });
   test("unverified runtime stays visibly unavailable", async () => {
     mocks.runtime.mockResolvedValue(null);
     expect((await GET()).status).toBe(503);
-    expect((await POST()).status).toBe(503);
+    expect((await POST(request({}))).status).toBe(503);
     expect(mocks.reserve).not.toHaveBeenCalled();
   });
   test("provider availability is returned without caching", async () => {
