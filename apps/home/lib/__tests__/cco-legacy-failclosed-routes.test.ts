@@ -7,7 +7,11 @@ import { GET as proposalPdfGET } from "@/app/api/cco/proposals/[id]/pdf/route";
 describe("retired CCO preview routes", () => {
   test("never reports a discovery call as reserved without the canonical booking rail", async () => {
     const availability = await availabilityGET();
-    const booking = await bookingPOST();
+    const booking = await bookingPOST(new Request("https://contentco-op.com/api/cco/bookings", {
+      method: "POST",
+      headers: { origin: "https://contentco-op.com", "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    }));
 
     expect(availability.status).toBe(503);
     expect(await availability.json()).toMatchObject({ error: "booking_unavailable" });
