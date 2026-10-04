@@ -62,7 +62,7 @@ vi.mock("@/lib/blaze-handoff", () => ({ emitBlazeHandoff: () => { throw new Erro
 
 import { createEstimateFromBrief } from "../os-commercial-pipeline";
 import { buildEstimateDraftFromBrief } from "../os-production-scope";
-import { normalizeCreativeBriefPayload, buildCreativeBriefHandoffEnvelope } from "../creative-brief";
+import { normalizeCreativeBriefPayload, buildCreativeBriefHandoffEnvelope, EMPTY_CREATIVE_DIAGNOSTIC_INPUT } from "../creative-brief";
 
 const BRIEF_ID = "77777777-7777-4777-8777-777777777777";
 const current = {
@@ -147,7 +147,7 @@ describe("canonical estimate scope admission before all side effects", () => {
 
   test("actual legacy writer can be recovered read-only before the unchanged create path", async () => {
     allowedTables = null;
-    const payload = normalizeCreativeBriefPayload({ diagnostic: { main_video_count: "2", multiple_shoot_days: false, need_cutdowns: false } });
+    const payload = normalizeCreativeBriefPayload({ diagnostic: { ...EMPTY_CREATIVE_DIAGNOSTIC_INPUT, main_video_count: "2", multiple_shoot_days: false, need_cutdowns: false } });
     const handoff = buildCreativeBriefHandoffEnvelope({ briefId: BRIEF_ID, bookingUrl: "https://example.invalid", payload, portalUrl: "https://example.invalid" });
     fallbackPayload = { brief_id: BRIEF_ID, structured_intake: handoff.structured_intake, intake_payload: payload };
     fake.store.set("creative_briefs", [{ id: BRIEF_ID, contact_name: "Synthetic Person", contact_email: "fixture@example.invalid" }]);

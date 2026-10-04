@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { assessBriefScopeReadiness } from "../cco-brief-scope-readiness";
-import { normalizeCreativeBriefPayload, buildCreativeBriefHandoffEnvelope } from "../creative-brief";
+import { normalizeCreativeBriefPayload, buildCreativeBriefHandoffEnvelope, EMPTY_CREATIVE_DIAGNOSTIC_INPUT } from "../creative-brief";
 
 const project = {
   projectTypes: ["brand"], projectContext: "Synthetic source contract",
@@ -13,7 +13,7 @@ const project = {
 
 describe("saved brief scope readiness without commercial inference", () => {
   test("admits the actual legacy writer with snake_case project, v3 marker and nullable choices", () => {
-    const payload = normalizeCreativeBriefPayload({ diagnostic: { main_video_count: "2", multiple_shoot_days: false, need_cutdowns: false } });
+    const payload = normalizeCreativeBriefPayload({ diagnostic: { ...EMPTY_CREATIVE_DIAGNOSTIC_INPUT, main_video_count: "2", multiple_shoot_days: false, need_cutdowns: false } });
     const handoff = buildCreativeBriefHandoffEnvelope({ briefId: "synthetic", bookingUrl: "https://example.invalid", payload, portalUrl: "https://example.invalid" });
     expect(payload.diagnostic.shoot_day_count).toBe("");
     expect(payload.diagnostic.travel_needed).toBeNull();
