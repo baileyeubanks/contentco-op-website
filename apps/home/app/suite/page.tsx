@@ -27,9 +27,9 @@ export const metadata: Metadata = {
 };
 
 const APP_URLS = {
-  coscript: "/co-script",
-  cocut: "/co-cut",
-  codeliver: "/co-deliver",
+  coscript: "https://co-videopro.com/projects",
+  cocut: "https://co-videopro.com/projects",
+  codeliver: "https://co-videopro.com/projects",
 } as const;
 
 const APP_CANONICAL_URLS = {
@@ -138,18 +138,13 @@ export default function SuitePage() {
           plan the story, shape the film, and deliver the work without losing the thread.
         </p>
 
-        <p>
-          <a className={styles.primaryBtn} href="https://co-videopro.com/login?next=%2Fprojects">
-            Open Co-VideoPro
-          </a>
-        </p>
-
         <div className={styles.cardsRow}>
           {CARDS.map((card) => (
             <Link
               key={card.name}
               id={card.id}
               href={card.href}
+              aria-label={`Open Co-${card.name} in Co-VideoPro`}
               className={styles.card}
               style={{ "--card-accent": card.accent } as React.CSSProperties}
             >
@@ -160,7 +155,7 @@ export default function SuitePage() {
               </h2>
               <p className={styles.cardTagline}>{card.tagline}</p>
               <p className={styles.cardDescription}>{card.description}</p>
-              <span className={styles.cardStatus}>Request access</span>
+              <span className={styles.cardStatus}>Open Co-VideoPro</span>
             </Link>
           ))}
         </div>
