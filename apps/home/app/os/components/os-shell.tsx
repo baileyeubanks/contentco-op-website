@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -166,14 +166,13 @@ export function OsShell({
       <CcoShell
         pathname={pathname}
         collapsed={collapsed}
+        preferencesReady={storageReady}
         buScope={buScope}
         setBuScope={setBuScope}
         onToggle={() => setCollapsed((value) => !value)}
         onCollapse={() => setCollapsed(true)}
         onOpenCommand={() => { setCmdOpen(true); setCmdQuery(""); }}
-      >
-        {children}
-        {cmdOpen && (
+        commandBar={cmdOpen && (
           <CommandBar
             query={cmdQuery}
             setQuery={setCmdQuery}
@@ -182,6 +181,8 @@ export function OsShell({
             onClose={() => setCmdOpen(false)}
           />
         )}
+      >
+        {children}
       </CcoShell>
     );
   }
@@ -749,30 +750,53 @@ function CommandBar({
 }
 
 /* CCO chrome is isolated so the ACS shell keeps its existing layout. */
+const CCO_MOBILE_QUERY = "(max-width: 720px)";
+
+function subscribeToCcoViewport(onChange: () => void) {
+  const media = window.matchMedia(CCO_MOBILE_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function getCcoMobileViewport() {
+  return window.matchMedia(CCO_MOBILE_QUERY).matches;
+}
+
+function getCcoServerViewport() {
+  return false;
+}
+
 function CcoShell({
   pathname,
   collapsed,
+  preferencesReady,
   buScope,
   setBuScope,
   onToggle,
   onCollapse,
   onOpenCommand,
+  commandBar,
   children,
 }: {
   pathname: string;
   collapsed: boolean;
+  preferencesReady: boolean;
   buScope: BuScope;
   setBuScope: (scope: BuScope) => void;
   onToggle: () => void;
   onCollapse: () => void;
   onOpenCommand: () => void;
+  commandBar: React.ReactNode;
   children: React.ReactNode;
 }) {
   const parts = pathname.replace("/os/", "").split("/").filter(Boolean);
   const sidebarRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLButtonElement>(null);
   const collapseRef = useRef(onCollapse);
   const previousCollapsedRef = useRef(collapsed);
+  const isMobile = useSyncExternalStore(subscribeToCcoViewport, getCcoMobileViewport, getCcoServerViewport);
+  const mobileOpen = isMobile && preferencesReady && !collapsed;
 
   useEffect(() => {
     collapseRef.current = onCollapse;
@@ -781,13 +805,17 @@ function CcoShell({
   useEffect(() => {
     const openedFromRail = previousCollapsedRef.current && !collapsed;
     previousCollapsedRef.current = collapsed;
-    const narrowViewport = window.matchMedia("(max-width: 720px)");
+    const narrowViewport = window.matchMedia(CCO_MOBILE_QUERY);
     // Initial preference restoration must not take focus from the page.
     if (!openedFromRail || !narrowViewport.matches) return;
     const toggleButton = toggleRef.current;
-    if (!sidebarRef.current?.contains(document.activeElement)) toggleButton?.focus();
+    const menuButton = menuRef.current;
+    const shellElement = sidebarRef.current?.parentElement;
+    if (!shellElement?.querySelector(".cco-shell-command") && !sidebarRef.current?.contains(document.activeElement)) {
+      toggleButton?.focus();
+    }
     const handleDrawerKeyDown = (event: KeyboardEvent) => {
-      if (!narrowViewport.matches) return;
+      if (event.defaultPrevented || !narrowViewport.matches) return;
       // Command search owns focus while it is open above the navigation drawer.
       if (sidebarRef.current?.parentElement?.querySelector(".cco-shell-command")) return;
       if (event.key === "Escape") {
@@ -813,7 +841,9 @@ function CcoShell({
     document.addEventListener("keydown", handleDrawerKeyDown);
     return () => {
       document.removeEventListener("keydown", handleDrawerKeyDown);
-      if (toggleButton?.isConnected) toggleButton.focus();
+      if (shellElement?.querySelector(".cco-shell-command")) return;
+      const returnTarget = narrowViewport.matches ? menuButton : toggleButton;
+      if (returnTarget?.isConnected) returnTarget.focus();
     };
   }, [collapsed]);
 
@@ -822,7 +852,7 @@ function CcoShell({
   };
 
   return (
-    <div className="cco-shell" data-collapsed={collapsed}>
+    <div className="cco-shell" data-collapsed={collapsed} data-mobile-open={mobileOpen}>
       <style>{CCO_SHELL_STYLES}</style>
       {!collapsed && (
         <button
@@ -833,7 +863,16 @@ function CcoShell({
           tabIndex={-1}
         />
       )}
-      <aside ref={sidebarRef} className="cco-shell-sidebar">
+      <aside
+        ref={sidebarRef}
+        id="cco-shell-sidebar"
+        className="cco-shell-sidebar"
+        inert={isMobile && !mobileOpen}
+        aria-hidden={isMobile && !mobileOpen ? true : undefined}
+        role={mobileOpen ? "dialog" : undefined}
+        aria-modal={mobileOpen ? true : undefined}
+        aria-label={mobileOpen ? "Navigation" : undefined}
+      >
         <button
           ref={toggleRef}
           type="button"
@@ -841,7 +880,7 @@ function CcoShell({
           onClick={onToggle}
           aria-expanded={!collapsed}
           aria-controls="cco-shell-navigation"
-          aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+          aria-label={isMobile ? "Close navigation" : collapsed ? "Expand navigation" : "Collapse navigation"}
           title={`${collapsed ? "Expand" : "Collapse"} navigation ([)`}
         >
           <Image
@@ -852,7 +891,7 @@ function CcoShell({
             unoptimized
           />
           {!collapsed && <span className="cco-shell-brand-name">CCO OS</span>}
-          {!collapsed && <span className="cco-shell-collapse-icon" aria-hidden="true">‹</span>}
+          {!collapsed && <span className="cco-shell-collapse-icon" aria-hidden="true">{isMobile ? "×" : "‹"}</span>}
         </button>
         {!collapsed && (
           <div className="cco-shell-scope" role="group" aria-label="Business unit scope">
@@ -909,8 +948,22 @@ function CcoShell({
           {!collapsed && <span>v0.2 <span aria-hidden="true">·</span> ⌘K search <span aria-hidden="true">·</span> [ toggle</span>}
         </footer>
       </aside>
-      <div className="cco-shell-body">
+      <div className="cco-shell-body" inert={mobileOpen}>
         <header className="cco-shell-topbar">
+          <button
+            ref={menuRef}
+            type="button"
+            className="cco-shell-menu cco-shell-control"
+            onClick={onToggle}
+            aria-expanded={mobileOpen}
+            aria-controls="cco-shell-sidebar"
+            aria-label="Menu"
+          >
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <span>Menu</span>
+          </button>
           <div className="cco-shell-breadcrumb" aria-label="Current location">
             <span className="cco-shell-breadcrumb-brand">CCO OS</span>
             <span className="cco-shell-breadcrumb-divider" aria-hidden="true">/</span>
@@ -936,6 +989,7 @@ function CcoShell({
         </header>
         <main className="cco-shell-main">{children}</main>
       </div>
+      {commandBar}
     </div>
   );
 }
@@ -962,6 +1016,7 @@ function CcoCommandBar({
 
   useEffect(() => {
     const previousFocus = document.activeElement;
+    const shellElement = dialogRef.current?.closest(".cco-shell");
     const trapFocus = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -972,7 +1027,10 @@ function CcoCommandBar({
       if (!controls?.length) return;
       const first = controls[0];
       const last = controls[controls.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      if (!dialogRef.current?.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
@@ -983,7 +1041,17 @@ function CcoCommandBar({
     document.addEventListener("keydown", trapFocus);
     return () => {
       document.removeEventListener("keydown", trapFocus);
-      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+      const targets = [
+        previousFocus,
+        shellElement?.querySelector(".cco-shell-menu"),
+        shellElement?.querySelector(".cco-shell-search"),
+        shellElement?.querySelector(".cco-shell-brand"),
+      ];
+      const returnTarget = targets.find((target) =>
+        target instanceof HTMLElement && target.isConnected && !target.closest("[inert]") &&
+        target.getClientRects().length > 0 && getComputedStyle(target).visibility !== "hidden"
+      );
+      if (returnTarget instanceof HTMLElement) returnTarget.focus();
     };
   }, []);
 
@@ -1063,6 +1131,7 @@ const CCO_SHELL_STYLES = `
   .cco-shell[data-collapsed="true"] .cco-shell-nav-section + .cco-shell-nav-section { padding-top: 12px; margin-top: 12px; border-top: 1px solid #e0e7f0; }
   .cco-shell-body { display: flex; flex: 1; flex-direction: column; min-width: 0; margin-left: var(--cco-shell-width); transition: margin-left 160ms ease; }
   .cco-shell-topbar { position: sticky; top: 0; z-index: 90; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 16px; height: 60px; padding: 0 24px; border-bottom: 1px solid #e0e7f0; background: rgba(255,255,255,0.96); backdrop-filter: blur(12px); }
+  .cco-shell-menu { display: none; }
   .cco-shell-breadcrumb { display: flex; align-items: center; gap: 12px; min-width: 0; font-size: 13px; line-height: 20px; }
   .cco-shell-breadcrumb-brand { flex-shrink: 0; color: #63748b; }
   .cco-shell-breadcrumb-divider { color: #96a4b7; }
@@ -1089,12 +1158,16 @@ const CCO_SHELL_STYLES = `
   .cco-shell-command-description { margin-top: 2px; color: #63748b; font-size: 12px; line-height: 18px; }
   .cco-shell-command-empty { padding: 28px 16px; font-size: 14px; color: #53657e; text-align: center; overflow-wrap: anywhere; }
   @media (max-width: 720px) {
-    .cco-shell-body { margin-left: 60px; }
-    .cco-shell[data-collapsed="false"] .cco-shell-sidebar { box-shadow: 12px 0 40px rgba(15,31,54,0.14); }
-    .cco-shell-scrim { display: block; position: fixed; inset: 0; z-index: 99; border: 0; background: rgba(15,31,54,0.24); }
+    .cco-shell-body { margin-left: 0; }
+    .cco-shell-sidebar { width: min(288px, calc(100vw - 48px)); visibility: hidden; transform: translateX(-100%); pointer-events: none; transition: transform 160ms ease; }
+    .cco-shell[data-mobile-open="true"] .cco-shell-sidebar { visibility: visible; transform: translateX(0); pointer-events: auto; box-shadow: 12px 0 40px rgba(15,31,54,0.14); }
+    .cco-shell[data-mobile-open="true"] .cco-shell-scrim { display: block; position: fixed; inset: 0; z-index: 99; border: 0; background: rgba(15,31,54,0.24); }
     .cco-shell-topbar { gap: 8px; padding: 0 12px; }
+    .cco-shell-menu { display: flex; align-items: center; justify-content: center; flex-shrink: 0; gap: 8px; min-height: 44px; padding: 0 10px; border: 1px solid #e0e7f0; border-radius: 8px; background: #fff; color: #53657e; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+    .cco-shell-menu:hover { background: #f3f6fb; }
+    .cco-shell-breadcrumb { flex: 1; }
     .cco-shell-topbar-actions { gap: 8px; }
-    .cco-shell-breadcrumb-brand, .cco-shell-breadcrumb-divider, .cco-shell-search-label, .cco-shell-search-shortcut { display: none; }
+    .cco-shell-breadcrumb-brand, .cco-shell-breadcrumb-divider, .cco-shell-search-shortcut { display: none; }
     .cco-shell-search { padding: 0 12px; }
     .cco-shell-command-header { gap: 8px; padding: 10px; }
     .cco-shell-command-symbol { display: none; }

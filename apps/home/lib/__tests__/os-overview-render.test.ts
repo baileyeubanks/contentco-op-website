@@ -88,6 +88,58 @@ test("keeps every supplied work, quote and contact row including completed work"
   expect(html).toContain("$1,234");
 });
 
+test("prioritizes the earliest supplied scheduled date without mutating the snapshot", async () => {
+  const original = model.recentJobs[0];
+  model.recentJobs = [
+    { ...original, id: "later", title: "Later scheduled record", scheduledDate: "2026-10-08" },
+    { ...original, id: "next", title: "Next scheduled record", scheduledDate: "2026-10-04" },
+    { ...original, id: "same-day", title: "Same date record", scheduledDate: "2026-10-04" },
+  ];
+  const originalOrder = model.recentJobs.map(job => job.id);
+  const html = await render();
+  expect(html.indexOf("Next scheduled record")).toBeLessThan(html.indexOf("Later scheduled"));
+  expect(html.indexOf("Same date record")).toBeLessThan(html.indexOf("Later scheduled"));
+  expect(model.recentJobs.map(job => job.id)).toEqual(originalOrder);
+  expect(html).not.toMatch(/overdue|urgent|due today/i);
+});
+
+test("completed records cannot become next scheduled even when supplied in the upcoming bucket", async () => {
+  const original = model.recentJobs[0];
+  model.recentJobs = [
+    { ...original, id: "completed-upcoming", title: "Already completed record", status: "completed", bucket: "upcoming", scheduledDate: "2026-10-04" },
+    { ...original, id: "next", title: "Actual next record", scheduledDate: "2026-10-06" },
+  ];
+  const html = await render();
+  const completed = html.match(/<details[^>]*><summary>Recent completed work<\/summary>([\s\S]*?)<\/details>/);
+  expect(completed?.[1]).toContain("Already completed record");
+  expect(completed?.[1]).not.toContain("Actual next record");
+  expect(html.indexOf("Actual next record")).toBeLessThan(html.indexOf("Recent completed work"));
+  expect(html).not.toMatch(/<details[^>]*\bopen\b/);
+});
+
+test("unscheduled, cancelled and invalid-date records remain visible without a next-scheduled claim", async () => {
+  const original = model.recentJobs[0];
+  model.recentJobs = [
+    { ...original, id: "cancelled", title: "Cancelled record", status: "cancelled", scheduledDate: "2026-10-04" },
+    { ...original, id: "missing-date", title: "Missing date record", scheduledDate: null },
+    { ...original, id: "invalid-date", title: "Invalid date record", scheduledDate: "invalid" },
+  ];
+  const html = await render();
+  for (const job of model.recentJobs) expect(html).toContain(job.title);
+  expect(html).toContain("Other work");
+  expect(html).not.toContain("Next scheduled");
+});
+
+test("read diagnostics remain complete behind a closed disclosure with the system destination available", async () => {
+  const html = await render();
+  const details = html.match(/<details[^>]*><summary>Read diagnostics<\/summary>([\s\S]*?)<\/details>/);
+  expect(details?.[1]).toContain("Route classification");
+  expect(details?.[1]).toContain("213ms");
+  expect(details?.[1]).toContain("7,890 bytes");
+  expect(html).not.toMatch(/<details[^>]*\bopen\b/);
+  expect(html.indexOf('href="/os/system"')).toBeGreaterThan(html.indexOf("</details>", html.indexOf("Read diagnostics")));
+});
+
 test("keeps the four existing navigation actions and adds no write controls", async () => {
   const html = await render();
   const destinations = [...html.matchAll(/href="([^"]+)"/g)].map(match => match[1]);
