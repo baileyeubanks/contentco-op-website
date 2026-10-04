@@ -5,15 +5,20 @@ import { recordedBriefWorkspace, type RecordedBriefWorkspace } from "@/lib/cco-p
 
 export function RecordedBriefWorkspaceLink({ workspace }: { workspace: RecordedBriefWorkspace }) {
   return (
-    <div style={{ display: "grid", gap: 8, fontSize: "0.82rem" }}>
+    <div style={{ display: "grid", gap: 8, fontSize: "0.875rem", color: "#f1f5f9" }}>
       <p style={{ margin: 0 }}>
         Workspace recorded ({workspace.id.slice(0, 8)}). Current workspace access is unverified.
       </p>
-      <p style={{ margin: 0, color: "var(--root-muted, var(--muted))" }}>
+      <p style={{ margin: 0, color: "#cbd5e1" }}>
         Agreement/signature: unverified · Deposit: unverified · Creative approval: unverified.
         Verify production authorization separately.
       </p>
-      <a href={workspace.href} className="os-atlas-button os-atlas-button-secondary" style={{ justifySelf: "start" }}>
+      <a href={workspace.href} className="os-atlas-button os-atlas-button-secondary" style={{
+        justifySelf: "start", minHeight: 44, maxWidth: "100%", boxSizing: "border-box",
+        padding: "10px 14px", fontSize: "0.875rem", lineHeight: 1.4, letterSpacing: "normal",
+        whiteSpace: "normal", textAlign: "center", color: "#0f172a", background: "#f8fafc",
+        border: "1px solid #cbd5e1",
+      }}>
         Open recorded Co-VideoPro workspace
       </a>
     </div>
