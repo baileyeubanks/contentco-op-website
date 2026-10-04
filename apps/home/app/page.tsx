@@ -55,13 +55,14 @@ export const metadata: Metadata = {
   },
 };
 
+const CO_VIDEOPRO_ENTRY_HREF = "https://co-videopro.com/projects";
+
 const HOME_SUITE_PRODUCTS: Array<{
   prefix: string;
   name: string;
   tagline: string;
   description: string;
   accent: string;
-  href: string;
   icon: ReactNode;
 }> = [
   {
@@ -71,7 +72,6 @@ const HOME_SUITE_PRODUCTS: Array<{
     description:
       "Co-Script turns a brief into production intelligence: client language, research, interview targets, shot lists, constraints, and script drafts in one place. AI helps surface angles and gaps, while the human team keeps the message accurate and on brand.",
     accent: "#4c8ef5",
-    href: "/co-script",
     icon: (
       <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
         <path d="M10 4.5h14l6 6V35.5H10z" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
@@ -89,7 +89,6 @@ const HOME_SUITE_PRODUCTS: Array<{
     description:
       "Co-Cut keeps post-production legible: media ingest, transcript-driven selects, edit versions, captions, exports, and frame-specific feedback. AI supports transcripts and selects so the editor can spend more time shaping the film, not chasing notes.",
     accent: "#a78bf5",
-    href: "/co-cut",
     icon: (
       <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
         <rect x="2" y="14" width="36" height="12" rx="2" stroke="currentColor" strokeWidth={1.4} />
@@ -109,7 +108,6 @@ const HOME_SUITE_PRODUCTS: Array<{
     description:
       "Co-Deliver is the client-ready review and delivery layer: approval gates, comments, share links, downloads, final versions, and archive trails. AI helps summarize decisions and flag loose ends so the final handoff stays clean.",
     accent: "#2dd4bf",
-    href: "/co-deliver",
     icon: (
       <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
         <rect x="7" y="12" width="26" height="18" rx="3" stroke="currentColor" strokeWidth={1.5} />
@@ -251,15 +249,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 These are not side quests. Every project moves through the same three rooms:
                 plan the story, shape the film, and deliver the work without losing the thread.
               </p>
-              <a className="button products-cvp-link" href="https://co-videopro.com/login?next=%2Fprojects">
-                Open Co-VideoPro
-              </a>
               <div className="products-grid">
                 {HOME_SUITE_PRODUCTS.map((product) => (
-                  <Link
+                  <a
                     key={product.name}
                     className="product-card"
-                    href={product.href}
+                    href={CO_VIDEOPRO_ENTRY_HREF}
+                    aria-label={`Open ${product.prefix}${product.name} in Co-VideoPro`}
                     style={{ "--card-accent": product.accent } as CSSProperties}
                   >
                     <div className="product-card-accent" aria-hidden="true" />
@@ -269,8 +265,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                     </h3>
                     <p className="product-copy">{product.tagline}</p>
                     <p className="product-desc">{product.description}</p>
-                    <span className="product-status">Request access</span>
-                  </Link>
+                    <span className="product-status">Open Co-VideoPro</span>
+                  </a>
                 ))}
               </div>
             </div>
