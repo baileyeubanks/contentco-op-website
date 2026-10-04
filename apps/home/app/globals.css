@@ -1836,10 +1836,6 @@ h1, h2, h3, h4 {
   overflow-wrap: anywhere;
 }
 
-.products .products-cvp-link {
-  margin-bottom: 1.5rem;
-}
-
 .products-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1895,8 +1891,8 @@ h1, h2, h3, h4 {
 }
 
 .product-card:focus-visible {
-  outline: 2px solid rgba(76, 142, 245, 0.5);
-  outline-offset: 2px;
+  outline: 3px solid #245eb9;
+  outline-offset: 4px;
 }
 
 .product-icon {
