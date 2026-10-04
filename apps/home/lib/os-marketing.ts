@@ -175,7 +175,42 @@ export type RootMarketingExecutionSnapshot = {
   };
 };
 
+export type BriefNotificationStatus = {
+  audience: "internal" | "client";
+  status: "sent" | "failed" | "unknown";
+  providerReceiptPresent: boolean;
+};
+
+/** Read-only, exact brief/template/audience binding. Missing or ambiguous evidence is unknown. */
+export async function getBriefNotificationStatus(db: ReturnType<typeof getSupabase>, briefId: string): Promise<BriefNotificationStatus[]> {
+  const expected = [
+    { audience: "internal" as const, template: "cco_public_brief_admin_alert" },
+    { audience: "client" as const, template: "cco_public_brief_client_receipt" },
+  ];
+  let rows: Record<string, unknown>[] = [];
+  try {
+    const result = await db.from("notification_log")
+      .select("template_key, audience, status, business_unit, channel, related_entity_type, related_entity_id, provider_message_id:metadata->provider_message_id")
+      .eq("related_entity_type", "creative_brief")
+      .eq("related_entity_id", briefId)
+      .eq("business_unit", "CC")
+      .eq("channel", "email")
+      .in("template_key", expected.map((item) => item.template));
+    if (!result.error && Array.isArray(result.data)) rows = result.data;
+  } catch { /* Explicit unknown below; never interpret a failed read as healthy. */ }
+  return expected.map((item) => {
+    const matches = rows.filter((row) => row && row.template_key === item.template && row.audience === item.audience
+      && row.business_unit === "CC" && row.channel === "email"
+      && row.related_entity_type === "creative_brief" && row.related_entity_id === briefId);
+    const row = matches.length === 1 ? matches[0] : null;
+    const providerReceiptPresent = typeof row?.provider_message_id === "string" && row.provider_message_id.trim().length > 0;
+    const status = row?.status === "sent" && providerReceiptPresent ? "sent" : row?.status === "failed" && !providerReceiptPresent ? "failed" : "unknown";
+    return { audience: item.audience, status, providerReceiptPresent };
+  });
+}
+
 export type RootMarketingBriefDetail = {
+  notifications: BriefNotificationStatus[];
   id: string;
   workspace: OsBrandKey;
   status: string;
@@ -751,9 +786,10 @@ export async function getRootMarketingBriefDetail(
     .from("creative_briefs")
     .select("*")
     .eq("id", briefId)
+    .eq("company_account_id", "content-co-op")
     .maybeSingle();
 
-  if (error || !brief) {
+  if (error || !brief || brief.company_account_id !== "content-co-op" || String(brief.id) !== briefId) {
     return null;
   }
 
@@ -851,6 +887,7 @@ export async function getRootMarketingBriefDetail(
   }
 
   return {
+    notifications: await getBriefNotificationStatus(supabase, String(brief.id)),
     id: String(brief.id),
     workspace,
     status: String(brief.status || "new"),

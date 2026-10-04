@@ -142,7 +142,7 @@ except Exception as error:
     sys.stderr.write(f"DELIVERY_UNKNOWN:{type(error).__name__}:{error}")
     sys.exit(70)
 
-sys.stdout.write(json.dumps({"ok": True, "id": result.get("id")}))
+sys.stdout.write(json.dumps({"ok": True, "id": result.get("id") if isinstance(result, dict) else None}))
 `;
 
 const GMAIL_OAUTH_PYTHON = String.raw`
@@ -220,8 +220,23 @@ except Exception as error:
     sys.stderr.write(f"DELIVERY_UNKNOWN:{type(error).__name__}:{error}")
     sys.exit(70)
 
-sys.stdout.write(json.dumps({"ok": True, "id": result.get("id")}))
+sys.stdout.write(json.dumps({"ok": True, "id": result.get("id") if isinstance(result, dict) else None}))
 `;
+
+/** Fixed vocabulary only: never retain child stderr, paths, payloads or credentials. */
+export function classifyEmailFailure(error: unknown): string {
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  if (/FileNotFoundError|ENOENT/.test(message)) return "credential_file_unavailable";
+  if (/PermissionError|EACCES/.test(message)) return "credential_file_unreadable";
+  if (/JSONDecodeError|KeyError/.test(message)) return "credential_format_invalid";
+  if (/ModuleNotFoundError|ImportError/.test(message)) return "runtime_dependency_unavailable";
+  const http = message.match(/HTTP(?:Error)?[: ]+(\d{3})/);
+  if (http) return `http_${http[1]}`;
+  if (/child_delivery_interrupted/.test(message)) return "delivery_interrupted";
+  if (/TimeoutError|timed out/.test(message)) return "transport_timeout";
+  if (/invalid_grant/.test(message)) return "authorization_rejected";
+  return "unclassified_failure";
+}
 
 function stripHtml(html: string) {
   return html
@@ -285,7 +300,11 @@ function runPythonJson(script: string, payload: unknown): Promise<string> {
       stderr += String(chunk);
     });
     child.on("error", reject);
-    child.on("close", (code) => {
+    child.on("close", (code, signal) => {
+      if (signal || code === 70 || code === null) {
+        reject(new Error("DELIVERY_UNKNOWN:child_delivery_interrupted"));
+        return;
+      }
       if (code === 0) {
         resolve(stdout);
         return;
@@ -349,20 +368,19 @@ async function sendViaGmailOauth(options: SendEmailOptions): Promise<SendResult>
         // returns. A missing receipt is therefore not safe to retry.
         return { ok: false, error: "gmail_provider_receipt_invalid", deliveryUnknown: true };
       }
-      if (parsed.ok) {
-        return parsed.id
-          ? { ok: true, id: parsed.id }
-          : { ok: false, error: "gmail_provider_receipt_missing", deliveryUnknown: true };
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || parsed.ok !== true) {
+        return { ok: false, error: "gmail_provider_receipt_invalid", deliveryUnknown: true };
       }
-      lastError = parsed.error || lastError;
+      const providerId = typeof parsed.id === "string" ? parsed.id.trim() : "";
+      return providerId
+        ? { ok: true, id: providerId }
+        : { ok: false, error: "gmail_provider_receipt_missing", deliveryUnknown: true };
     } catch (error) {
       const message = error instanceof Error ? error.message : "gmail_oauth_send_failed";
       if (message.startsWith("DELIVERY_UNKNOWN:")) {
-        return { ok: false, error: message.slice("DELIVERY_UNKNOWN:".length), deliveryUnknown: true };
+        return { ok: false, error: classifyEmailFailure(message), deliveryUnknown: true };
       }
-      lastError = message.startsWith("DELIVERY_FAILED:")
-        ? message.slice("DELIVERY_FAILED:".length)
-        : message;
+      lastError = classifyEmailFailure(message);
     }
   }
 
@@ -393,21 +411,20 @@ async function sendViaGmailDwd(options: SendEmailOptions): Promise<SendResult> {
     } catch {
       return { ok: false, error: "gmail_provider_receipt_invalid", deliveryUnknown: true };
     }
-    if (!parsed.ok) {
-      return { ok: false, error: parsed.error || "gmail_dwd_send_failed" };
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || parsed.ok !== true) {
+      return { ok: false, error: "gmail_provider_receipt_invalid", deliveryUnknown: true };
     }
-    return parsed.id
-      ? { ok: true, id: parsed.id }
+    const providerId = typeof parsed.id === "string" ? parsed.id.trim() : "";
+    return providerId
+      ? { ok: true, id: providerId }
       : { ok: false, error: "gmail_provider_receipt_missing", deliveryUnknown: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "gmail_dwd_send_failed";
     return message.startsWith("DELIVERY_UNKNOWN:")
-      ? { ok: false, error: message.slice("DELIVERY_UNKNOWN:".length), deliveryUnknown: true }
+      ? { ok: false, error: classifyEmailFailure(message), deliveryUnknown: true }
       : {
           ok: false,
-          error: message.startsWith("DELIVERY_FAILED:")
-            ? message.slice("DELIVERY_FAILED:".length)
-            : message,
+          error: classifyEmailFailure(message),
         };
   }
 }
@@ -483,10 +500,11 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
       return gmailFallback;
     }
     if (gmailFallback.deliveryUnknown) {
-      return gmailFallback;
+      return { ...gmailFallback, error: `gmail_oauth:${gmailOauth.error || "unclassified_failure"};gmail_dwd:${gmailFallback.error || "unclassified_failure"}` };
     }
-    console.log(`[email-sender] RESEND_API_KEY not set and Gmail fallbacks failed. Would send:\n  To: ${options.to}\n  From: ${from}\n  Subject: ${options.subject}\n  OAuth error: ${gmailOauth.error || "unknown"}\n  DWD error: ${gmailFallback.error || "unknown"}`);
-    return gmailFallback;
+    const error = `gmail_oauth:${gmailOauth.error || "unclassified_failure"};gmail_dwd:${gmailFallback.error || "unclassified_failure"}`;
+    console.error("[email-sender] Delivery failed", error);
+    return { ...gmailFallback, error };
   }
 
   try {
@@ -513,7 +531,7 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      console.error("[email-sender] Resend API error:", err);
+      console.error("[email-sender] Resend API error:", `http_${res.status}`);
       return {
         ok: false,
         error: err.message || `HTTP ${res.status}`,
@@ -527,7 +545,7 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
       ? { ok: true, id: providerId }
       : { ok: false, error: "resend_provider_receipt_missing", deliveryUnknown: true };
   } catch (err) {
-    console.error("[email-sender] Failed to send:", err);
+    console.error("[email-sender] Failed to send:", classifyEmailFailure(err));
     return {
       ok: false,
       error: err instanceof Error ? err.message : "unknown",
