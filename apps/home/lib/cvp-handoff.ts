@@ -1,3 +1,4 @@
+import { canonicalTimestamp, sameTimestampInstant, timestampMicros } from "@/lib/cco-timestamp";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { ccoRecordId } from "@/lib/cco-record-id";
@@ -133,8 +134,8 @@ export async function handoffEstimateToCoVideoPro(
       blocked("estimate_version_binding_invalid", "The frozen version does not belong to this CCO estimate and brief; reconcile it first.");
     }
     if (version!.sha256 !== hashEstimateVersionSnapshot(snapshot)) blocked("estimate_snapshot_hash_invalid", "The frozen snapshot has changed. Restore or reapprove a verified version.");
-    if (!Number.isSafeInteger(version!.version) || version!.version < 1 || !Number.isFinite(Date.parse(version!.frozen_at)) ||
-      Date.parse(snapshot.frozen_at) !== Date.parse(version!.frozen_at) || !Array.isArray(snapshot.line_items) || !snapshot.line_items.length ||
+    if (!Number.isSafeInteger(version!.version) || version!.version < 1 || timestampMicros(version!.frozen_at) === null ||
+      !sameTimestampInstant(snapshot.frozen_at, version!.frozen_at) || !Array.isArray(snapshot.line_items) || !snapshot.line_items.length ||
       !Number.isSafeInteger(snapshot.totals?.total_cents) || snapshot.totals.total_cents < 0) {
       blocked("estimate_snapshot_invalid", "Complete and freeze the commercial package before handoff.");
     }
@@ -160,7 +161,7 @@ export async function handoffEstimateToCoVideoPro(
     }
     const deliverables = acceptedDeliverables(version!);
     const canonical = { estimate_id: estimateId, estimate_version_id: version!.id, brief_id: estimate!.brief_id,
-      estimate_number: snapshot.estimate.estimate_number, idempotency_key: key, owner_id: ownerId, snapshot_sha256: version!.sha256, frozen_at: new Date(version!.frozen_at).toISOString(),
+      estimate_number: snapshot.estimate.estimate_number, idempotency_key: key, owner_id: ownerId, snapshot_sha256: version!.sha256, frozen_at: canonicalTimestamp(version!.frozen_at),
       contact, totals: snapshot.totals, deliverables };
     const hash = payloadHash(canonical);
     const commercialRef = { ...canonical, payload_hash: hash, source: "cco_os" };
