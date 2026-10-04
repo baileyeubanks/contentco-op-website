@@ -122,7 +122,7 @@ describe("canonical estimate scope admission before all side effects", () => {
     allowedTables = new Set(["creative_briefs", "events"]);
     fallbackPayload = payload;
     fallbackError = error;
-    fake.store.set("creative_briefs", [{ id: BRIEF_ID, structured_intake: saved }]);
+    fake.store.set("creative_briefs", [{ id: BRIEF_ID, company_account_id: "content-co-op", structured_intake: saved }]);
     const before = JSON.stringify([...fake.store]);
     await expect(createEstimateFromBrief({ briefId: BRIEF_ID })).resolves.toMatchObject({ estimate: null, legacyQuote: null, error: "brief_scope_manual_review_required" });
     expect(accessed).toEqual(["creative_briefs", "events"]);
@@ -150,7 +150,7 @@ describe("canonical estimate scope admission before all side effects", () => {
     const payload = normalizeCreativeBriefPayload({ diagnostic: { ...EMPTY_CREATIVE_DIAGNOSTIC_INPUT, main_video_count: "2", multiple_shoot_days: false, need_cutdowns: false } });
     const handoff = buildCreativeBriefHandoffEnvelope({ briefId: BRIEF_ID, bookingUrl: "https://example.invalid", payload, portalUrl: "https://example.invalid" });
     fallbackPayload = { brief_id: BRIEF_ID, structured_intake: handoff.structured_intake, intake_payload: payload };
-    fake.store.set("creative_briefs", [{ id: BRIEF_ID, contact_name: "Synthetic Person", contact_email: "fixture@example.invalid" }]);
+    fake.store.set("creative_briefs", [{ id: BRIEF_ID, company_account_id: "content-co-op", contact_name: "Synthetic Person", contact_email: "fixture@example.invalid" }]);
     const expected = buildEstimateDraftFromBrief({ structured_intake: handoff.structured_intake });
     const result = await createEstimateFromBrief({ briefId: BRIEF_ID });
     expect(result.error).toBeNull();

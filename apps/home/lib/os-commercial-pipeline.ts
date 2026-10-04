@@ -322,9 +322,17 @@ export async function createEstimateFromBrief(input: {
   actorId?: string | null;
   businessUnit?: BusinessUnit;
 }) {
+  if (input.businessUnit !== undefined && input.businessUnit !== "CC") {
+    return { estimate: null, legacyQuote: null, error: "brief_scope_mismatch" };
+  }
   const sb = getSupabase();
-  const { data: brief, error } = await sb.from("creative_briefs").select("*").eq("id", input.briefId).single();
+  const { data: brief, error } = await sb.from("creative_briefs").select("*").eq("id", input.briefId).eq("company_account_id", "content-co-op").single();
   if (error || !brief) return { estimate: null, legacyQuote: null, error: error?.message || "brief_not_found" };
+  // Saved briefs belong to CCO. Legacy rows may omit business_unit, but a
+  // contradictory value must never route their commercial records to ACS.
+  if (!asRecord(brief) || brief.company_account_id !== "content-co-op" || (brief.business_unit != null && brief.business_unit !== "CC")) {
+    return { estimate: null, legacyQuote: null, error: "brief_scope_mismatch" };
+  }
 
   const normalizedBrief = await withSubmittedBriefPayloadFallback(brief as Record<string, unknown>);
   const scopeReadiness = assessBriefScopeReadiness({
