@@ -132,6 +132,54 @@
   padding-top: 21px;
 }
 
+.workGroupTitle {
+  margin: 0 0 8px;
+  color: var(--gray-700, #334155);
+  font-size: 0.75rem;
+  font-weight: 550;
+  line-height: 1.5;
+}
+
+.nextGroup {
+  margin: 0 -12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f0f5ff;
+}
+
+.nextGroup .workGroupTitle {
+  color: #004bdc;
+}
+
+.nextWork .rowTitle {
+  font-size: 1rem;
+}
+
+.completedWork {
+  border-top: 1px solid #e5eaf1;
+  color: var(--gray-700, #334155);
+  font-size: 0.8125rem;
+}
+
+.completedWork summary,
+.systemDetails summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.completedWork summary:focus-visible,
+.systemDetails summary:focus-visible {
+  outline: 2px solid var(--os-accent, #0057ff);
+  outline-offset: 2px;
+}
+
+.completedWork .rowTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .quotePanel {
   align-self: stretch;
   border-left: 1px solid #e5eaf1;
@@ -265,24 +313,46 @@
 
 .systemGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
 }
 
-.contactPanel,
-.systemPanel {
+.contactPanel {
   padding: 0;
 }
 
-.systemPanel {
-  border-left: 1px solid #dce3ec;
-  padding-left: 24px;
+.contactPanel .list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
 }
 
-.systemPanel .panelTitle {
+.contactPanel .row:nth-child(2) {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.systemPanel {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid #dce3ec;
   color: var(--gray-700, #334155);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+}
+
+.systemDetails {
+  flex: 1;
+  min-width: 0;
+  max-width: 560px;
+}
+
+.systemDetails[open] {
+  padding-bottom: 12px;
+}
+
+.systemDetails .empty {
+  margin-top: 12px;
 }
 
 .diagnostics {
@@ -332,8 +402,7 @@
   .card { padding: 16px; }
   .panel { padding: 18px; }
   .workPanel { padding-top: 15px; }
-  .contactPanel, .systemPanel { padding: 0; }
-  .systemPanel { padding-left: 20px; }
+  .contactPanel { padding: 0; }
 }
 
 @media (max-width: 920px) {
@@ -342,28 +411,33 @@
   .card:nth-child(n + 3) { border-top: 1px solid #e5eaf1; }
   .sectionGrid, .systemGrid { grid-template-columns: minmax(0, 1fr); }
   .quotePanel { border-left: 0; border-top: 1px solid #e5eaf1; }
-  .systemPanel { padding: 20px 0 0; border-left: 0; border-top: 1px solid #dce3ec; }
 }
 
 @media (max-width: 600px) {
-  .surface { padding: 20px 16px; gap: 20px; }
+  .surface { padding: 20px 16px; gap: 16px; }
   .heroCopy { font-size: 0.8125rem; }
-  .hero { gap: 8px; }
-  .card { padding: 12px; gap: 4px; }
+  .hero { order: 1; gap: 8px; }
+  .sectionGrid { display: contents; }
+  .gridFour { order: 3; }
+  .card { grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 10px 12px; gap: 3px 8px; }
   .cardLabel { font-size: 0.75rem; }
-  .cardValue { font-size: 1.5rem; }
-  .cardDetail { font-size: 0.6875rem; }
+  .cardValue { font-size: 1.25rem; }
+  .cardDetail { grid-column: 1 / -1; font-size: 0.6875rem; }
   .panel { padding: 16px; }
-  .workPanel { padding-top: 13px; }
-  .contactPanel, .systemPanel { padding: 0; }
-  .systemPanel { padding-top: 20px; }
+  .workPanel { order: 2; padding-top: 13px; border: 1px solid #dce3ec; border-top: 3px solid var(--os-accent, #0057ff); border-radius: 12px; background: #fff; }
+  .quotePanel { order: 4; border: 1px solid #dce3ec; border-radius: 12px; }
+  .systemGrid { order: 5; }
+  .systemPanel { order: 6; gap: 12px; }
+  .contactPanel { padding: 0; }
+  .contactPanel .list { grid-template-columns: minmax(0, 1fr); }
+  .contactPanel .row:nth-child(2) { border-top: 1px solid #e5eaf1; padding-top: 16px; }
   .panelHeader { gap: 6px; }
   .workPanel .panelTitle { font-size: 1rem; }
   .workPanel .panelAction { padding: 8px 10px; }
-  .row { gap: 10px; grid-template-columns: minmax(0, 1fr) minmax(0, 96px); }
+  .row { gap: 4px 10px; grid-template-columns: minmax(0, 1fr) minmax(0, 96px); }
+  .row > div:first-child { display: contents; }
+  .rowTitle { grid-column: 1; grid-row: 1; }
+  .rowMeta { grid-column: 1 / -1; grid-row: 2; margin-top: 0; }
+  .rowValue { grid-column: 2; grid-row: 1; }
   .rowValue { font-size: 0.8125rem; }
-}
-
-@media (max-width: 390px) {
-  .workPanel .panelTitle { font-size: 0.9375rem; }
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buildRootOverviewReadModel } from "@/lib/os-overview";
+import { buildRootOverviewReadModel, type RootOverviewJob } from "@/lib/os-overview";
 import styles from "./overview.module.css";
 
 export const dynamic = "force-dynamic";
@@ -25,10 +25,42 @@ function formatLatency(value: number) {
   return `${Math.round(value)}ms`;
 }
 
+function JobRow({ job, featured = false }: { job: RootOverviewJob; featured?: boolean }) {
+  const completed = job.bucket === "completed" || job.status.toLowerCase() === "completed";
+  return (
+    <div className={`${styles.row} ${featured ? styles.nextWork : ""}`}>
+      <div>
+        <p className={styles.rowTitle}>{job.title}</p>
+        <p className={styles.rowMeta}>
+          {job.clientName || "Unassigned contact"} ·{" "}
+          {completed
+            ? `completed ${formatDate(job.completedAt)}`
+            : `scheduled ${formatDate(job.scheduledDate)}`}
+        </p>
+      </div>
+      <div className={styles.rowValue}>
+        <div>{formatCurrency(job.totalAmount)}</div>
+        <span className={styles.pill}>{job.status}</span>
+      </div>
+    </div>
+  );
+}
+
 export default async function OverviewPage() {
   const model = await buildRootOverviewReadModel();
   const slowestEntry =
     Object.entries(model.diagnostics.timingsMs).sort((a, b) => b[1] - a[1])[0] ?? null;
+  const completedJobs = model.recentJobs.filter(
+    (job) => job.bucket === "completed" || job.status.toLowerCase() === "completed",
+  );
+  const openJobs = model.recentJobs.filter((job) => !completedJobs.includes(job));
+  const scheduledJobs = openJobs
+    .filter((job) => job.status.toLowerCase() === "scheduled" && job.scheduledDate && Number.isFinite(Date.parse(job.scheduledDate)))
+    .sort((a, b) => Date.parse(a.scheduledDate!) - Date.parse(b.scheduledDate!));
+  const nextDate = scheduledJobs[0]?.scheduledDate;
+  const nextJobs = scheduledJobs.filter((job) => job.scheduledDate === nextDate);
+  const laterJobs = scheduledJobs.filter((job) => job.scheduledDate !== nextDate);
+  const otherJobs = openJobs.filter((job) => !scheduledJobs.includes(job));
 
   return (
     <div className={styles.surface} data-cco-overview>
@@ -81,29 +113,41 @@ export default async function OverviewPage() {
               Open dispatch
             </Link>
           </div>
-          <div className={styles.list}>
-            {model.recentJobs.length > 0 ? (
-              model.recentJobs.map((job) => (
-                <div key={job.id} className={styles.row}>
-                  <div>
-                    <p className={styles.rowTitle}>{job.title}</p>
-                    <p className={styles.rowMeta}>
-                      {(job.clientName || "Unassigned contact")} ·{" "}
-                      {job.bucket === "upcoming"
-                        ? `scheduled ${formatDate(job.scheduledDate)}`
-                        : `completed ${formatDate(job.completedAt)}`}
-                    </p>
-                  </div>
-                  <div className={styles.rowValue}>
-                    <div>{formatCurrency(job.totalAmount)}</div>
-                    <span className={styles.pill}>{job.status}</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className={styles.empty}>No recent job activity was loaded for this workspace.</p>
-            )}
-          </div>
+          {nextJobs.length > 0 && (
+            <div className={styles.nextGroup}>
+              <h3 className={styles.workGroupTitle}>Next scheduled</h3>
+              <div className={styles.list}>
+                {nextJobs.map((job, index) => <JobRow key={`${job.id}-${index}`} job={job} featured />)}
+              </div>
+            </div>
+          )}
+          {laterJobs.length > 0 && (
+            <div>
+              <h3 className={styles.workGroupTitle}>Later scheduled</h3>
+              <div className={styles.list}>
+                {laterJobs.map((job, index) => <JobRow key={`${job.id}-${index}`} job={job} />)}
+              </div>
+            </div>
+          )}
+          {otherJobs.length > 0 && (
+            <div>
+              <h3 className={styles.workGroupTitle}>Other work</h3>
+              <div className={styles.list}>
+                {otherJobs.map((job, index) => <JobRow key={`${job.id}-${index}`} job={job} />)}
+              </div>
+            </div>
+          )}
+          {completedJobs.length > 0 && (
+            <details className={styles.completedWork}>
+              <summary>Recent completed work</summary>
+              <div className={styles.list}>
+                {completedJobs.map((job, index) => <JobRow key={`${job.id}-${index}`} job={job} />)}
+              </div>
+            </details>
+          )}
+          {model.recentJobs.length === 0 && (
+            <p className={styles.empty}>No recent job activity was loaded for this workspace.</p>
+          )}
         </article>
 
         <article className={`${styles.panel} ${styles.quotePanel}`}>
@@ -173,15 +217,11 @@ export default async function OverviewPage() {
           </div>
         </article>
 
-        <article className={`${styles.panel} ${styles.systemPanel}`}>
-          <div className={styles.panelHeader}>
-            <div>
-              <h2 className={styles.panelTitle}>Runtime diagnostics</h2>
-            </div>
-            <Link className={styles.panelAction} href="/os/system">
-              Open system
-            </Link>
-          </div>
+      </section>
+
+      <footer className={styles.systemPanel}>
+        <details className={styles.systemDetails}>
+          <summary>Read diagnostics</summary>
           <div className={styles.diagnostics}>
             <div className={styles.diagnosticsRow}>
               <span>Route classification</span>
@@ -215,8 +255,11 @@ export default async function OverviewPage() {
               No query warnings on this render.
             </p>
           ) : null}
-        </article>
-      </section>
+        </details>
+        <Link className={styles.panelAction} href="/os/system">
+          Open system
+        </Link>
+      </footer>
     </div>
   );
 }
