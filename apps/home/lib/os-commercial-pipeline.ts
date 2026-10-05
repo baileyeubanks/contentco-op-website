@@ -1,5 +1,6 @@
 import { getSupabase } from "@/lib/supabase";
 import { withSubmittedBriefPayloadFallback } from "@/lib/creative-brief-quote-draft";
+import { assessBriefScopeReadiness } from "@/lib/cco-brief-scope-readiness";
 import { createDocumentArtifacts } from "@/lib/os-document-artifacts";
 import { decideApproval, ensureApprovedPolicy, requestApproval } from "@/lib/os-approvals";
 import {
@@ -321,13 +322,32 @@ export async function createEstimateFromBrief(input: {
   actorId?: string | null;
   businessUnit?: BusinessUnit;
 }) {
+  if (input.businessUnit !== undefined && input.businessUnit !== "CC") {
+    return { estimate: null, legacyQuote: null, error: "brief_scope_mismatch" };
+  }
   const sb = getSupabase();
-  const { data: brief, error } = await sb.from("creative_briefs").select("*").eq("id", input.briefId).single();
+  const { data: brief, error } = await sb.from("creative_briefs").select("*").eq("id", input.briefId).eq("company_account_id", "content-co-op").single();
   if (error || !brief) return { estimate: null, legacyQuote: null, error: error?.message || "brief_not_found" };
+  // Saved briefs belong to CCO. Legacy rows may omit business_unit, but a
+  // contradictory value must never route their commercial records to ACS.
+  if (!asRecord(brief) || brief.company_account_id !== "content-co-op" || (brief.business_unit != null && brief.business_unit !== "CC")) {
+    return { estimate: null, legacyQuote: null, error: "brief_scope_mismatch" };
+  }
+
+  const normalizedBrief = await withSubmittedBriefPayloadFallback(brief as Record<string, unknown>);
+  const scopeReadiness = assessBriefScopeReadiness({
+    ...normalizedBrief,
+    // A read-only fallback may fill missing scope, but must not erase malformed
+    // or conflicting scope already present on the saved brief.
+    structured_intake: brief.structured_intake ?? normalizedBrief.structured_intake,
+    intake_payload: brief.intake_payload ?? normalizedBrief.intake_payload,
+  });
+  if (scopeReadiness.state !== "legacy_compatible") {
+    return { estimate: null, legacyQuote: null, error: "brief_scope_manual_review_required", scopeReadiness };
+  }
 
   const businessUnit = input.businessUnit || asBusinessUnit(brief.business_unit, "CC");
   const businessId = await ensureBusinessRecord(businessUnit === "CC" ? "Content Co-op" : "Astro Cleaning Services", businessUnit);
-  const normalizedBrief = await withSubmittedBriefPayloadFallback(brief as Record<string, unknown>);
   const contact = await ensureContactForBrief(normalizedBrief, businessId, businessUnit);
   const draft = buildEstimateDraftFromBrief(normalizedBrief);
   const sequence = (await countRows("estimates", businessUnit)) + 1;
