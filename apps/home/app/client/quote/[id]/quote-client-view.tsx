@@ -44,9 +44,11 @@ type Step = "summary" | "agreement" | "checkout" | "confirmed";
 export function QuoteClientView({
   quote,
   items,
+  acceptToken,
 }: {
   quote: QuoteData;
   items: QuoteItem[];
+  acceptToken: string | null;
 }) {
   /* If already paid, go straight to confirmed */
   const initialStep: Step =
@@ -179,6 +181,7 @@ export function QuoteClientView({
       {step === "agreement" && (
         <AgreementSection
           quote={adjustedQuote}
+          acceptToken={acceptToken}
           onBack={() => setStep("summary")}
           onAccepted={() => setStep("checkout")}
         />

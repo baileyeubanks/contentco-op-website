@@ -1,3 +1,4 @@
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
@@ -78,6 +79,17 @@ function normalizeQuoteItems(value: unknown): QuoteItemInput[] {
  * Query params: business_unit, status, limit, offset
  */
 export async function GET(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.legacy.quotes.read",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_read"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { searchParams } = new URL(req.url);
   const businessUnit = searchParams.get("business_unit");
   const status = searchParams.get("status");
@@ -106,6 +118,17 @@ export async function GET(req: Request) {
  * POST /api/quotes — Create a new quote with items.
  */
 export async function POST(req: Request) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.legacy.quotes.create",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const body = await parseBody(req);
   if (!body) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });

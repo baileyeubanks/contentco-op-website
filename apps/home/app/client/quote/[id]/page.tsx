@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getSupabase } from "@/lib/supabase";
+import { signShareToken } from "@/lib/share-token";
 import { QuoteClientView } from "./quote-client-view";
 
 export const dynamic = "force-dynamic";
@@ -118,6 +119,7 @@ export default async function ClientQuotePage({
   const clientItems = (items ?? []).map((item: QuoteItemRow) =>
     normalizeClientItem(item, quote.service_type ?? null),
   );
+  const acceptToken = signShareToken(id);
 
-  return <QuoteClientView quote={clientQuote} items={clientItems} />;
+  return <QuoteClientView quote={clientQuote} items={clientItems} acceptToken={acceptToken} />;
 }
