@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buildRootOverviewReadModel } from "@/lib/os-overview";
+import { buildRootOverviewReadModel, type RootOverviewJob } from "@/lib/os-overview";
 import styles from "./overview.module.css";
 
 export const dynamic = "force-dynamic";
@@ -25,39 +25,65 @@ function formatLatency(value: number) {
   return `${Math.round(value)}ms`;
 }
 
+function JobRow({ job, featured = false }: { job: RootOverviewJob; featured?: boolean }) {
+  const completed = job.bucket === "completed" || job.status.toLowerCase() === "completed";
+  return (
+    <div className={`${styles.row} ${featured ? styles.nextWork : ""}`}>
+      <div>
+        <p className={styles.rowTitle}>{job.title}</p>
+        <p className={styles.rowMeta}>
+          {job.clientName || "Unassigned contact"} ·{" "}
+          {completed
+            ? `completed ${formatDate(job.completedAt)}`
+            : `scheduled ${formatDate(job.scheduledDate)}`}
+        </p>
+      </div>
+      <div className={styles.rowValue}>
+        <div>{formatCurrency(job.totalAmount)}</div>
+        <span className={styles.pill}>{job.status}</span>
+      </div>
+    </div>
+  );
+}
+
 export default async function OverviewPage() {
   const model = await buildRootOverviewReadModel();
   const slowestEntry =
     Object.entries(model.diagnostics.timingsMs).sort((a, b) => b[1] - a[1])[0] ?? null;
+  const completedJobs = model.recentJobs.filter(
+    (job) => job.bucket === "completed" || job.status.toLowerCase() === "completed",
+  );
+  const openJobs = model.recentJobs.filter((job) => !completedJobs.includes(job));
+  const scheduledJobs = openJobs
+    .filter((job) => job.status.toLowerCase() === "scheduled" && job.scheduledDate && Number.isFinite(Date.parse(job.scheduledDate)))
+    .sort((a, b) => Date.parse(a.scheduledDate!) - Date.parse(b.scheduledDate!));
+  const nextDate = scheduledJobs[0]?.scheduledDate;
+  const nextJobs = scheduledJobs.filter((job) => job.scheduledDate === nextDate);
+  const laterJobs = scheduledJobs.filter((job) => job.scheduledDate !== nextDate);
+  const otherJobs = openJobs.filter((job) => !scheduledJobs.includes(job));
 
   return (
-    <main className={styles.surface}>
-      <section className={styles.hero}>
-        <div className={styles.eyebrow}>
-          <span className={styles.eyebrowDot} />
-          CCO OS runtime reset
-        </div>
+    <div className={styles.surface} data-cco-overview>
+      <header className={styles.hero}>
         <div>
-          <h1 className={styles.heroTitle}>Now first. Work visible. System honest.</h1>
+          <h1 className={styles.heroTitle}>Operations overview</h1>
           <p className={styles.heroCopy}>
-            CCO OS is mounted inside HOME right now, so this surface is tuned for the operator
-            moment that matters first: what is moving, what is at risk, what needs attention,
-            and whether the runtime itself can be trusted.
+            Scheduled work, recent quotes and contact activity.
           </p>
         </div>
-        <div className={styles.heroMeta}>
-          <span className={styles.metaBadge}>status: {model.diagnostics.status}</span>
-          <span className={styles.metaBadge}>server load: {formatLatency(model.diagnostics.totalMs)}</span>
-          <span className={styles.metaBadge}>payload: {model.diagnostics.payloadBytes} bytes</span>
-          {slowestEntry ? (
-            <span className={styles.metaBadge}>
-              slowest read: {slowestEntry[0]} · {formatLatency(slowestEntry[1])}
-            </span>
-          ) : null}
-        </div>
-      </section>
+        <span className={styles.metaBadge} data-status={model.diagnostics.status}>
+          Data reads: {model.diagnostics.status}
+        </span>
+        {model.diagnostics.warnings.length > 0 ? (
+          <ul className={styles.warningList} aria-label="Read warnings">
+            {model.diagnostics.warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        ) : null}
+      </header>
 
-      <section className={styles.gridFour}>
+      <section className={styles.gridFour} aria-label="Overview totals">
         {model.summary.cards.map((card) => (
           <article
             key={card.label}
@@ -78,11 +104,56 @@ export default async function OverviewPage() {
       </section>
 
       <section className={styles.sectionGrid}>
-        <article className={styles.panel}>
+        <article className={`${styles.panel} ${styles.workPanel}`}>
           <div className={styles.panelHeader}>
             <div>
-              <p className={styles.panelKicker}>Movement</p>
-              <h2 className={styles.panelTitle}>Recent commercial motion</h2>
+              <h2 className={styles.panelTitle}>Work and closeout</h2>
+            </div>
+            <Link className={styles.panelAction} href="/os/dispatch">
+              Open dispatch
+            </Link>
+          </div>
+          {nextJobs.length > 0 && (
+            <div className={styles.nextGroup}>
+              <h3 className={styles.workGroupTitle}>Next scheduled</h3>
+              <div className={styles.list}>
+                {nextJobs.map((job, index) => <JobRow key={`${job.id}-${index}`} job={job} featured />)}
+              </div>
+            </div>
+          )}
+          {laterJobs.length > 0 && (
+            <div>
+              <h3 className={styles.workGroupTitle}>Later scheduled</h3>
+              <div className={styles.list}>
+                {laterJobs.map((job, index) => <JobRow key={`${job.id}-${index}`} job={job} />)}
+              </div>
+            </div>
+          )}
+          {otherJobs.length > 0 && (
+            <div>
+              <h3 className={styles.workGroupTitle}>Other work</h3>
+              <div className={styles.list}>
+                {otherJobs.map((job, index) => <JobRow key={`${job.id}-${index}`} job={job} />)}
+              </div>
+            </div>
+          )}
+          {completedJobs.length > 0 && (
+            <details className={styles.completedWork}>
+              <summary>Recent completed work</summary>
+              <div className={styles.list}>
+                {completedJobs.map((job, index) => <JobRow key={`${job.id}-${index}`} job={job} />)}
+              </div>
+            </details>
+          )}
+          {model.recentJobs.length === 0 && (
+            <p className={styles.empty}>No recent job activity was loaded for this workspace.</p>
+          )}
+        </article>
+
+        <article className={`${styles.panel} ${styles.quotePanel}`}>
+          <div className={styles.panelHeader}>
+            <div>
+              <h2 className={styles.panelTitle}>Recent quotes</h2>
             </div>
             <Link className={styles.panelAction} href="/os/quotes">
               Open quotes
@@ -109,49 +180,13 @@ export default async function OverviewPage() {
             )}
           </div>
         </article>
-
-        <article className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div>
-              <p className={styles.panelKicker}>Work</p>
-              <h2 className={styles.panelTitle}>Dispatch and closeout pulse</h2>
-            </div>
-            <Link className={styles.panelAction} href="/os/dispatch">
-              Open dispatch
-            </Link>
-          </div>
-          <div className={styles.list}>
-            {model.recentJobs.length > 0 ? (
-              model.recentJobs.map((job) => (
-                <div key={job.id} className={styles.row}>
-                  <div>
-                    <p className={styles.rowTitle}>{job.title}</p>
-                    <p className={styles.rowMeta}>
-                      {(job.clientName || "Unassigned contact")} ·{" "}
-                      {job.bucket === "upcoming"
-                        ? `scheduled ${formatDate(job.scheduledDate)}`
-                        : `completed ${formatDate(job.completedAt)}`}
-                    </p>
-                  </div>
-                  <div className={styles.rowValue}>
-                    <div>{formatCurrency(job.totalAmount)}</div>
-                    <span className={styles.pill}>{job.status}</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className={styles.empty}>No recent job activity was loaded for this workspace.</p>
-            )}
-          </div>
-        </article>
       </section>
 
       <section className={styles.systemGrid}>
-        <article className={styles.panel}>
+        <article className={`${styles.panel} ${styles.contactPanel}`}>
           <div className={styles.panelHeader}>
             <div>
-              <p className={styles.panelKicker}>Risk / Trust</p>
-              <h2 className={styles.panelTitle}>Contact stewardship</h2>
+              <h2 className={styles.panelTitle}>Contacts</h2>
             </div>
             <Link className={styles.panelAction} href="/os/contacts">
               Open contacts
@@ -182,16 +217,11 @@ export default async function OverviewPage() {
           </div>
         </article>
 
-        <article className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div>
-              <p className={styles.panelKicker}>System</p>
-              <h2 className={styles.panelTitle}>Runtime diagnostics</h2>
-            </div>
-            <Link className={styles.panelAction} href="/os/system">
-              Open system
-            </Link>
-          </div>
+      </section>
+
+      <footer className={styles.systemPanel}>
+        <details className={styles.systemDetails}>
+          <summary>Read diagnostics</summary>
           <div className={styles.diagnostics}>
             <div className={styles.diagnosticsRow}>
               <span>Route classification</span>
@@ -202,6 +232,16 @@ export default async function OverviewPage() {
               <strong>{formatLatency(model.diagnostics.totalMs)}</strong>
             </div>
             <div className={styles.diagnosticsRow}>
+              <span>Payload</span>
+              <strong>{model.diagnostics.payloadBytes.toLocaleString()} bytes</strong>
+            </div>
+            {slowestEntry ? (
+              <div className={styles.diagnosticsRow}>
+                <span>Slowest read: {slowestEntry[0]}</span>
+                <strong>{formatLatency(slowestEntry[1])}</strong>
+              </div>
+            ) : null}
+            <div className={styles.diagnosticsRow}>
               <span>Quotes lane</span>
               <strong>{model.summary.quotesTotal.toLocaleString()} total</strong>
             </div>
@@ -210,19 +250,16 @@ export default async function OverviewPage() {
               <strong>{model.summary.jobsTotal.toLocaleString()} total</strong>
             </div>
           </div>
-          {model.diagnostics.warnings.length > 0 ? (
-            <ul className={styles.warningList}>
-              {model.diagnostics.warnings.map((warning) => (
-                <li key={warning}>{warning}</li>
-              ))}
-            </ul>
-          ) : (
+          {model.diagnostics.warnings.length === 0 ? (
             <p className={styles.empty}>
-              No query warnings were emitted on this overview render. This is the new baseline.
+              No query warnings on this render.
             </p>
-          )}
-        </article>
-      </section>
-    </main>
+          ) : null}
+        </details>
+        <Link className={styles.panelAction} href="/os/system">
+          Open system
+        </Link>
+      </footer>
+    </div>
   );
 }

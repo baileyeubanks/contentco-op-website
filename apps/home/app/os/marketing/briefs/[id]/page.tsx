@@ -64,6 +64,17 @@ export default async function RootMarketingBriefDetailPage({
           ]}
         />
 
+        <section style={notificationCard} aria-label="Brief notification delivery">
+          <h2 style={sectionTitle}>Notification delivery</h2>
+          {detail.notifications.map((notice) => (
+            <p key={notice.audience}>
+              {notice.audience === "internal" ? "Team alert" : "Client receipt"}: {notice.status}
+              {notice.status === "sent" ? " — provider accepted; inbox delivery is not confirmed." : " — manual team follow-up required."}
+            </p>
+          ))}
+          <p>The brief remains available for review. Failed or unknown emails do not create a Co-VideoPro project. No email is resent from this panel.</p>
+        </section>
+
         <section style={metricGrid}>
           <MetricCard label="deliverables" value={String(detail.project.deliverables.length)} note="requested outputs in the brief" />
           <MetricCard label="missing fields" value={String(detail.readiness.missingFields.length)} note="fields still absent from intake" />
@@ -292,23 +303,31 @@ function Field({ label, value, mono = false }: { label: string; value: string; m
 
 const metricGrid: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(4, minmax(0,1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
   gap: 16,
 };
 
 const splitGrid: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr",
+  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
   gap: 16,
 };
 
 const card: CSSProperties = {
+  minWidth: 0,
+  overflowWrap: "anywhere",
   borderRadius: 16,
   border: "1px solid rgba(62,201,131,0.12)",
   background: "rgba(10,18,17,0.88)",
   padding: "18px 20px",
   display: "grid",
   gap: 12,
+};
+
+const notificationCard: CSSProperties = {
+  ...card,
+  color: "#f1f5f9",
+  background: "#0a1211",
 };
 
 const sectionTitle: CSSProperties = {

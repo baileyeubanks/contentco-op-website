@@ -56,6 +56,16 @@ function readCriticalMediaBindings() {
   return bindings;
 }
 
+function readHeroMediaBindings() {
+  const source = fs.readFileSync(path.join(APP_ROOT, "app", "hero-video-config.ts"), "utf8");
+  const filenames = [...source.matchAll(/export const (HERO_\w+_FILENAME) = "([^"]+)";/g)];
+  const directUrls = [...source.matchAll(/export const (weatherVane\w+) = "([^"]+)";/g)];
+  return [
+    ...filenames.map(([, name, filename]) => assetBinding(name, `/media/${filename}`)),
+    ...directUrls.map(([, name, url]) => assetBinding(name, url)),
+  ].filter(Boolean);
+}
+
 function stripQuery(value) {
   return String(value || "").split("?")[0];
 }
@@ -157,6 +167,7 @@ function isGitTracked(repoRelativePath) {
 
 const bindings = [
   ...readCriticalMediaBindings(),
+  ...readHeroMediaBindings(),
   ...readLogoBindings(),
   ...readPortfolioBindings(),
 ];

@@ -1,6 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { recordedBriefWorkspace, type RecordedBriefWorkspace } from "@/lib/cco-provisional-brief-contract";
+
+export function RecordedBriefWorkspaceLink({ workspace }: { workspace: RecordedBriefWorkspace }) {
+  return (
+    <div style={{ display: "grid", gap: 8, fontSize: "0.875rem", color: "#f1f5f9" }}>
+      <p style={{ margin: 0 }}>
+        Workspace recorded ({workspace.id.slice(0, 8)}). Current workspace access is unverified.
+      </p>
+      <p style={{ margin: 0, color: "#cbd5e1" }}>
+        Agreement/signature: unverified · Deposit: unverified · Creative approval: unverified.
+        Verify production authorization separately.
+      </p>
+      <a href={workspace.href} className="os-atlas-button os-atlas-button-secondary" style={{
+        justifySelf: "start", minHeight: 44, maxWidth: "100%", boxSizing: "border-box",
+        padding: "10px 14px", fontSize: "0.875rem", lineHeight: 1.4, letterSpacing: "normal",
+        whiteSpace: "normal", textAlign: "center", color: "#0f172a", background: "#f8fafc",
+        border: "1px solid #cbd5e1",
+      }}>
+        Open recorded Co-VideoPro workspace
+      </a>
+    </div>
+  );
+}
 
 export function BriefOpsPanel({
   briefId,
@@ -13,7 +36,7 @@ export function BriefOpsPanel({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [converted, setConverted] = useState<{ id: string; title: string } | null>(null);
+  const [converted, setConverted] = useState<RecordedBriefWorkspace | null>(null);
   const alreadyConverted = briefStatus === "converted";
 
   async function handleConvertToProject() {
@@ -33,7 +56,11 @@ export function BriefOpsPanel({
         }
         throw new Error(String(data?.action || data?.error || "brief_convert_failed"));
       }
-      setConverted({ id: String(data.project.id), title: String(data.project.title || "project") });
+      const workspace = recordedBriefWorkspace(briefId, data);
+      if (!workspace) {
+        throw new Error("The workspace receipt could not be verified. Check project setup again.");
+      }
+      setConverted(workspace);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "brief_convert_failed");
     } finally {
@@ -99,14 +126,10 @@ export function BriefOpsPanel({
           disabled={busy || Boolean(converted)}
           className="os-atlas-button os-atlas-button-secondary"
         >
-          {converted ? "project ready" : busy ? "working..." : alreadyConverted ? "check project setup" : "open approved production project"}
+          {converted ? "workspace recorded" : busy ? "working..." : alreadyConverted ? "check project setup" : "open approved production project"}
         </button>
       </div>
-      {converted ? (
-        <div style={{ fontSize: "0.78rem", color: "#6ee7b7" }}>
-          Project &ldquo;{converted.title}&rdquo; is ready ({converted.id.slice(0, 8)}). Existing work has been kept.
-        </div>
-      ) : null}
+      {converted ? <RecordedBriefWorkspaceLink workspace={converted} /> : null}
       {error ? (
         <div style={{ fontSize: "0.78rem", color: "#fbbf24" }}>
           {error.replace(/_/g, " ")}
