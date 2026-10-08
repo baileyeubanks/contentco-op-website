@@ -38,7 +38,10 @@ function normalizeClientItem(item: QuoteItemRow, fallbackServiceType: string | n
         : Number(item.subtotal),
     sort_order: item.sort_order ?? null,
     service_type: item.service_type ?? fallbackServiceType,
-    metadata: item.metadata ?? null,
+    metadata: item.metadata ? {
+      ...(typeof item.metadata.kind === "string" ? { kind: item.metadata.kind } : {}),
+      ...(typeof item.metadata.addon_key === "string" ? { addon_key: item.metadata.addon_key } : {}),
+    } : null,
   };
 }
 

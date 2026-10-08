@@ -40,6 +40,7 @@ beforeEach(()=>{
  mocks.render.mockResolvedValue("<p>Synthetic document</p>"); mocks.pdf.mockResolvedValue(new Uint8Array([1,2,3]));
  fake.store.set("quotes",[{id:A,business_unit:"CC",quote_number:"CC-TEST",client_name:"Synthetic",client_status:"sent",created_at:new Date().toISOString(),deposit_status:"pending",agreement_accepted:true,estimated_total:50,accepted_at:null,valid_until:null,accepted_by_name:null,notes:null,status:"sent",signature_name:null,service_type:null,square_footage:null,bedrooms:null,bathrooms:null,frequency:null,internal_status:"PRIVATE",client_email:"private@example.test",client_phone:"PRIVATE",service_address:"PRIVATE",contact_email:"PRIVATE",contact_id:B}]);
  fake.store.set("invoices",[{id:A,business_unit:"CC",invoice_number:"CC-TEST",total:50,payment_status:"unpaid",client_name:"Synthetic",balance_due:50,status:"issued",due_date:null,due_at:null,created_at:"2026-10-08",contact_email:"PRIVATE",internal_status:"PRIVATE"},{id:B,business_unit:"CC",amount_due_cents:5000,invoice_number:"CC-TEST-B",client_name:"Synthetic",total:50,balance_due:50,payment_status:"unpaid",status:"issued",due_date:null,due_at:null,created_at:"2026-10-08"}]);
+ fake.store.set("quote_items",[{id:B,quote_id:A,name:"Synthetic filming",description:"Synthetic scope",quantity:2,unit_price:25,subtotal:50,sort_order:1,service_type:"production",metadata:{kind:"addon",addon_key:"synthetic",internal_status:"PRIVATE",contact_email:"PRIVATE"},contact_id:B}]);
  fake.store.set("quote_comments",[{id:B,quote_id:A,sender:"client",body:"synthetic",created_at:"2026-10-08",contact_email:"PRIVATE",internal_status:"PRIVATE"}]);
  fake.store.set("client_messages",[{id:A,contact_id:B,sender:"client",body:"synthetic",created_at:"2026-10-08",internal_status:"PRIVATE"}]);
  fake.store.set("estimates",[{id:B,business_unit:"CC",legacy_quote_id:A}]);
@@ -103,6 +104,8 @@ for(const [route,typ] of [["client/quote/[id]","quote"],["share/quote/[id]","quo
     const allowed=route.startsWith("client/") ? ["id","quote_number","client_name","service_type","square_footage","bedrooms","bathrooms","frequency","estimated_total","deposit_amount_cents","deposit_status","status","agreement_accepted","signature_name","created_at"] : ["id","quote_number","client_name","estimated_total","business_unit","client_status","accepted_at","accepted_by_name","notes","valid_until","created_at"];
     expect(Object.keys(result.props.quote).sort()).toEqual(allowed.sort());
     expect(JSON.stringify(result.props.quote)).not.toMatch(/client_email|client_phone|service_address|contact_email|contact_id|internal_status|PRIVATE/);
+    for(const item of result.props.items ?? []) {expect(Object.keys(item).sort()).toEqual(["id","name","description","quantity","unit_price","subtotal","sort_order","service_type","metadata"].sort());expect(Object.keys(item.metadata)).toEqual(["kind","addon_key"]);}
+    expect(JSON.stringify(result.props.items)).not.toMatch(/contact_email|contact_id|internal_status|PRIVATE/);
    } else expect(JSON.stringify(result)).not.toContain("PRIVATE");
    expect(queryCalls.some(c=>c.op==="eq"&&c.args[0]==="business_unit"&&c.args[1]==="CC")).toBe(true);
   });
