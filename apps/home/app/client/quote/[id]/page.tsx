@@ -58,7 +58,7 @@ export default async function ClientQuotePage({
   /* Fetch quote */
   const { data: quote } = await sb
     .from("quotes")
-    .select("id, business_unit, quote_number, client_name, client_email, client_phone, service_address, service_type, square_footage, bedrooms, bathrooms, frequency, estimated_total, deposit_amount_cents, deposit_status, status, agreement_accepted, signature_name, created_at")
+    .select("id, business_unit, quote_number, client_name, service_type, square_footage, bedrooms, bathrooms, frequency, estimated_total, deposit_amount_cents, deposit_status, status, agreement_accepted, signature_name, created_at")
     .eq("id", id)
     .eq("business_unit", "CC")
     .maybeSingle();
@@ -106,9 +106,6 @@ export default async function ClientQuotePage({
     id: quote.id,
     quote_number: quote.quote_number,
     client_name: quote.client_name,
-    client_email: quote.client_email,
-    client_phone: quote.client_phone,
-    service_address: quote.service_address,
     service_type: quote.service_type,
     square_footage: quote.square_footage,
     bedrooms: quote.bedrooms,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { readCanonicalQuotePdf } from "@/lib/os-document-authority";
+import { renderClientDocumentPdf } from "@/lib/client-document";
 import { renderDocumentPdfBuffer } from "@/lib/os-document-artifacts";
 import {
   buildEstimateVersionArtifactPayload,
@@ -21,7 +21,7 @@ export async function GET(
 ) {
   const { id } = await context.params;
 
-  /* Public share pages link this route with a signed share token (?token=);
+  /* Public share pages link this route with a signed share token (?t=);
      everyone else needs the internal policy. */
   const limited = clientLinkRateLimit(req, "os/quotes/pdf");
   if (limited) return limited;
@@ -60,9 +60,7 @@ export async function GET(
 
   // Frozen-version path: when the bridged estimate has been sent, render from
   // the immutable snapshot (task 2.5) instead of shelling out to the
-  // machine-local live-row renderer. The canonical script
-  // (os-document-authority.ts) reads live DB rows, so it stays the fallback
-  // for legacy quotes that have no frozen version.
+  // live-row renderer. Legacy quotes use the CC-scoped local artifact helper.
   // Bridge note: the estimate↔quote link is dual — quotes.payload.estimate_id
   // (used here) and estimates.legacy_quote_id (used by the pay/edit guards).
   // Both are written together at estimate creation; keep them intact.
@@ -83,6 +81,8 @@ export async function GET(
         .eq("estimate_id", estimateId)
         .maybeSingle();
       if (versionRow?.snapshot) {
+        const snapshot = versionRow.snapshot as EstimateVersionSnapshot;
+        if (snapshot.estimate?.business_unit !== "CC") return clientLinkNotFound();
         const payload = buildEstimateVersionArtifactPayload(versionRow.snapshot as EstimateVersionSnapshot);
         const pdf = await renderDocumentPdfBuffer(payload);
         return new NextResponse(new Uint8Array(pdf), {
@@ -97,9 +97,10 @@ export async function GET(
     }
   }
 
-  // Legacy fallback: quote never bridged/frozen — machine-local live renderer.
-  const pdf = await readCanonicalQuotePdf(id);
-  return new NextResponse(pdf, {
+  // Legacy quote: render from a fresh, explicitly scoped CC-only row.
+  const pdf = await renderClientDocumentPdf("quote", id).catch(() => null);
+  if (!pdf) return clientLinkNotFound();
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "content-type": "application/pdf",
       "content-disposition": `inline; filename="${filename}"`,

@@ -10,9 +10,6 @@ export type QuoteData = {
   id: string;
   quote_number: string;
   client_name: string;
-  client_email: string | null;
-  client_phone: string | null;
-  service_address: string | null;
   service_type: string | null;
   square_footage: number | null;
   bedrooms: number | null;

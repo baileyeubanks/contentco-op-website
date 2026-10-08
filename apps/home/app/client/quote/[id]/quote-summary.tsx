@@ -92,15 +92,6 @@ export function QuoteSummary({
         <div className="bg-gray-50 rounded-xl p-4 mb-6">
           <p className="text-gray-400 text-xs uppercase tracking-wider mb-2">Bill To</p>
           <p className="text-gray-900 font-semibold">{quote.client_name}</p>
-          {quote.client_email && (
-            <p className="text-gray-600 text-sm">{quote.client_email}</p>
-          )}
-          {quote.client_phone && (
-            <p className="text-gray-600 text-sm">{quote.client_phone}</p>
-          )}
-          {quote.service_address && (
-            <p className="text-gray-600 text-sm mt-1">{quote.service_address}</p>
-          )}
         </div>
 
         {/* Service details */}

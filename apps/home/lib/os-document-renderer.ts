@@ -9,6 +9,7 @@ import { getSupabase } from "@/lib/supabase";
 
 interface DocumentData {
   kind: "quote" | "invoice";
+  publicClient?: boolean;
   documentNumber: string;
   businessUnit: "ACS" | "CC";
   issueDate: string;
@@ -56,12 +57,14 @@ const BRAND = {
 
 // ── Data Loading ──
 
-async function loadQuoteData(quoteId: string): Promise<DocumentData> {
+async function loadQuoteData(quoteId: string, strictCC = false): Promise<DocumentData> {
   const sb = getSupabase();
-  const { data: quote } = await sb.from("quotes").select("*").eq("id", quoteId).single();
-  if (!quote) throw new Error(`Quote ${quoteId} not found`);
+  let query = sb.from("quotes").select("id, business_unit, quote_number, payload, line_items, tax, notes, payment_terms, issue_date, created_at, valid_until, client_name, client_email, client_phone, service_address, total, estimated_total").eq("id", quoteId);
+  if (strictCC) query = query.eq("business_unit", "CC");
+  const { data: quote } = await query.single();
+  if (!quote || (strictCC && quote.business_unit !== "CC")) throw new Error("not_found");
 
-  const bu = String(quote.business_unit || "CC").toUpperCase() as "ACS" | "CC";
+  const bu = (strictCC ? "CC" : String(quote.business_unit || "CC").toUpperCase()) as "ACS" | "CC";
   const brand = BRAND[bu];
 
   // Parse payload (rootDocument format)
@@ -136,6 +139,7 @@ async function loadQuoteData(quoteId: string): Promise<DocumentData> {
 
   return {
     kind: "quote",
+    publicClient: strictCC,
     documentNumber: quote.quote_number || `QT-${quoteId.slice(0, 8)}`,
     businessUnit: bu,
     issueDate: quote.issue_date || quote.created_at?.slice(0, 10) || new Date().toISOString().slice(0, 10),
@@ -145,10 +149,10 @@ async function loadQuoteData(quoteId: string): Promise<DocumentData> {
     projectTitle,
     projectMeta,
     from: {
-      name: issuer.name || brand.name,
-      company: issuer.company || brand.company,
+      name: strictCC ? "Content Co-op" : issuer.name || brand.name,
+      company: strictCC ? "Content Co-op" : issuer.company || brand.company,
       address: issuer.addressLines?.join(", ") || brand.address,
-      contact: `${brand.phone} | ${brand.email}`,
+      contact: strictCC ? "service@contentco-op.com" : `${brand.phone} | ${brand.email}`,
     },
     billTo: {
       name: recipient.name || quote.client_name || "—",
@@ -167,12 +171,14 @@ async function loadQuoteData(quoteId: string): Promise<DocumentData> {
   };
 }
 
-async function loadInvoiceData(invoiceId: string): Promise<DocumentData> {
+async function loadInvoiceData(invoiceId: string, strictCC = false): Promise<DocumentData> {
   const sb = getSupabase();
-  const { data: invoice } = await sb.from("invoices").select("*").eq("id", invoiceId).single();
-  if (!invoice) throw new Error(`Invoice ${invoiceId} not found`);
+  let query = sb.from("invoices").select("id, business_unit, invoice_number, line_items, tax, created_at, due_date, due_at, client_name, client_company, client_email, client_phone, total, amount, notes").eq("id", invoiceId);
+  if (strictCC) query = query.eq("business_unit", "CC");
+  const { data: invoice } = await query.single();
+  if (!invoice || (strictCC && invoice.business_unit !== "CC")) throw new Error("not_found");
 
-  const bu = String(invoice.business_unit || "CC").toUpperCase() as "ACS" | "CC";
+  const bu = (strictCC ? "CC" : String(invoice.business_unit || "CC").toUpperCase()) as "ACS" | "CC";
   const brand = BRAND[bu];
 
   let rawItems: any[] = [];
@@ -195,6 +201,7 @@ async function loadInvoiceData(invoiceId: string): Promise<DocumentData> {
 
   return {
     kind: "invoice",
+    publicClient: strictCC,
     documentNumber: invoice.invoice_number || `INV-${invoiceId.slice(0, 8)}`,
     businessUnit: bu,
     issueDate: invoice.created_at?.slice(0, 10) || new Date().toISOString().slice(0, 10),
@@ -203,7 +210,7 @@ async function loadInvoiceData(invoiceId: string): Promise<DocumentData> {
     paymentTerms: "Net 30",
     projectTitle: null,
     projectMeta: null,
-    from: { name: brand.name, company: brand.company, address: brand.address, contact: `${brand.phone} | ${brand.email}` },
+    from: { name: strictCC ? "Content Co-op" : brand.name, company: strictCC ? "Content Co-op" : brand.company, address: brand.address, contact: strictCC ? "service@contentco-op.com" : `${brand.phone} | ${brand.email}` },
     billTo: { name: invoice.client_name || "—", title: null, company: invoice.client_company || null, email: invoice.client_email || null, phone: invoice.client_phone || null, address: null },
     items: lineItems,
     subtotal,
@@ -309,7 +316,7 @@ table.items tbody tr:last-child{border-bottom:1px solid #ddd}
 <div class="wrap">
 
 <div class="hdr">
-  <div class="logo"><img src="${h(b.logoUrl)}" alt="${h(doc.businessUnit === "CC" ? "Content Co-Op" : "Astro Cleanings")}"/></div>
+  <div class="logo">${doc.publicClient ? "Content Co-op" : `<img src="${h(b.logoUrl)}" alt="${h(doc.businessUnit === "CC" ? "Content Co-Op" : "Astro Cleanings")}"/>`}</div>
   <div class="dtype">
     <div class="dtype-label">${h(kindLabel)}</div>
     <div class="dtype-num">#${h(doc.documentNumber)}</div>
@@ -355,7 +362,7 @@ ${payLines ? `<div class="payment"><div class="sec-heading">Payment</div>${payLi
 
 <div class="ftr">
   <div class="ftr-thanks">Thank you for your business.</div>
-  <div class="ftr-contact">${h(doc.businessUnit === "CC" ? "Content Co-Op" : "Astro Cleanings")} | ${h(b.website)} | ${h(b.phone)} | ${h(b.email)}</div>
+  <div class="ftr-contact">${doc.publicClient ? "Content Co-op | service@contentco-op.com" : `${h(doc.businessUnit === "CC" ? "Content Co-Op" : "Astro Cleanings")} | ${h(b.website)} | ${h(b.phone)} | ${h(b.email)}`}</div>
 </div>
 
 </div>
@@ -366,10 +373,10 @@ ${payLines ? `<div class="payment"><div class="sec-heading">Payment</div>${payLi
 
 // ── Public API ──
 
-export async function renderQuoteHtml(quoteId: string): Promise<string> {
-  return render(await loadQuoteData(quoteId));
+export async function renderQuoteHtml(quoteId: string, options: { businessUnit?: "CC" } = {}): Promise<string> {
+  return render(await loadQuoteData(quoteId, options.businessUnit === "CC"));
 }
 
-export async function renderInvoiceHtml(invoiceId: string): Promise<string> {
-  return render(await loadInvoiceData(invoiceId));
+export async function renderInvoiceHtml(invoiceId: string, options: { businessUnit?: "CC" } = {}): Promise<string> {
+  return render(await loadInvoiceData(invoiceId, options.businessUnit === "CC"));
 }

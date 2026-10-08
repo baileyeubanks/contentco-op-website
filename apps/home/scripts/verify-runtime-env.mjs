@@ -1,5 +1,5 @@
-import { constants, openSync, fstatSync, readFileSync, closeSync } from "node:fs";
 #!/usr/bin/env node
+import { constants, openSync, fstatSync, readFileSync, closeSync } from "node:fs";
 
 const REQUIRED_ENV = [
   "NEXT_PUBLIC_SUPABASE_URL",

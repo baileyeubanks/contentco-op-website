@@ -48,7 +48,7 @@ export async function GET(
   }
 
   try {
-    const html = await renderQuoteHtml(id);
+    const html = await renderQuoteHtml(id, { businessUnit: "CC" });
     return new NextResponse(html, {
       headers: {
         "content-type": "text/html; charset=utf-8",
@@ -56,6 +56,7 @@ export async function GET(
       },
     });
   } catch (err) {
+    if (err instanceof Error && err.message === "not_found") return clientLinkNotFound();
     return NextResponse.json(
       { error: "render_failed" },
       { status: 500 },

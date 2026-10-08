@@ -36,7 +36,7 @@ export async function GET(
   if (error || !invoice || invoice.business_unit !== "CC") return clientLinkNotFound();
 
   try {
-    const html = await renderInvoiceHtml(id);
+    const html = await renderInvoiceHtml(id, { businessUnit: "CC" });
     return new NextResponse(html, {
       headers: {
         "content-type": "text/html; charset=utf-8",
@@ -44,6 +44,7 @@ export async function GET(
       },
     });
   } catch (err) {
+    if (err instanceof Error && err.message === "not_found") return clientLinkNotFound();
     return NextResponse.json(
       { error: "render_failed" },
       { status: 500 },

@@ -83,13 +83,15 @@ export async function POST(
     .eq("id", estimateId).eq("business_unit", "CC").maybeSingle();
   if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound();
 
-  const invoiceResult = await convertEstimateToDepositInvoice({ estimateId });
+  const invoiceResult = await convertEstimateToDepositInvoice({ estimateId, businessUnit: "CC" });
   if (invoiceResult.error || !invoiceResult.invoice) {
     return NextResponse.json(
       { error: "payment_failed" },
       { status: 400 }
     );
   }
+
+  if (invoiceResult.invoice.business_unit !== "CC") return clientLinkNotFound();
 
   // The Stripe amount must equal the invoice the webhook settles; the invoice
   // is itself minted from the same frozen version, so any divergence is a bug

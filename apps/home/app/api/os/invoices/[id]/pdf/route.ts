@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readCanonicalInvoicePdf } from "@/lib/os-document-authority";
+import { renderClientDocumentPdf } from "@/lib/client-document";
 import { getSupabase } from "@/lib/supabase";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
@@ -35,9 +35,10 @@ export async function GET(
     .select("id, invoice_number, business_unit").eq("id", id).eq("business_unit", "CC").maybeSingle();
   if (error || !invoice || invoice.business_unit !== "CC") return clientLinkNotFound();
 
-  const pdf = await readCanonicalInvoicePdf(id);
+  const pdf = await renderClientDocumentPdf("invoice", id).catch(() => null);
+  if (!pdf) return clientLinkNotFound();
   const filename = `${invoice.invoice_number || `invoice-${id.slice(0, 8)}`}.pdf`;
-  return new NextResponse(pdf, {
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "content-type": "application/pdf",
       "content-disposition": `inline; filename="${filename}"`,

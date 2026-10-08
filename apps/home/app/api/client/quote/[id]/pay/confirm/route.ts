@@ -108,6 +108,7 @@ export async function POST(
   }
   const paymentResult = await applyInvoicePayment({
     invoiceId,
+    businessUnit: "CC",
     amountCents,
     method: "stripe",
     provider: "stripe",
