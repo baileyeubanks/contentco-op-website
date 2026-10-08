@@ -1,7 +1,7 @@
 ---
 title: Quote & Invoice System
 created: 2026-04-30
-updated: 2026-05-01
+updated: 2026-10-08
 tags: [root, finance, quotes, invoices, stripe, payments]
 ---
 
@@ -36,7 +36,7 @@ The commercial pipeline manages quotes, invoices, and payments. Quotes are gener
 1. **Generation**: From brief (`lib/creative-brief-quote-draft.ts`) or manual (`/os/quotes/new`)
 2. **Review**: Admin reviews in CCO OS (`/os/quotes/[id]`)
 3. **Send**: Client receives shared link (`/share/quote/[id]`)
-4. **Accept**: Client accepts via `POST /api/client/quote/[id]/accept`
+4. **Accept**: Client accepts via `POST /api/share/quote/[id]/accept` (verified quote capability)
 5. **Convert**: System converts to invoice (`POST /api/quotes/[id]/convert`)
 
 ## Invoice Flow

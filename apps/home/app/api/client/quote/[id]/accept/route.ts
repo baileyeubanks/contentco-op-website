@@ -57,7 +57,7 @@ export async function POST(
   /* Verify quote exists */
   const { data: quote } = await sb
     .from("quotes")
-    .select("id, business_unit, status, agreement_accepted")
+    .select("id, business_unit, status, agreement_accepted, payload")
     .eq("id", id).eq("business_unit", "CC")
     .maybeSingle();
 
@@ -76,6 +76,7 @@ export async function POST(
       signature_name: signatureName,
       status: quote.status === "draft" ? "sent" : quote.status,
       payload: {
+        ...(quote.payload && typeof quote.payload === "object" && !Array.isArray(quote.payload) ? quote.payload : {}),
         agreement_data: {
           accepted_at: now,
           signature_name: signatureName,

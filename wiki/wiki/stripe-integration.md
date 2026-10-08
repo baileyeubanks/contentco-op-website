@@ -1,7 +1,7 @@
 ---
 title: Stripe Integration
 created: 2026-04-30
-updated: 2026-05-01
+updated: 2026-10-08
 tags: [stripe, payments, billing, finance]
 ---
 
@@ -20,14 +20,12 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 ## Payment Flows
 
-### Quote Deposit (50%)
+### Quote Deposit
 
-1. Client accepts quote → `POST /api/client/quote/[id]/accept`
-2. System creates Stripe Checkout Session for 50% deposit
-3. Client redirected to Stripe
-4. Payment confirmed via webhook `POST /api/webhooks/stripe`
-5. Project status updated to "deposit_received"
-6. Calendar hold created for kickoff
+1. A valid CC quote capability authorizes the public acceptance action.
+2. POST /api/client/quote/[id]/pay forwards x-client-link, verifies before DB/Stripe and resolves the immutable CC frozen deposit amount.
+3. The client PaymentElement receives a PaymentIntent; its return_url retains the verified page capability.
+4. Confirmation verifies the quote capability, matching succeeded PaymentIntent metadata and CC invoice/estimate before applying payment.
 
 ### Invoice Payment
 

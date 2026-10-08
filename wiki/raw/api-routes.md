@@ -1,13 +1,13 @@
 ---
 title: API Routes
 created: 2026-04-30
-updated: 2026-05-01
+updated: 2026-10-08
 tags: [api, backend, routes, nextjs]
 ---
 
 ## Summary
 
-The Content Co-op API surface consists of 40+ route handlers in `apps/home/app/api/`. Routes are organized by domain: auth, briefs, client, root, media, quotes, invoices, webhooks, and operations.
+The Content Co-op API surface consists of 40+ route handlers in `apps/home/app/api/`. Routes are organized by domain: auth, briefs, client, os, media, quotes, invoices, webhooks, and operations.
 
 ## Route Organization
 
@@ -32,16 +32,10 @@ app/api/
 ├── client/
 │   ├── [token]/route.ts            # Portal data
 │   ├── [token]/messages/route.ts
-│   ├── portal/route.ts
-│   ├── quote/[id]/route.ts
 │   ├── quote/[id]/accept/route.ts
 │   ├── quote/[id]/pay/route.ts
 │   ├── quote/[id]/pay/confirm/route.ts
-│   ├── estimate/[id]/route.ts
-│   ├── estimate/[id]/decision/route.ts
-│   ├── invoice/[id]/route.ts
-│   ├── invoice/[id]/pay/route.ts
-│   └── invoice/[id]/pay/confirm/route.ts
+│   └── invoice/[id]/pay/route.ts   # X2 deferred SF5 closure; do not use
 ├── cron/invoice-reminders/route.ts
 ├── dashboard/route.ts
 ├── health/route.ts
@@ -62,7 +56,7 @@ app/api/
 │   ├── [id]/convert/route.ts
 │   ├── [id]/pdf/route.ts
 │   └── [id]/preview/route.ts
-├── root/
+├── os/
 │   ├── login/route.ts
 │   ├── overview/route.ts
 │   ├── contacts/... (list, detail, timeline, relationships, enrich, import, merge, score)
@@ -97,7 +91,7 @@ app/api/
 
 ## Auth Patterns
 
-- **Public routes**: No auth required (`/api/briefs`, `/api/cco/*`, `/api/client/*`)
+- **Client/share routes**: Record capabilities or acceptable portal tokens are required before CC-only reads. The legacy quote acceptance endpoint requires an operator session. X2 closure is deferred to SF5 on this base. Other intake routes retain their existing policies.
 - **CCO OS routes**: CCO OS session cookie required (`/api/os/*`)
 - **Webhook routes**: Signature validation (`/api/webhooks/stripe`)
 

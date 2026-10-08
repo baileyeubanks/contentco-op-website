@@ -167,3 +167,8 @@ describe("legacy operator-only quote accept remains CC-scoped",()=>{
  it.each(["missing","ACS",null])("operator with %s quote receives identical 404",async unit=>{mocks.policy.mockResolvedValue({ok:true});fake.store.set("quotes",unit==="missing"?[]:[{id:A,business_unit:unit}]);const res=await call();expect(res.status).toBe(404);expect(await res.text()).toBe(json404);});
  it("operator updates only an explicitly CC-scoped quote",async()=>{mocks.policy.mockResolvedValue({ok:true});const res=await call();expect(res.status).toBe(200);expect(Object.keys(await res.json()).sort()).toEqual(["accepted_at","ok"]);expect(queryCalls).toContainEqual({table:"quotes",op:"eq",args:["business_unit","CC"]});});
 });
+
+it("legacy operator agreement preserves the frozen estimate bridge payload",async()=>{
+ mocks.policy.mockResolvedValue({ok:true});fake.store.get("quotes")![0].payload={estimate_id:B,rootDocument:{title:"Synthetic project"}};
+ const {POST}=await import("@/app/api/client/quote/[id]/accept/route");const res=await POST(new Request("https://contentco-op.com/accept",{method:"POST",headers:requestHeaders,body:JSON.stringify({signature_name:"Synthetic",agreement_sections:["scope"]})}),{params:Promise.resolve({id:A})});expect(res.status).toBe(200);const payload=fake.store.get("quotes")![0].payload as Record<string,unknown>;expect(payload.estimate_id).toBe(B);expect(payload.rootDocument).toEqual({title:"Synthetic project"});expect(payload.agreement_data).toBeTruthy();
+});

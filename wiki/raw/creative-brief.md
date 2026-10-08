@@ -1,7 +1,7 @@
 ---
 title: Creative Brief System
 created: 2026-04-30
-updated: 2026-05-01
+updated: 2026-10-08
 tags: [creative-brief, intake, ai, proposal, stripe, phase-3]
 ---
 

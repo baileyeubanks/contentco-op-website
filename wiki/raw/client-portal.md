@@ -1,54 +1,37 @@
 ---
 title: Client Portal
 created: 2026-04-30
-updated: 2026-05-01
+updated: 2026-10-08
 tags: [product, client-portal, quotes, invoices]
 ---
 
-## Summary
+## Routes and authorization
 
-Tokenized client portals allow clients to view quotes, approve estimates, pay invoices, and track project progress without logging in. Each portal is accessed via a unique token URL.
+CCO uses CCO-DB. `/client/[token]` resolves an acceptable opaque `contacts.portal_token` only for a CC contact. The API returns minimal CC quote/invoice/payment rows and typed seven-day share URLs. `/client/portal` always returns 404; `/api/client/portal` is absent.
 
-## Routes
+| Route | Authorization / behavior |
+|---|---|
+| `/client/quote/[id]?t=...` | Verified quote capability before reads; same token passed to payment/acceptance |
+| `/share/quote/[id]?t=...` | Verified quote capability; CC-only quote and minimal props |
+| `/share/invoice/[id]?t=...` | Verified invoice capability; CC-only document/payment paths |
+| `GET /api/client/[token]` | Acceptable opaque portal token, exact CC contact, minimal rows with share_url |
+| `GET/POST /api/client/[token]/messages` | Same portal checks; generic failure body |
+| `POST /api/share/quote/[id]/accept` | Quote capability records acceptance/rejection/requested changes |
+| `GET/POST /api/share/quote/[id]/comment` | Quote capability and CC parent |
+| `POST /api/share/quote/[id]/view` | Quote capability and CC parent |
+| `POST /api/client/quote/[id]/pay` | Quote capability; agreement and frozen CC amount required; CC deposit invoice |
+| `POST /api/client/quote/[id]/pay/confirm` | Quote capability; matched succeeded PaymentIntent plus CC invoice/estimate |
+| `POST /api/client/quote/[id]/accept` | Legacy operator-only quote_manage session, CC-only; not the public acceptance path |
 
-| Route | File | Purpose |
-|-------|------|---------|
-| `/client/portal` | `app/client/portal/page.tsx` | Portal view by opaque `?token=` only (no email lookup; `/api/client/portal` was removed) |
-| `/client/[token]` | `app/client/[token]/page.tsx` | Tokenized client dashboard |
-| `/client/quote/[id]` | `app/client/quote/[id]/page.tsx` | Client quote view |
-| `/share/quote/[id]` | `app/share/quote/[id]/page.tsx` | Shared quote view (no auth) |
-| `/share/invoice/[id]` | `app/share/invoice/[id]/page.tsx` | Shared invoice view |
+Unused quote/estimate/invoice GET JSON endpoints and invoice pay-confirm are removed. X2 invoice pay is an untouched compatibility file on this slot's base and awaits hotfix #18/SF5 closure; client flows use the token-gated OS invoice pay-link route.
 
-## API Endpoints
-
-| Method | Route | Purpose |
-|--------|-------|---------|
-| GET | `/api/client/[token]` | Portal data |
-| POST | `/api/client/[token]/messages` | Client messages |
-| POST | `/api/client/quote/[id]/accept` | Accept quote |
-| POST | `/api/client/quote/[id]/pay` | Initiate payment |
-| POST | `/api/client/quote/[id]/pay/confirm` | Confirm payment |
-| POST | `/api/client/estimate/[id]/decision` | Approve/reject estimate |
-| POST | `/api/client/invoice/[id]/pay` | Pay invoice |
-
-## Token Security
-
-Tokens are cryptographically random strings stored in Firestore. Each token maps to a `person` record and grants read access to associated quotes, invoices, and projects.
-
-## Quote Acceptance Flow
-
-1. Client views shared quote at `/share/quote/{id}`
-2. Clicks "Accept" → POST `/api/client/quote/{id}/accept`
-3. System generates invoice draft
-4. Client receives payment link
-5. Payment processed via Stripe
-6. Project status updated to "active"
+Opaque portal tokens have no new expiration mechanism in S2; hashing/storage migration is deferred. Signed record capabilities use cl1 format with type, id and expiry binding. Old bare IDs and weak opaque tokens reach the static service@ grace page.
 
 ## Related
 
-- [[quote-invoice-system]] — Backend quote/invoice logic
-- [[stripe-integration]] — Payment processing
-- [[contact-intelligence]] — Client CRM data
+- [quote-invoice-system](quote-invoice-system.md)
+- [stripe-integration](stripe-integration.md)
+- [api-routes](api-routes.md)
 
 ## Client links (S2, 2026-10-08)
 
