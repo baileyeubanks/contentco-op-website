@@ -123,6 +123,19 @@ describe("public /api/health", () => {
     }
   });
 
+  test("ignores ?scope=full: anonymous callers never trigger the dependency probes", async () => {
+    mocks.getRepoHealthSnapshot.mockResolvedValue(leakySnapshot());
+    for (const handler of [publicHealth, ccoHealth]) {
+      for (const query of ["?scope=full", "?scope=FULL", "?scope=full&scope=full", "?scope=local", ""]) {
+        const response = await handler(new Request(`https://contentco-op.com/api/health${query}`));
+        expect(response.status).toBe(200);
+      }
+    }
+    expect(mocks.getRepoHealthSnapshot).toHaveBeenCalledTimes(10);
+    for (const call of mocks.getRepoHealthSnapshot.mock.calls) expect(call).toEqual(["local"]);
+    expect(mocks.enforceRoutePolicy).not.toHaveBeenCalled();
+  });
+
   test("the real local snapshot on this host is clean too (/api/health and /cco/health)", async () => {
     for (const handler of [publicHealth, ccoHealth]) {
       const response = await handler(new Request("https://contentco-op.com/api/health?scope=local"));
