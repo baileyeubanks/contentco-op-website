@@ -1,5 +1,7 @@
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
+  CCO_BRIEF_EMAIL_DEDUPE_WINDOW_MS,
+  CCO_BRIEF_EMAIL_MAX_SEND_ATTEMPTS,
   getCcoGeneratedBriefProposal,
   getCcoOsDatabase,
   getCcoPersistedProposalScope,
@@ -13,12 +15,15 @@ import {
 type Row = Record<string, unknown>;
 type Filter =
   | { kind: "eq"; column: string; value: unknown }
+  | { kind: "gte"; column: string; value: unknown }
   | { kind: "contains"; column: string; value: Record<string, unknown> | string[] };
 
 class FakeQuery {
   private operation: "select" | "insert" | "update" = "select";
   private payload: Row | null = null;
   private filters: Filter[] = [];
+  private ordering: { column: string; ascending: boolean } | null = null;
+  private cap: number | null = null;
 
   constructor(private readonly db: FakeDatabase, private readonly table: string) {}
 
@@ -33,6 +38,22 @@ class FakeQuery {
 
   contains(column: string, value: Record<string, unknown> | string[]) {
     this.filters.push({ kind: "contains", column, value });
+    return this;
+  }
+
+  gte(column: string, value: unknown) {
+    this.db.queries.push({ table: this.table, op: "gte", column, value });
+    this.filters.push({ kind: "gte", column, value });
+    return this;
+  }
+
+  order(column: string, options?: { ascending?: boolean }) {
+    this.ordering = { column, ascending: options?.ascending !== false };
+    return this;
+  }
+
+  limit(count: number) {
+    this.cap = count;
     return this;
   }
 
@@ -63,7 +84,11 @@ class FakeQuery {
       if (this.db.insertErrorFor === this.table) {
         return { data: null, error: { message: `${this.table}_insert_failed` } };
       }
-      const row = { id: `${this.table}-${rows.length + 1}`, ...(this.payload || {}) };
+      const row = {
+        id: `${this.table}-${rows.length + 1}`,
+        ...(this.db.stampCreatedAt ? { created_at: new Date().toISOString() } : {}),
+        ...(this.payload || {}),
+      };
       if (rows.some((existing) => existing.id === row.id)) {
         return { data: null, error: { code: "23505", message: "duplicate primary key" } };
       }
@@ -71,7 +96,15 @@ class FakeQuery {
       return { data: row, error: null };
     }
 
-    const matched = rows.filter((row) => this.filters.every((filter) => matches(row, filter)));
+    if (this.db.gteErrorFor === this.table && this.filters.some((filter) => filter.kind === "gte")) {
+      return { data: null, error: { message: "recent lookup failed: permission denied (SQLSTATE 42501)" } };
+    }
+    let matched = rows.filter((row) => this.filters.every((filter) => matches(row, filter)));
+    if (this.ordering) {
+      const { column, ascending } = this.ordering;
+      matched = [...matched].sort((a, b) => String(a[column]).localeCompare(String(b[column])) * (ascending ? 1 : -1));
+    }
+    if (this.cap !== null) matched = matched.slice(0, this.cap);
     if (this.operation === "update") {
       const row = matched[0];
       if (!row) return { data: null, error: { message: `${this.table}_update_missing` } };
@@ -89,6 +122,7 @@ class FakeQuery {
 function matches(row: Row, filter: Filter) {
   const actual = row[filter.column];
   if (filter.kind === "eq") return actual === filter.value;
+  if (filter.kind === "gte") return typeof actual === "string" && actual >= String(filter.value);
   if (Array.isArray(filter.value)) {
     return Array.isArray(actual) && filter.value.every((item) => actual.includes(item));
   }
@@ -100,6 +134,10 @@ class FakeDatabase implements CcoPublicIntakeDatabase {
   readonly tables = new Map<string, Row[]>();
   insertErrorFor: string | null = null;
   insertThrowFor: { table: string; error: Error } | null = null;
+  /** Mirrors the creative_briefs.created_at default (now()) on insert. */
+  stampCreatedAt = false;
+  gteErrorFor: string | null = null;
+  readonly queries: Array<{ table: string; op: string; column: string; value: unknown }> = [];
 
   from(table: string) {
     return new FakeQuery(this, table);
@@ -879,5 +917,240 @@ describe("CCO public intake operator alerting", () => {
     expect(JSON.stringify(errorSpy.mock.calls)).toContain("ECONNREFUSED 10.0.0.5:5432");
     errorSpy.mockRestore();
     warnSpy.mockRestore();
+  });
+});
+
+describe("SF5 (Grader PR #4): email-window dedupe and the per-brief email send cap", () => {
+  const NOW = new Date("2026-10-08T06:00:30.000Z");
+  const OTHER_SUBMISSION_ID = "0d9f3c2a-6b1e-4f7a-9c8d-2e5b7a1c4f60";
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  /** Recipients of every provider call, in order. */
+  function sentTo(sendEmail: { mock: { calls: unknown[][] } }) {
+    return sendEmail.mock.calls.map((call) => (call[0] as { to: string }).to);
+  }
+
+  function seedRecentBrief(db: FakeDatabase, ageMs: number, email = "avery@example.com") {
+    db.rows("creative_briefs").push({
+      id: "creative_briefs-seed",
+      company_account_id: "content-co-op",
+      contact_name: contact.name,
+      contact_email: email,
+      company: contact.company,
+      access_token: "seed-proposal-token-0123456789abcdef",
+      created_at: new Date(NOW.getTime() - ageMs).toISOString(),
+      data: { public_submission_id: OTHER_SUBMISSION_ID, contact_id: "contacts-seed", project },
+    });
+  }
+
+  test("pins the constants: a 10 minute window and 3 provider attempts per notification", () => {
+    expect(CCO_BRIEF_EMAIL_DEDUPE_WINDOW_MS).toBe(10 * 60 * 1000);
+    expect(CCO_BRIEF_EMAIL_MAX_SEND_ATTEMPTS).toBe(3);
+  });
+
+  test("a fresh submission id for an email with a brief inside the window writes nothing and sends nothing", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const db = new FakeDatabase();
+    seedRecentBrief(db, 2 * 60 * 1000);
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "should-not-send" }));
+
+    const result = await persistCcoBrief(submission, { db, sendEmail, env: {} });
+
+    expect(result).toEqual({ ok: false, persisted: false, error: "brief_recently_received", retryable: false });
+    expect(JSON.stringify(result)).not.toContain("seed-proposal-token");
+    expect(JSON.stringify(result)).not.toContain("creative_briefs-seed");
+    expect(db.rows("creative_briefs")).toHaveLength(1);
+    expect(db.rows("contacts")).toHaveLength(0);
+    expect(db.rows("notification_log")).toHaveLength(0);
+    expect(db.rows("events")).toHaveLength(0);
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(db.queries).toContainEqual({
+      table: "creative_briefs",
+      op: "gte",
+      column: "created_at",
+      value: new Date(NOW.getTime() - 10 * 60 * 1000).toISOString(),
+    });
+  });
+
+  test("matches the stored address case-insensitively", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const db = new FakeDatabase();
+    seedRecentBrief(db, 60 * 1000);
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "should-not-send" }));
+
+    const result = await persistCcoBrief(
+      { ...submission, contact: { ...contact, email: "  AVERY@Example.COM " } },
+      { db, sendEmail, env: {} },
+    );
+
+    expect(result).toMatchObject({ ok: false, error: "brief_recently_received" });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ["just inside the window", 10 * 60 * 1000 - 1000, true],
+    ["just outside the window", 10 * 60 * 1000 + 1000, false],
+    ["an hour old", 60 * 60 * 1000, false],
+  ])("window boundary: a brief %s", async (_label, ageMs, deduped) => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const db = new FakeDatabase();
+    seedRecentBrief(db, ageMs);
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "provider-message" }));
+
+    const result = await persistCcoBrief(submission, { db, sendEmail, env: {} });
+
+    if (deduped) {
+      expect(result).toMatchObject({ ok: false, error: "brief_recently_received" });
+      expect(db.rows("creative_briefs")).toHaveLength(1);
+      expect(sendEmail).not.toHaveBeenCalled();
+    } else {
+      expect(result).toMatchObject({ ok: true, persisted: true, replayed: false });
+      expect(db.rows("creative_briefs")).toHaveLength(2);
+      expect(sendEmail).toHaveBeenCalledTimes(2);
+    }
+  });
+
+  test("only CCO briefs for the same address count", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    const db = new FakeDatabase();
+    seedRecentBrief(db, 60 * 1000, "someone-else@example.com");
+    db.rows("creative_briefs").push({
+      id: "creative_briefs-other-account",
+      company_account_id: "another-account",
+      contact_email: "avery@example.com",
+      created_at: new Date(NOW.getTime() - 60 * 1000).toISOString(),
+      data: {},
+    });
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "provider-message" }));
+
+    const result = await persistCcoBrief(submission, { db, sendEmail, env: {} });
+
+    expect(result).toMatchObject({ ok: true, persisted: true, replayed: false });
+  });
+
+  test("end to end: first brief saves, a fresh id 5 minutes later is deduped, 11 minutes later it saves", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const db = new FakeDatabase();
+    db.stampCreatedAt = true;
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "provider-message" }));
+
+    const first = await persistCcoBrief(submission, { db, sendEmail, env: {} });
+    expect(first).toMatchObject({ ok: true, replayed: false });
+
+    vi.setSystemTime(new Date(NOW.getTime() + 5 * 60 * 1000));
+    const second = await persistCcoBrief({ ...submission, submissionId: OTHER_SUBMISSION_ID }, { db, sendEmail, env: {} });
+    expect(second).toMatchObject({ ok: false, error: "brief_recently_received" });
+
+    // The original id still replays inside the window (the id lookup runs first).
+    const replay = await persistCcoBrief(submission, { db, sendEmail, env: {} });
+    expect(replay).toMatchObject({ ok: true, replayed: true, briefId: "creative_briefs-1" });
+
+    vi.setSystemTime(new Date(NOW.getTime() + 11 * 60 * 1000));
+    const later = await persistCcoBrief({ ...submission, submissionId: OTHER_SUBMISSION_ID }, { db, sendEmail, env: {} });
+    expect(later).toMatchObject({ ok: true, replayed: false, briefId: "creative_briefs-2" });
+
+    expect(db.rows("creative_briefs")).toHaveLength(2);
+    // One admin alert and one client receipt per saved brief; the dedupe and the replay sent nothing.
+    expect(sendEmail).toHaveBeenCalledTimes(4);
+    const adminAlerts = sentTo(sendEmail).filter((to) => to === "bailey@contentco-op.com");
+    expect(adminAlerts).toHaveLength(2);
+  });
+
+  test("a failed recent-brief lookup fails closed with a fixed, retryable code and no insert", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    const db = new FakeDatabase();
+    db.gteErrorFor = "creative_briefs";
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "should-not-send" }));
+
+    const result = await persistCcoBrief(submission, { db, sendEmail, env: {} });
+
+    expect(result).toEqual({ ok: false, persisted: false, error: "brief_recent_lookup_failed", retryable: true });
+    expect(db.rows("creative_briefs")).toHaveLength(0);
+    expect(db.rows("contacts")).toHaveLength(0);
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  test("a failing notification reaches the provider at most CCO_BRIEF_EMAIL_MAX_SEND_ATTEMPTS times per brief", async () => {
+    const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => ({ ok: false, error: "provider_unavailable" }));
+
+    await persistCcoBrief(submission, { db, sendEmail, env: {} });
+    for (let retry = 0; retry < 4; retry += 1) {
+      const replay = await persistCcoBrief(submission, { db, sendEmail, env: {} });
+      expect(replay).toMatchObject({ ok: true, replayed: true,
+        notification: { admin: { status: "failed" }, client: { status: "failed" } } });
+    }
+
+    // 2 notifications (operator alert + client receipt) x 3 attempts; retries 3 and 4 sent nothing.
+    expect(sendEmail).toHaveBeenCalledTimes(2 * 3);
+    const adminAttempts = sentTo(sendEmail).filter((to) => to === "bailey@contentco-op.com");
+    expect(adminAttempts).toHaveLength(3);
+    expect(db.rows("notification_log")).toHaveLength(2);
+    for (const row of db.rows("notification_log")) {
+      expect(row).toMatchObject({ status: "failed", metadata: expect.objectContaining({ delivery_attempts: 3 }) });
+    }
+  });
+
+  test("the cap holds for every roster recipient", async () => {
+    const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => ({ ok: false, error: "provider_unavailable" }));
+    const env = { CCO_ADMIN_ALERT_EMAILS: "ops-alerts@contentco-op.com" };
+
+    for (let attempt = 0; attempt < 6; attempt += 1) await persistCcoBrief(submission, { db, sendEmail, env });
+
+    for (const recipient of ["bailey@contentco-op.com", "ops-alerts@contentco-op.com", "avery@example.com"]) {
+      const calls = sentTo(sendEmail).filter((to) => to === recipient);
+      expect(calls).toHaveLength(CCO_BRIEF_EMAIL_MAX_SEND_ATTEMPTS);
+    }
+  });
+
+  test("a legacy failed log row without a counter counts as one attempt", async () => {
+    const db = new FakeDatabase();
+    const first = await persistCcoBrief(submission, {
+      db, sendEmail: async () => ({ ok: false, error: "provider_unavailable" }), env: {},
+    });
+    expect(first).toMatchObject({ ok: true });
+    for (const row of db.rows("notification_log")) {
+      const metadata = { ...(row.metadata as Record<string, unknown>) };
+      delete metadata.delivery_attempts;
+      row.metadata = metadata;
+    }
+    const sendEmail = vi.fn(async () => ({ ok: false, error: "provider_unavailable" }));
+
+    for (let retry = 0; retry < 3; retry += 1) await persistCcoBrief(submission, { db, sendEmail, env: {} });
+
+    // Attempts 2 and 3 for each of the two notifications, then nothing.
+    expect(sendEmail).toHaveBeenCalledTimes(2 * 2);
+  });
+
+  test("a delivered operator alert is sent once per brief, across replays and the email window", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const db = new FakeDatabase();
+    db.stampCreatedAt = true;
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "provider-message" }));
+
+    await persistCcoBrief(submission, { db, sendEmail, env: {} });
+    await persistCcoBrief(submission, { db, sendEmail, env: {} });
+    await persistCcoBrief({ ...submission, submissionId: OTHER_SUBMISSION_ID }, { db, sendEmail, env: {} });
+
+    const adminAlerts = sentTo(sendEmail).filter((to) => to === "bailey@contentco-op.com");
+    expect(adminAlerts).toHaveLength(1);
+    expect(sendEmail).toHaveBeenCalledTimes(2);
   });
 });

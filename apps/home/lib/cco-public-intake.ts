@@ -29,6 +29,23 @@ const ADMIN_ALERT_TEMPLATE = "cco_public_brief_admin_alert";
 const CLIENT_RECEIPT_TEMPLATE = "cco_public_brief_client_receipt";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
 
+/**
+ * SF5 (Grader PR #4): a brief for an email address that already has a CCO
+ * brief created inside this window is not inserted again and sends no email,
+ * even under a fresh submission id. Uses existing columns only
+ * (creative_briefs.contact_email, created_at, company_account_id).
+ */
+export const CCO_BRIEF_EMAIL_DEDUPE_WINDOW_MS = 10 * 60 * 1000;
+
+/**
+ * SF5 (Grader PR #4): per brief, each notification (template + recipient,
+ * i.e. each operator alert and the client receipt) reaches the email provider
+ * at most this many times across the first submit and every replay/retry.
+ * A delivered or unknown outcome is never resent (existing rule); this caps
+ * the retries of a failed one. Counted in notification_log.metadata.
+ */
+export const CCO_BRIEF_EMAIL_MAX_SEND_ATTEMPTS = 3;
+
 type DatabaseError = { message?: string | null; code?: string } | null;
 type DatabaseResult<T extends Record<string, unknown>> = Promise<{
   data: T | null;
@@ -38,6 +55,9 @@ type DatabaseResult<T extends Record<string, unknown>> = Promise<{
 export interface CcoPublicIntakeQuery {
   select(columns: string): CcoPublicIntakeQuery;
   eq(column: string, value: unknown): CcoPublicIntakeQuery;
+  gte(column: string, value: unknown): CcoPublicIntakeQuery;
+  order(column: string, options?: { ascending?: boolean }): CcoPublicIntakeQuery;
+  limit(count: number): CcoPublicIntakeQuery;
   contains(column: string, value: Record<string, unknown> | string[]): CcoPublicIntakeQuery;
   insert(payload: Record<string, unknown>): CcoPublicIntakeQuery;
   update(payload: Record<string, unknown>): CcoPublicIntakeQuery;
@@ -262,6 +282,12 @@ function databaseErrorCode(prefix: string, error: DatabaseError) {
 
 function boundedError(value: unknown) {
   return cleanLine(value) || "email_delivery_failed";
+}
+
+/** Provider attempts already recorded on a failed notification_log row (legacy rows count as one). */
+function recordedSendAttempts(metadata: unknown) {
+  const attempts = Number(asRecord(metadata).delivery_attempts);
+  return Number.isInteger(attempts) && attempts >= 1 ? attempts : 1;
 }
 
 function isStaleNotificationSend(metadata: unknown) {
@@ -631,12 +657,19 @@ async function deliverLoggedEmail(input: {
   if (existingId && existingStatus !== "failed") {
     return { ok: false, error: "notification_status_unrecognized" };
   }
+  const priorAttempts = existingId ? recordedSendAttempts(existingResult.data?.metadata) : 0;
+  if (existingId && priorAttempts >= CCO_BRIEF_EMAIL_MAX_SEND_ATTEMPTS) {
+    // SF5 alert cap: this failed notification already used its provider
+    // attempts. Report it as failed for operator follow-up; do not resend.
+    return { ok: true, status: "failed", logId: existingId };
+  }
 
   const metadata = {
     ...asRecord(existingResult.data?.metadata),
     source: "contentco-op.com/brief",
     public_submission_id: resolveSubmissionId(input.submission.submissionId),
     delivery_attempted_at: new Date().toISOString(),
+    delivery_attempts: priorAttempts + 1,
   };
   const queuedPayload: Record<string, unknown> = {
     recipient: input.notification.recipient,
@@ -996,6 +1029,27 @@ export async function persistCcoBrief(
       estimate: replayEstimate,
     });
     return briefResponse(existingResult.data, contactId, true, notifications, replayEvent);
+  }
+
+  // SF5 email-window dedupe, before any contact write, brief insert or email.
+  // The earlier brief is not echoed back: its id and proposal token must not
+  // become reachable by anyone who types the same address.
+  const recentResult = await db
+    .from("creative_briefs")
+    .select("id")
+    .eq("company_account_id", CCO_COMPANY_ACCOUNT_ID)
+    .eq("contact_email", cleanEmail(submission.contact.email))
+    .gte("created_at", new Date(Date.now() - CCO_BRIEF_EMAIL_DEDUPE_WINDOW_MS).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (recentResult.error) {
+    return { ok: false, persisted: false, error: databaseErrorCode("brief_recent_lookup", recentResult.error), retryable: true };
+  }
+  const recentBriefId = asId(recentResult.data?.id);
+  if (recentBriefId) {
+    console.warn("[cco-public-intake] brief deduplicated by email window", { submissionId, recentBriefId });
+    return { ok: false, persisted: false, error: "brief_recently_received", retryable: false };
   }
 
   const contact = await ensureCcoContact(db, submission.contact, submission.sourcePath);

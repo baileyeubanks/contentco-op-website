@@ -42,8 +42,14 @@ export const BriefIntakeSchema = z.object({
   contact: BriefContactSchema,
   project: BriefProjectSchema,
   bookingPreference: z.enum(["15", "20", "30"]).default("20"),
-  /** Stable across a client-side retry so a lost response cannot create another brief. */
-  submissionId: z.string().uuid().optional(),
+  /**
+   * Stable across a client-side retry so a lost response cannot create another
+   * brief. Required (Grader PR #4 SF5): an id-less POST used to create a new
+   * brief and email the address in the body every time.
+   */
+  submissionId: z
+    .string({ error: "submission_id_required" })
+    .uuid({ error: "submission_id_required" }),
 });
 
 export const LeadSchema = z.object({

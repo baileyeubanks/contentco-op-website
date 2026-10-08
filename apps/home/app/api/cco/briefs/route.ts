@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { persistCcoBrief } from "@/lib/cco-public-intake";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
+import { getRateLimitClientKey } from "@/lib/trusted-client-ip";
 import { validateCsrf } from "@/lib/csrf";
 import { BriefIntakeSchema } from "@/lib/validation";
 
@@ -25,14 +26,20 @@ function toPublicNotification(notification: unknown) {
  * error codes, config states such as a missing service key, table or step
  * names) stays in the server log; the visitor gets a generic code + message.
  */
-const PUBLIC_FAILURE_CODES = new Set(["notification_delivery_in_progress", "brief_submission_conflict"]);
+const RECENT_BRIEF_CODE = "brief_recently_received";
+const PUBLIC_FAILURE_CODES = new Set(["notification_delivery_in_progress", "brief_submission_conflict", RECENT_BRIEF_CODE]);
 
 function toPublicFailureCode(code: unknown, retryable: boolean) {
   if (typeof code === "string" && PUBLIC_FAILURE_CODES.has(code)) return code;
   return retryable ? "brief_submission_incomplete" : "brief_submission_conflict";
 }
 
-function publicFailureMessage(retryable: boolean) {
+function publicFailureMessage(retryable: boolean, code?: string) {
+  if (code === RECENT_BRIEF_CODE) {
+    // SF5 email-window dedupe: no new brief, no new email. The earlier brief's
+    // id and proposal token stay server-side; anyone can type an address.
+    return "We already received a brief for this email address a few minutes ago. Check your inbox for the confirmation, or reply to it to add details.";
+  }
   return retryable
     ? "We could not finish saving your brief. Please retry; your submission id keeps the retry safe."
     : "This submission could not be matched to a saved brief. Please submit your brief again.";
@@ -51,7 +58,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
   }
 
-  const limit = rateLimit(getClientIp(req), { max: 10, windowMs: 60000 });
+  // SF5: CF-Connecting-IP only with Cloudflare's edge signature; spoofable
+  // forwarding headers never pick the bucket (lib/trusted-client-ip.ts).
+  const limit = rateLimit(getRateLimitClientKey(req), { max: 10, windowMs: 60000 });
   if (!limit.success) {
     return NextResponse.json(
       { error: "rate_limited", retryAfter: Math.ceil((limit.resetAt - Date.now()) / 1000) },
@@ -107,11 +116,14 @@ export async function POST(req: Request) {
       submissionId,
       eventError: persistence.event?.error,
     });
+    const publicCode = toPublicFailureCode(persistence.error, persistence.retryable);
     return NextResponse.json(
       {
-        error: persistence.retryable ? "cco_persistence_unavailable" : "brief_submission_conflict",
-        code: toPublicFailureCode(persistence.error, persistence.retryable),
-        message: publicFailureMessage(persistence.retryable),
+        error: publicCode === RECENT_BRIEF_CODE
+          ? RECENT_BRIEF_CODE
+          : persistence.retryable ? "cco_persistence_unavailable" : "brief_submission_conflict",
+        code: publicCode,
+        message: publicFailureMessage(persistence.retryable, publicCode),
         retryable: persistence.retryable,
         persisted: persistence.persisted,
         partial: persistence.partial === true,
