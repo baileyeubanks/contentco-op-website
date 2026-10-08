@@ -160,3 +160,10 @@ it.each(["ACS",null])("quote PDF rejects %s frozen snapshot before rendering",as
 it("quote pay maps converter not_found to the byte-identical 404 before Stripe",async()=>{
  mocks.convert.mockResolvedValue({invoice:null,error:"not_found"});const {POST}=await import("@/app/api/client/quote/[id]/pay/route");const headers=new Headers(requestHeaders);headers.set("x-client-link",signClientLink("quote",A)!);const res=await POST(new Request("https://contentco-op.com/pay",{method:"POST",headers}),{params:Promise.resolve({id:A})});expect(res.status).toBe(404);expect(await res.text()).toBe(json404);expect(mocks.create).not.toHaveBeenCalled();
 });
+
+describe("legacy operator-only quote accept remains CC-scoped",()=>{
+ async function call(){const {POST}=await import("@/app/api/client/quote/[id]/accept/route");return POST(new Request("https://contentco-op.com/accept",{method:"POST",headers:requestHeaders,body:JSON.stringify({signature_name:"Synthetic",agreement_sections:["scope"]})}),{params:Promise.resolve({id:A})});}
+ it("operator denial precedes all DB access",async()=>{expect((await call()).status).toBe(401);expect(mocks.db).not.toHaveBeenCalled();});
+ it.each(["missing","ACS",null])("operator with %s quote receives identical 404",async unit=>{mocks.policy.mockResolvedValue({ok:true});fake.store.set("quotes",unit==="missing"?[]:[{id:A,business_unit:unit}]);const res=await call();expect(res.status).toBe(404);expect(await res.text()).toBe(json404);});
+ it("operator updates only an explicitly CC-scoped quote",async()=>{mocks.policy.mockResolvedValue({ok:true});const res=await call();expect(res.status).toBe(200);expect(Object.keys(await res.json()).sort()).toEqual(["accepted_at","ok"]);expect(queryCalls).toContainEqual({table:"quotes",op:"eq",args:["business_unit","CC"]});});
+});
