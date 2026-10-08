@@ -47,7 +47,6 @@ const PUBLIC_ROUTE_ALLOWLIST: Record<string, string> = {
   "app/api/chat/route.ts": "Public site chat.",
   "app/api/client/[token]/messages/route.ts": "Portal-token client messages.",
   "app/api/client/[token]/route.ts": "Portal-token client workspace.",
-  "app/api/client/portal/route.ts": "Opaque portal-token client workspace; email/contact ID are not capabilities.",
   "app/api/client/estimate/[id]/route.ts": "Public client estimate display.",
   "app/api/client/invoice/[id]/pay/confirm/route.ts": "Public invoice payment confirmation.",
   "app/api/client/invoice/[id]/pay/route.ts": "Public invoice payment session creation.",
@@ -237,6 +236,7 @@ const RETIRED_LEGACY_ROUTES = [
   ["quote PDF POST", "app/api/quotes/[id]/pdf/route.ts"],
   ["quote preview POST", "app/api/quotes/[id]/preview/route.ts"],
   ["client estimate decision POST", "app/api/client/estimate/[id]/decision/route.ts"],
+  ["client portal GET", "app/api/client/portal/route.ts"],
 ] as const;
 
 describe("retired legacy methods cannot expose handlers", () => {
@@ -326,7 +326,6 @@ if (process.env.VITEST) {
     { POST: legacyDispatchPOST },
     { GET: legacyCrewGET },
     { POST: legacyCrewOverridePOST },
-    { GET: portalGET },
   ] = await Promise.all([
     importTypeScriptModule("../../app/api/os/finance/overview/route.ts"),
     importTypeScriptModule("../../app/api/os/contacts/route.ts"),
@@ -344,7 +343,6 @@ if (process.env.VITEST) {
     importTypeScriptModule("../../app/api/operations/dispatch/route.ts"),
     importTypeScriptModule("../../app/api/operations/crew/route.ts"),
     importTypeScriptModule("../../app/api/operations/crew/override/route.ts"),
-    importTypeScriptModule("../../app/api/client/portal/route.ts"),
   ]);
 
   const QUOTE_ID = "4d2f0b7e-9c1a-4e2b-b7a1-0f3c5d6e7a8b";
@@ -516,40 +514,6 @@ if (process.env.VITEST) {
       const res = await legacyQuotesGET(getRequest("/api/quotes"));
       expect(res.status).toBe(403);
       expect(databaseAccess).not.toHaveBeenCalled();
-    });
-
-    for (const query of ["", "?email=client%40fixture.test", "?contact_id=fixture-contact", "?token=short"]) {
-      test(`newer portal rejects non-capability lookup ${query} before service-role access`, async () => {
-        const { NextRequest } = await import("next/server");
-        const res = await portalGET(new NextRequest(`https://contentco-op.com/api/client/portal${query}`));
-        expect(res.status).toBe(401);
-        expect(serviceClientAccess).not.toHaveBeenCalled();
-        expect(databaseAccess).not.toHaveBeenCalled();
-      });
-    }
-
-    test("newer portal checks an invalid opaque token without returning contact data", async () => {
-      dataAllowed = true;
-      supabaseResult = { data: [], error: null };
-      const { NextRequest } = await import("next/server");
-      const res = await portalGET(new NextRequest("https://contentco-op.com/api/client/portal?token=invalid-fixture-token"));
-      expect(res.status).toBe(404);
-      expect((await res.json()).error).toBe("invalid_token");
-      expect(databaseAccess).toHaveBeenCalledTimes(1);
-      expect(databaseAccess).toHaveBeenCalledWith("contacts");
-    });
-
-    test("newer token portal remains usable without an operator session", async () => {
-      dataAllowed = true;
-      tableResult = (table) => ({
-        data: table === "contacts" ? [{ id: "fixture-contact", email: "client@fixture.test" }] : [],
-        error: null,
-      });
-      const { NextRequest } = await import("next/server");
-      const res = await portalGET(new NextRequest("https://contentco-op.com/api/client/portal?token=valid-fixture-token"));
-      expect(res.status).toBe(200);
-      expect((await res.json()).contact.id).toBe("fixture-contact");
-      expect(databaseAccess.mock.calls.map(([table]) => table)).toEqual(["contacts", "quotes", "jobs", "invoices"]);
     });
 
   });

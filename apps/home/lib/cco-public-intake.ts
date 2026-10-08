@@ -849,7 +849,13 @@ async function emitBriefSubmittedEvent(input: {
     if (error || !asId(data?.id)) return { ok: false, replayed: false, error: databaseErrorCode("event_write", error) };
     return { ok: true, replayed: false };
   } catch (error) {
-    return { ok: false, replayed: false, error: boundedError(error instanceof Error ? error.message : error) };
+    // The thrown text (driver, network or provider detail) goes to the server
+    // log only; callers and the public response get a fixed code.
+    console.error("[cco-public-intake] brief_submitted event write threw", {
+      briefId: input.briefId,
+      error: boundedError(error instanceof Error ? error.message : error),
+    });
+    return { ok: false, replayed: false, error: "event_write_failed" };
   }
 }
 

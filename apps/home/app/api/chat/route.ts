@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     console.error("[chat] Proxy error:", error);
     return NextResponse.json({
       answer:
-        "Something went wrong. Submit a brief at contentco-op.com/brief or email bailey@contentco-op.com and we'll help directly.",
+        "Something went wrong. Submit a brief at contentco-op.com/brief or email service@contentco-op.com and we'll help directly.",
       conversation_id: crypto.randomUUID(),
     }, { headers: cors });
   }

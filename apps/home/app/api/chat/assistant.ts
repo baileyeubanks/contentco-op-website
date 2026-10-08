@@ -89,7 +89,7 @@ const PROFILE_ANSWER_ANCHORS: Record<AssistantDomainProfile["routeKey"], string[
 };
 
 const PROFILE_CROSS_DOMAIN_MARKERS: Partial<Record<AssistantDomainProfile["routeKey"], string[]>> = {
-  acs: ["content co-op", "co-script", "co-cut", "co-deliver", "bailey@contentco-op.com"],
+  acs: ["content co-op", "co-script", "co-cut", "co-deliver", "bailey@contentco-op.com", "service@contentco-op.com"],
   cco: ["astro cleaning", "(346) 401-5841", "residential cleaning", "airbnb reset", "white glove"],
 };
 

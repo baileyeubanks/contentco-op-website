@@ -69,7 +69,7 @@ const CC_SELLER = {
   address_line1: "322 Wilcrest Dr.",
   address_line2: "Houston, Texas 77042",
   country: "United States",
-  email: "bailey@contentco-op.com",
+  email: "service@contentco-op.com",
   phone: "",
   company_id: "",
   payment_handle: "Zelle Payments: bailey@contentco-op.com",
@@ -105,7 +105,7 @@ const ACS_TERMS: Record<string, string> = {
 
 const CC_ACCEPTANCE = {
   seller_name: "Bailey R. Eubanks",
-  seller_title: "Creative Director, Content Co-op",
+  seller_title: "Founder, Content Co-op",
 };
 
 const ACS_ACCEPTANCE = {

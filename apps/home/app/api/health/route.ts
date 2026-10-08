@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
-import { getRepoHealthSnapshot, type RepoHealthScope } from "@/lib/repo-health";
+import { getRepoHealthSnapshot, toPublicRepoHealth } from "@/lib/repo-health";
 
 export const dynamic = "force-dynamic";
 
-function parseScope(scope: string | null): RepoHealthScope {
-  if (scope?.toLowerCase() === "full") return "full";
-  return "local";
-}
-
+/**
+ * Public, unauthenticated health probe. Status only: no detail text, env
+ * names, credential file paths or dependency errors (operators get the full
+ * snapshot from /api/os/health).
+ *
+ * Always the local scope: `?scope=full` is ignored here so an anonymous caller
+ * cannot trigger the outbound dependency probes. The full scope is
+ * operator-only via /api/os/health?scope=full.
+ */
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const payload = await getRepoHealthSnapshot(parseScope(searchParams.get("scope")));
-  return NextResponse.json(payload, {
+  void request; // any ?scope= on the public request is deliberately ignored
+  const payload = await getRepoHealthSnapshot("local");
+  return NextResponse.json(toPublicRepoHealth(payload), {
     status: 200,
     headers: {
       "Cache-Control": "no-store",

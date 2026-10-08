@@ -13,7 +13,7 @@ Tokenized client portals allow clients to view quotes, approve estimates, pay in
 
 | Route | File | Purpose |
 |-------|------|---------|
-| `/client/portal` | `app/client/portal/page.tsx` | Portal lookup by email/token |
+| `/client/portal` | `app/client/portal/page.tsx` | Portal view by opaque `?token=` only (no email lookup; `/api/client/portal` was removed) |
 | `/client/[token]` | `app/client/[token]/page.tsx` | Tokenized client dashboard |
 | `/client/quote/[id]` | `app/client/quote/[id]/page.tsx` | Client quote view |
 | `/share/quote/[id]` | `app/share/quote/[id]/page.tsx` | Shared quote view (no auth) |
@@ -25,7 +25,6 @@ Tokenized client portals allow clients to view quotes, approve estimates, pay in
 |--------|-------|---------|
 | GET | `/api/client/[token]` | Portal data |
 | POST | `/api/client/[token]/messages` | Client messages |
-| GET | `/api/client/portal` | Portal lookup |
 | GET | `/api/client/quote/[id]` | Quote data |
 | POST | `/api/client/quote/[id]/accept` | Accept quote |
 | POST | `/api/client/quote/[id]/pay` | Initiate payment |

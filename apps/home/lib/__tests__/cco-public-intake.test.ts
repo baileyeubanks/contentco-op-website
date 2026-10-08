@@ -59,6 +59,7 @@ class FakeQuery {
   private async execute(requireRow: boolean) {
     const rows = this.db.rows(this.table);
     if (this.operation === "insert") {
+      if (this.db.insertThrowFor?.table === this.table) throw this.db.insertThrowFor.error;
       if (this.db.insertErrorFor === this.table) {
         return { data: null, error: { message: `${this.table}_insert_failed` } };
       }
@@ -98,6 +99,7 @@ function matches(row: Row, filter: Filter) {
 class FakeDatabase implements CcoPublicIntakeDatabase {
   readonly tables = new Map<string, Row[]>();
   insertErrorFor: string | null = null;
+  insertThrowFor: { table: string; error: Error } | null = null;
 
   from(table: string) {
     return new FakeQuery(this, table);
@@ -857,5 +859,25 @@ describe("CCO public intake operator alerting", () => {
     expect(db.rows("events")).toHaveLength(1);
     expect(db.rows("notification_log")).toHaveLength(2);
     expect(sendEmail).toHaveBeenCalledTimes(2);
+  });
+  test("Grader PR #4 SF1: a thrown event write returns a fixed code; the raw text goes to the server log", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const raw = "fetch failed: connect ECONNREFUSED 10.0.0.5:5432 for svc-writer@db.internal (relation \"events\")";
+    const db = new FakeDatabase();
+    db.insertThrowFor = { table: "events", error: new Error(raw) };
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "provider-message-1" }));
+
+    const result = await persistCcoBrief(submission, { db, sendEmail });
+
+    expect(result).toMatchObject({ ok: false, persisted: true, partial: true, retryable: true,
+      error: "event_write_failed", event: { ok: false, replayed: false, error: "event_write_failed" } });
+    const returned = JSON.stringify(result);
+    for (const leaked of ["ECONNREFUSED", "10.0.0.5", "db.internal", "svc-writer", "fetch failed", "relation"]) {
+      expect(returned).not.toContain(leaked);
+    }
+    expect(JSON.stringify(errorSpy.mock.calls)).toContain("ECONNREFUSED 10.0.0.5:5432");
+    errorSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 });

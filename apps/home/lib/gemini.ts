@@ -143,7 +143,7 @@ Generate a JSON response with this exact shape:
     "totalHigh": number,
     "deposit": number
   },
-  "teamAssignment": "Description of who will work on this project (e.g., 'Led by Bailey Eubanks, Director/Producer, with a dedicated editor and motion graphics specialist').",
+  "teamAssignment": "Description of who will work on this project (e.g., 'Led by Bailey Eubanks, Founder, with a dedicated editor and motion graphics specialist').",
   "nextSteps": ["Step 1", "Step 2", "Step 3"],
   "disclaimer": "Standard disclaimer about estimates being subject to final scope confirmation."
 }
@@ -172,7 +172,7 @@ function generateMockProposal(input: ProposalInput): ProposalOutput {
       totalHigh: estimate.high,
       deposit: estimate.deposit,
     },
-    teamAssignment: `Led by Bailey Eubanks, Director/Producer, with a dedicated editor${project.enhancements.includes("motiongfx") ? " and motion graphics specialist" : ""}. Crew scaled to project scope — never more than needed, never less than the work demands.`,
+    teamAssignment: `Led by Bailey Eubanks, Founder, with a dedicated editor${project.enhancements.includes("motiongfx") ? " and motion graphics specialist" : ""}. Crew scaled to project scope — never more than needed, never less than the work demands.`,
     nextSteps: [
       "Review this proposal and confirm scope",
       "Schedule a 20-minute discovery call to finalize details",

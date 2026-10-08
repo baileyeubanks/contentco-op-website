@@ -52,7 +52,7 @@ export const PRODUCTS = {
 
 export const FOUNDER = {
   name: "Bailey Eubanks",
-  title: "Founder & Executive Producer",
+  title: "Founder",
   photo: "/cc/photos/bailey-headshot.jpg",
   quote:
     "12 years making content for industrial companies taught me one thing — the real story is always on the shop floor, never in the boardroom. That's where we shoot, and that's where the best films get cut.",

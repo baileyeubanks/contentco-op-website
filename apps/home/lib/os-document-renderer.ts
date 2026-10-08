@@ -46,7 +46,7 @@ const BRAND = {
     company: "Content Co-Op / Eubanks Marketing Inc.",
     address: "322 Wilcrest Dr., Houston, TX 77042",
     phone: "(501) 351-5927",
-    email: "bailey@contentco-op.com",
+    email: "service@contentco-op.com",
     website: "contentco-op.com",
     accent: "#1a3a5c",
     logoUrl: "/brand/assets/cco/exports/contentco-op-logo.png",
