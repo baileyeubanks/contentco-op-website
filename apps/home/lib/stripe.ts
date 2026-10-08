@@ -7,13 +7,15 @@
 
 import Stripe from "stripe";
 
+export const STRIPE_API_VERSION = "2026-09-30.endive";
+
 let _stripe: Stripe | null = null;
 
 export function getStripe(): Stripe | null {
   if (!process.env.STRIPE_SECRET_KEY) return null;
   if (!_stripe) {
     _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-12-18.acacia" as any,
+      apiVersion: STRIPE_API_VERSION,
     });
   }
   return _stripe;
@@ -39,7 +41,9 @@ export async function createInvoicePaymentLink(invoice: {
 }): Promise<{ url: string } | { error: string }> {
   const stripe = getStripe();
   if (!stripe) {
-    return { error: "Stripe is not configured. Add STRIPE_SECRET_KEY to .env.local" };
+    return {
+      error: "Stripe is not configured. Add STRIPE_SECRET_KEY to .env.local",
+    };
   }
 
   try {
@@ -70,6 +74,8 @@ export async function createInvoicePaymentLink(invoice: {
 
     return { url: session.url! };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "stripe_session_failed" };
+    return {
+      error: err instanceof Error ? err.message : "stripe_session_failed",
+    };
   }
 }
