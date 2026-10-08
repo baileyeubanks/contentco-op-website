@@ -164,6 +164,11 @@ const PHOTOS: readonly GalleryImage[] = [
   { src: "/cc/photos/gallery-pipe-whip-fast.jpg", alt: "Fast pipe whip safety training", label: "Safety Training", tag: "Safety" },
   { src: "/cc/photos/solar-panel-workers.jpg", alt: "Solar panel installation crew", label: "Solar Install", tag: "Renewables" },
   { src: "/cc/photos/gallery-schneider-epc-houston.jpg", alt: "Schneider Electric EPC Houston panel discussion with executives on stage", label: "EPC Houston 2026", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-booth-team.jpg", alt: "Schneider Electric team at the WEFTEC 2026 booth", label: "WEFTEC 2026", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-exterior.jpg", alt: "WEFTEC 2026 convention center at sunset with Schneider Electric on the big screen", label: "WEFTEC 2026", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-booth-conversation.jpg", alt: "Schneider Electric team member sharing a laugh at the WEFTEC 2026 booth", label: "WEFTEC Booth", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-booth-selfie.jpg", alt: "Schneider Electric team taking a selfie at WEFTEC 2026", label: "WEFTEC Booth", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-booth-networking.jpg", alt: "Conversation at the Schneider Electric booth at WEFTEC 2026", label: "WEFTEC Booth", tag: "Events" },
 ];
 
 // ── Crop variants for reuse — same photo, different crop ─────
