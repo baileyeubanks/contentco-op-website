@@ -6,6 +6,20 @@ import { BriefIntakeSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
+type DeliveryLeg = { status?: unknown };
+
+/**
+ * G3: the browser only needs each leg's delivery status. The internal operator
+ * alert roster (admin_recipients) and notification_log row ids stay server-side.
+ */
+function toPublicNotification(notification: unknown) {
+  if (!notification || typeof notification !== "object" || Array.isArray(notification)) return undefined;
+  const record = notification as { admin?: DeliveryLeg; client?: DeliveryLeg };
+  const leg = (value: DeliveryLeg | undefined) =>
+    value && typeof value === "object" && typeof value.status === "string" ? { status: value.status } : undefined;
+  return { admin: leg(record.admin), client: leg(record.client) };
+}
+
 export async function POST(req: Request) {
   const csrf = validateCsrf(req);
   if (!csrf.valid) {
@@ -55,7 +69,7 @@ export async function POST(req: Request) {
         contact_id: persistence.contactId,
         brief_id: persistence.briefId,
         submission_id: persistence.submissionId || parsed.data.submissionId,
-        notification: persistence.notification,
+        notification: toPublicNotification(persistence.notification),
         event: persistence.event,
       },
       { status: persistence.retryable ? 503 : 409 },
@@ -74,7 +88,7 @@ export async function POST(req: Request) {
       contact_id: persistence.contactId,
       replayed: persistence.replayed,
     },
-    notification: persistence.notification,
+    notification: toPublicNotification(persistence.notification),
     event: persistence.event,
     submission_id: persistence.submissionId || parsed.data.submissionId,
   });
