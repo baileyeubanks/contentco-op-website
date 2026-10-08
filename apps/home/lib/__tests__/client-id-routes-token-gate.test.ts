@@ -105,7 +105,7 @@ for(const [route,typ] of [["client/quote/[id]","quote"],["share/quote/[id]","quo
     expect(Object.keys(result.props.quote).sort()).toEqual(allowed.sort());
     expect(JSON.stringify(result.props.quote)).not.toMatch(/client_email|client_phone|service_address|contact_email|contact_id|internal_status|PRIVATE/);
     for(const item of result.props.items ?? []) {expect(Object.keys(item).sort()).toEqual(["id","name","description","quantity","unit_price","subtotal","sort_order","service_type","metadata"].sort());expect(Object.keys(item.metadata)).toEqual(["kind","addon_key"]);}
-    expect(JSON.stringify(result.props.items)).not.toMatch(/contact_email|contact_id|internal_status|PRIVATE/);
+    expect(JSON.stringify(result.props.items ?? [])).not.toMatch(/contact_email|contact_id|internal_status|PRIVATE/);
    } else expect(JSON.stringify(result)).not.toContain("PRIVATE");
    expect(queryCalls.some(c=>c.op==="eq"&&c.args[0]==="business_unit"&&c.args[1]==="CC")).toBe(true);
   });
