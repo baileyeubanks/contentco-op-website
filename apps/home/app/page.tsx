@@ -12,6 +12,7 @@ import {
   heroVideo,
   heroVideoMobile,
 } from "./home-content";
+import { HOME_CLIENT_LOGOS } from "./home-client-logos";
 import { RotatingGallery } from "./rotating-gallery";
 import {
   SOCIAL_IMAGE_ALT,
@@ -121,24 +122,6 @@ const HOME_SUITE_PRODUCTS: Array<{
   },
 ] as const;
 
-const CLIENT_LOGOS = [
-  { src: "/cc/logos/bp.svg", alt: "BP", width: 72, height: 38, mobileWidth: 56, mobileHeight: 32 },
-  { src: "/cc/logos/shell.png", alt: "Shell", width: 54, height: 34, mobileWidth: 42, mobileHeight: 28 },
-  { src: "/cc/logos/schneider-electric.svg", alt: "Schneider Electric", width: 136, height: 34, mobileWidth: 112, mobileHeight: 28 },
-  { src: "/cc/logos/abb.svg", alt: "ABB", width: 102, height: 33, mobileWidth: 82, mobileHeight: 27 },
-  { src: "/cc/logos/maersk.svg", alt: "Maersk", width: 126, height: 32, mobileWidth: 100, mobileHeight: 26 },
-  { src: "/cc/logos/citgo.png", alt: "CITGO", width: 64, height: 35, mobileWidth: 50, mobileHeight: 29 },
-  { src: "/cc/logos/copart.png", alt: "Copart", width: 116, height: 35, mobileWidth: 92, mobileHeight: 28 },
-  { src: "/cc/logos/conexon.png", alt: "Conexon", width: 124, height: 34, mobileWidth: 98, mobileHeight: 27 },
-  { src: "/cc/logos/wendys.png", alt: "Wendy's", width: 124, height: 35, mobileWidth: 98, mobileHeight: 28 },
-  { src: "/cc/logos/ubs.png", alt: "UBS", width: 108, height: 34, mobileWidth: 86, mobileHeight: 28 },
-  { src: "/cc/logos/kodiak.svg", alt: "Kodiak Gas Services", width: 132, height: 34, mobileWidth: 104, mobileHeight: 27 },
-  { src: "/cc/logos/facebook.svg", alt: "Facebook", width: 116, height: 33, mobileWidth: 92, mobileHeight: 27 },
-  { src: "/cc/logos/mueller.svg", alt: "Mueller", width: 112, height: 31, mobileWidth: 90, mobileHeight: 25 },
-  { src: "/cc/logos/pierpont.svg", alt: "Pierpont", width: 118, height: 32, mobileWidth: 94, mobileHeight: 26 },
-  { src: "/cc/logos/nature-conferences.png", alt: "Nature Conferences", width: 122, height: 36, mobileWidth: 98, mobileHeight: 29 },
-] as const;
-
 type HomePageSearchParams = {
   hero?: string | string[];
   logos?: string | string[];
@@ -202,7 +185,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <div className="client-logos-ticker">
             {[0, 1].map((copy) => (
               <div key={copy} className="client-logos-track" aria-hidden={copy === 1}>
-                {CLIENT_LOGOS.map((logo) => (
+                {HOME_CLIENT_LOGOS.map((logo) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     key={`${logo.alt}-${copy}`}
