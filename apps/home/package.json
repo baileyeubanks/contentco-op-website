@@ -24,7 +24,8 @@
     "prove:canonical-runtime": "node scripts/prove-canonical-runtime.mjs",
     "recover:canonical-runtime": "bash scripts/recover-canonical-runtime.sh",
     "status:canonical-runtime": "bash scripts/status-canonical-runtime.sh",
-    "doctor:canonical-runtime": "bash scripts/status-canonical-runtime.sh --strict"
+    "doctor:canonical-runtime": "bash scripts/status-canonical-runtime.sh --strict",
+    "test:postgres": "vitest run --config test-postgres/vitest.config.ts"
   },
   "dependencies": {
     "@contentco-op/brand": "0.1.0",

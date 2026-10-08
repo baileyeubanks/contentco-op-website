@@ -1,3 +1,4 @@
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
@@ -10,6 +11,17 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.legacy.client.quote.accept",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
 
   let body: {

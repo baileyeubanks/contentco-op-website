@@ -9,7 +9,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       id: "root.briefs.convert",
       accessLevel: "internal",
       sessionPolicies: ["supabase_user", "operator_invite"],
-      requiredPermissions: ["workflow_intervene"],
+      requiredPermissions: ["workflow_intervene", "quote_manage"],
       tenantBoundary: "internal_workspace",
       auditOnSuccess: true,
       auditRiskLevel: "high",
@@ -21,7 +21,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const scope = getRootBusinessScopeFromRequest(req);
 
   const result = await createProjectFromBrief(id, scope || "CC");
-  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
+  if (result.error) return NextResponse.json(result, { status: result.retryable ? 503 : 409 });
 
   if (result.project) {
     await recordAuditEvent({
@@ -29,16 +29,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       type: "platform.audit.brief_converted",
       targetType: "project",
       targetId: result.project.id,
-      permission: "workflow_intervene",
+      permission: "quote_manage",
       sourceSurface: "home.root",
       riskLevel: "high",
-      summary: `Brief ${id} converted into project ${result.project.id}`,
+      summary: `Brief ${result.briefId} converted into project ${result.project.id}`,
       metadata: {
-        brief_id: id,
+        brief_id: result.briefId,
         business_unit: scope || "CC",
       },
     });
   }
 
-  return NextResponse.json(result, { status: 201 });
+  return NextResponse.json(result, { status: result.replayed ? 200 : 201 });
 }

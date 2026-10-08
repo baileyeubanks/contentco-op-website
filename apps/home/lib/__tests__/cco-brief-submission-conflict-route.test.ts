@@ -39,6 +39,22 @@ describe("CCO public brief replay conflict", () => {
     vi.clearAllMocks();
   });
 
+  test("returns the saved brief and incomplete handoff so the same submission can be retried", async () => {
+    mocks.persistCcoBrief.mockResolvedValue({
+      ok: false, persisted: true, partial: true, retryable: true,
+      error: "event_write_failed", briefId: "saved-brief", submissionId: body.submissionId,
+      notification: { admin: { status: "sent" }, client: { status: "sent" } },
+      event: { ok: false, replayed: false, error: "event_write_failed" },
+    });
+    const response = await POST(new Request("https://contentco-op.com/api/cco/briefs", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ persisted: true, partial: true, retryable: true,
+      brief_id: "saved-brief", submission_id: body.submissionId, event: { ok: false },
+      notification: { admin: { status: "sent" }, client: { status: "sent" } } });
+  });
+
   test("tells the browser to clear an unsafe replay key instead of retrying it forever", async () => {
     mocks.persistCcoBrief.mockResolvedValue({
       ok: false,
