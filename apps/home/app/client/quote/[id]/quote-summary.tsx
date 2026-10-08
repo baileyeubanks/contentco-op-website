@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import type { QuoteData, QuoteItem } from "./quote-client-view";
 import { TierSelector, buildTiers, type TierKey, type TierOption } from "./tier-selector";
 
@@ -44,18 +43,11 @@ export function QuoteSummary({
       <div className="bg-[#1B4F72] px-6 py-6 sm:px-8">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <Image
-              src="/brand/assets/acs/logos/png/logo-texas.png"
-              alt="Astro Cleaning Services"
-              width={48}
-              height={48}
-              className="rounded-lg bg-white/10 p-1"
-            />
             <div>
               <h1 className="text-lg font-bold text-white tracking-wide">
                 ASTRO CLEANING SERVICES
               </h1>
-              <p className="text-blue-200 text-sm">Houston, TX</p>
+              <p className="text-blue-200 text-sm">Video production</p>
             </div>
           </div>
           <div className="text-right">

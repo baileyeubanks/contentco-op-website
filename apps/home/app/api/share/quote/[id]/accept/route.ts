@@ -1,6 +1,7 @@
+import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { verifyShareToken } from "@/lib/share-token";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -40,13 +41,10 @@ async function parseBody(req: Request): Promise<QuoteAcceptanceBody> {
  */
 export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
+  const limited = clientLinkRateLimit(req, "share/quote/[id]/accept");
+  if (limited) return limited;
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
 
-  /* Token gate — fail closed before touching the database */
-  const token =
-    new URL(req.url).searchParams.get("token") || req.headers.get("x-share-token");
-  if (!verifyShareToken(token, id)) {
-    return NextResponse.json({ error: "invalid_share_token" }, { status: 401 });
-  }
 
   const sb = getSupabase();
 
@@ -64,13 +62,12 @@ export async function POST(req: Request, { params }: Props) {
   /* Fetch quote */
   const { data: quote, error } = await sb
     .from("quotes")
-    .select("id, client_name, client_email, client_status, internal_status")
+    .select("id, business_unit, client_name, client_status, internal_status")
     .eq("id", id)
+    .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (error || !quote) {
-    return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
-  }
+  if (error || !quote || quote.business_unit !== "CC") return clientLinkNotFound();
 
   /* Capture ESIGN compliance data */
   const ip =
@@ -104,14 +101,16 @@ export async function POST(req: Request, { params }: Props) {
         accepted_user_agent: userAgent,
         acceptance_method: signatureName ? "signature" : "click",
       })
-      .eq("id", id);
+      .eq("id", id)
+    .eq("business_unit", "CC");
 
     /* If extended columns fail, fall back to just core fields */
     if (updateError) {
       const { error: fallbackError } = await sb
         .from("quotes")
         .update(updatePayload)
-        .eq("id", id);
+        .eq("id", id)
+    .eq("business_unit", "CC");
 
       if (fallbackError) {
         return NextResponse.json({ error: "update_failed" }, { status: 500 });
@@ -145,7 +144,8 @@ export async function POST(req: Request, { params }: Props) {
       .update({
         client_status: "rejected",
       })
-      .eq("id", id);
+      .eq("id", id)
+    .eq("business_unit", "CC");
 
     if (updateError) {
       return NextResponse.json({ error: "update_failed" }, { status: 500 });
@@ -160,7 +160,8 @@ export async function POST(req: Request, { params }: Props) {
       .update({
         client_status: "changes_requested",
       })
-      .eq("id", id);
+      .eq("id", id)
+    .eq("business_unit", "CC");
 
     if (updateError) {
       return NextResponse.json({ error: "update_failed" }, { status: 500 });

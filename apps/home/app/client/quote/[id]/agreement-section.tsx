@@ -4,41 +4,11 @@ import { useState } from "react";
 import type { QuoteData } from "./quote-client-view";
 
 const AGREEMENT_SECTIONS = [
-  {
-    id: "scope",
-    title: "1. Scope of Work",
-    body: "Astro Cleaning Services will perform the residential or commercial cleaning services described in the attached quote. Any work beyond the quoted scope requires a separate written estimate and approval.",
-  },
-  {
-    id: "scheduling",
-    title: "2. Scheduling & Access",
-    body: "The client agrees to provide reasonable access to the property at the scheduled date and time. Cancellations made less than 24 hours prior to the scheduled service are subject to a 50% cancellation fee. Lockouts or inability to access the property will be treated as a same-day cancellation.",
-  },
-  {
-    id: "payment",
-    title: "3. Payment Terms",
-    body: "A deposit is due upon acceptance of this quote. The remaining balance is due upon completion of the service. Accepted payment methods include credit/debit card, Zelle, and bank transfer. Late payments may be subject to a 1.5% monthly finance charge.",
-  },
-  {
-    id: "satisfaction",
-    title: "4. Satisfaction Guarantee",
-    body: "If you are not satisfied with any aspect of our cleaning service, contact us within 48 hours and we will return to re-clean the areas in question at no additional charge. This guarantee covers the quality of work performed, not changes to the original scope.",
-  },
-  {
-    id: "liability",
-    title: "5. Liability & Insurance",
-    body: "Astro Cleaning Services maintains general liability insurance and workers' compensation coverage. In the unlikely event of accidental damage, claims must be reported within 24 hours with photographic evidence. Our liability is limited to the cost of repair or replacement, not to exceed the quoted service amount.",
-  },
-  {
-    id: "recurring",
-    title: "6. Recurring Service Plans",
-    body: "If this quote is for recurring service (weekly, bi-weekly, or monthly), the quoted rate applies for the initial commitment period. Either party may modify or cancel recurring services with 7 days' written notice. Rates are subject to annual review.",
-  },
-  {
-    id: "general",
-    title: "7. General Terms",
-    body: "This agreement is governed by the laws of the State of Texas, Harris County jurisdiction. Astro Cleaning Services reserves the right to subcontract portions of the work. This agreement constitutes the entire understanding between both parties regarding the services described.",
-  },
+  { id: "scope", title: "Scope of Work", body: "Content Co-op will produce the deliverables described in this quote. Additional work requires a written change order." },
+  { id: "schedule", title: "Timeline", body: "Production begins after the agreed deposit and required client materials are received. The quote describes the delivery schedule." },
+  { id: "payment", title: "Payment Terms", body: "The deposit, remaining balance and payment schedule are those stated in this quote." },
+  { id: "revisions", title: "Revisions", body: "The quote describes the included revisions. Additional revisions require approval of a change order." },
+  { id: "rights", title: "Usage Rights", body: "Rights and usage follow the terms included in the quote. Contact service@contentco-op.com with questions before accepting." },
 ];
 
 export function AgreementSection({
@@ -76,7 +46,7 @@ export function AgreementSection({
         throw new Error("Agreement acceptance is temporarily unavailable");
       }
       const res = await fetch(
-        `/api/share/quote/${quote.id}/accept?token=${encodeURIComponent(acceptToken)}`,
+        `/api/share/quote/${quote.id}/accept?t=${encodeURIComponent(acceptToken)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -167,8 +137,7 @@ export function AgreementSection({
             className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#1B4F72] focus:ring-[#1B4F72]"
           />
           <span className="text-sm text-gray-700 font-medium">
-            I agree to all terms and conditions outlined above and authorize Astro Cleaning
-            Services to proceed with the quoted services.
+            I agree to all terms and conditions outlined above and authorize Content Co-op to proceed with the quoted services.
           </span>
         </label>
 

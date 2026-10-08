@@ -117,9 +117,9 @@ export function QuoteClientView({
           </p>
         </div>
         <p className="text-sm text-gray-400 mt-8">
-          Questions? Call us at{" "}
-          <a href="tel:+13464015841" className="text-[#1B4F72] underline">
-            (346) 401-5841
+          Questions? Contact us at{" "}
+          <a href="mailto:service@contentco-op.com" className="text-[#1B4F72] underline">
+            service@contentco-op.com
           </a>
         </p>
       </div>
@@ -190,6 +190,7 @@ export function QuoteClientView({
       {step === "checkout" && (
         <CheckoutSection
           quote={adjustedQuote}
+          acceptToken={acceptToken ?? ""}
           onBack={() => setStep("agreement")}
           onSuccess={() => setStep("confirmed")}
         />

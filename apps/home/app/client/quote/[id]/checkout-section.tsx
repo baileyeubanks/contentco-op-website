@@ -8,6 +8,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { clientQuoteReturnUrl } from "@/lib/client-link-url";
 import type { QuoteData } from "./quote-client-view";
 
 const stripePromise = loadStripe(
@@ -16,10 +17,12 @@ const stripePromise = loadStripe(
 
 export function CheckoutSection({
   quote,
+  acceptToken,
   onBack,
   onSuccess,
 }: {
   quote: QuoteData;
+  acceptToken: string;
   onBack: () => void;
   onSuccess: () => void;
 }) {
@@ -34,7 +37,7 @@ export function CheckoutSection({
       try {
         const res = await fetch(`/api/client/quote/${quote.id}/pay`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "x-client-link": acceptToken },
         });
 
         if (!res.ok) {
@@ -59,7 +62,7 @@ export function CheckoutSection({
     return () => {
       cancelled = true;
     };
-  }, [quote.id]);
+  }, [quote.id, acceptToken]);
 
   const depositDollars = (quote.deposit_amount_cents / 100).toFixed(2);
 
@@ -137,6 +140,7 @@ export function CheckoutSection({
           >
             <PaymentForm
               quoteId={quote.id}
+              acceptToken={acceptToken}
               depositDollars={depositDollars}
               onBack={onBack}
               onSuccess={onSuccess}
@@ -174,11 +178,13 @@ export function CheckoutSection({
 
 function PaymentForm({
   quoteId,
+  acceptToken,
   depositDollars,
   onBack,
   onSuccess,
 }: {
   quoteId: string;
+  acceptToken: string;
   depositDollars: string;
   onBack: () => void;
   onSuccess: () => void;
@@ -206,7 +212,7 @@ function PaymentForm({
       const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/client/quote/${quoteId}`,
+          return_url: clientQuoteReturnUrl(quoteId, acceptToken, window.location.origin),
         },
         redirect: "if_required",
       });
@@ -222,7 +228,7 @@ function PaymentForm({
         try {
           await fetch(`/api/client/quote/${quoteId}/pay/confirm`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", "x-client-link": acceptToken },
             body: JSON.stringify({ payment_intent_id: paymentIntent.id }),
           });
         } catch {
@@ -234,7 +240,7 @@ function PaymentForm({
         setSubmitting(false);
       }
     },
-    [stripe, elements, quoteId, onSuccess]
+    [stripe, elements, quoteId, acceptToken, onSuccess]
   );
 
   return (

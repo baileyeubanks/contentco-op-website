@@ -3,7 +3,8 @@ import { getSupabase } from "@/lib/supabase";
 import { createInvoicePaymentLink, isStripeConfigured } from "@/lib/stripe";
 import { emitTypedEvent } from "@/lib/os-event-log";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { verifyShareToken } from "@/lib/share-token";
+import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 
 /**
  * POST /api/os/invoices/[id]/pay-link
@@ -17,8 +18,11 @@ export async function POST(
 
   /* The public invoice share page posts here with a signed share token
      (?token=); everyone else needs the internal policy. */
-  const shareToken = new URL(req.url).searchParams.get("token");
-  if (!verifyShareToken(shareToken, id)) {
+  const limited = clientLinkRateLimit(req, "os/invoices/pay-link");
+  if (limited) return limited;
+  const shareToken = readClientLink(req);
+  if (!verifyClientLink(shareToken, "invoice", id)) {
+    if (shareToken) return clientLinkNotFound();
     const access = await enforceRoutePolicy(
       createRoutePolicy({
         id: "root.invoices.pay_link",
@@ -28,14 +32,7 @@ export async function POST(
         tenantBoundary: "internal_workspace",
       }),
     );
-    if (!access.ok) return access.response;
-  }
-
-  if (!isStripeConfigured()) {
-    return NextResponse.json(
-      { error: "Stripe is not configured. Add STRIPE_SECRET_KEY to .env.local" },
-      { status: 503 },
-    );
+    if (!access.ok) return clientLinkNotFound();
   }
 
   const sb = getSupabase();
@@ -43,10 +40,16 @@ export async function POST(
     .from("invoices")
     .select("id, invoice_number, client_name, client_email, total, amount, amount_due_cents, business_unit, stripe_payment_link, payment_link_url, estimate_id, invoice_type, contact_id")
     .eq("id", id)
+    .eq("business_unit", "CC")
     .single();
 
-  if (error || !invoice) {
-    return NextResponse.json({ error: "invoice_not_found" }, { status: 404 });
+  if (error || !invoice || invoice.business_unit !== "CC") return clientLinkNotFound();
+
+  if (!isStripeConfigured()) {
+    return NextResponse.json(
+      { error: "Stripe is not configured. Add STRIPE_SECRET_KEY to .env.local" },
+      { status: 503 },
+    );
   }
 
   // Return existing link if already generated
@@ -71,13 +74,14 @@ export async function POST(
   await sb
     .from("invoices")
     .update({ stripe_payment_link: result.url, payment_link_url: result.url })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_unit", "CC");
 
   await emitTypedEvent({
     type: "deposit.requested",
     objectType: "invoice",
     objectId: id,
-    businessUnit: String(invoice.business_unit || "CC").toUpperCase() === "ACS" ? "ACS" : "CC",
+    businessUnit: "CC",
     contactId: invoice.contact_id ? String(invoice.contact_id) : null,
     text: `Payment link generated for ${invoice.invoice_type || "invoice"} ${invoice.invoice_number}`,
     payload: {

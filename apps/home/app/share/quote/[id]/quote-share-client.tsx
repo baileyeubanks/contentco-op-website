@@ -8,7 +8,6 @@ interface QuoteData {
   id: string;
   quote_number: string | null;
   client_name: string | null;
-  client_email: string | null;
   estimated_total: number | null;
   business_unit: string | null;
   client_status: string | null;
@@ -76,26 +75,26 @@ export function QuoteShareClient({
   const total = Number(quote.estimated_total || 0);
   /* Accept mutations require the signed share token issued by the server page */
   const acceptUrl = acceptToken
-    ? `/api/share/quote/${quote.id}/accept?token=${encodeURIComponent(acceptToken)}`
+    ? `/api/share/quote/${quote.id}/accept?t=${encodeURIComponent(acceptToken)}`
     : null;
   /* Comment POSTs are token-gated too (anonymous-write hole closed); when no
      token can be issued the composer disables (fail closed, mirrors accept) */
   const commentUrl = acceptToken
-    ? `/api/share/quote/${quote.id}/comment?token=${encodeURIComponent(acceptToken)}`
+    ? `/api/share/quote/${quote.id}/comment?t=${encodeURIComponent(acceptToken)}`
     : null;
 
   /* Track view on mount */
   useEffect(() => {
-    fetch(`/api/share/quote/${quote.id}/view`, { method: "POST" }).catch(() => {});
-  }, [quote.id]);
+    fetch(`/api/share/quote/${quote.id}/view`, { method: "POST", headers: { "x-client-link": acceptToken ?? "" } }).catch(() => {});
+  }, [quote.id, acceptToken]);
 
   /* Load comments */
   useEffect(() => {
-    fetch(`/api/share/quote/${quote.id}/comment`)
+    fetch(`/api/share/quote/${quote.id}/comment`, { headers: { "x-client-link": acceptToken ?? "" } })
       .then((r) => r.json())
       .then((data) => setComments(data.comments || []))
       .catch(() => {});
-  }, [quote.id]);
+  }, [quote.id, acceptToken]);
 
   /* Scroll to bottom on new messages */
   useEffect(() => {
@@ -150,7 +149,7 @@ export function QuoteShareClient({
       setStatus("changes_requested");
       setShowChangesForm(false);
       setChangeReason("");
-      const cRes = await fetch(`/api/share/quote/${quote.id}/comment`);
+      const cRes = await fetch(`/api/share/quote/${quote.id}/comment`, { headers: { "x-client-link": acceptToken ?? "" } });
       const cData = await cRes.json();
       setComments(cData.comments || []);
     } catch {
@@ -391,7 +390,7 @@ export function QuoteShareClient({
               <div className="qs-scope-meta">
                 {quote.quote_number && <span>Quote: <strong>{quote.quote_number}</strong></span>}
                 {quote.client_name && <span>Client: <strong>{quote.client_name}</strong></span>}
-                {quote.business_unit && <span>Division: <strong>{quote.business_unit === "acs" ? "Astro Cleaning Services" : "Content Co-Op"}</strong></span>}
+                {quote.business_unit && <span>Division: <strong>{"Content Co-op"}</strong></span>}
                 {total > 0 && <span>Total: <strong>{fmtMoney(total)}</strong></span>}
                 {quote.valid_until && <span>Expires: <strong>{fmtDate(quote.valid_until)}</strong></span>}
                 {quote.created_at && <span>Issued: <strong>{fmtDate(quote.created_at)}</strong></span>}

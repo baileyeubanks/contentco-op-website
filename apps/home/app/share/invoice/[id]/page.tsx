@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { isStripeConfigured } from "@/lib/stripe";
-import { signShareToken } from "@/lib/share-token";
+import { verifyClientLink } from "@/lib/client-link-token";
+import { clientLinkPageAllowed } from "@/lib/client-link-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -10,29 +11,30 @@ export default async function ShareInvoicePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ paid?: string }>;
+  searchParams: Promise<{ t?: string }>;
 }) {
   const { id } = await params;
-  const { paid } = await searchParams;
+  const { t } = await searchParams;
+  if (!await clientLinkPageAllowed("app/share/invoice/[id]")) notFound();
+  if (!verifyClientLink(t, "invoice", id)) notFound();
   const sb = getSupabase();
   const { data: invoice } = await sb
     .from("invoices")
     .select("id, invoice_number, client_name, total, amount, business_unit, stripe_payment_link, payment_status")
     .eq("id", id)
+    .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!invoice) notFound();
+  if (!invoice || invoice.business_unit !== "CC") notFound();
 
-  /* Signed share token — required by the gated preview/pdf/pay-link routes.
-     Null when QUOTE_SHARE_SECRET is unset (fail closed). */
-  const shareToken = signShareToken(id);
-  const tokenQuery = shareToken ? `?token=${encodeURIComponent(shareToken)}` : "";
+  const shareToken = t!;
+  const tokenQuery = shareToken ? `?t=${encodeURIComponent(shareToken)}` : "";
   const previewUrl = `/api/os/invoices/${id}/preview${tokenQuery}`;
   const pdfUrl = `/api/os/invoices/${id}/pdf${tokenQuery}`;
-  const brandColor = invoice.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
-  const brandName = invoice.business_unit === "ACS" ? "Astro Cleanings" : "Content Co-Op";
+  const brandColor = "#1a3a5c";
+  const brandName = "Content Co-op";
   const total = Number(invoice.total || invoice.amount || 0);
-  const isPaid = invoice.payment_status === "paid" || paid === "true";
+  const isPaid = invoice.payment_status === "paid";
   const hasPayLink = !!invoice.stripe_payment_link;
   const stripeReady = isStripeConfigured();
 

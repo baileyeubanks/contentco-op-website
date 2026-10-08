@@ -1,3 +1,5 @@
+import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
@@ -13,6 +15,9 @@ interface Props {
  */
 export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
+  const limited = clientLinkRateLimit(req, "share/quote/[id]/view");
+  if (limited) return limited;
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
   const sb = getSupabase();
 
   const ip =
@@ -24,13 +29,12 @@ export async function POST(req: Request, { params }: Props) {
   /* Only advance to "viewed" if currently pending/sent */
   const { data: quote } = await sb
     .from("quotes")
-    .select("id, client_status")
+    .select("id, business_unit, client_status")
     .eq("id", id)
+    .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote) {
-    return NextResponse.json({ error: "not_found" }, { status: 404 });
-  }
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound();
 
   const currentStatus = String(quote.client_status || "").toLowerCase();
   const canAdvance = ["not_sent", "sent", "pending", ""].includes(currentStatus);
@@ -39,7 +43,8 @@ export async function POST(req: Request, { params }: Props) {
     await sb
       .from("quotes")
       .update({ client_status: "viewed" })
-      .eq("id", id);
+      .eq("id", id)
+    .eq("business_unit", "CC");
   }
 
   /* Log the view event (best-effort, table may not exist yet) */

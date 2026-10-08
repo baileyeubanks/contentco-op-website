@@ -272,7 +272,7 @@ function NotFound({ email }: { email: string }) {
                   Try Again
                 </Button>
                 <Button
-                  onClick={() => window.location.href = "tel:+17275985314"}
+                  onClick={() => window.location.href = "mailto:service@contentco-op.com"}
                 >
                   Call Us
                 </Button>
@@ -611,7 +611,7 @@ function QuickActions() {
           </Link>
 
           <a
-            href="tel:+17275985314"
+            href="mailto:service@contentco-op.com"
             className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
           >
             <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -628,7 +628,7 @@ function QuickActions() {
           </a>
 
           <a
-            href="mailto:caio@astrocleanings.com?subject=Reschedule%20Request"
+            href="mailto:service@contentco-op.com?subject=Reschedule%20Request"
             className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
           >
             <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
@@ -734,7 +734,7 @@ export function PortalView({ data, initialEmail, tokenPresented = false }: Porta
           Welcome back, {firstName}
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          Here&apos;s an overview of your account with Astro Cleaning Services.
+          Here&apos;s an overview of your account with Content Co-op.
         </p>
       </div>
 

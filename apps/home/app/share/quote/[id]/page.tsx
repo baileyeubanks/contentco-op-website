@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
-import { signShareToken } from "@/lib/share-token";
+import { verifyClientLink } from "@/lib/client-link-token";
+import { clientLinkPageAllowed } from "@/lib/client-link-rate-limit";
 import { QuoteShareClient } from "./quote-share-client";
 
 export const dynamic = "force-dynamic";
@@ -27,18 +28,22 @@ function normalizeTerms(value: unknown): TermSection[] {
   });
 }
 
-export default async function ShareQuotePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ShareQuotePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ t?: string }> }) {
   const { id } = await params;
+  const { t } = await searchParams;
+  if (!await clientLinkPageAllowed("app/share/quote/[id]")) notFound();
+  if (!verifyClientLink(t, "quote", id)) notFound();
   const sb = getSupabase();
 
   /* Fetch quote data — use only columns guaranteed to exist, then try extended columns */
   const { data: quote } = await sb
     .from("quotes")
-    .select("*")
+    .select("id, business_unit, quote_number, client_name, estimated_total, client_status, accepted_at, accepted_by_name, notes, valid_until, created_at, payload")
     .eq("id", id)
+    .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote) notFound();
+  if (!quote || quote.business_unit !== "CC") notFound();
 
   /* Extract terms from payload if available */
   let terms: TermSection[] = [];
@@ -58,44 +63,31 @@ export default async function ShareQuotePage({ params }: { params: Promise<{ id:
 
   /* Apply default terms if none found */
   if (terms.length === 0) {
-    const bu = String(quote.business_unit || "ACS").toUpperCase();
-    if (bu === "ACS") {
-      terms = [
-        { title: "Service Agreement", body: "This quote is valid for the services described above. Work will be performed as outlined in the scope." },
-        { title: "Payment Terms", body: "Payment is due within 7 days of invoice. Accepted methods: Zelle, check, or bank transfer." },
-        { title: "Cancellation", body: "Cancellations with less than 24 hours notice are subject to a 50% cancellation fee." },
-        { title: "Liability", body: "Astro Cleaning Services maintains general liability insurance coverage for all work performed." },
-      ];
-    } else {
       terms = [
         { title: "Scope of Work", body: "This quote covers only the deliverables explicitly described above. Additional work requires a change order." },
         { title: "Payment Terms", body: "50% deposit due on acceptance. Balance due on delivery. Net 14 days." },
         { title: "Timeline", body: "Production begins upon receipt of deposit and all required materials from client." },
         { title: "Revisions", body: "Two rounds of revisions are included. Additional revision rounds will be billed at the hourly rate." },
         { title: "Intellectual Property", body: "Full intellectual property rights transfer to client upon final payment." },
-        { title: "Usage Rights", body: "Content Co-Op reserves the right to use delivered work in its portfolio and marketing materials." },
+        { title: "Usage Rights", body: "Content Co-op reserves the right to use delivered work in its portfolio and marketing materials." },
         { title: "Cancellation", body: "Client is responsible for 100% of completed work plus 25% of the remaining quoted amount." },
       ];
-    }
   }
 
-  /* Signed share token — required by the accept mutation and by the gated
-     preview/pdf routes. Null when QUOTE_SHARE_SECRET is unset (fail closed). */
-  const acceptToken = signShareToken(id);
-  const tokenQuery = acceptToken ? `?token=${encodeURIComponent(acceptToken)}` : "";
+  const acceptToken = t!;
+  const tokenQuery = acceptToken ? `?t=${encodeURIComponent(acceptToken)}` : "";
   const previewUrl = `/api/os/quotes/${id}/preview${tokenQuery}`;
   const pdfUrl = `/api/os/quotes/${id}/pdf${tokenQuery}`;
-  const brandColor = quote.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
-  const accentColor = quote.business_unit === "ACS" ? "#1B4F72" : "#1a3a5c";
-  const brandName = quote.business_unit === "ACS" ? "Astro Cleanings" : "Content Co-Op";
-  const contactEmail = quote.business_unit === "ACS" ? "caio@astrocleanings.com" : "service@contentco-op.com";
+  const brandColor = "#1a3a5c";
+  const accentColor = "#1a3a5c";
+  const brandName = "Content Co-op";
+  const contactEmail = "service@contentco-op.com";
 
   /* Strip payload from the quote data passed to the client (it can be large) */
   const clientQuote = {
     id: quote.id,
     quote_number: quote.quote_number,
     client_name: quote.client_name,
-    client_email: quote.client_email,
     estimated_total: quote.estimated_total,
     business_unit: quote.business_unit,
     client_status: quote.client_status,

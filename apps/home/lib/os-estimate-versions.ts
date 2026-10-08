@@ -151,7 +151,7 @@ export async function getActiveEstimateVersion(
 ): Promise<EstimateVersionRow | null> {
   const activeVersionId = estimate.active_version_id ? String(estimate.active_version_id) : null;
   if (!activeVersionId) return null;
-  const { data } = await sb.from("estimate_versions").select("*").eq("id", activeVersionId).maybeSingle();
+  const { data } = await sb.from("estimate_versions").select("id, estimate_id, version, snapshot, created_at, created_by, frozen_at, status").eq("id", activeVersionId).eq("estimate_id", String(estimate.id)).maybeSingle();
   return (data as EstimateVersionRow | null) || null;
 }
 
@@ -181,17 +181,17 @@ export async function getFrozenEstimateForLegacyQuote(
 export async function resolveFrozenDepositAmountCents(
   sb: ClientLike,
   quoteId: string,
+  businessUnit?: "CC",
 ): Promise<{
   amountCents: number | null;
   estimateId: string | null;
   estimateVersionId: string | null;
   error: string | null;
 }> {
-  const { data: estimate } = await sb
-    .from("estimates")
-    .select("id, active_version_id")
-    .eq("legacy_quote_id", quoteId)
-    .maybeSingle();
+  let query = sb.from("estimates").select("id, active_version_id, business_unit").eq("legacy_quote_id", quoteId);
+  if (businessUnit) query = query.eq("business_unit", businessUnit);
+  const { data: estimate } = await query.maybeSingle();
+  if (businessUnit && estimate?.business_unit !== businessUnit) return { amountCents: null, estimateId: null, estimateVersionId: null, error: "quote_not_migrated_to_estimate" };
   if (!estimate?.id) {
     return { amountCents: null, estimateId: null, estimateVersionId: null, error: "quote_not_migrated_to_estimate" };
   }

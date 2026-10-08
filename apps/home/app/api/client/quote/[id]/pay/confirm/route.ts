@@ -1,3 +1,5 @@
+import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
@@ -14,6 +16,21 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const limited = clientLinkRateLimit(req, "client/quote/[id]/pay/confirm");
+  if (limited) return limited;
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
+  const sb = getSupabase();
+
+  /* Fetch quote */
+  const { data: quote } = await sb
+    .from("quotes")
+    .select("id, deposit_status, business_unit")
+    .eq("id", id)
+    .eq("business_unit", "CC")
+    .maybeSingle();
+
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound();
+
   const stripe = getStripe();
 
   if (!stripe) {
@@ -43,7 +60,7 @@ export async function POST(
   try {
     paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
   } catch (err) {
-    console.error("[client/quote/pay/confirm] Stripe retrieve error:", err);
+
     return NextResponse.json(
       { error: "Failed to verify payment" },
       { status: 500 }
@@ -65,19 +82,6 @@ export async function POST(
     );
   }
 
-  const sb = getSupabase();
-
-  /* Fetch quote */
-  const { data: quote } = await sb
-    .from("quotes")
-    .select("id, quote_number, client_name, client_email, client_phone, service_address, service_type, frequency, estimated_total, deposit_amount_cents, deposit_status, contact_id, business_unit")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (!quote) {
-    return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
-  }
-
   if (quote.deposit_status === "paid") {
     /* Already processed — idempotent success */
     return NextResponse.json({ ok: true, already_processed: true });
@@ -94,6 +98,14 @@ export async function POST(
     );
   }
 
+  const { data: invoice } = await sb.from("invoices").select("id, business_unit")
+    .eq("id", invoiceId).eq("business_unit", "CC").maybeSingle();
+  if (!invoice || invoice.business_unit !== "CC" || paymentIntent.metadata.business_unit !== "CC") return clientLinkNotFound();
+  if (estimateId) {
+    const { data: estimate } = await sb.from("estimates").select("id, business_unit")
+      .eq("id", estimateId).eq("legacy_quote_id", id).eq("business_unit", "CC").maybeSingle();
+    if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound();
+  }
   const paymentResult = await applyInvoicePayment({
     invoiceId,
     amountCents,
@@ -111,7 +123,7 @@ export async function POST(
 
   if (paymentResult.error || !paymentResult.invoice) {
     return NextResponse.json(
-      { error: paymentResult.error || "invoice_payment_apply_failed" },
+      { error: "payment_failed" },
       { status: 500 }
     );
   }
@@ -123,11 +135,9 @@ export async function POST(
       deposit_amount_cents: Number(paymentResult.invoice.amount_due_cents || amountCents),
       status: "accepted",
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("business_unit", "CC");
 
-  console.log(
-    `[client/quote/pay/confirm] Deposit $${(amountCents / 100).toFixed(2)} received for quote #${quote.quote_number}. Ready state: ${paymentResult.workflow?.readiness_status ?? "deposit_pending"}.`
-  );
 
   return NextResponse.json({
     ok: true,
