@@ -1,15 +1,10 @@
-import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 
-/**
- * X2 (Blaze D12, 2026-10-08): this route was unauthenticated. Anyone holding
- * an invoice id could read the invoice's payment link or have a Stripe
- * checkout session created and written back for it. No live UI calls it
- * (invoices are paid through /share/invoice/[id] and the token-gated
- * /api/os/invoices/[id]/pay-link). It is closed (404) on main until the token
- * packet reopens it behind a capability; the previous handler is in git
- * history at 89faca0. Every exported method returns this 404 first, without
- * reading the route params, touching the data layer or reaching Stripe.
- */
+// X2 HOTFIX 2026-10-08 (D12): this unauthenticated, id-only route created a
+// Stripe Checkout session for any invoice id and wrote the URL onto the
+// invoice row. No live page calls it. It is closed (404, empty body, the same
+// response notFound() gives in a route handler) until a token-gated pay flow
+// ships. Do not read params, construct a data client or import Stripe here.
 export async function POST(): Promise<Response> {
-  return NextResponse.json({ error: "not_found" }, { status: 404 });
+  return new Response(null, { status: 404 });
 }

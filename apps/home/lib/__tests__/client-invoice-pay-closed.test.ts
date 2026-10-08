@@ -2,8 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * X2 (Blaze D12, 2026-10-08): the unauthenticated invoice pay route returns
- * 404 on main for every exported method, before it reads its params, touches
- * the data layer or reaches Stripe. Stripe and the data layer are mocked to
+ * 404 with an empty body on main for every exported method, before it reads
+ * its params, touches the data layer or reaches Stripe. The route file is
+ * byte-identical to the deployed hotfix 75c8ede (blob 9060a2f72f61), which the
+ * publish step's F5d check compares. Stripe and the data layer are mocked to
  * throw, so nothing here can make a network call.
  */
 const mocks = vi.hoisted(() => {
@@ -66,12 +68,11 @@ describe("X2: /api/client/invoice/[id]/pay is closed (404) on main", () => {
     vi.clearAllMocks();
   });
 
-  it("exports at least one handler (today: POST)", () => {
-    expect(exported.length).toBeGreaterThan(0);
-    expect(exported).toContain("POST");
+  it("exports the same HTTP handlers as the 75c8ede hotfix stub (POST only)", () => {
+    expect(exported).toEqual(["POST"]);
   });
 
-  it.each(exported)("%s returns the 404 first: no params read, no data read, no Stripe", async (method) => {
+  it.each(exported)("%s returns an empty 404 first: no params read, no data read, no Stripe", async (method) => {
     const handler = (route as unknown as Record<string, Handler>)[method];
     for (const id of ["00000000-0000-0000-0000-000000000000", "inv_123", ""]) {
       const { context, reads } = trackedContext(id);
@@ -85,7 +86,8 @@ describe("X2: /api/client/invoice/[id]/pay is closed (404) on main", () => {
       );
 
       expect(response.status).toBe(404);
-      expect(await response.json()).toEqual({ error: "not_found" });
+      expect(response.body).toBeNull();
+      expect(await response.text()).toBe("");
       expect(reads).toEqual([]);
     }
     expect(mocks.getSupabase).not.toHaveBeenCalled();
