@@ -3,11 +3,11 @@ import { isIP } from "node:net";
 /**
  * Grader PR #4 SF5: the rate-limit key for public intake.
  *
- * `getClientIp` (lib/rate-limit.ts) keys on the first X-Forwarded-For hop,
- * which any caller can set, so one client could rotate that header and never
- * hit the limit. This key trusts `CF-Connecting-IP` only when the request
- * carries Cloudflare's edge signature, and otherwise ignores every
- * client-settable forwarding header.
+ * The old `getClientIp` (lib/rate-limit.ts, removed in R1) keyed on the
+ * first X-Forwarded-For hop, which any caller can set, so one client could
+ * rotate that header and never hit the limit. This key trusts
+ * `CF-Connecting-IP` only when the request carries Cloudflare's edge
+ * signature, and otherwise ignores every client-settable forwarding header.
  *
  * Why a header signature rather than the socket peer: a Next.js App Router
  * route handler never sees the socket. Next 16 (server/base-server.js) only
@@ -24,6 +24,11 @@ import { isIP } from "node:net";
  * Every request without the signature shares one bucket
  * (`UNTRUSTED_CLIENT_KEY`, the limiter's existing "unknown" key), so rotating
  * X-Forwarded-For or a bare CF-Connecting-IP cannot mint fresh buckets.
+ *
+ * Grader PR #19 R1: this is the only rate-limit key for the public CCO routes
+ * (/api/cco/briefs, /api/cco/leads, /api/cco/briefs/proposal); the old
+ * X-Forwarded-For `getClientIp` helper is gone, so no limiter key can come
+ * from a client-settable header.
  */
 export const UNTRUSTED_CLIENT_KEY = "unknown";
 

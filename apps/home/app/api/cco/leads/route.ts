@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { persistCcoLead } from "@/lib/cco-public-intake";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
+import { getRateLimitClientKey } from "@/lib/trusted-client-ip";
 import { validateCsrf } from "@/lib/csrf";
 import { LeadSchema } from "@/lib/validation";
 
@@ -36,7 +37,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_origin" }, { status: 403 });
   }
 
-  const limit = rateLimit(getClientIp(req), { max: 10, windowMs: 60000 });
+  // Grader PR #19 R1: Cloudflare-verified client key, never X-Forwarded-For;
+  // namespaced so this route and /api/cco/briefs keep separate buckets.
+  const limit = rateLimit(`cco-leads:${getRateLimitClientKey(req)}`, { max: 10, windowMs: 60000 });
   if (!limit.success) {
     return NextResponse.json(
       { error: "rate_limited", retryAfter: Math.ceil((limit.resetAt - Date.now()) / 1000) },
