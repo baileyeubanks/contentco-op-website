@@ -131,9 +131,10 @@ export async function POST(req: Request) {
     access_token: persistence.accessToken,
     brief_number: persistence.briefNumber,
     status: persistence.status || "submitted",
+    // The CRM contact id and the internal database label stay server-side:
+    // ensureCcoContact matches an existing contact by email, so echoing its id
+    // would hand anyone the contact id behind an email address they typed in.
     persistence: {
-      database: "CCO-DB",
-      contact_id: persistence.contactId,
       replayed: persistence.replayed,
     },
     notification: toPublicNotification(persistence.notification),

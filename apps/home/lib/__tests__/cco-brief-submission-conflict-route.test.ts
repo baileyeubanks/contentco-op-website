@@ -79,6 +79,28 @@ describe("CCO public brief replay conflict", () => {
     }
   });
 
+  test("Grader PR #17 F1: the success body carries no CRM contact id and no database label", async () => {
+    for (const replayed of [false, true]) {
+      mocks.persistCcoBrief.mockResolvedValueOnce({
+        ok: true, persisted: true, replayed, briefId: "saved-brief", accessToken: "visitor-token",
+        briefNumber: "CCO-0001", status: "submitted", contactId: "existing-crm-contact-42",
+        submissionId: body.submissionId, event: { ok: true, replayed },
+      });
+      const response = await POST(new Request("https://contentco-op.com/api/cco/briefs", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      }));
+      expect(response.status).toBe(200);
+      const text = await response.text();
+      expect(text).not.toContain("contact_id");
+      expect(text).not.toContain("existing-crm-contact-42");
+      expect(text).not.toContain("CCO-DB");
+      const json = JSON.parse(text);
+      expect(json.persistence).toEqual({ replayed });
+      expect(json.persistence).not.toHaveProperty("database");
+      expect(json).toMatchObject({ ok: true, id: "saved-brief", access_token: "visitor-token", brief_number: "CCO-0001" });
+    }
+  });
+
   test("tells the browser to clear an unsafe replay key instead of retrying it forever", async () => {
     mocks.persistCcoBrief.mockResolvedValue({
       ok: false,
