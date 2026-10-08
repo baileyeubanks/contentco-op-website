@@ -1,3 +1,4 @@
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getFrozenEstimateForLegacyQuote } from "@/lib/os-estimate-versions";
@@ -111,6 +112,17 @@ async function maybeAllocateInvoiceNumber(businessUnit: string) {
 }
 
 export async function POST(req: Request, { params }: Props) {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.legacy.quotes.convert",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["quote_manage", "invoice_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   const { id } = await params;
   const requestScope = getRootBusinessScopeFromRequest(req);
 

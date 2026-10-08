@@ -9,6 +9,7 @@ interface Props {
 type QuoteAcceptanceBody = {
   action?: unknown;
   signature_name?: unknown;
+  agreement_sections?: unknown;
   comment?: unknown;
 };
 
@@ -52,6 +53,12 @@ export async function POST(req: Request, { params }: Props) {
   const body = await parseBody(req);
   const action = asString(body.action, "accept");
   const signatureName = asNullableString(body.signature_name);
+  const agreementSections = Array.isArray(body.agreement_sections)
+    ? body.agreement_sections
+        .filter((section): section is string => typeof section === "string")
+        .map((section) => section.trim())
+        .filter(Boolean)
+    : [];
   const comment = asNullableString(body.comment);
 
   /* Fetch quote */
@@ -82,6 +89,8 @@ export async function POST(req: Request, { params }: Props) {
         String(quote.internal_status || "").toLowerCase() === "accepted"
           ? quote.internal_status
           : "accepted",
+      agreement_accepted: true,
+      signature_name: signatureName,
     };
 
     /* Try extended columns (may not exist until migration runs) */
@@ -107,6 +116,19 @@ export async function POST(req: Request, { params }: Props) {
       if (fallbackError) {
         return NextResponse.json({ error: "update_failed" }, { status: 500 });
       }
+    }
+
+    if (signatureName && agreementSections.length > 0) {
+      await sb.from("events").insert({
+        type: "quote.agreement_accepted",
+        payload: {
+          quote_id: id,
+          signature_name: signatureName,
+          sections: agreementSections,
+          ip_address: ip,
+          timestamp: acceptedAt,
+        },
+      }).then(() => {});
     }
 
     return NextResponse.json({

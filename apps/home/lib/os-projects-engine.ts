@@ -2,6 +2,7 @@
  * CCO OS Projects Engine — Airtable-pattern project tracking, deliverables, brief conversion.
  */
 
+import { handoffBriefToProduction } from "@/lib/cco-brief-production-handoff";
 import { getSupabase } from "@/lib/supabase";
 import { emitTypedEvent } from "@/lib/os-event-log";
 import type { RootBusinessScope } from "@/lib/os-request-scope";
@@ -206,110 +207,9 @@ export async function updateDeliverableStatus(id: string, newStatus: string) {
 
 // ─── Brief → Project Conversion ───
 
-export async function createProjectFromBrief(briefId: string, businessUnit: string = "CC") {
-  const sb = getSupabase();
-
-  const { data: brief, error: briefError } = await sb
-    .from("creative_briefs")
-    .select("*")
-    .eq("id", briefId)
-    .maybeSingle();
-
-  if (briefError || !brief) return { project: null, error: briefError?.message || "Brief not found" };
-
-  // Extract project details from brief. The public /brief stores the current
-  // shape at data.project (and mirrors it at structured_intake.project); the
-  // flat contact columns are always present. Legacy v3 keys stay as fallback.
-  const structuredIntake = (brief.structured_intake as Record<string, any>) || {};
-  const briefData = (brief.data as Record<string, any>) || {};
-  const publicProject = (briefData.project && typeof briefData.project === "object" ? briefData.project : structuredIntake.project) || {};
-  const legacyProject = structuredIntake.project || {};
-  const projectTypes: string[] = Array.isArray(publicProject.projectTypes) ? publicProject.projectTypes.map(String) : [];
-  const projectData = {
-    ...legacyProject,
-    content_type: publicProject.projectName || projectTypes.join(", ") || legacyProject.content_type || brief.content_type || null,
-    deliverables: Array.isArray(publicProject.deliverables) ? publicProject.deliverables : legacyProject.deliverables,
-    deadline: publicProject.timeline || legacyProject.deadline || null,
-    audience: publicProject.audience || legacyProject.audience || brief.audience,
-    tone: publicProject.styleLevel || legacyProject.tone || brief.tone,
-    objective: publicProject.projectContext || legacyProject.objective || brief.objective,
-  };
-  const contactData = {
-    ...(structuredIntake.contact || {}),
-    email: structuredIntake.contact?.email || brief.contact_email,
-    name: structuredIntake.contact?.name || brief.contact_name,
-    company: structuredIntake.contact?.company || brief.company,
-  };
-
-  // Find or match contact
-  let contactId: string | null = null;
-  if (contactData.email) {
-    const { data: existingContact } = await sb
-      .from("contacts")
-      .select("id")
-      .eq("email", contactData.email)
-      .maybeSingle();
-    contactId = existingContact?.id || null;
-  }
-
-  // Create project
-  const { data: project, error: projectError } = await sb
-    .from("projects")
-    .insert({
-      business_unit: businessUnit,
-      title: projectData.content_type ? `${projectData.content_type} — ${contactData.company || contactData.name || "Client"}` : `Brief ${briefId.slice(0, 8)}`,
-      status: "planning",
-      contact_id: contactId,
-      project_type: projectData.content_type || null,
-      metadata: {
-        source_brief_id: briefId,
-        audience: projectData.audience,
-        tone: projectData.tone,
-        objective: projectData.objective,
-        deadline: projectData.deadline,
-      },
-    })
-    .select()
-    .single();
-
-  if (!project) return { project: null, error: projectError?.message || "Failed to create project" };
-
-  // Create deliverables from brief deliverables list
-  const deliverableNames: string[] = projectData.deliverables || [];
-  for (const name of deliverableNames) {
-    await createDeliverable({
-      project_id: project.id,
-      title: name,
-      deliverable_type: inferDeliverableType(name),
-      due_date: projectData.deadline || null,
-    });
-  }
-
-  // Mark brief as converted
-  await sb.from("creative_briefs").update({ status: "converted" }).eq("id", briefId);
-
-  await emitTypedEvent({
-    type: "brief.converted",
-    objectType: "project",
-    objectId: project.id,
-    businessUnit: businessUnit as "ACS" | "CC",
-    contactId: contactId,
-    text: `Brief converted to project "${project.title}"`,
-    payload: { brief_id: briefId, deliverable_count: deliverableNames.length },
-  });
-
-  return { project, error: null };
-}
-
-function inferDeliverableType(name: string): string {
-  const lower = name.toLowerCase();
-  if (lower.includes("video") || lower.includes("film") || lower.includes("reel")) return "video";
-  if (lower.includes("photo") || lower.includes("shoot")) return "photo";
-  if (lower.includes("graphic") || lower.includes("design") || lower.includes("logo")) return "graphic";
-  if (lower.includes("web") || lower.includes("site") || lower.includes("landing")) return "website";
-  if (lower.includes("script") || lower.includes("copy")) return "script";
-  if (lower.includes("doc") || lower.includes("report") || lower.includes("brief")) return "document";
-  return "other";
+/** Commercial approval is the only path from a public brief into production. */
+export async function createProjectFromBrief(briefId: string, businessUnit = "CC") {
+  return handoffBriefToProduction(briefId, businessUnit);
 }
 
 // ─── Project Timeline ───

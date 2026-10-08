@@ -9,7 +9,7 @@
 
 export type FakeRow = Record<string, unknown>;
 
-type Filter = { col: string; op: "eq" | "neq" | "in"; value: unknown };
+type Filter = { col: string; op: "eq" | "neq" | "in" | "is"; value: unknown };
 
 type FakeError = { message: string; code?: string };
 type FakeResult = { data: unknown; error: FakeError | null; count: number | null };
@@ -51,6 +51,11 @@ class FakeQuery {
 
   eq(col: string, value: unknown) {
     this.filters.push({ col, op: "eq", value });
+    return this;
+  }
+
+  is(col: string, value: null) {
+    this.filters.push({ col, op: "is", value });
     return this;
   }
 
@@ -122,6 +127,7 @@ class FakeQuery {
   private matches(row: FakeRow) {
     return this.filters.every((filter) => {
       const actual = row[filter.col];
+      if (filter.op === "is") return actual == null;
       if (filter.op === "eq") return actual === filter.value;
       if (filter.op === "neq") return actual !== filter.value;
       return Array.isArray(filter.value) && filter.value.includes(actual);
@@ -170,6 +176,9 @@ class FakeQuery {
 
     if (op.kind === "insert") {
       const table = this.store.get(this.table) || [];
+      if (op.rows.some((row) => row.id != null && table.some((existing) => existing.id === row.id))) {
+        return this.shape(null, { message: "duplicate primary key", code: "23505" });
+      }
       const uniqueCols = this.uniques[this.table];
       if (uniqueCols) {
         const violates = op.rows.some((row) =>

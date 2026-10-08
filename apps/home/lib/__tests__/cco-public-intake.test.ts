@@ -63,6 +63,9 @@ class FakeQuery {
         return { data: null, error: { message: `${this.table}_insert_failed` } };
       }
       const row = { id: `${this.table}-${rows.length + 1}`, ...(this.payload || {}) };
+      if (rows.some((existing) => existing.id === row.id)) {
+        return { data: null, error: { code: "23505", message: "duplicate primary key" } };
+      }
       rows.push(row);
       return { data: row, error: null };
     }
@@ -831,16 +834,28 @@ describe("CCO public intake operator alerting", () => {
     expect(db.rows("events")).toHaveLength(1);
   });
 
-  test("a failed event write never blocks the brief receipt", async () => {
+  test("a failed handoff preserves the brief and retries without resending delivered emails", async () => {
     const db = new FakeDatabase();
     db.insertErrorFor = "events";
 
-    const result = await persistCcoBrief(submission, {
-      db,
-      sendEmail: async () => ({ ok: true, id: "provider-message-1" }),
-    });
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "provider-message-1" }));
+    const result = await persistCcoBrief(submission, { db, sendEmail });
 
-    expect(result).toMatchObject({ ok: true, persisted: true, event: { ok: false } });
+    expect(result).toMatchObject({ ok: false, persisted: true, partial: true, retryable: true,
+      briefId: "creative_briefs-1", submissionId: submission.submissionId,
+      notification: { admin: { status: "sent" }, client: { status: "sent" } }, event: { ok: false } });
     expect(db.rows("creative_briefs")).toHaveLength(1);
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+    db.insertErrorFor = null;
+    const retries = await Promise.all([
+      persistCcoBrief(submission, { db, sendEmail }),
+      persistCcoBrief(submission, { db, sendEmail }),
+    ]);
+    for (const retry of retries) expect(retry).toMatchObject({ ok: true, replayed: true,
+      briefId: "creative_briefs-1", submissionId: submission.submissionId, event: { ok: true } });
+    expect(db.rows("creative_briefs")).toHaveLength(1);
+    expect(db.rows("events")).toHaveLength(1);
+    expect(db.rows("notification_log")).toHaveLength(2);
+    expect(sendEmail).toHaveBeenCalledTimes(2);
   });
 });

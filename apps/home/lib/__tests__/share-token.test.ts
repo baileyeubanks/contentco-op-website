@@ -6,7 +6,10 @@ import { signShareToken, verifyShareToken } from "../share-token";
  * POST /api/share/quote/[id]/accept (token gate).
  */
 
-const { applyStubFrom } = vi.hoisted(() => ({ applyStubFrom: vi.fn() }));
+const { applyStubFrom, applyStubUpdate } = vi.hoisted(() => ({
+  applyStubFrom: vi.fn(),
+  applyStubUpdate: vi.fn(),
+}));
 
 /* Chainable, thenable supabase stub — every query resolves to `result`. */
 function supabaseStub(result: unknown) {
@@ -14,6 +17,9 @@ function supabaseStub(result: unknown) {
     get(_target, prop) {
       if (prop === "then") {
         return (resolve: (value: unknown) => unknown) => resolve(result);
+      }
+      if (prop === "update") {
+        return applyStubUpdate.mockImplementation(() => new Proxy({}, handler));
       }
       return vi.fn(() => new Proxy({}, handler));
     },
@@ -143,11 +149,20 @@ describe("POST /api/share/quote/[id]/accept", () => {
 
   test("valid token -> reaches the accept flow", async () => {
     const token = signShareToken(QUOTE_ID)!;
-    const res = await POST(acceptRequest({ action: "accept", signature_name: "Jane Ops" }, token), routeParams());
+    const res = await POST(acceptRequest({
+      action: "accept",
+      signature_name: "Jane Ops",
+      agreement_sections: ["scope", "payment"],
+    }, token), routeParams());
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
     expect(body.action).toBe("accepted");
+    expect(applyStubUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      agreement_accepted: true,
+      signature_name: "Jane Ops",
+    }));
+    expect(applyStubFrom).toHaveBeenCalledWith("events");
   });
 
   test("valid token + unknown quote -> 404 quote_not_found", async () => {

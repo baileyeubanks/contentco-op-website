@@ -1,3 +1,4 @@
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 import { NextResponse } from "next/server";
 import { fetchCrewPositions } from "@/lib/acs-operations";
 
@@ -10,6 +11,17 @@ import { fetchCrewPositions } from "@/lib/acs-operations";
  * the OS could degrade honestly. Degraded = 200 + empty crew/sites + reason.
  */
 export async function GET() {
+  const access = await enforceRoutePolicy(
+    createRoutePolicy({
+      id: "cco.legacy.operations.crew",
+      accessLevel: "internal",
+      sessionPolicies: ["supabase_user", "operator_invite"],
+      requiredPermissions: ["project_manage"],
+      tenantBoundary: "internal_workspace",
+    }),
+  );
+  if (!access.ok) return access.response;
+
   try {
     const result = await fetchCrewPositions();
 

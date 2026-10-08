@@ -58,5 +58,14 @@ jobs:
       - name: Lint
         run: npm run lint -w @contentco-op/home
 
+      - name: Home unit tests
+        run: npm run test -w @contentco-op/home -- --maxWorkers=1
+
+      - name: Install home Postgres test dependencies
+        run: npm ci --prefix apps/home/test-postgres --ignore-scripts --no-audit --no-fund
+
+      - name: Home Postgres tests
+        run: npm run test:postgres --workspace @contentco-op/home
+
       - name: Build
         run: npm run build -w @contentco-op/home
