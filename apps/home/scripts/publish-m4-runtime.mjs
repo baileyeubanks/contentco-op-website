@@ -14,6 +14,11 @@ const repoRoot = path.resolve(appRoot, "../..");
 const host = process.env.CCO_M4_HOST || "_mxappservice@Blaze.local";
 const runtimeHome = "/Users/_mxappservice/.contentco-op/home-runtime";
 const strictIpv6 = process.argv.includes("--strict-ipv6");
+const releaseKeep = 8;
+const pruneSource = fs.readFileSync(path.join(path.dirname(__filename), "prune-releases.py"), "utf8");
+if (/^PRUNE_PY$/m.test(pruneSource)) {
+  throw new Error("prune-releases.py must not contain a line that is exactly PRUNE_PY");
+}
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -275,21 +280,22 @@ receipt_id = "cco_home"
 }, indent=2))
 (receipt_dir / "root_control_plane.json").unlink(missing_ok=True)
 
-releases_dir = runtime / "releases"
-if releases_dir.exists():
-    releases = [path for path in releases_dir.iterdir() if path.is_dir()]
-    keep = set(sorted(releases, key=lambda path: path.stat().st_mtime, reverse=True)[:8])
-    keep.add(current_release)
-    for release_path in releases:
-        if release_path.resolve() not in {path.resolve() for path in keep}:
-            shutil.rmtree(release_path, ignore_errors=True)
-
 logs_dir = runtime / "logs"
 if logs_dir.exists():
     preflight_logs = sorted(logs_dir.glob("preflight-*.log"), key=lambda path: path.stat().st_mtime, reverse=True)
     for log_path in preflight_logs[20:]:
         log_path.unlink(missing_ok=True)
 PY
+    # Keep the ${releaseKeep} newest real release dirs plus the new release and the
+    # rollback target. Hidden entries (.stage-*) never count. Prints the delete
+    # list before deleting (scripts/prune-releases.py).
+    prune_args=(--keep ${releaseKeep} --protect "$release")
+    if [ -n "$previous" ]; then
+      prune_args+=(--protect "$previous")
+    fi
+    python3 - "$runtime/releases" "\${prune_args[@]}" <<'PRUNE_PY'
+${pruneSource}
+PRUNE_PY
     cat /tmp/cco-home-health.json
     exit 0
 fi
