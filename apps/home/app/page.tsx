@@ -298,7 +298,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 width={130}
                 height={37}
               />
-              <span className="trust-role">Founder &amp; Executive Producer</span>
+              <span className="trust-role">Founder</span>
             </div>
           </div>
         </section>

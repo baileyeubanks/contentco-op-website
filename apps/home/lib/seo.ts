@@ -63,7 +63,7 @@ export const organizationJsonLd = {
   founder: {
     "@type": "Person",
     name: "Bailey Eubanks",
-    jobTitle: "Founder & Executive Producer",
+    jobTitle: "Founder",
   },
   sameAs: [
     "https://www.linkedin.com/company/content-co-op",
