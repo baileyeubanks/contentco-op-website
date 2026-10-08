@@ -19,7 +19,7 @@ export async function POST(
   const { id } = await params;
   const limited = clientLinkRateLimit(req, "client/quote/[id]/pay");
   if (limited) return limited;
-  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/client/quote/[id]/pay", id);
   const sb = getSupabase();
 
   /* Fetch quote */
@@ -32,7 +32,7 @@ export async function POST(
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound();
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
 
   const stripe = getStripe();
 
@@ -59,15 +59,10 @@ export async function POST(
 
   const { data: ccEstimate } = await sb.from("estimates").select("id, business_unit")
     .eq("legacy_quote_id", id).eq("business_unit", "CC").maybeSingle();
-  if (!ccEstimate || ccEstimate.business_unit !== "CC") return clientLinkNotFound();
+  if (!ccEstimate || ccEstimate.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
   const amountResolution = await resolveFrozenDepositAmountCents(sb, id, "CC");
 
-  if (amountResolution.error === "quote_not_migrated_to_estimate") {
-    return NextResponse.json(
-      { error: "quote_not_migrated_to_estimate" },
-      { status: 409 }
-    );
-  }
+  if (amountResolution.error === "not_found" || amountResolution.error === "quote_not_migrated_to_estimate") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
 
   // Fail closed: no frozen version means no trustworthy amount — the old
   // hardcoded 15000-cent fallback is gone on purpose.
@@ -81,9 +76,10 @@ export async function POST(
   const estimateId = String(amountResolution.estimateId);
   const { data: estimate } = await sb.from("estimates").select("id, business_unit")
     .eq("id", estimateId).eq("business_unit", "CC").maybeSingle();
-  if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound();
+  if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
 
   const invoiceResult = await convertEstimateToDepositInvoice({ estimateId, businessUnit: "CC" });
+  if (invoiceResult.error === "not_found") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
   if (invoiceResult.error || !invoiceResult.invoice) {
     return NextResponse.json(
       { error: "payment_failed" },
@@ -91,7 +87,7 @@ export async function POST(
     );
   }
 
-  if (invoiceResult.invoice.business_unit !== "CC") return clientLinkNotFound();
+  if (invoiceResult.invoice.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
 
   // The Stripe amount must equal the invoice the webhook settles; the invoice
   // is itself minted from the same frozen version, so any divergence is a bug

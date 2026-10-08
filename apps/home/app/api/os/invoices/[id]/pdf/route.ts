@@ -17,7 +17,7 @@ export async function GET(
   if (limited) return limited;
   const shareToken = readClientLink(req);
   if (!verifyClientLink(shareToken, "invoice", id)) {
-    if (shareToken) return clientLinkNotFound();
+    if (shareToken) return clientLinkNotFound("/api/os/invoices/[id]/pdf", id);
     const access = await enforceRoutePolicy(
       createRoutePolicy({
         id: "root.invoices.pdf",
@@ -27,16 +27,16 @@ export async function GET(
         tenantBoundary: "internal_workspace",
       }),
     );
-    if (!access.ok) return clientLinkNotFound();
+    if (!access.ok) return clientLinkNotFound("/api/os/invoices/[id]/pdf", id);
   }
 
   const sb = getSupabase();
   const { data: invoice, error } = await sb.from("invoices")
     .select("id, invoice_number, business_unit").eq("id", id).eq("business_unit", "CC").maybeSingle();
-  if (error || !invoice || invoice.business_unit !== "CC") return clientLinkNotFound();
+  if (error || !invoice || invoice.business_unit !== "CC") return clientLinkNotFound("/api/os/invoices/[id]/pdf", id);
 
   const pdf = await renderClientDocumentPdf("invoice", id).catch(() => null);
-  if (!pdf) return clientLinkNotFound();
+  if (!pdf) return clientLinkNotFound("/api/os/invoices/[id]/pdf", id);
   const filename = `${invoice.invoice_number || `invoice-${id.slice(0, 8)}`}.pdf`;
   return new NextResponse(new Uint8Array(pdf), {
     headers: {

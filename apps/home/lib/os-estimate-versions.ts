@@ -204,6 +204,7 @@ export async function resolveFrozenDepositAmountCents(
     };
   }
   const version = await getActiveEstimateVersion(sb, estimate as Record<string, unknown>);
+  if (businessUnit && version && version.snapshot?.estimate?.business_unit !== businessUnit) return { amountCents: null, estimateId: null, estimateVersionId: null, error: "not_found" };
   const amountCents = version ? asNumber(version.snapshot?.totals?.deposit_due_cents) : 0;
   if (!version || !amountCents) {
     return {

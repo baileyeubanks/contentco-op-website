@@ -84,3 +84,8 @@ it("rejects key owned by another uid",async()=>{
  vi.doMock("node:fs",()=>({...fs,fstatSync:(fd:number)=>({...fs.fstatSync(fd),isFile:()=>true,uid:process.getuid!()+1})}));
  const l=await lib();expect(l.signClientLink("quote",A,{now})).toBeNull();expect(l.clientLinkKeyStatus()).toBe("client_link_key_file_insecure");
 });
+
+it("rejection telemetry contains a fixed reason, route pattern and hash only",async()=>{
+ const l=await lib();const warn=vi.spyOn(console,"warn").mockImplementation(()=>{});
+ try {l.recordClientLinkRejected("/share/quote/[id]",A);const log=String(warn.mock.calls[0][0]);expect(log).toMatch(/^client_link_rejected reason=invalid_or_unavailable route=\/share\/quote\/\[id\] idhash=[a-f0-9]{8}$/);expect(log).not.toContain(A);expect(log).not.toContain("cl1.");} finally {warn.mockRestore();}
+});

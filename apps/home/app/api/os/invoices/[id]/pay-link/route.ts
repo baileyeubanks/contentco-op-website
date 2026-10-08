@@ -22,7 +22,7 @@ export async function POST(
   if (limited) return limited;
   const shareToken = readClientLink(req);
   if (!verifyClientLink(shareToken, "invoice", id)) {
-    if (shareToken) return clientLinkNotFound();
+    if (shareToken) return clientLinkNotFound("/api/os/invoices/[id]/pay-link", id);
     const access = await enforceRoutePolicy(
       createRoutePolicy({
         id: "root.invoices.pay_link",
@@ -32,7 +32,7 @@ export async function POST(
         tenantBoundary: "internal_workspace",
       }),
     );
-    if (!access.ok) return clientLinkNotFound();
+    if (!access.ok) return clientLinkNotFound("/api/os/invoices/[id]/pay-link", id);
   }
 
   const sb = getSupabase();
@@ -43,7 +43,7 @@ export async function POST(
     .eq("business_unit", "CC")
     .single();
 
-  if (error || !invoice || invoice.business_unit !== "CC") return clientLinkNotFound();
+  if (error || !invoice || invoice.business_unit !== "CC") return clientLinkNotFound("/api/os/invoices/[id]/pay-link", id);
 
   if (!isStripeConfigured()) {
     return NextResponse.json(

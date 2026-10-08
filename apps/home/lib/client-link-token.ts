@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual, createHash } from "node:crypto";
 import { constants, openSync, fstatSync, readFileSync, closeSync } from "node:fs";
 import { NextResponse } from "next/server";
 
@@ -79,7 +79,12 @@ export function verifyClientLink(
   if (a.toString("base64url") !== sig) return false;
   return a.length === b.length && timingSafeEqual(a, b);
 }
-export function clientLinkNotFound() {
+export function recordClientLinkRejected(route: string, id: string) {
+  const idhash = createHash("sha256").update(id).digest("hex").slice(0, 8);
+  console.warn(`client_link_rejected reason=invalid_or_unavailable route=${route} idhash=${idhash}`);
+}
+export function clientLinkNotFound(route?: string, id?: string) {
+  if (route && id !== undefined) recordClientLinkRejected(route, id);
   return NextResponse.json({ error: "not_found" }, { status: 404, headers: { "Cache-Control": "no-store" } });
 }
 export function readClientLink(req: Request): string | null {

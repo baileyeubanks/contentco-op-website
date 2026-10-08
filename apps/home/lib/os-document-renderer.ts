@@ -85,9 +85,16 @@ async function loadQuoteData(quoteId: string, strictCC = false): Promise<Documen
     rawItems = rootDoc.lineItems;
   }
 
+  if (rawItems.length === 0) {
+    const { data: related } = await sb.from("quote_items")
+      .select("name, description, quantity, unit_price, subtotal")
+      .eq("quote_id", quoteId).order("created_at", { ascending: true });
+    rawItems = related || [];
+  }
+
   const lineItems = rawItems.map((item: any, i: number) => {
-    const rate = item.unit_price != null ? Number(item.unit_price) : item.unitPriceCents != null ? Number(item.unitPriceCents) / 100 : Number(item.rate || 0);
-    const amount = item.subtotal != null ? Number(item.subtotal) : item.line_total != null ? Number(item.line_total) : item.lineTotalCents != null ? Number(item.lineTotalCents) / 100 : Number(item.amount || 0);
+    const rate = item.unit_price != null ? Number(item.unit_price) : item.unitPriceCents != null ? Number(item.unitPriceCents) / 100 : item.unit_price_cents != null ? Number(item.unit_price_cents) / 100 : Number(item.rate || 0);
+    const amount = item.subtotal != null ? Number(item.subtotal) : item.line_total != null ? Number(item.line_total) : item.lineTotalCents != null ? Number(item.lineTotalCents) / 100 : item.line_total_cents != null ? Number(item.line_total_cents) / 100 : Number(item.amount || 0);
     return {
       number: String(i + 1).padStart(2, "0"),
       name: item.description || item.name || "",
@@ -192,8 +199,8 @@ async function loadInvoiceData(invoiceId: string, strictCC = false): Promise<Doc
     description: item.note || item.detail || "",
     qty: Number(item.quantity || item.qty || 1),
     unit: item.unit_label || item.unit || "ea",
-    rate: Number(item.unit_price || item.rate || 0),
-    amount: Number(item.subtotal || item.line_total || item.amount || 0),
+    rate: Number(item.unit_price ?? item.rate ?? ((item.unit_price_cents ?? item.unitPriceCents ?? 0) / 100)),
+    amount: Number(item.subtotal ?? item.line_total ?? item.amount ?? ((item.line_total_cents ?? item.lineTotalCents ?? 0) / 100)),
   }));
 
   const subtotal = lineItems.reduce((sum, it) => sum + it.amount, 0);
@@ -379,4 +386,9 @@ export async function renderQuoteHtml(quoteId: string, options: { businessUnit?:
 
 export async function renderInvoiceHtml(invoiceId: string, options: { businessUnit?: "CC" } = {}): Promise<string> {
   return render(await loadInvoiceData(invoiceId, options.businessUnit === "CC"));
+}
+
+/** One strict CC loader for capability-authorized preview and PDF rendering. */
+export async function loadClientDocumentData(kind: "quote" | "invoice", id: string) {
+  return kind === "quote" ? loadQuoteData(id, true) : loadInvoiceData(id, true);
 }

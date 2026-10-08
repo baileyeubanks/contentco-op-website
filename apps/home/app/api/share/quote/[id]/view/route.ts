@@ -17,7 +17,7 @@ export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
   const limited = clientLinkRateLimit(req, "share/quote/[id]/view");
   if (limited) return limited;
-  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/share/quote/[id]/view", id);
   const sb = getSupabase();
 
   const ip =
@@ -34,7 +34,7 @@ export async function POST(req: Request, { params }: Props) {
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound();
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/share/quote/[id]/view", id);
 
   const currentStatus = String(quote.client_status || "").toLowerCase();
   const canAdvance = ["not_sent", "sent", "pending", ""].includes(currentStatus);

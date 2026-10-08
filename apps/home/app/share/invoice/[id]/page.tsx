@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { isStripeConfigured } from "@/lib/stripe";
-import { verifyClientLink } from "@/lib/client-link-token";
+import { verifyClientLink, recordClientLinkRejected } from "@/lib/client-link-token";
 import { clientLinkPageAllowed } from "@/lib/client-link-rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +15,8 @@ export default async function ShareInvoicePage({
 }) {
   const { id } = await params;
   const { t } = await searchParams;
-  if (!await clientLinkPageAllowed("app/share/invoice/[id]")) notFound();
-  if (!verifyClientLink(t, "invoice", id)) notFound();
+  if (!await clientLinkPageAllowed("app/share/invoice/[id]")) { recordClientLinkRejected("/share/invoice/[id]", id); notFound(); }
+  if (!verifyClientLink(t, "invoice", id)) { recordClientLinkRejected("/share/invoice/[id]", id); notFound(); }
   const sb = getSupabase();
   const { data: invoice } = await sb
     .from("invoices")
@@ -25,7 +25,7 @@ export default async function ShareInvoicePage({
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!invoice || invoice.business_unit !== "CC") notFound();
+  if (!invoice || invoice.business_unit !== "CC") { recordClientLinkRejected("/share/invoice/[id]", id); notFound(); }
 
   const shareToken = t!;
   const tokenQuery = shareToken ? `?t=${encodeURIComponent(shareToken)}` : "";

@@ -27,7 +27,7 @@ export async function GET(
   if (limited) return limited;
   const shareToken = readClientLink(req);
   if (!verifyClientLink(shareToken, "quote", id)) {
-    if (shareToken) return clientLinkNotFound();
+    if (shareToken) return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
     const access = await enforceRoutePolicy(
       createRoutePolicy({
         id: "root.quotes.pdf",
@@ -37,7 +37,7 @@ export async function GET(
         tenantBoundary: "internal_workspace",
       }),
     );
-    if (!access.ok) return clientLinkNotFound();
+    if (!access.ok) return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
   }
 
   const scope = getRootBusinessScopeFromRequest(req);
@@ -49,11 +49,11 @@ export async function GET(
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (error || !quote || quote.business_unit !== "CC") return clientLinkNotFound();
+  if (error || !quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
 
   const quoteScope = String(quote.business_unit || "").trim().toUpperCase() || null;
   if (scope && quoteScope !== scope) {
-    return clientLinkNotFound();
+    return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
   }
 
   const filename = `${quote.quote_number || `quote-${id.slice(0, 8)}`}-${String(quote.client_name || "draft").replace(/\s+/g, "_")}.pdf`;
@@ -72,7 +72,7 @@ export async function GET(
       .eq("id", estimateId)
       .eq("business_unit", "CC")
       .maybeSingle();
-    if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound();
+    if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
     if (estimate.active_version_id) {
       const { data: versionRow } = await sb
         .from("estimate_versions")
@@ -82,7 +82,7 @@ export async function GET(
         .maybeSingle();
       if (versionRow?.snapshot) {
         const snapshot = versionRow.snapshot as EstimateVersionSnapshot;
-        if (snapshot.estimate?.business_unit !== "CC") return clientLinkNotFound();
+        if (snapshot.estimate?.business_unit !== "CC") return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
         const payload = buildEstimateVersionArtifactPayload(versionRow.snapshot as EstimateVersionSnapshot);
         const pdf = await renderDocumentPdfBuffer(payload);
         return new NextResponse(new Uint8Array(pdf), {
@@ -99,7 +99,7 @@ export async function GET(
 
   // Legacy quote: render from a fresh, explicitly scoped CC-only row.
   const pdf = await renderClientDocumentPdf("quote", id).catch(() => null);
-  if (!pdf) return clientLinkNotFound();
+  if (!pdf) return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "content-type": "application/pdf",

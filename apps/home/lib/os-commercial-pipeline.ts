@@ -140,13 +140,13 @@ async function upsertWorkflow(input: {
     const { data, error } = await sb
       .from("commercial_workflows")
       .upsert(update, { onConflict: "brief_id" })
-      .select("*")
+      .select("id, business_unit, brief_id, estimate_id, invoice_id, contact_id, current_status, readiness_status, metadata, ready_to_schedule_at, schedule_waiver_approved, schedule_waiver_approval_id, last_transition_at, updated_at")
       .single();
     if (error) throw new Error(error.message);
     return data;
   }
 
-  const { data, error } = await sb.from("commercial_workflows").insert(update).select("*").single();
+  const { data, error } = await sb.from("commercial_workflows").insert(update).select("id, business_unit, brief_id, estimate_id, invoice_id, contact_id, current_status, readiness_status, metadata, ready_to_schedule_at, schedule_waiver_approved, schedule_waiver_approval_id, last_transition_at, updated_at").single();
   if (error) throw new Error(error.message);
   return data;
 }
@@ -950,7 +950,7 @@ export async function applyInvoicePayment(input: {
     updated_at: nowIso(),
   };
 
-  const { data: attempt, error: attemptError } = await sb.from("payment_attempts").insert(attemptPayload).select("*").single();
+  const { data: attempt, error: attemptError } = await sb.from("payment_attempts").insert(attemptPayload).select("id, business_unit, invoice_id, estimate_id, status, provider, provider_reference_id, amount_cents, currency, payload, updated_at").single();
   if (attemptError) return { invoice: null, payment: null, workflow: null, error: attemptError.message };
 
   if (paymentStatus === "failed") {
@@ -1001,7 +1001,7 @@ export async function applyInvoicePayment(input: {
       paid_at: nowIso(),
       payload: input.payload || {},
     })
-    .select("*")
+    .select("id, business_unit, invoice_id, quote_id, estimate_id, payment_attempt_id, contact_id, amount_cents, currency, method, status, provider, provider_reference_id, raw_status, reference_number, invoice_type, paid_at, payload")
     .single();
   if (paymentError) return { invoice: null, payment: null, workflow: null, error: paymentError.message };
 

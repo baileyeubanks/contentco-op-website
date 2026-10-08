@@ -38,11 +38,11 @@ export async function GET(req: Request, { params }: Props) {
   const { id } = await params;
   const limited = clientLinkRateLimit(req, "share/quote/[id]/comment");
   if (limited) return limited;
-  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/share/quote/[id]/comment", id);
   const sb = getSupabase();
   const { data: quote } = await sb.from("quotes").select("id, business_unit")
     .eq("id", id).eq("business_unit", "CC").maybeSingle();
-  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound();
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/share/quote/[id]/comment", id);
 
   const { data: comments, error } = await sb
     .from("quote_comments")
@@ -62,13 +62,13 @@ export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
   const limited = clientLinkRateLimit(req, "share/quote/[id]/comment");
   if (limited) return limited;
-  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/share/quote/[id]/comment", id);
 
 
   const sb = getSupabase();
   const { data: quote } = await sb.from("quotes").select("id, business_unit")
     .eq("id", id).eq("business_unit", "CC").maybeSingle();
-  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound();
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/share/quote/[id]/comment", id);
 
   const body = await parseBody(req);
   if (!body) {

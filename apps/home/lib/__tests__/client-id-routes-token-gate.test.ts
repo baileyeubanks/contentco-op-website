@@ -12,6 +12,7 @@ vi.mock("@/lib/stripe",()=>({getStripe:mocks.stripe,isStripeConfigured:()=>true,
 vi.mock("@/lib/platform-access",()=>({createRoutePolicy:(p:unknown)=>p,enforceRoutePolicy:mocks.policy}));
 vi.mock("@/lib/os-request-scope",()=>({getRootBusinessScopeFromRequest:()=>null}));
 vi.mock("@/lib/os-document-renderer",()=>({renderQuoteHtml:mocks.render,renderInvoiceHtml:mocks.render}));
+vi.mock("@/lib/client-document",()=>({renderClientDocumentPdf:mocks.pdf}));
 vi.mock("@/lib/os-document-authority",()=>({readCanonicalQuotePdf:mocks.pdf,readCanonicalInvoicePdf:mocks.pdf}));
 vi.mock("@/lib/os-document-artifacts",()=>({renderDocumentPdfBuffer:mocks.pdf}));
 vi.mock("@/lib/os-event-log",()=>({emitTypedEvent:vi.fn()}));
@@ -154,4 +155,8 @@ it.each(["ACS",null])("quote pay rejects %s converted invoice before Stripe",asy
 it.each(["ACS",null])("quote PDF rejects %s frozen snapshot before rendering",async unit=>{
  const q=fake.store.get("quotes")![0];q.payload={estimate_id:B};fake.store.set("estimates",[{id:B,business_unit:"CC",active_version_id:B}]);fake.store.set("estimate_versions",[{id:B,estimate_id:B,version:1,snapshot:{estimate:{business_unit:unit}}}]);
  const {GET}=await import("@/app/api/os/quotes/[id]/pdf/route");const headers=new Headers(requestHeaders);headers.set("x-client-link",signClientLink("quote",A)!);const res=await GET(new Request("https://contentco-op.com/pdf",{headers}),{params:Promise.resolve({id:A})});expect(res.status).toBe(404);expect(await res.text()).toBe(json404);expect(mocks.pdf).not.toHaveBeenCalled();
+});
+
+it("quote pay maps converter not_found to the byte-identical 404 before Stripe",async()=>{
+ mocks.convert.mockResolvedValue({invoice:null,error:"not_found"});const {POST}=await import("@/app/api/client/quote/[id]/pay/route");const headers=new Headers(requestHeaders);headers.set("x-client-link",signClientLink("quote",A)!);const res=await POST(new Request("https://contentco-op.com/pay",{method:"POST",headers}),{params:Promise.resolve({id:A})});expect(res.status).toBe(404);expect(await res.text()).toBe(json404);expect(mocks.create).not.toHaveBeenCalled();
 });

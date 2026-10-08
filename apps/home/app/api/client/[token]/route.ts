@@ -18,7 +18,7 @@ export async function GET(req: Request, { params }: Props) {
   const { token } = await params;
   const limited = clientLinkRateLimit(req, "client/portal-token");
   if (limited) return limited;
-  if (!isAcceptablePortalToken(token)) return clientLinkNotFound();
+  if (!isAcceptablePortalToken(token)) return clientLinkNotFound("/api/client/[token]", token);
   const sb = getSupabase();
 
   /* Look up contact by portal_token */
@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: Props) {
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (error || !contact || contact.business_unit !== "CC") return clientLinkNotFound();
+  if (error || !contact || contact.business_unit !== "CC") return clientLinkNotFound("/api/client/[token]", token);
 
   /* Fetch quotes for this contact */
   const { data: quotes } = await sb

@@ -18,7 +18,7 @@ export async function GET(
   if (limited) return limited;
   const shareToken = readClientLink(req);
   if (!verifyClientLink(shareToken, "quote", id)) {
-    if (shareToken) return clientLinkNotFound();
+    if (shareToken) return clientLinkNotFound("/api/os/quotes/[id]/preview", id);
     const access = await enforceRoutePolicy(
       createRoutePolicy({
         id: "root.quotes.preview",
@@ -28,7 +28,7 @@ export async function GET(
         tenantBoundary: "internal_workspace",
       }),
     );
-    if (!access.ok) return clientLinkNotFound();
+    if (!access.ok) return clientLinkNotFound("/api/os/quotes/[id]/preview", id);
   }
 
   const scope = getRootBusinessScopeFromRequest(req);
@@ -40,11 +40,11 @@ export async function GET(
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (error || !quote || quote.business_unit !== "CC") return clientLinkNotFound();
+  if (error || !quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/os/quotes/[id]/preview", id);
 
   const quoteScope = String(quote.business_unit || "").trim().toUpperCase() || null;
   if (scope && quoteScope !== scope) {
-    return clientLinkNotFound();
+    return clientLinkNotFound("/api/os/quotes/[id]/preview", id);
   }
 
   try {
@@ -56,7 +56,7 @@ export async function GET(
       },
     });
   } catch (err) {
-    if (err instanceof Error && err.message === "not_found") return clientLinkNotFound();
+    if (err instanceof Error && err.message === "not_found") return clientLinkNotFound("/api/os/quotes/[id]/preview", id);
     return NextResponse.json(
       { error: "render_failed" },
       { status: 500 },

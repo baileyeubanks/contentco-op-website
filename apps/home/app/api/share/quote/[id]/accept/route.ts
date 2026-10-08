@@ -43,7 +43,7 @@ export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
   const limited = clientLinkRateLimit(req, "share/quote/[id]/accept");
   if (limited) return limited;
-  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/share/quote/[id]/accept", id);
 
 
   const sb = getSupabase();
@@ -67,7 +67,7 @@ export async function POST(req: Request, { params }: Props) {
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (error || !quote || quote.business_unit !== "CC") return clientLinkNotFound();
+  if (error || !quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/share/quote/[id]/accept", id);
 
   /* Capture ESIGN compliance data */
   const ip =

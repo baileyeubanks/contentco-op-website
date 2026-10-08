@@ -18,7 +18,7 @@ export async function POST(
   const { id } = await params;
   const limited = clientLinkRateLimit(req, "client/quote/[id]/pay/confirm");
   if (limited) return limited;
-  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound();
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/client/quote/[id]/pay/confirm", id);
   const sb = getSupabase();
 
   /* Fetch quote */
@@ -29,7 +29,7 @@ export async function POST(
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound();
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay/confirm", id);
 
   const stripe = getStripe();
 
@@ -100,11 +100,11 @@ export async function POST(
 
   const { data: invoice } = await sb.from("invoices").select("id, business_unit")
     .eq("id", invoiceId).eq("business_unit", "CC").maybeSingle();
-  if (!invoice || invoice.business_unit !== "CC" || paymentIntent.metadata.business_unit !== "CC") return clientLinkNotFound();
+  if (!invoice || invoice.business_unit !== "CC" || paymentIntent.metadata.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay/confirm", id);
   if (estimateId) {
     const { data: estimate } = await sb.from("estimates").select("id, business_unit")
       .eq("id", estimateId).eq("legacy_quote_id", id).eq("business_unit", "CC").maybeSingle();
-    if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound();
+    if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay/confirm", id);
   }
   const paymentResult = await applyInvoicePayment({
     invoiceId,
@@ -122,6 +122,7 @@ export async function POST(
     },
   });
 
+  if (paymentResult.error === "not_found") return clientLinkNotFound("/api/client/quote/[id]/pay/confirm", id);
   if (paymentResult.error || !paymentResult.invoice) {
     return NextResponse.json(
       { error: "payment_failed" },

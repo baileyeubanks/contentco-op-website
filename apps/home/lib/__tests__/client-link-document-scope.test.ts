@@ -25,3 +25,10 @@ for(const [typ,table] of [["quote","quotes"],["invoice","invoices"]] as const){
   expect(calls).toContainEqual({table,op:"eq",args:["business_unit","CC"]});expect(calls.filter(c=>c.op==="select").some(c=>c.args[0]==="*")).toBe(false);expect(JSON.stringify(mocks.pdf.mock.calls)).not.toMatch(/PRIVATE|contact_email|internal_status/);
  });
 }
+
+it.each(["payload","relation"])("legacy quote %s items and terms survive both preview and PDF",async source=>{
+ fake.store.set("quotes",[{id,business_unit:"CC",created_at:"2026-10-08",client_name:"Synthetic",total:50,line_items:[],payload:{rootDocument:{terms:["Two revisions included","Payment Net 14"],...(source==="payload"?{lineItems:[{description:"Synthetic filming",quantity:2,unitPriceCents:2500,lineTotalCents:5000}]}:{})}}}]);
+ if(source==="relation") fake.store.set("quote_items",[{id,quote_id:id,name:"Synthetic filming",quantity:2,unit_price:25,subtotal:50}]);
+ const html=await renderQuoteHtml(id,{businessUnit:"CC"});await renderClientDocumentPdf("quote",id);const payload=mocks.pdf.mock.calls[0][0];
+ expect(html).toContain("Synthetic filming");expect(payload.lineItems).toEqual([{description:"Synthetic filming",quantity:2,unit:"ea",unit_price_cents:2500,line_total_cents:5000}]);expect(payload.notes).toContain("Two revisions included");expect(payload.paymentTerms).toContain("Payment Net 14");expect(payload.totalCents).toBe(5000);
+});

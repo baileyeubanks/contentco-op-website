@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getSupabase } from "@/lib/supabase";
-import { verifyClientLink } from "@/lib/client-link-token";
+import { verifyClientLink, recordClientLinkRejected } from "@/lib/client-link-token";
 import { clientLinkPageAllowed } from "@/lib/client-link-rate-limit";
 import { QuoteClientView } from "./quote-client-view";
 
@@ -51,8 +51,8 @@ export default async function ClientQuotePage({
 }) {
   const { id } = await params;
   const { t } = await searchParams;
-  if (!await clientLinkPageAllowed("app/client/quote/[id]")) notFound();
-  if (!verifyClientLink(t, "quote", id)) notFound();
+  if (!await clientLinkPageAllowed("app/client/quote/[id]")) { recordClientLinkRejected("/client/quote/[id]", id); notFound(); }
+  if (!verifyClientLink(t, "quote", id)) { recordClientLinkRejected("/client/quote/[id]", id); notFound(); }
   const sb = getSupabase();
 
   /* Fetch quote */
@@ -63,7 +63,7 @@ export default async function ClientQuotePage({
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote || quote.business_unit !== "CC") notFound();
+  if (!quote || quote.business_unit !== "CC") { recordClientLinkRejected("/client/quote/[id]", id); notFound(); }
 
   /* Check expiration — 14 days from created_at */
   const createdAt = new Date(quote.created_at);

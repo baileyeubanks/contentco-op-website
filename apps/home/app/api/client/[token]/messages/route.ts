@@ -41,9 +41,9 @@ export async function GET(req: Request, { params }: Props) {
   const { token } = await params;
   const limited = clientLinkRateLimit(req, "client/portal-messages");
   if (limited) return limited;
-  if (!isAcceptablePortalToken(token)) return clientLinkNotFound();
+  if (!isAcceptablePortalToken(token)) return clientLinkNotFound("/api/client/[token]/messages", token);
   const contact = await resolveContact(token);
-  if (!contact) return clientLinkNotFound();
+  if (!contact) return clientLinkNotFound("/api/client/[token]/messages", token);
 
   const sb = getSupabase();
   const { data: messages } = await sb
@@ -60,9 +60,9 @@ export async function POST(req: Request, { params }: Props) {
   const { token } = await params;
   const limited = clientLinkRateLimit(req, "client/portal-messages");
   if (limited) return limited;
-  if (!isAcceptablePortalToken(token)) return clientLinkNotFound();
+  if (!isAcceptablePortalToken(token)) return clientLinkNotFound("/api/client/[token]/messages", token);
   const contact = await resolveContact(token);
-  if (!contact) return clientLinkNotFound();
+  if (!contact) return clientLinkNotFound("/api/client/[token]/messages", token);
 
   const body = await req.json().catch(() => null) as ClientMessageRequestBody | null;
   if (!body || typeof body !== "object" || Array.isArray(body)) {
@@ -81,7 +81,7 @@ export async function POST(req: Request, { params }: Props) {
     if (!associatedId) continue;
     const { data: row } = await sb.from(table).select("id, business_unit")
       .eq("id", associatedId).eq("contact_id", contact.id).eq("business_unit", "CC").maybeSingle();
-    if (!row || row.business_unit !== "CC") return clientLinkNotFound();
+    if (!row || row.business_unit !== "CC") return clientLinkNotFound("/api/client/[token]/messages", token);
   }
   const { data: msg, error } = await sb
     .from("client_messages")

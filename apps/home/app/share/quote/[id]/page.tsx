@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
-import { verifyClientLink } from "@/lib/client-link-token";
+import { verifyClientLink, recordClientLinkRejected } from "@/lib/client-link-token";
 import { clientLinkPageAllowed } from "@/lib/client-link-rate-limit";
 import { QuoteShareClient } from "./quote-share-client";
 
@@ -31,8 +31,8 @@ function normalizeTerms(value: unknown): TermSection[] {
 export default async function ShareQuotePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ t?: string }> }) {
   const { id } = await params;
   const { t } = await searchParams;
-  if (!await clientLinkPageAllowed("app/share/quote/[id]")) notFound();
-  if (!verifyClientLink(t, "quote", id)) notFound();
+  if (!await clientLinkPageAllowed("app/share/quote/[id]")) { recordClientLinkRejected("/share/quote/[id]", id); notFound(); }
+  if (!verifyClientLink(t, "quote", id)) { recordClientLinkRejected("/share/quote/[id]", id); notFound(); }
   const sb = getSupabase();
 
   /* Fetch quote data — use only columns guaranteed to exist, then try extended columns */
@@ -43,7 +43,7 @@ export default async function ShareQuotePage({ params, searchParams }: { params:
     .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote || quote.business_unit !== "CC") notFound();
+  if (!quote || quote.business_unit !== "CC") { recordClientLinkRejected("/share/quote/[id]", id); notFound(); }
 
   /* Extract terms from payload if available */
   let terms: TermSection[] = [];
