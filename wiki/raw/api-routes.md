@@ -1,13 +1,13 @@
 ---
 title: API Routes
 created: 2026-04-30
-updated: 2026-05-01
+updated: 2026-10-08
 tags: [api, backend, routes, nextjs]
 ---
 
 ## Summary
 
-The Content Co-op API surface consists of 40+ route handlers in `apps/home/app/api/`. Routes are organized by domain: auth, briefs, client, root, media, quotes, invoices, webhooks, and operations.
+The Content Co-op API surface consists of 40+ route handlers in `apps/home/app/api/`. Routes are organized by domain: auth, briefs, client, os, media, quotes, invoices, webhooks, and operations.
 
 ## Route Organization
 
@@ -32,16 +32,10 @@ app/api/
 ├── client/
 │   ├── [token]/route.ts            # Portal data
 │   ├── [token]/messages/route.ts
-│   ├── portal/route.ts
-│   ├── quote/[id]/route.ts
 │   ├── quote/[id]/accept/route.ts
 │   ├── quote/[id]/pay/route.ts
 │   ├── quote/[id]/pay/confirm/route.ts
-│   ├── estimate/[id]/route.ts
-│   ├── estimate/[id]/decision/route.ts
-│   ├── invoice/[id]/route.ts
-│   ├── invoice/[id]/pay/route.ts
-│   └── invoice/[id]/pay/confirm/route.ts
+│   └── invoice/[id]/pay/route.ts   # X2 deferred SF5 closure; do not use
 ├── cron/invoice-reminders/route.ts
 ├── dashboard/route.ts
 ├── health/route.ts
@@ -62,7 +56,7 @@ app/api/
 │   ├── [id]/convert/route.ts
 │   ├── [id]/pdf/route.ts
 │   └── [id]/preview/route.ts
-├── root/
+├── os/
 │   ├── login/route.ts
 │   ├── overview/route.ts
 │   ├── contacts/... (list, detail, timeline, relationships, enrich, import, merge, score)
@@ -97,7 +91,7 @@ app/api/
 
 ## Auth Patterns
 
-- **Public routes**: No auth required (`/api/briefs`, `/api/cco/*`, `/api/client/*`)
+- **Client/share routes**: Record capabilities or acceptable portal tokens are required before CC-only reads. The legacy quote acceptance endpoint requires an operator session. X2 closure is deferred to SF5 on this base. Other intake routes retain their existing policies.
 - **CCO OS routes**: CCO OS session cookie required (`/api/os/*`)
 - **Webhook routes**: Signature validation (`/api/webhooks/stripe`)
 
@@ -114,3 +108,11 @@ All API routes return JSON with consistent error shaping:
 - [[types-system]] — TypeScript contracts
 - [[firebase-integration]] — CCO backend
 - [[stripe-integration]] — Payment webhooks
+
+## Client links (S2, 2026-10-08)
+
+CCO-DB resources are served only when business_unit is exactly CC; null is not CC. Quote/invoice links use record-typed, signed `cl1` capabilities in `?t=`, capped at 30 days. Bare IDs and invalid, expired or wrong-type links return the same 404 and a static service@contentco-op.com contact link. Tokens are verified before data access. `/client/portal` and `/api/client/portal` remain closed; `/client/[token]` requires at least 32 URL-safe characters and the entropy sanity check.
+
+Operator copy/open/send requests a new link through the permission-gated share-link action; ordinary read endpoints and public pages do not mint it. The operator-triggered invoice reminder issues a signed URL and skips non-CC/null invoices. Portal row links and Stripe cancel links last seven days. Stripe success uses the static, no-data payment acknowledgement. Portal responses use share_url rather than a raw Stripe link. Quote pay and confirmation forward x-client-link.
+
+Deployment is outside this source packet: merge after SF5 and the approved batch publish. Provision the runtime-owned regular key file (0600) at the absolute expansion of `~/.config/blaze-secrets/cco-website/client-link.key`; configure CCO_CLIENT_LINK_KEY_FILE as a path only. See docs/CCO_CLIENT_LINK_DEPLOYMENT.md for the operator handoff. First key signs; all listed keys verify. Rotate yearly or on suspected leak as policy; actual rotation requires Bailey approval. Remove the retired environment signing secret in that approved window and restart. Bailey may re-send open-item links from CCO OS after deployment; no automatic re-send is authorized here. No migration is needed. Hashing portal tokens at rest is a separate packet.

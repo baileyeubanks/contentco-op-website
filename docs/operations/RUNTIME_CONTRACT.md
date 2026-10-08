@@ -88,7 +88,7 @@ Repo-local checks cover:
 3. public route source presence
 4. runtime env readiness
 5. creative brief intake readiness
-6. dependency reachability when `scope=full`
+6. dependency reachability when `scope=full` (operator-only via `/api/os/health?scope=full`; the public `/api/health` always runs the local scope and ignores `scope=full`)
 
 ## Smoke Expectations
 

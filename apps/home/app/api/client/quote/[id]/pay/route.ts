@@ -1,3 +1,5 @@
+import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
@@ -11,19 +13,13 @@ import { resolveFrozenDepositAmountCents } from "@/lib/os-estimate-versions";
  * Returns the client secret for the PaymentElement.
  */
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const stripe = getStripe();
-
-  if (!stripe) {
-    return NextResponse.json(
-      { error: "Payment processing is not configured" },
-      { status: 503 }
-    );
-  }
-
+  const limited = clientLinkRateLimit(req, "client/quote/[id]/pay");
+  if (limited) return limited;
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/client/quote/[id]/pay", id);
   const sb = getSupabase();
 
   /* Fetch quote */
@@ -33,10 +29,18 @@ export async function POST(
       "id, quote_number, client_name, client_email, deposit_amount_cents, deposit_status, agreement_accepted, contact_id, business_unit"
     )
     .eq("id", id)
+    .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote) {
-    return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
+
+  const stripe = getStripe();
+
+  if (!stripe) {
+    return NextResponse.json(
+      { error: "Payment processing is not configured" },
+      { status: 503 }
+    );
   }
 
   if (quote.deposit_status === "paid") {
@@ -53,14 +57,12 @@ export async function POST(
     );
   }
 
-  const amountResolution = await resolveFrozenDepositAmountCents(sb, id);
+  const { data: ccEstimate } = await sb.from("estimates").select("id, business_unit")
+    .eq("legacy_quote_id", id).eq("business_unit", "CC").maybeSingle();
+  if (!ccEstimate || ccEstimate.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
+  const amountResolution = await resolveFrozenDepositAmountCents(sb, id, "CC");
 
-  if (amountResolution.error === "quote_not_migrated_to_estimate") {
-    return NextResponse.json(
-      { error: "quote_not_migrated_to_estimate" },
-      { status: 409 }
-    );
-  }
+  if (amountResolution.error === "not_found" || amountResolution.error === "quote_not_migrated_to_estimate") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
 
   // Fail closed: no frozen version means no trustworthy amount — the old
   // hardcoded 15000-cent fallback is gone on purpose.
@@ -72,14 +74,20 @@ export async function POST(
   }
 
   const estimateId = String(amountResolution.estimateId);
+  const { data: estimate } = await sb.from("estimates").select("id, business_unit")
+    .eq("id", estimateId).eq("business_unit", "CC").maybeSingle();
+  if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
 
-  const invoiceResult = await convertEstimateToDepositInvoice({ estimateId });
+  const invoiceResult = await convertEstimateToDepositInvoice({ estimateId, businessUnit: "CC" });
+  if (invoiceResult.error === "not_found") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
   if (invoiceResult.error || !invoiceResult.invoice) {
     return NextResponse.json(
-      { error: invoiceResult.error || "deposit_invoice_missing" },
+      { error: "payment_failed" },
       { status: 400 }
     );
   }
+
+  if (invoiceResult.invoice.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/pay", id);
 
   // The Stripe amount must equal the invoice the webhook settles; the invoice
   // is itself minted from the same frozen version, so any divergence is a bug
@@ -104,7 +112,7 @@ export async function POST(
         estimate_version_id: amountResolution.estimateVersionId ?? "",
         invoice_id: String(invoiceResult.invoice.id),
         contact_id: quote.contact_id ?? "",
-        business_unit: quote.business_unit ?? "ACS",
+        business_unit: quote.business_unit,
         type: "estimate_deposit",
       },
       description: `Deposit for Quote #${quote.quote_number} — ${quote.client_name}`,
@@ -119,11 +127,10 @@ export async function POST(
       amount_cents: amountCents,
     });
   } catch (err) {
-    console.error("[client/quote/pay] Stripe error:", err);
+
     return NextResponse.json(
       {
-        error:
-          err instanceof Error ? err.message : "Failed to create payment intent",
+        error: "payment_failed",
       },
       { status: 500 }
     );

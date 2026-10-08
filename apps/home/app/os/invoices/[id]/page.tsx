@@ -1,3 +1,4 @@
+import { InvoiceShareActions } from "./invoice-share-actions";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -67,24 +68,7 @@ export default async function RootInvoiceDetailPage({
   const invoice = detail.invoice;
   const previewUrl = `${origin}/api/os/invoices/${invoice.id}/preview`;
   const pdfUrl = `${origin}/api/os/invoices/${invoice.id}/pdf`;
-  const sharePageUrl = `${origin}/share/invoice/${invoice.id}`;
   const payLinkUrl = invoice.stripe_payment_link || "";
-  const shareLinkUrl = payLinkUrl || sharePageUrl;
-  const sendMailHref = invoice.contact_email
-    ? `mailto:${invoice.contact_email}?subject=${sanitizeMailtoValue(
-        `${invoice.invoice_number || "Invoice"} from ${brand.key === "acs" ? "Astro Cleanings" : "Content Co-op"}`,
-      )}&body=${sanitizeMailtoValue(
-        [
-          `Hi ${invoice.contact_name || "there"},`,
-          "",
-          `Your invoice ${invoice.invoice_number || invoice.id.slice(0, 8)} is ready.`,
-          payLinkUrl ? `Pay online: ${payLinkUrl}` : `Preview: ${previewUrl}`,
-          `PDF: ${pdfUrl}`,
-          "",
-          "Reply here if you need anything adjusted.",
-        ].join("\n"),
-      )}`
-    : null;
   const readinessFlags = [
     invoice.line_items.length === 0 ? "missing line items" : null,
     !invoice.stripe_payment_link ? "payment link missing" : null,
@@ -141,11 +125,7 @@ export default async function RootInvoiceDetailPage({
             ) : (
               <GeneratePayLinkButton invoiceId={invoice.id} className="os-atlas-button os-atlas-button-primary" />
             )}
-            <CopyLinkButton href={sharePageUrl} className="os-atlas-button os-atlas-button-secondary" label="copy share link" />
-            <a href={sharePageUrl} target="_blank" rel="noreferrer" className="os-atlas-button os-atlas-button-secondary">open share page</a>
-            {sendMailHref ? (
-              <a href={sendMailHref} className="os-atlas-button os-atlas-button-secondary">send / resend</a>
-            ) : null}
+            <InvoiceShareActions invoiceId={invoice.id} clientEmail={invoice.contact_email} clientName={invoice.contact_name} invoiceNumber={invoice.invoice_number} />
             {invoice.source_quote?.id ? (
               <Link href={`/os/quotes/${invoice.source_quote.id}`} className="os-atlas-button os-atlas-button-secondary">open source quote</Link>
             ) : null}

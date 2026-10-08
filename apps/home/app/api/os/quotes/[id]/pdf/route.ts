@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { readCanonicalQuotePdf } from "@/lib/os-document-authority";
+import { renderClientDocumentPdf } from "@/lib/client-document";
 import { renderDocumentPdfBuffer } from "@/lib/os-document-artifacts";
 import {
   buildEstimateVersionArtifactPayload,
@@ -8,7 +8,8 @@ import {
 } from "@/lib/os-estimate-versions";
 import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { verifyShareToken } from "@/lib/share-token";
+import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
@@ -20,10 +21,13 @@ export async function GET(
 ) {
   const { id } = await context.params;
 
-  /* Public share pages link this route with a signed share token (?token=);
+  /* Public share pages link this route with a signed share token (?t=);
      everyone else needs the internal policy. */
-  const shareToken = new URL(req.url).searchParams.get("token");
-  if (!verifyShareToken(shareToken, id)) {
+  const limited = clientLinkRateLimit(req, "os/quotes/pdf");
+  if (limited) return limited;
+  const shareToken = readClientLink(req);
+  if (!verifyClientLink(shareToken, "quote", id)) {
+    if (shareToken) return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
     const access = await enforceRoutePolicy(
       createRoutePolicy({
         id: "root.quotes.pdf",
@@ -33,7 +37,7 @@ export async function GET(
         tenantBoundary: "internal_workspace",
       }),
     );
-    if (!access.ok) return access.response;
+    if (!access.ok) return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
   }
 
   const scope = getRootBusinessScopeFromRequest(req);
@@ -42,24 +46,21 @@ export async function GET(
     .from("quotes")
     .select("id,quote_number,client_name,business_unit,payload")
     .eq("id", id)
+    .eq("business_unit", "CC")
     .maybeSingle();
 
-  if (error || !quote) {
-    return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
-  }
+  if (error || !quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
 
   const quoteScope = String(quote.business_unit || "").trim().toUpperCase() || null;
   if (scope && quoteScope !== scope) {
-    return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
+    return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
   }
 
   const filename = `${quote.quote_number || `quote-${id.slice(0, 8)}`}-${String(quote.client_name || "draft").replace(/\s+/g, "_")}.pdf`;
 
   // Frozen-version path: when the bridged estimate has been sent, render from
   // the immutable snapshot (task 2.5) instead of shelling out to the
-  // machine-local live-row renderer. The canonical script
-  // (os-document-authority.ts) reads live DB rows, so it stays the fallback
-  // for legacy quotes that have no frozen version.
+  // live-row renderer. Legacy quotes use the CC-scoped local artifact helper.
   // Bridge note: the estimate↔quote link is dual — quotes.payload.estimate_id
   // (used here) and estimates.legacy_quote_id (used by the pay/edit guards).
   // Both are written together at estimate creation; keep them intact.
@@ -67,16 +68,21 @@ export async function GET(
   if (estimateId) {
     const { data: estimate } = await sb
       .from("estimates")
-      .select("id, active_version_id")
+      .select("id, active_version_id, business_unit")
       .eq("id", estimateId)
+      .eq("business_unit", "CC")
       .maybeSingle();
-    if (estimate?.active_version_id) {
+    if (!estimate || estimate.business_unit !== "CC") return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
+    if (estimate.active_version_id) {
       const { data: versionRow } = await sb
         .from("estimate_versions")
         .select("snapshot, version")
         .eq("id", estimate.active_version_id)
+        .eq("estimate_id", estimateId)
         .maybeSingle();
       if (versionRow?.snapshot) {
+        const snapshot = versionRow.snapshot as EstimateVersionSnapshot;
+        if (snapshot.estimate?.business_unit !== "CC") return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
         const payload = buildEstimateVersionArtifactPayload(versionRow.snapshot as EstimateVersionSnapshot);
         const pdf = await renderDocumentPdfBuffer(payload);
         return new NextResponse(new Uint8Array(pdf), {
@@ -91,9 +97,10 @@ export async function GET(
     }
   }
 
-  // Legacy fallback: quote never bridged/frozen — machine-local live renderer.
-  const pdf = await readCanonicalQuotePdf(id);
-  return new NextResponse(pdf, {
+  // Legacy quote: render from a fresh, explicitly scoped CC-only row.
+  const pdf = await renderClientDocumentPdf("quote", id).catch(() => null);
+  if (!pdf) return clientLinkNotFound("/api/os/quotes/[id]/pdf", id);
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "content-type": "application/pdf",
       "content-disposition": `inline; filename="${filename}"`,

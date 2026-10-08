@@ -1,3 +1,6 @@
+import { clientLinkNotFound } from "@/lib/client-link-token";
+import { isAcceptablePortalToken } from "@/lib/portal-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
@@ -23,39 +26,43 @@ function asNullableString(value: unknown) {
  */
 
 async function resolveContact(token: string) {
+  if (!isAcceptablePortalToken(token)) return null;
   const sb = getSupabase();
   const { data } = await sb
     .from("contacts")
-    .select("id")
+    .select("id, business_unit")
     .eq("portal_token", token)
+    .eq("business_unit", "CC")
     .maybeSingle();
-  return data;
+  return data?.business_unit === "CC" ? data : null;
 }
 
-export async function GET(_req: Request, { params }: Props) {
+export async function GET(req: Request, { params }: Props) {
   const { token } = await params;
+  const limited = clientLinkRateLimit(req, "client/portal-messages");
+  if (limited) return limited;
+  if (!isAcceptablePortalToken(token)) return clientLinkNotFound("/api/client/[token]/messages", token);
   const contact = await resolveContact(token);
-  if (!contact) {
-    return NextResponse.json({ error: "invalid_token" }, { status: 404 });
-  }
+  if (!contact) return clientLinkNotFound("/api/client/[token]/messages", token);
 
   const sb = getSupabase();
   const { data: messages } = await sb
     .from("client_messages")
-    .select("id, contact_id, quote_id, invoice_id, sender, body, created_at")
+    .select("id, sender, body, created_at")
     .eq("contact_id", contact.id)
     .order("created_at", { ascending: true })
     .limit(100);
 
-  return NextResponse.json({ messages: messages || [] });
+  return NextResponse.json({ messages: (messages || []).map(row => ({ id: row.id, sender: row.sender, body: row.body, created_at: row.created_at })) });
 }
 
 export async function POST(req: Request, { params }: Props) {
   const { token } = await params;
+  const limited = clientLinkRateLimit(req, "client/portal-messages");
+  if (limited) return limited;
+  if (!isAcceptablePortalToken(token)) return clientLinkNotFound("/api/client/[token]/messages", token);
   const contact = await resolveContact(token);
-  if (!contact) {
-    return NextResponse.json({ error: "invalid_token" }, { status: 404 });
-  }
+  if (!contact) return clientLinkNotFound("/api/client/[token]/messages", token);
 
   const body = await req.json().catch(() => null) as ClientMessageRequestBody | null;
   if (!body || typeof body !== "object" || Array.isArray(body)) {
@@ -70,6 +77,12 @@ export async function POST(req: Request, { params }: Props) {
   }
 
   const sb = getSupabase();
+  for (const [table, associatedId] of [["quotes", quoteId], ["invoices", invoiceId]] as const) {
+    if (!associatedId) continue;
+    const { data: row } = await sb.from(table).select("id, business_unit")
+      .eq("id", associatedId).eq("contact_id", contact.id).eq("business_unit", "CC").maybeSingle();
+    if (!row || row.business_unit !== "CC") return clientLinkNotFound("/api/client/[token]/messages", token);
+  }
   const { data: msg, error } = await sb
     .from("client_messages")
     .insert({
@@ -83,8 +96,8 @@ export async function POST(req: Request, { params }: Props) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "message_failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, message: msg }, { status: 201 });
+  return NextResponse.json({ ok: true, message: msg ? { id: msg.id, sender: msg.sender, body: msg.body, created_at: msg.created_at } : null }, { status: 201 });
 }

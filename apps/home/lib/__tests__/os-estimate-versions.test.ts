@@ -359,3 +359,15 @@ describe("snapshot builder (pure)", () => {
     expect(hashEstimateVersionSnapshot(snapshot)).toBe(hashEstimateVersionSnapshot(again));
   });
 });
+
+describe("public CC frozen data scope",()=>{
+ test.each(["ACS",null])("rejects %s frozen estimate before invoice creation or amount return",async unit=>{
+  seedEstimateDraft();await freezeViaSend();const version=fake.store.get("estimate_versions")![0];
+  (version.snapshot as EstimateVersionSnapshot).estimate.business_unit=unit as never;
+  const converted=await convertEstimateToDepositInvoice({estimateId:ESTIMATE_ID,businessUnit:"CC"});expect(converted).toEqual({invoice:null,error:"not_found"});expect(fake.store.get("invoices")||[]).toHaveLength(0);
+  const amount=await resolveFrozenDepositAmountCents(fake.client as never,QUOTE_ID,"CC");expect(amount.error).toBe("not_found");expect(amount.amountCents).toBeNull();
+ });
+ test("valid CC frozen estimate creates only a CC deposit invoice",async()=>{
+  seedEstimateDraft();await freezeViaSend();const converted=await convertEstimateToDepositInvoice({estimateId:ESTIMATE_ID,businessUnit:"CC"});expect(converted.error).toBeNull();expect(converted.invoice?.business_unit).toBe("CC");expect(converted.invoice?.amount_due_cents).toBe(250000);
+ });
+});

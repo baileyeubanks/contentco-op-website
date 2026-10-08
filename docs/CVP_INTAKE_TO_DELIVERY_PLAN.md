@@ -234,9 +234,11 @@ the public range come from one place.
   `client.contentco-op.com` (already modelled in Co-VideoPro). Identity joins
   on `contacts.cco_public_email_key`, so a brief submitted anonymously becomes
   the client's first project when they claim the account.
-- **Closed in this PR:** `/client/portal` and `GET /api/client/portal` resolve a
-  contact only from `contacts.portal_token` (minimum 16 characters). A bare
-  `?email=` is ignored, and the email form routes to `/book` for a fresh link.
+- **Closed in this PR:** `/client/portal` resolves a contact only from
+  `contacts.portal_token` (minimum 16 characters). A bare `?email=` is ignored,
+  and the email form routes to `/book` for a fresh link.
+- **Removed (G2, 2026-10-08):** `GET /api/client/portal` is deleted again,
+  matching live since Sep 9 (190cb8b, CCO-ROUTE-GATE-001).
 
 ---
 
@@ -263,7 +265,7 @@ them.
 |---|---|---|
 | `system-sync` (**public**) | `blaze/openclaw/openclaw.json` commits Telegram bot tokens and a gateway token | make private now, confirm revocation, then delete after salvaging audit docs |
 | `root` | commits the CCO-DB service-role JWT (`netlify.toml`, `scripts/import_statements.py`) | rotate the key in Supabase, then archive |
-| `contentco-op-website` | `GET /api/client/portal?email=` unauthenticated | fail closed |
+| `contentco-op-website` | `GET /api/client/portal?email=` unauthenticated | route deleted (190cb8b on live; G2 PR on main) |
 | CCO-DB | RLS disabled on `projects`, `assets`, `folders` | enable with policies before client accounts |
 
 ### 8.2 Keep
@@ -323,3 +325,11 @@ End state: 6 active repos.
 3. Does Co-Script survive as a lane inside CVP, or is it archived?
 4. Who else is on the operator alert roster besides you?
 5. Forward the Mane Media thread so §7 can be completed.
+
+## Client links (S2, 2026-10-08)
+
+CCO-DB resources are served only when business_unit is exactly CC; null is not CC. Quote/invoice links use record-typed, signed `cl1` capabilities in `?t=`, capped at 30 days. Bare IDs and invalid, expired or wrong-type links return the same 404 and a static service@contentco-op.com contact link. Tokens are verified before data access. `/client/portal` and `/api/client/portal` remain closed; `/client/[token]` requires at least 32 URL-safe characters and the entropy sanity check.
+
+Operator copy/open/send requests a new link through the permission-gated share-link action; ordinary read endpoints and public pages do not mint it. The operator-triggered invoice reminder issues a signed URL and skips non-CC/null invoices. Portal row links and Stripe cancel links last seven days. Stripe success uses the static, no-data payment acknowledgement. Portal responses use share_url rather than a raw Stripe link. Quote pay and confirmation forward x-client-link.
+
+Deployment is outside this source packet: merge after SF5 and the approved batch publish. Provision a runtime-owned regular key file (0600) and configure CCO_CLIENT_LINK_KEY_FILE as a path only. First key signs; all listed keys verify. Rotate yearly or on suspected leak as policy; actual rotation requires Bailey approval. Remove the retired environment signing secret in that approved window and restart. Bailey may re-send open-item links from CCO OS after deployment; no automatic re-send is authorized here. No migration is needed. Hashing portal tokens at rest is a separate packet.

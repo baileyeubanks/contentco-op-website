@@ -114,7 +114,7 @@ export async function GET(req: Request) {
       preview_url: `/api/os/invoices/${invoice.id}/preview`,
       pdf_url: `/api/os/invoices/${invoice.id}/pdf`,
       payment_link_url: invoice.stripe_payment_link || null,
-      share_link_url: invoice.stripe_payment_link || `/share/invoice/${invoice.id}`,
+      share_link_url: null,
       document_readiness: invoice.quote_id || Number(invoice.total || invoice.amount || 0) > 0 ? "preview_ready" : "not_ready",
     })),
   });
@@ -144,7 +144,7 @@ export async function POST(req: Request) {
   const clientName = asNullableString(body.client_name);
   const clientEmail = asNullableString(body.client_email);
   const clientPhone = asNullableString(body.client_phone);
-  const businessUnit = asString(body.business_unit, "ACS");
+  const businessUnit = asString(body.business_unit, "CC");
   const businessId = asNullableString(body.business_id);
   const contactId = asNullableString(body.contact_id);
   const dueDate = asNullableString(body.due_date);

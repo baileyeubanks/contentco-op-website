@@ -47,14 +47,9 @@ const PUBLIC_ROUTE_ALLOWLIST: Record<string, string> = {
   "app/api/chat/route.ts": "Public site chat.",
   "app/api/client/[token]/messages/route.ts": "Portal-token client messages.",
   "app/api/client/[token]/route.ts": "Portal-token client workspace.",
-  "app/api/client/portal/route.ts": "Opaque portal-token client workspace; email/contact ID are not capabilities.",
-  "app/api/client/estimate/[id]/route.ts": "Public client estimate display.",
-  "app/api/client/invoice/[id]/pay/confirm/route.ts": "Public invoice payment confirmation.",
   "app/api/client/invoice/[id]/pay/route.ts": "Public invoice payment session creation.",
-  "app/api/client/invoice/[id]/route.ts": "Public client invoice display.",
   "app/api/client/quote/[id]/pay/confirm/route.ts": "Public quote payment confirmation.",
   "app/api/client/quote/[id]/pay/route.ts": "Public quote payment session creation.",
-  "app/api/client/quote/[id]/route.ts": "Public client quote display.",
   "app/api/cron/brief-progress-reminders/route.ts": "Cron-secret authenticated reminder trigger.",
   "app/api/cron/invoice-reminders/route.ts": "Cron-secret authenticated reminder trigger.",
   "app/api/health/route.ts": "Public health probe.",
@@ -66,7 +61,7 @@ const PUBLIC_ROUTE_ALLOWLIST: Record<string, string> = {
   "app/api/runtime-proof/route.ts": "Public release identity proof.",
   "app/api/share/quote/[id]/accept/route.ts": "Share-token quote acceptance.",
   "app/api/share/quote/[id]/comment/route.ts": "Share-token quote comments.",
-  "app/api/share/quote/[id]/view/route.ts": "Public quote-view telemetry.",
+  "app/api/share/quote/[id]/view/route.ts": "Typed CC-only quote-view telemetry.",
   "app/api/webhooks/stripe/route.ts": "Stripe-signature authenticated webhook.",
 };
 
@@ -237,6 +232,7 @@ const RETIRED_LEGACY_ROUTES = [
   ["quote PDF POST", "app/api/quotes/[id]/pdf/route.ts"],
   ["quote preview POST", "app/api/quotes/[id]/preview/route.ts"],
   ["client estimate decision POST", "app/api/client/estimate/[id]/decision/route.ts"],
+  ["client portal GET", "app/api/client/portal/route.ts"],
 ] as const;
 
 describe("retired legacy methods cannot expose handlers", () => {
@@ -318,7 +314,7 @@ if (process.env.VITEST) {
     { GET: quotePreviewGET },
     { POST: quoteViewsPOST },
     { POST: quoteCommentPOST },
-    { signShareToken },
+    { signClientLink },
     { GET: legacyQuotesGET, POST: legacyQuotesPOST },
     { GET: legacyQuoteGET, PATCH: legacyQuotePATCH },
     { POST: legacyQuoteConvertPOST },
@@ -326,7 +322,6 @@ if (process.env.VITEST) {
     { POST: legacyDispatchPOST },
     { GET: legacyCrewGET },
     { POST: legacyCrewOverridePOST },
-    { GET: portalGET },
   ] = await Promise.all([
     importTypeScriptModule("../../app/api/os/finance/overview/route.ts"),
     importTypeScriptModule("../../app/api/os/contacts/route.ts"),
@@ -344,11 +339,9 @@ if (process.env.VITEST) {
     importTypeScriptModule("../../app/api/operations/dispatch/route.ts"),
     importTypeScriptModule("../../app/api/operations/crew/route.ts"),
     importTypeScriptModule("../../app/api/operations/crew/override/route.ts"),
-    importTypeScriptModule("../../app/api/client/portal/route.ts"),
   ]);
 
-  const QUOTE_ID = "4d2f0b7e-9c1a-4e2b-b7a1-0f3c5d6e7a8b";
-  const savedSecret = process.env.QUOTE_SHARE_SECRET;
+  const QUOTE_ID = "00000000-0000-4000-8000-0000000000a1";
 
   function getRequest(urlPath: string, init?: RequestInit) {
     return new Request(`https://admin.contentco-op.com${urlPath}`, init);
@@ -364,14 +357,9 @@ if (process.env.VITEST) {
     requestHost = "admin.contentco-op.com";
     dataAllowed = false;
     tableResult = null;
-    process.env.QUOTE_SHARE_SECRET = "test-share-secret";
     supabaseResult = { data: { id: QUOTE_ID, business_unit: "CC" }, error: null };
   });
 
-  afterEach(() => {
-    if (savedSecret === undefined) delete process.env.QUOTE_SHARE_SECRET;
-    else process.env.QUOTE_SHARE_SECRET = savedSecret;
-  });
 
   describe("runtime: unauthenticated guarded API calls fail closed", () => {
     const cases: Array<[string, () => Promise<Response>]> = [
@@ -416,31 +404,31 @@ if (process.env.VITEST) {
       }
     }
 
-    test("os quote preview without token -> 401", async () => {
+    test("os quote preview without token -> 404", async () => {
       const res = await quotePreviewGET(
         getRequest(`/api/os/quotes/${QUOTE_ID}/preview`),
         quoteContext(),
       );
-      expect(res.status).toBe(401);
+      expect(res.status).toBe(404);
     });
 
     test("os quote preview with a valid share token -> 200", async () => {
       dataAllowed = true;
-      const token = signShareToken(QUOTE_ID)!;
+      const token = signClientLink("quote", QUOTE_ID)!;
       const res = await quotePreviewGET(
-        getRequest(`/api/os/quotes/${QUOTE_ID}/preview?token=${encodeURIComponent(token)}`),
+        getRequest(`/api/os/quotes/${QUOTE_ID}/preview?t=${encodeURIComponent(token)}`),
         quoteContext(),
       );
       expect(res.status).toBe(200);
       expect(res.headers.get("content-type")).toContain("text/html");
     });
 
-    test("os quote preview with a tampered token -> 401", async () => {
+    test("os quote preview with a tampered token -> 404", async () => {
       const res = await quotePreviewGET(
-        getRequest(`/api/os/quotes/${QUOTE_ID}/preview?token=${QUOTE_ID}.9999999999.deadbeef`),
+        getRequest(`/api/os/quotes/${QUOTE_ID}/preview?t=${QUOTE_ID}.9999999999.deadbeef`),
         quoteContext(),
       );
-      expect(res.status).toBe(401);
+      expect(res.status).toBe(404);
     });
 
     test("os quote views POST -> 401", async () => {
@@ -451,7 +439,7 @@ if (process.env.VITEST) {
       expect(res.status).toBe(401);
     });
 
-    test("share comment POST without token -> 401", async () => {
+    test("share comment POST without token -> 404", async () => {
       const res = await quoteCommentPOST(
         getRequest(`/api/share/quote/${QUOTE_ID}/comment`, {
           method: "POST",
@@ -460,14 +448,14 @@ if (process.env.VITEST) {
         }),
         quoteContext(),
       );
-      expect(res.status).toBe(401);
-      expect((await res.json()).error).toBe("invalid_share_token");
+      expect(res.status).toBe(404);
+      expect((await res.json()).error).toBe("not_found");
     });
 
-    test("share comment POST with a tampered token -> 401", async () => {
+    test("share comment POST with a tampered token -> 404", async () => {
       const res = await quoteCommentPOST(
         getRequest(
-          `/api/share/quote/${QUOTE_ID}/comment?token=${QUOTE_ID}.9999999999.deadbeef`,
+          `/api/share/quote/${QUOTE_ID}/comment?t=${QUOTE_ID}.9999999999.deadbeef`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -476,19 +464,19 @@ if (process.env.VITEST) {
         ),
         quoteContext(),
       );
-      expect(res.status).toBe(401);
+      expect(res.status).toBe(404);
     });
 
     test("share comment POST with a valid share token -> 201", async () => {
       dataAllowed = true;
       supabaseResult = {
-        data: { id: "c1", sender: "client", body: "hello", created_at: "2026-08-11T00:00:00Z" },
+        data: { id: "c1", business_unit: "CC", sender: "client", body: "hello", created_at: "2026-08-11T00:00:00Z" },
         error: null,
       };
-      const token = signShareToken(QUOTE_ID)!;
+      const token = signClientLink("quote", QUOTE_ID)!;
       const res = await quoteCommentPOST(
         getRequest(
-          `/api/share/quote/${QUOTE_ID}/comment?token=${encodeURIComponent(token)}`,
+          `/api/share/quote/${QUOTE_ID}/comment?t=${encodeURIComponent(token)}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -516,40 +504,6 @@ if (process.env.VITEST) {
       const res = await legacyQuotesGET(getRequest("/api/quotes"));
       expect(res.status).toBe(403);
       expect(databaseAccess).not.toHaveBeenCalled();
-    });
-
-    for (const query of ["", "?email=client%40fixture.test", "?contact_id=fixture-contact", "?token=short"]) {
-      test(`newer portal rejects non-capability lookup ${query} before service-role access`, async () => {
-        const { NextRequest } = await import("next/server");
-        const res = await portalGET(new NextRequest(`https://contentco-op.com/api/client/portal${query}`));
-        expect(res.status).toBe(401);
-        expect(serviceClientAccess).not.toHaveBeenCalled();
-        expect(databaseAccess).not.toHaveBeenCalled();
-      });
-    }
-
-    test("newer portal checks an invalid opaque token without returning contact data", async () => {
-      dataAllowed = true;
-      supabaseResult = { data: [], error: null };
-      const { NextRequest } = await import("next/server");
-      const res = await portalGET(new NextRequest("https://contentco-op.com/api/client/portal?token=invalid-fixture-token"));
-      expect(res.status).toBe(404);
-      expect((await res.json()).error).toBe("invalid_token");
-      expect(databaseAccess).toHaveBeenCalledTimes(1);
-      expect(databaseAccess).toHaveBeenCalledWith("contacts");
-    });
-
-    test("newer token portal remains usable without an operator session", async () => {
-      dataAllowed = true;
-      tableResult = (table) => ({
-        data: table === "contacts" ? [{ id: "fixture-contact", email: "client@fixture.test" }] : [],
-        error: null,
-      });
-      const { NextRequest } = await import("next/server");
-      const res = await portalGET(new NextRequest("https://contentco-op.com/api/client/portal?token=valid-fixture-token"));
-      expect(res.status).toBe(200);
-      expect((await res.json()).contact.id).toBe("fixture-contact");
-      expect(databaseAccess.mock.calls.map(([table]) => table)).toEqual(["contacts", "quotes", "jobs", "invoices"]);
     });
 
   });

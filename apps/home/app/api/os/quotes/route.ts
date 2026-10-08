@@ -76,7 +76,7 @@ export async function GET(req: Request) {
       document_readiness: documentReadiness,
       preview_url: previewUrl,
       pdf_url: pdfUrl,
-      share_link_url: `/share/quote/${quote.id}`,
+      share_link_url: null,
       next_action: nextAction,
       conversion_readiness:
         String(quote.internal_status || "").toLowerCase() === "ready_to_invoice" ||

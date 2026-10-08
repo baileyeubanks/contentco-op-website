@@ -3,7 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createFakeSupabase, type FakeSupabase } from "./helpers/fake-supabase";
-import { verifyShareToken } from "../share-token";
+import { signClientLink, verifyClientLink } from "../client-link-token";
+import { resolveFrozenDepositAmountCents } from "../os-estimate-versions";
 import ClientQuotePage from "../../app/client/quote/[id]/page";
 
 let fake: FakeSupabase;
@@ -13,23 +14,23 @@ vi.mock("@/lib/supabase", () => ({
   supabase: new Proxy({}, { get: (_target, prop) => (fake.client as never as Record<PropertyKey, unknown>)[prop] }),
 }));
 
-import { GET } from "../../app/api/client/quote/[id]/route";
+vi.mock("next/headers",()=>({headers:async()=>new Headers()}));
+vi.mock("next/navigation",()=>({notFound:()=>{throw new Error("NOT_FOUND");}}));
+vi.mock("@/app/client/quote/[id]/quote-client-view",()=>({QuoteClientView:()=>null}));
 
 const QUOTE_ID = "22222222-2222-4222-8222-222222222222";
 const VERSION_ID = "44444444-4444-4444-8444-444444444444";
 const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const savedShareSecret = process.env.QUOTE_SHARE_SECRET;
-
-function callGet() {
-  return GET(new Request(`https://client.contentco-op.com/api/client/quote/${QUOTE_ID}`), {
-    params: Promise.resolve({ id: QUOTE_ID }),
-  });
+async function callGet() {
+ const result=await resolveFrozenDepositAmountCents(fake.client as unknown as Parameters<typeof resolveFrozenDepositAmountCents>[0], QUOTE_ID);
+ return result;
 }
 
 function seedQuote() {
   fake.store.set("quotes", [
     {
       id: QUOTE_ID,
+      business_unit: "CC",
       quote_number: "CC-QT-2026-0007",
       client_name: "Jordan Client",
       deposit_amount_cents: null,
@@ -41,28 +42,22 @@ function seedQuote() {
 
 beforeEach(() => {
   fake = createFakeSupabase();
-  process.env.QUOTE_SHARE_SECRET = "client-quote-fixture-secret";
 });
 
-afterEach(() => {
-  if (savedShareSecret === undefined) delete process.env.QUOTE_SHARE_SECRET;
-  else process.env.QUOTE_SHARE_SECRET = savedShareSecret;
-});
 
 describe("actual server quote page acceptance capability", () => {
   test("passes a token bound to this quote into the rendered client component", async () => {
     seedQuote();
-    const page = await ClientQuotePage({ params: Promise.resolve({ id: QUOTE_ID }) });
-    expect(verifyShareToken(page.props.acceptToken, QUOTE_ID)).toBe(true);
-    expect(verifyShareToken(page.props.acceptToken, VERSION_ID)).toBe(false);
+    const token=signClientLink("quote",QUOTE_ID)!;
+    const page = await ClientQuotePage({ params: Promise.resolve({ id: QUOTE_ID }), searchParams: Promise.resolve({t:token}) });
+    expect(verifyClientLink(page.props.acceptToken, "quote", QUOTE_ID)).toBe(true);
+    expect(verifyClientLink(page.props.acceptToken, "quote", VERSION_ID)).toBe(false);
     expect(page.props.quote.id).toBe(QUOTE_ID);
   });
 
-  test("missing signing configuration gives the client a closed acceptance capability", async () => {
+  test("bare ID never mints or renders a capability", async()=> {
     seedQuote();
-    delete process.env.QUOTE_SHARE_SECRET;
-    const page = await ClientQuotePage({ params: Promise.resolve({ id: QUOTE_ID }) });
-    expect(page.props.acceptToken).toBeNull();
+    await expect(ClientQuotePage({params:Promise.resolve({id:QUOTE_ID}),searchParams:Promise.resolve({})})).rejects.toThrow("NOT_FOUND");
   });
 });
 
@@ -90,13 +85,10 @@ describe("client quote display reads frozen money (review finding 5)", () => {
     ]);
 
     const res = await callGet();
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.quote.deposit_amount_cents).toBe(250000);
-    expect(body.quote.canonical_deposit_due_cents).toBe(250000);
+    expect(res.amountCents).toBe(250000);
   });
 
-  test("no frozen version falls back to the live estimate amount", async () => {
+  test("no frozen version fails closed instead of trusting a live estimate amount", async () => {
     seedQuote();
     fake.store.set("estimates", [
       {
@@ -111,9 +103,8 @@ describe("client quote display reads frozen money (review finding 5)", () => {
     ]);
 
     const res = await callGet();
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.quote.canonical_deposit_due_cents).toBe(12345);
+    expect(res.amountCents).toBeNull();
+    expect(res.error).toBe("estimate_not_frozen");
   });
 });
 
@@ -132,11 +123,12 @@ describe("client quote agreement acceptance route", () => {
       "utf8",
     );
 
-    expect(pageSource).toContain('import { signShareToken } from "@/lib/share-token"');
-    expect(pageSource).toContain("const acceptToken = signShareToken(id)");
+    expect(pageSource).toContain("verifyClientLink");
+    expect(pageSource).not.toContain("signShareToken");
+    expect(pageSource).not.toContain("signClientLink");
     expect(pageSource).toContain("acceptToken={acceptToken}");
     expect(viewSource).toContain("acceptToken={acceptToken}");
-    expect(agreementSource).toContain("/api/share/quote/${quote.id}/accept?token=");
+    expect(agreementSource).toContain("/api/share/quote/${quote.id}/accept?t=");
     expect(agreementSource).not.toContain("/api/client/quote/${quote.id}/accept");
   });
 });

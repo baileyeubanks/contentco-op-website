@@ -1,4 +1,5 @@
 "use client";
+import { copyOperatorClientLink, requestOperatorClientLink } from "@/lib/operator-client-link";
 
 import React from "react";
 import { Phase } from "./phase-editor";
@@ -27,7 +28,7 @@ function CopyShareButton({ quoteId }: { quoteId: string }) {
 
   async function handleCopy() {
     try {
-      const shareUrl = `${window.location.origin}/share/quote/${quoteId}`;
+      const shareUrl = await requestOperatorClientLink("quote", quoteId);
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
@@ -243,7 +244,8 @@ export function SummaryPanel({
             <div style={{ display: "flex", gap: 6 }}>
               <CopyShareButton quoteId={quoteId} />
               <a
-                href={`/share/quote/${quoteId}`}
+                href="#"
+                onClick={(e) => { e.preventDefault(); void requestOperatorClientLink("quote", quoteId).then(url => window.open(url, "_blank", "noopener,noreferrer")); }}
                 target="_blank"
                 rel="noreferrer"
                 style={{

@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef } from "react";
 interface Quote {
   id: string;
   quote_number: string | null;
+  share_url: string | null;
   client_name: string | null;
   estimated_total: number | null;
   business_unit: string | null;
@@ -28,7 +29,7 @@ interface Invoice {
   due_at: string | null;
   created_at: string | null;
   business_unit: string | null;
-  stripe_payment_link: string | null;
+  share_url: string | null;
 }
 
 interface Payment {
@@ -235,14 +236,14 @@ export function ClientPortal({ token, contactName }: Props) {
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                     <a
-                      href={`/share/invoice/${inv.id}`}
+                      href={inv.share_url ?? undefined}
                       style={{ padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: `1px solid ${brandColor}`, color: brandColor, textDecoration: "none", background: "#fff" }}
                     >
                       View Invoice
                     </a>
-                    {inv.stripe_payment_link && String(inv.payment_status || "").toLowerCase() !== "paid" && (
+                    {inv.share_url && String(inv.payment_status || "").toLowerCase() !== "paid" && (
                       <a
-                        href={inv.stripe_payment_link}
+                        href={inv.share_url}
                         style={{ padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 700, border: "none", background: brandColor, color: "#fff", textDecoration: "none" }}
                       >
                         Pay Now
@@ -274,7 +275,7 @@ export function ClientPortal({ token, contactName }: Props) {
                 </div>
                 <div style={{ marginTop: 12 }}>
                   <a
-                    href={`/share/quote/${q.id}`}
+                    href={q.share_url ?? undefined}
                     style={{ padding: "6px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: `1px solid ${brandColor}`, color: brandColor, textDecoration: "none", background: "#fff" }}
                   >
                     View Quote

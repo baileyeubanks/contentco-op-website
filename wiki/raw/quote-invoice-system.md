@@ -1,7 +1,7 @@
 ---
 title: Quote & Invoice System
 created: 2026-04-30
-updated: 2026-05-01
+updated: 2026-10-08
 tags: [root, finance, quotes, invoices, stripe, payments]
 ---
 
@@ -36,7 +36,7 @@ The commercial pipeline manages quotes, invoices, and payments. Quotes are gener
 1. **Generation**: From brief (`lib/creative-brief-quote-draft.ts`) or manual (`/os/quotes/new`)
 2. **Review**: Admin reviews in CCO OS (`/os/quotes/[id]`)
 3. **Send**: Client receives shared link (`/share/quote/[id]`)
-4. **Accept**: Client accepts via `POST /api/client/quote/[id]/accept`
+4. **Accept**: Client accepts via `POST /api/share/quote/[id]/accept` (verified quote capability)
 5. **Convert**: System converts to invoice (`POST /api/quotes/[id]/convert`)
 
 ## Invoice Flow
@@ -85,3 +85,11 @@ Recurring billing is supported via `GET /api/os/invoices/recurring`. Automation 
 - [[stripe-integration]] — Payment processing details
 - [[client-portal]] — Client-facing quote/invoice views
 - [[finance-control]] — Broader finance management
+
+## Client links (S2, 2026-10-08)
+
+CCO-DB resources are served only when business_unit is exactly CC; null is not CC. Quote/invoice links use record-typed, signed `cl1` capabilities in `?t=`, capped at 30 days. Bare IDs and invalid, expired or wrong-type links return the same 404 and a static service@contentco-op.com contact link. Tokens are verified before data access. `/client/portal` and `/api/client/portal` remain closed; `/client/[token]` requires at least 32 URL-safe characters and the entropy sanity check.
+
+Operator copy/open/send requests a new link through the permission-gated share-link action; ordinary read endpoints and public pages do not mint it. The operator-triggered invoice reminder issues a signed URL and skips non-CC/null invoices. Portal row links and Stripe cancel links last seven days. Stripe success uses the static, no-data payment acknowledgement. Portal responses use share_url rather than a raw Stripe link. Quote pay and confirmation forward x-client-link.
+
+Deployment is outside this source packet: merge after SF5 and the approved batch publish. Provision the runtime-owned regular key file (0600) at the absolute expansion of `~/.config/blaze-secrets/cco-website/client-link.key`; configure CCO_CLIENT_LINK_KEY_FILE as a path only. See docs/CCO_CLIENT_LINK_DEPLOYMENT.md for the operator handoff. First key signs; all listed keys verify. Rotate yearly or on suspected leak as policy; actual rotation requires Bailey approval. Remove the retired environment signing secret in that approved window and restart. Bailey may re-send open-item links from CCO OS after deployment; no automatic re-send is authorized here. No migration is needed. Hashing portal tokens at rest is a separate packet.

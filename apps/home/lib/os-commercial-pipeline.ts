@@ -140,13 +140,13 @@ async function upsertWorkflow(input: {
     const { data, error } = await sb
       .from("commercial_workflows")
       .upsert(update, { onConflict: "brief_id" })
-      .select("*")
+      .select("id, business_unit, brief_id, estimate_id, invoice_id, contact_id, current_status, readiness_status, metadata, ready_to_schedule_at, schedule_waiver_approved, schedule_waiver_approval_id, last_transition_at, updated_at")
       .single();
     if (error) throw new Error(error.message);
     return data;
   }
 
-  const { data, error } = await sb.from("commercial_workflows").insert(update).select("*").single();
+  const { data, error } = await sb.from("commercial_workflows").insert(update).select("id, business_unit, brief_id, estimate_id, invoice_id, contact_id, current_status, readiness_status, metadata, ready_to_schedule_at, schedule_waiver_approved, schedule_waiver_approval_id, last_transition_at, updated_at").single();
   if (error) throw new Error(error.message);
   return data;
 }
@@ -722,31 +722,41 @@ export async function recordEstimateDecision(input: {
 export async function convertEstimateToDepositInvoice(input: {
   estimateId: string;
   actorId?: string | null;
+  businessUnit?: "CC";
 }) {
   const sb = getSupabase();
   // Line items live inside the frozen snapshot; only the estimate row is read live.
-  const { estimate, error } = await getEstimateWithLineItems(input.estimateId);
+  const result = input.businessUnit
+    ? await sb.from("estimates").select("id, business_unit, active_version_id, contact_id, legacy_quote_id, brief_id, estimate_number")
+        .eq("id", input.estimateId).eq("business_unit", input.businessUnit).maybeSingle()
+    : null;
+  const { estimate, error } = result ? { estimate: result.data, error: result.error?.message || null }
+    : await getEstimateWithLineItems(input.estimateId);
+  if (input.businessUnit && estimate?.business_unit !== input.businessUnit) return { invoice: null, error: "not_found" };
   if (error || !estimate) return { invoice: null, error: error || "estimate_not_found" };
 
   // Money comes from the frozen version, never the live estimate row.
   if (!estimate.active_version_id) return { invoice: null, error: "estimate_not_frozen" };
   const frozenVersion = await getActiveEstimateVersion(sb, estimate);
   if (!frozenVersion) return { invoice: null, error: "estimate_version_missing" };
+  if (input.businessUnit && frozenVersion.snapshot.estimate?.business_unit !== input.businessUnit) return { invoice: null, error: "not_found" };
 
   // Idempotency is scoped to the ACTIVE version: after a changes_requested →
   // re-send cycle the active version moves, and the stale invoice from the
   // previous version must not be resurrected (it would deadlock the pay
   // route on frozen_amount_mismatch).
-  const existing = await sb
+  let existingQuery = sb
     .from("invoices")
-    .select("*")
+    .select("id, business_unit, contact_id, quote_id, brief_id, estimate_id, estimate_version_id, invoice_number, invoice_type, payment_status, document_status, status, amount_due_cents, amount_paid_cents, balance_due_cents, total, amount, balance_due, due_at, issued_at, line_items, scope_snapshot, pricing_snapshot")
     .eq("estimate_id", input.estimateId)
     .eq("invoice_type", "deposit")
     .eq("estimate_version_id", frozenVersion.id)
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+  if (input.businessUnit) existingQuery = existingQuery.eq("business_unit", input.businessUnit);
+  const existing = await existingQuery.maybeSingle();
   if (existing.data) {
+    if (input.businessUnit && existing.data.business_unit !== input.businessUnit) return { invoice: null, error: "not_found" };
     return { invoice: existing.data as Record<string, unknown>, error: null };
   }
 
@@ -806,7 +816,7 @@ export async function convertEstimateToDepositInvoice(input: {
       issued_at: issueTime,
       due_at: dueAt,
     })
-    .select("*")
+    .select("id, business_unit, contact_id, quote_id, brief_id, estimate_id, estimate_version_id, invoice_number, invoice_type, payment_status, document_status, status, amount_due_cents, amount_paid_cents, balance_due_cents, total, amount, balance_due, due_at, issued_at, line_items, scope_snapshot, pricing_snapshot")
     .single();
 
   if (invoiceError || !invoice) return { invoice: null, error: invoiceError?.message || "invoice_insert_failed" };
@@ -852,7 +862,7 @@ export async function convertEstimateToDepositInvoice(input: {
   });
 
   const contact = invoice.contact_id
-    ? (await sb.from("contacts").select("*").eq("id", invoice.contact_id).maybeSingle()).data
+    ? (await sb.from("contacts").select("id, full_name, email, company, business_unit").eq("id", invoice.contact_id).eq("business_unit", businessUnit).maybeSingle()).data
     : null;
   await createDocumentArtifacts({
     sourceDocumentId: String(invoice.id),
@@ -919,7 +929,10 @@ export async function applyInvoicePayment(input: {
   payload?: Record<string, unknown>;
 }) {
   const sb = getSupabase();
-  const { data: invoice, error } = await sb.from("invoices").select("*").eq("id", input.invoiceId).maybeSingle();
+  let invoiceQuery = sb.from("invoices").select("id, business_unit, contact_id, quote_id, brief_id, estimate_id, invoice_number, invoice_type, amount_paid_cents, paid_amount_cents, amount_due_cents, total, amount, payload").eq("id", input.invoiceId);
+  if (input.businessUnit) invoiceQuery = invoiceQuery.eq("business_unit", input.businessUnit);
+  const { data: invoice, error } = await invoiceQuery.maybeSingle();
+  if (input.businessUnit && invoice?.business_unit !== input.businessUnit) return { invoice: null, payment: null, workflow: null, error: "not_found" };
   if (error || !invoice) return { invoice: null, payment: null, workflow: null, error: error?.message || "invoice_not_found" };
 
   const businessUnit = input.businessUnit || asBusinessUnit(invoice.business_unit);
@@ -937,7 +950,7 @@ export async function applyInvoicePayment(input: {
     updated_at: nowIso(),
   };
 
-  const { data: attempt, error: attemptError } = await sb.from("payment_attempts").insert(attemptPayload).select("*").single();
+  const { data: attempt, error: attemptError } = await sb.from("payment_attempts").insert(attemptPayload).select("id, business_unit, invoice_id, estimate_id, status, provider, provider_reference_id, amount_cents, currency, payload, updated_at").single();
   if (attemptError) return { invoice: null, payment: null, workflow: null, error: attemptError.message };
 
   if (paymentStatus === "failed") {
@@ -988,7 +1001,7 @@ export async function applyInvoicePayment(input: {
       paid_at: nowIso(),
       payload: input.payload || {},
     })
-    .select("*")
+    .select("id, business_unit, invoice_id, quote_id, estimate_id, payment_attempt_id, contact_id, amount_cents, currency, method, status, provider, provider_reference_id, raw_status, reference_number, invoice_type, paid_at, payload")
     .single();
   if (paymentError) return { invoice: null, payment: null, workflow: null, error: paymentError.message };
 
@@ -1017,7 +1030,8 @@ export async function applyInvoicePayment(input: {
       updated_at: nowIso(),
     })
     .eq("id", input.invoiceId)
-    .select("*")
+    .eq("business_unit", businessUnit)
+    .select("id, business_unit, contact_id, quote_id, brief_id, estimate_id, invoice_number, invoice_type, payment_status, document_status, amount_due_cents, amount_paid_cents, balance_due_cents, total, amount, payload")
     .single();
   if (updateError) return { invoice: null, payment, workflow: null, error: updateError.message };
 
@@ -1031,7 +1045,7 @@ export async function applyInvoicePayment(input: {
         invoice_id: input.invoiceId,
         readiness_state: invoicePaymentStatus === "paid" ? "ready_to_schedule" : "deposit_pending",
       },
-    }).eq("id", invoice.quote_id);
+    }).eq("id", invoice.quote_id).eq("business_unit", businessUnit);
   }
 
   const waiver = await ensureApprovedPolicy({

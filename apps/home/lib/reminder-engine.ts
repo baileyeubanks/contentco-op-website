@@ -72,16 +72,18 @@ export async function evaluateAndSendReminders(): Promise<{
   const { data: invoices, error } = await sb
     .from("invoices")
     .select("id, invoice_number, client_name, client_email, total, balance_due, due_date, due_at, business_unit, reminder_count, last_reminder_at, payment_status, status")
+    .eq("business_unit", "CC")
     .not("payment_status", "eq", "paid")
     .in("status", ["issued", "sent", "draft"]);
 
   if (error || !invoices) {
-    console.error("[reminder-engine] Failed to fetch invoices:", error);
+    console.error("[reminder-engine] invoice_lookup_failed");
     return summary;
   }
 
   for (const inv of invoices) {
     summary.evaluated++;
+    if (inv.business_unit !== "CC") { summary.skipped++; continue; }
 
     /* Skip if no email */
     if (!inv.client_email) {
@@ -123,7 +125,7 @@ export async function evaluateAndSendReminders(): Promise<{
         total: Number(inv.total || 0),
         balance_due: Number(inv.balance_due || inv.total || 0),
         due_date: dueStr,
-        business_unit: inv.business_unit || "ACS",
+        business_unit: inv.business_unit,
       },
       stage,
     );
@@ -140,7 +142,7 @@ export async function evaluateAndSendReminders(): Promise<{
           last_reminder_at: now.toISOString(),
           reminder_status: "sent",
         })
-        .eq("id", inv.id);
+        .eq("id", inv.id).eq("business_unit", "CC");
     } else {
       summary.errors++;
       summary.details.push({ invoice_id: inv.id, stage, result: `error: ${result.error}` });

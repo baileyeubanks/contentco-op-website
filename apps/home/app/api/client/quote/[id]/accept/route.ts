@@ -1,3 +1,4 @@
+import { clientLinkNotFound } from "@/lib/client-link-token";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
@@ -56,13 +57,11 @@ export async function POST(
   /* Verify quote exists */
   const { data: quote } = await sb
     .from("quotes")
-    .select("id, status, agreement_accepted")
-    .eq("id", id)
+    .select("id, business_unit, status, agreement_accepted, payload")
+    .eq("id", id).eq("business_unit", "CC")
     .maybeSingle();
 
-  if (!quote) {
-    return NextResponse.json({ error: "quote_not_found" }, { status: 404 });
-  }
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/client/quote/[id]/accept", id);
 
   /* Get client IP for audit trail */
   const forwarded = req.headers.get("x-forwarded-for");
@@ -77,6 +76,7 @@ export async function POST(
       signature_name: signatureName,
       status: quote.status === "draft" ? "sent" : quote.status,
       payload: {
+        ...(quote.payload && typeof quote.payload === "object" && !Array.isArray(quote.payload) ? quote.payload : {}),
         agreement_data: {
           accepted_at: now,
           signature_name: signatureName,
@@ -86,10 +86,10 @@ export async function POST(
         },
       },
     })
-    .eq("id", id);
+    .eq("id", id).eq("business_unit", "CC");
 
   if (updateError) {
-    console.error("[client/quote/accept]", updateError);
+    console.error("client_quote_accept_update_failed");
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 

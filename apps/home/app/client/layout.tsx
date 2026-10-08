@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Astro Cleaning Services",
-  description: "Professional cleaning services in Houston, TX",
+  title: "Content Co-op",
+  description: "Video production and creative services",
   robots: {
     index: false,
     follow: false,
@@ -16,18 +15,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* Top bar */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Image
-            src="/brand/assets/acs/logos/png/logo-texas.png"
-            alt="Astro Cleaning Services"
-            width={40}
-            height={40}
-            className="rounded-md"
-          />
           <div>
             <p className="text-sm font-semibold text-gray-900 leading-tight">
-              Astro Cleaning Services
+              Content Co-op
             </p>
-            <p className="text-xs text-gray-500">Houston, TX</p>
+            <p className="text-xs text-gray-500">Video production</p>
           </div>
         </div>
       </header>
@@ -38,8 +30,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-white mt-12">
         <div className="max-w-3xl mx-auto px-4 py-6 text-center text-xs text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Astro Cleaning Services. All rights reserved.</p>
-          <p className="mt-1">Fully insured &middot; Houston, TX</p>
+          <p>&copy; {new Date().getFullYear()} Content Co-op. All rights reserved.</p>
+          <p className="mt-1">Fully insured &middot; Video production</p>
         </div>
       </footer>
     </div>

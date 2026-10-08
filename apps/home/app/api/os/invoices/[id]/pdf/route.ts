@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { readCanonicalInvoicePdf } from "@/lib/os-document-authority";
-import { getRootInvoiceDetail } from "@/lib/os-data";
-import { getRootBusinessScopeFromRequest } from "@/lib/os-request-scope";
+import { renderClientDocumentPdf } from "@/lib/client-document";
+import { getSupabase } from "@/lib/supabase";
 import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
-import { verifyShareToken } from "@/lib/share-token";
+import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 
 export async function GET(
   req: Request,
@@ -13,8 +13,11 @@ export async function GET(
 
   /* Public share pages link this route with a signed share token (?token=);
      everyone else needs the internal policy. */
-  const shareToken = new URL(req.url).searchParams.get("token");
-  if (!verifyShareToken(shareToken, id)) {
+  const limited = clientLinkRateLimit(req, "os/invoices/pdf");
+  if (limited) return limited;
+  const shareToken = readClientLink(req);
+  if (!verifyClientLink(shareToken, "invoice", id)) {
+    if (shareToken) return clientLinkNotFound("/api/os/invoices/[id]/pdf", id);
     const access = await enforceRoutePolicy(
       createRoutePolicy({
         id: "root.invoices.pdf",
@@ -24,18 +27,18 @@ export async function GET(
         tenantBoundary: "internal_workspace",
       }),
     );
-    if (!access.ok) return access.response;
+    if (!access.ok) return clientLinkNotFound("/api/os/invoices/[id]/pdf", id);
   }
 
-  const scope = getRootBusinessScopeFromRequest(req);
-  const detail = await getRootInvoiceDetail(id, scope);
-  if (!detail.invoice) {
-    return NextResponse.json({ error: detail.error || "invoice_not_found" }, { status: 404 });
-  }
+  const sb = getSupabase();
+  const { data: invoice, error } = await sb.from("invoices")
+    .select("id, invoice_number, business_unit").eq("id", id).eq("business_unit", "CC").maybeSingle();
+  if (error || !invoice || invoice.business_unit !== "CC") return clientLinkNotFound("/api/os/invoices/[id]/pdf", id);
 
-  const pdf = await readCanonicalInvoicePdf(id);
-  const filename = `${detail.invoice.invoice_number || detail.invoice.invoiceNumber || `invoice-${id.slice(0, 8)}`}.pdf`;
-  return new NextResponse(pdf, {
+  const pdf = await renderClientDocumentPdf("invoice", id).catch(() => null);
+  if (!pdf) return clientLinkNotFound("/api/os/invoices/[id]/pdf", id);
+  const filename = `${invoice.invoice_number || `invoice-${id.slice(0, 8)}`}.pdf`;
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "content-type": "application/pdf",
       "content-disposition": `inline; filename="${filename}"`,

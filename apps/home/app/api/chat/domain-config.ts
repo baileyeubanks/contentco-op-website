@@ -148,7 +148,7 @@ Billing or account issues should be escalated to a human.
     aliases: ["www.contentco-op.com"],
     brandName: "Content Co-op",
     contactPrompt:
-      "If you need a human handoff, submit a brief at contentco-op.com/brief or email bailey@contentco-op.com.",
+      "If you need a human handoff, submit a brief at contentco-op.com/brief or email service@contentco-op.com.",
     defaultReply:
       "Content Co-op helps industrial, energy, construction, and corporate teams move from brief to pre-production, production, post, and delivery. I can help with service fit, timeline expectations, pricing guidance, and the fastest next step.",
     systemPrompt:
@@ -158,7 +158,7 @@ Content Co-op is a Houston-based commercial video production company led by Bail
 Core industries: energy, industrial, infrastructure, construction, manufacturing, and corporate B2B.
 Core flow: brief -> pre-production -> production -> post -> delivery.
 Primary CTA: submit a brief at contentco-op.com/brief.
-Secondary CTA: email bailey@contentco-op.com for direct coordination.
+Secondary CTA: email service@contentco-op.com for direct coordination.
 Products:
 - Co-Script: pre-production strategy, story structure, scripting, storyboard direction, production planning.
 - Co-Cut: transcript-first editing, post-production polish, captions, export variants.
@@ -201,7 +201,7 @@ Portfolio references include CITGO, BP, CERAWeek, and Kodiak Robotics.
         topic: "next_step",
         keywords: ["book", "start", "next step", "brief", "meeting", "call", "starting point", "kick off", "talk first", "talk to someone", "complex scope", "scope"],
         answer:
-          "The best starting point is the brief at contentco-op.com/brief. If the scope is complex and you want to talk first, email bailey@contentco-op.com.",
+          "The best starting point is the brief at contentco-op.com/brief. If the scope is complex and you want to talk first, email service@contentco-op.com.",
       },
       {
         topic: "co_script",

@@ -1,6 +1,7 @@
+import { verifyClientLink, readClientLink, clientLinkNotFound } from "@/lib/client-link-token";
+import { clientLinkRateLimit } from "@/lib/client-link-rate-limit";
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
-import { verifyShareToken } from "@/lib/share-token";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -33,9 +34,15 @@ async function parseBody(req: Request): Promise<QuoteCommentBody | null> {
  * POST /api/share/quote/[id]/comment — add a client comment
  */
 
-export async function GET(_req: Request, { params }: Props) {
+export async function GET(req: Request, { params }: Props) {
   const { id } = await params;
+  const limited = clientLinkRateLimit(req, "share/quote/[id]/comment");
+  if (limited) return limited;
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/share/quote/[id]/comment", id);
   const sb = getSupabase();
+  const { data: quote } = await sb.from("quotes").select("id, business_unit")
+    .eq("id", id).eq("business_unit", "CC").maybeSingle();
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/share/quote/[id]/comment", id);
 
   const { data: comments, error } = await sb
     .from("quote_comments")
@@ -48,23 +55,20 @@ export async function GET(_req: Request, { params }: Props) {
     return NextResponse.json({ comments: [] });
   }
 
-  return NextResponse.json({ comments: comments || [] });
+  return NextResponse.json({ comments: (comments || []).map(row => ({ id: row.id, sender: row.sender, body: row.body, created_at: row.created_at })) });
 }
 
 export async function POST(req: Request, { params }: Props) {
   const { id } = await params;
+  const limited = clientLinkRateLimit(req, "share/quote/[id]/comment");
+  if (limited) return limited;
+  if (!verifyClientLink(readClientLink(req), "quote", id)) return clientLinkNotFound("/api/share/quote/[id]/comment", id);
 
-  /* Token gate — fail closed before touching the database (mirrors the
-     accept route; closes the anonymous-write hole on the share surface).
-     GET stays open: reading comments is the same trust level as viewing the
-     public-by-UUID share page itself. */
-  const token =
-    new URL(req.url).searchParams.get("token") || req.headers.get("x-share-token");
-  if (!verifyShareToken(token, id)) {
-    return NextResponse.json({ error: "invalid_share_token" }, { status: 401 });
-  }
 
   const sb = getSupabase();
+  const { data: quote } = await sb.from("quotes").select("id, business_unit")
+    .eq("id", id).eq("business_unit", "CC").maybeSingle();
+  if (!quote || quote.business_unit !== "CC") return clientLinkNotFound("/api/share/quote/[id]/comment", id);
 
   const body = await parseBody(req);
   if (!body) {
@@ -72,7 +76,6 @@ export async function POST(req: Request, { params }: Props) {
   }
 
   const message = asNullableString(body.message);
-  const sender = asString(body.sender, "client");
 
   if (!message) {
     return NextResponse.json({ error: "message_required" }, { status: 400 });
@@ -82,15 +85,15 @@ export async function POST(req: Request, { params }: Props) {
     .from("quote_comments")
     .insert({
       quote_id: id,
-      sender: sender === "team" ? "team" : "client",
+      sender: "client",
       body: message,
     })
     .select("id, sender, body, created_at")
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "request_failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, comment }, { status: 201 });
+  return NextResponse.json({ ok: true, comment: comment ? { id: comment.id, sender: comment.sender, body: comment.body, created_at: comment.created_at } : null }, { status: 201 });
 }

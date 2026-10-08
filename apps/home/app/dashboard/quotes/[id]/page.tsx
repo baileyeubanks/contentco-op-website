@@ -1,4 +1,5 @@
 "use client";
+import { copyOperatorClientLink, requestOperatorClientLink } from "@/lib/operator-client-link";
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -119,6 +120,7 @@ export default function QuoteDetailPage() {
   const [quote,    setQuote]    = useState<Quote | null>(null);
   const [views,    setViews]    = useState<QuoteView[]>([]);
   const [comments, setComments] = useState<QuoteComment[]>([]);
+  const [shareError, setShareError] = useState("");
   const [loading,  setLoading]  = useState(true);
   const [tab,      setTab]      = useState<Tab>("overview");
   const [cmtBody,  setCmtBody]  = useState("");
@@ -180,7 +182,8 @@ export default function QuoteDetailPage() {
     router.push("/os/quotes");
   }
 
-  if (loading) return <div style={{ padding: 24, fontFamily: MONO, fontSize: DT.font.sm, opacity: 0.3 }}>Loading…</div>;
+  if (loading) return <div style={{ padding: 24, fontFamily: MONO, fontSize: DT.font.sm, opacity: 0.3 }}>
+      {shareError && <p role="alert">{shareError}</p>}Loading…</div>;
   if (!quote)  return (
     <div style={{ padding: 24 }}>
       <div style={{ fontFamily: MONO, fontSize: DT.font.sm, color: "#f87171", marginBottom: 8 }}>Quote not found.</div>
@@ -230,7 +233,7 @@ export default function QuoteDetailPage() {
             <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, background: "var(--surface, #111)", backdropFilter: "blur(8px)", border: `1px solid ${G}0.20)`, borderRadius: 6, boxShadow: "0 12px 36px rgba(0,0,0,0.5)", minWidth: 158, zIndex: 200, overflow: "hidden", padding: "3px 0" }}>
               {[
                 { label: "✉ Email to Client", fn: () => setSendOpen(false) },
-                { label: "🔗 Copy Share Link", fn: () => { navigator.clipboard?.writeText(`${window.location.origin}${quote.share_link_url}`); setSendOpen(false); } },
+                { label: "🔗 Copy Share Link", fn: () => { void copyOperatorClientLink("quote", quoteId).then(() => setShareError("")).catch(() => setShareError("Share link unavailable. Please try again.")); setSendOpen(false); } },
                 { label: "📄 Portal",          fn: () => setSendOpen(false) },
               ].map((it) => (
                 <button key={it.label} onClick={it.fn} style={{ display: "block", width: "100%", padding: "5px 12px", fontSize: DT.font.xs, fontFamily: MONO, color: "var(--muted)", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", letterSpacing: "0.01em" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = DT.hover; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>{it.label}</button>
@@ -413,7 +416,7 @@ export default function QuoteDetailPage() {
             <div style={{ padding: "8px 10px", background: "rgba(255,255,255,0.025)", border: `1px solid ${LINE}`, borderRadius: 4 }}>
               <span style={{ fontFamily: MONO, fontSize: DT.font.sm, color: "var(--muted)", opacity: 0.4 }}>Not yet accepted</span>
             </div>
-            <div style={{ fontFamily: MONO, fontSize: DT.font.xs, color: "var(--muted)", opacity: 0.3 }}>Share: <span style={{ color: "#4ade80" }}>/share/quote/{quoteId}</span></div>
+            <div style={{ fontFamily: MONO, fontSize: DT.font.xs, color: "var(--muted)", opacity: 0.3 }}>Share: <span style={{ color: "#4ade80" }}>issued when you copy or open</span></div>
           </div>
         )}
       </div>
@@ -468,7 +471,7 @@ export default function QuoteDetailPage() {
         </button>
         <SBtn><a href={quote.preview_url} target="_blank" rel="noreferrer" style={{ textDecoration: "none", color: "inherit" }}>👁 Preview PDF</a></SBtn>
         <SBtn><a href={quote.pdf_url} target="_blank" rel="noreferrer" style={{ textDecoration: "none", color: "inherit" }}>⬇ Download PDF</a></SBtn>
-        <SBtn onClick={() => navigator.clipboard?.writeText(`${window.location.origin}${quote.share_link_url}`)}>🔗 Copy Share Link</SBtn>
+        <SBtn onClick={() => void copyOperatorClientLink("quote", quoteId).then(() => setShareError("")).catch(() => setShareError("Share link unavailable. Please try again."))}>🔗 Copy Share Link</SBtn>
       </div>
 
       {/* ── Secondary ── */}

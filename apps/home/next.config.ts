@@ -85,6 +85,13 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      ...["/client/:path*", "/share/:path*", "/api/client/:path*", "/api/share/:path*"].map(source => ({
+        source, headers: [
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex" },
+        ],
+      })),
       {
         source: "/os/co-cut/:path*",
         headers: [

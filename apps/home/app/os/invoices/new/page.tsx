@@ -31,7 +31,7 @@ function emptyItem(phaseName = ""): LineItem {
 
 export default function NewInvoicePage() {
   const router = useRouter();
-  const [bu, setBu] = useState<BU>("ACS");
+  const [bu, setBu] = useState<BU>("CC");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");

@@ -1,3 +1,4 @@
+import { buildClientLinkUrl } from "@/lib/client-link-token";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 
@@ -237,35 +238,15 @@ function stripHtml(html: string) {
     .trim();
 }
 
-function getFromAddress(businessUnit?: string): string {
-  const bu = String(businessUnit || "ACS").toUpperCase();
-  if (bu === "CC") return "Content Co-Op <blaze@contentco-op.com>";
-  return `Astro Cleaning Services <${process.env.ACS_EMAIL_FROM_ADDRESS || "noreply@astrocleanings.com"}>`;
+function getFromAddress(_businessUnit?: string): string {
+  return "Content Co-op <service@contentco-op.com>";
 }
-
-function getReplyToAddress(businessUnit?: string): string | undefined {
-  const bu = String(businessUnit || "ACS").toUpperCase();
-  if (bu === "CC") return undefined;
-  return process.env.ACS_EMAIL_REPLY_TO || "service@astrocleanings.com";
+function getReplyToAddress(_businessUnit?: string): string {
+  return "service@contentco-op.com";
 }
-
 function getSenderSub(options: SendEmailOptions): string {
   if (options.senderSub?.trim()) return options.senderSub.trim();
-  const bu = String(options.businessUnit || "ACS").toUpperCase();
-  if (bu === "CC") {
-    return (
-      process.env.CCO_GMAIL_SENDER_SUB ||
-      process.env.GOOGLE_DWD_IMPERSONATION_SUBJECT ||
-      "blaze@contentco-op.com"
-    );
-  }
-  return (
-    process.env.ACS_GMAIL_SENDER_SUB ||
-    process.env.GOOGLE_DWD_IMPERSONATION_SUBJECT_ACS ||
-    process.env.ACS_EMAIL_FROM_ADDRESS ||
-    process.env.GOOGLE_DWD_IMPERSONATION_SUBJECT ||
-    "noreply@astrocleanings.com"
-  );
+  return process.env.CCO_GMAIL_SENDER_SUB || process.env.GOOGLE_DWD_IMPERSONATION_SUBJECT || "service@contentco-op.com";
 }
 
 function runPythonJson(script: string, payload: unknown): Promise<string> {
@@ -300,13 +281,6 @@ function runPythonJson(script: string, payload: unknown): Promise<string> {
 
 function getGoogleOauthTokenPaths(options: SendEmailOptions) {
   const bu = String(options.businessUnit || "").toUpperCase();
-  if (bu === "ACS") {
-    const candidates = [
-      process.env.GOOGLE_OAUTH_TOKEN_FILE_ACS,
-      process.env.ACS_GMAIL_OAUTH_TOKEN_FILE,
-    ].filter((value): value is string => Boolean(value && value.trim()));
-    return Array.from(new Set(candidates));
-  }
   if (bu !== "CC") return [];
 
   const configured = process.env.GOOGLE_OAUTH_TOKEN_FILE_BLAZE;
@@ -546,9 +520,11 @@ export async function sendInvoiceReminder(invoice: {
   due_date: string;
   business_unit: string;
 }, stage: "pre_due" | "due" | "overdue_7" | "overdue_14" | "overdue_30" | "overdue_60"): Promise<SendResult> {
-  const bu = String(invoice.business_unit || "ACS").toUpperCase();
-  const brandName = bu === "ACS" ? "Astro Cleanings" : "Content Co-Op";
-  const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:4100"}/share/invoice/${invoice.id}`;
+  if (invoice.business_unit !== "CC") return { ok: false, error: "not_cc" };
+  const bu = "CC";
+  const brandName = "Content Co-op";
+  const shareUrl = buildClientLinkUrl("invoice", invoice.id);
+  if (!shareUrl) return { ok: false, error: "client_link_unavailable" };
   const amount = invoice.balance_due.toLocaleString("en-US", { style: "currency", currency: "USD" });
   const dueDate = new Date(invoice.due_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
@@ -583,7 +559,7 @@ export async function sendInvoiceReminder(invoice: {
           <div style="font-size: 22px; font-weight: 700; color: #111; margin-top: 4px;">${amount}</div>
           <div style="font-size: 12px; color: #888; margin-top: 4px;">Due: ${dueDate}</div>
         </div>
-        <a href="${shareUrl}" style="display: inline-block; padding: 12px 28px; background: ${bu === "ACS" ? "#1B4F72" : "#1a3a5c"}; color: #fff; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px;">
+        <a href="${shareUrl}" style="display: inline-block; padding: 12px 28px; background: #1a3a5c; color: #fff; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px;">
           View & Pay Invoice
         </a>
         <p style="margin-top: 20px; font-size: 13px; color: #888;">

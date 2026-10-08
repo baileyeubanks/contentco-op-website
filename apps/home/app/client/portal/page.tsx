@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { getSupabase } from "../../../lib/supabase";
 import { PortalView } from "./portal-view";
 import type { PortalData } from "./portal-view";
@@ -87,6 +88,13 @@ export default async function PortalPage({
 }: {
   searchParams: Promise<{ token?: string; email?: string }>;
 }) {
+  // D1 (2026-10-08, port of hotfix a4b0324): the portal is closed (404) on
+  // main until the token packet ships. notFound() runs before searchParams is
+  // read, before the data layer is touched and before anything renders, for
+  // every query shape (?token=, ?email=, ?contact_id=, none). The code below
+  // is intentionally unreachable until the token packet reopens the page.
+  notFound();
+
   const params = await searchParams;
   const data = await fetchPortalData(params.token);
 
