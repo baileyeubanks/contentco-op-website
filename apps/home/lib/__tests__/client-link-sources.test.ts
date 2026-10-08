@@ -35,7 +35,7 @@ it("four CCO create paths default to CC",()=>{
 it("deleted dashboard list stays absent",()=>expect(existsSync("app/dashboard/quotes/page.tsx")).toBe(false));
 it("client and share public text uses Content Co-op and service@ only, with no logo images",()=>{
  for(const file of ["app/client/layout.tsx","app/client/quote/[id]/page.tsx","app/client/quote/[id]/quote-summary.tsx","app/client/quote/[id]/agreement-section.tsx","app/share/quote/[id]/page.tsx","app/share/quote/[id]/quote-share-client.tsx","app/share/invoice/[id]/page.tsx","app/client/portal/portal-view.tsx"]) {
-  const source=readFileSync(file,"utf8");expect(source,file).not.toMatch(/Astro Cleaning|astrocleanings|tel:|<Image/);
+  const source=readFileSync(file,"utf8");expect(source,file).not.toMatch(/Astro Cleaning|astrocleanings|tel:|<Image/i);
  }
 });
 

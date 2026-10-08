@@ -45,7 +45,7 @@ export function QuoteSummary({
           <div className="flex items-center gap-3">
             <div>
               <h1 className="text-lg font-bold text-white tracking-wide">
-                ASTRO CLEANING SERVICES
+                Content Co-op
               </h1>
               <p className="text-blue-200 text-sm">Video production</p>
             </div>
