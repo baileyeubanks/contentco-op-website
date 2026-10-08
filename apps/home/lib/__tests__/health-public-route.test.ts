@@ -1,3 +1,9 @@
+import {
+  canAccessPolicy,
+  getPermissionsForRole,
+  type AuthenticatedActor,
+  type RouteAccessPolicy,
+} from "@contentco-op/identity-access";
 import type { RepoHealthSnapshot } from "@contentco-op/types";
 import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -127,29 +133,108 @@ describe("public /api/health", () => {
   });
 });
 
-describe("operator /api/os/health", () => {
-  test("requires operator auth before returning any diagnostics", async () => {
-    mocks.enforceRoutePolicy.mockResolvedValue({
+/** The exact policy /api/os/health must enforce. */
+const OPERATOR_HEALTH_POLICY = {
+  id: "root.health.detail.read",
+  accessLevel: "internal",
+  sessionPolicies: ["supabase_user", "operator_invite"],
+  requiredPermissions: ["system_config"],
+  tenantBoundary: "internal_workspace",
+};
+
+function actor(overrides: Partial<AuthenticatedActor> = {}): AuthenticatedActor {
+  return {
+    actorType: "user",
+    role: "platform_admin",
+    email: "operator@example.com",
+    actorId: "operator-1",
+    sessionPolicy: "supabase_user",
+    tenantBoundary: "internal_workspace",
+    permissions: getPermissionsForRole("platform_admin"),
+    ...overrides,
+  };
+}
+
+/**
+ * Same decision path as lib/platform-access enforceRoutePolicy: the real
+ * canAccessPolicy judges whatever policy the route passes, so a wrong session
+ * list, boundary or permission in the route changes the outcome here.
+ */
+function signedInAs(current: AuthenticatedActor | null) {
+  mocks.enforceRoutePolicy.mockImplementation(async (policy: RouteAccessPolicy) => {
+    const decision = canAccessPolicy(current, policy);
+    if (decision.allowed) return { ok: true, actor: current };
+    return {
       ok: false,
-      response: NextResponse.json({ error: "unauthorized" }, { status: 401 }),
-    });
+      actor: current,
+      response: NextResponse.json(
+        { error: current ? "forbidden" : "unauthorized", policy: policy.id, missing_permission: decision.missingPermission },
+        { status: current ? 403 : 401 },
+      ),
+    };
+  });
+}
+
+describe("operator /api/os/health", () => {
+  test("passes exactly the operator policy (id, level, sessions, permission, tenant boundary)", async () => {
+    signedInAs(null);
+    await operatorHealth(new Request("https://contentco-op.com/api/os/health"));
+    expect(mocks.enforceRoutePolicy).toHaveBeenCalledTimes(1);
+    expect(mocks.enforceRoutePolicy.mock.calls[0][0]).toEqual(OPERATOR_HEALTH_POLICY);
+  });
+
+  test("requires operator auth before returning any diagnostics", async () => {
+    signedInAs(null);
     mocks.getRepoHealthSnapshot.mockResolvedValue(leakySnapshot());
 
     const response = await operatorHealth(new Request("https://contentco-op.com/api/os/health"));
     expect(response.status).toBe(401);
     expect(await response.text()).not.toMatch(FORBIDDEN_WORDS);
     expect(mocks.getRepoHealthSnapshot).not.toHaveBeenCalled();
-    expect(mocks.enforceRoutePolicy).toHaveBeenCalledWith(
-      expect.objectContaining({ accessLevel: "internal", requiredPermissions: ["system_config"] }),
-    );
   });
 
-  test("returns the full snapshot to an authorized operator", async () => {
-    mocks.enforceRoutePolicy.mockResolvedValue({ ok: true, actor: { actorId: "operator" } });
-    mocks.getRepoHealthSnapshot.mockResolvedValue(leakySnapshot());
+  test("403: a signed-in operator without system_config gets no diagnostics", async () => {
+    const opsAdmin = getPermissionsForRole("ops_admin");
+    expect(opsAdmin).not.toContain("system_config");
+    for (const sessionPolicy of ["supabase_user", "operator_invite"] as const) {
+      signedInAs(actor({ role: "ops_admin", sessionPolicy, permissions: opsAdmin }));
+      mocks.getRepoHealthSnapshot.mockResolvedValue(leakySnapshot());
 
-    const body = await (await operatorHealth(new Request("https://contentco-op.com/api/os/health?scope=full"))).json();
-    expect(body.checks[1].detail).toContain("credentials.json");
-    expect(mocks.getRepoHealthSnapshot).toHaveBeenCalledWith("full");
+      const response = await operatorHealth(new Request("https://contentco-op.com/api/os/health?scope=full"));
+      const text = await response.text();
+      expect(response.status).toBe(403);
+      expect(JSON.parse(text)).toMatchObject({ error: "forbidden", missing_permission: "system_config" });
+      expect(text).not.toMatch(FORBIDDEN_WORDS);
+      expect(mocks.getRepoHealthSnapshot).not.toHaveBeenCalled();
+    }
+  });
+
+  test("403: system_config on the wrong session type or outside the internal workspace is refused", async () => {
+    const refused: AuthenticatedActor[] = [
+      actor({ sessionPolicy: "service" }),
+      actor({ sessionPolicy: "review_token" }),
+      actor({ tenantBoundary: "client_organization" }),
+      actor({ role: "client_member", tenantBoundary: "client_organization", permissions: getPermissionsForRole("client_member") }),
+    ];
+    for (const current of refused) {
+      signedInAs(current);
+      const response = await operatorHealth(new Request("https://contentco-op.com/api/os/health"));
+      expect(response.status).toBe(403);
+      expect(mocks.getRepoHealthSnapshot).not.toHaveBeenCalled();
+    }
+  });
+
+  test("returns the full snapshot to an authorized operator on either session type", async () => {
+    for (const sessionPolicy of ["supabase_user", "operator_invite"] as const) {
+      vi.clearAllMocks();
+      signedInAs(actor({ sessionPolicy }));
+      mocks.getRepoHealthSnapshot.mockResolvedValue(leakySnapshot());
+
+      const response = await operatorHealth(new Request("https://contentco-op.com/api/os/health?scope=full"));
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body.checks[1].detail).toContain("credentials.json");
+      expect(mocks.getRepoHealthSnapshot).toHaveBeenCalledWith("full");
+    }
   });
 });
