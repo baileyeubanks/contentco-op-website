@@ -6,6 +6,7 @@
  */
 
 import Stripe from "stripe";
+import { buildClientLinkUrl, PORTAL_LINK_TTL } from "@/lib/client-link-token";
 
 let _stripe: Stripe | null = null;
 
@@ -23,7 +24,6 @@ export function isStripeConfigured(): boolean {
   return !!process.env.STRIPE_SECRET_KEY;
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:4100";
 
 /**
  * Create a Stripe Checkout session for an invoice and return the payment URL.
@@ -37,6 +37,9 @@ export async function createInvoicePaymentLink(invoice: {
   total: number;
   business_unit: string;
 }): Promise<{ url: string } | { error: string }> {
+  if (invoice.business_unit !== "CC") return { error: "not_found" };
+  const cancelUrl = buildClientLinkUrl("invoice", invoice.id, { ttl: PORTAL_LINK_TTL });
+  if (!cancelUrl) return { error: "client_link_unavailable" };
   const stripe = getStripe();
   if (!stripe) {
     return { error: "Stripe is not configured. Add STRIPE_SECRET_KEY to .env.local" };
@@ -64,12 +67,12 @@ export async function createInvoicePaymentLink(invoice: {
         invoice_number: invoice.invoice_number,
         business_unit: invoice.business_unit,
       },
-      success_url: `${APP_URL}/share/invoice/${invoice.id}?paid=true`,
-      cancel_url: `${APP_URL}/share/invoice/${invoice.id}`,
+      success_url: "https://contentco-op.com/share/payment-received",
+      cancel_url: cancelUrl,
     });
 
     return { url: session.url! };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "stripe_session_failed" };
+    return { error: "stripe_session_failed" };
   }
 }

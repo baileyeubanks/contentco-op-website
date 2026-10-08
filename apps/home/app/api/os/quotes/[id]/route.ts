@@ -81,7 +81,7 @@ export async function GET(
   const phaseCount = derivePhaseCount(quoteItems);
   const previewUrl = `/api/os/quotes/${id}/preview`;
   const pdfUrl = `/api/os/quotes/${id}/pdf`;
-  const shareLinkUrl = `/share/quote/${id}`;
+  const shareLinkUrl = null;
   const documentReadiness = deriveDocumentReadiness(quote, quoteItems);
   const nextAction = deriveNextAction(quote, quoteItems);
   const estimatedTotal = Number(quote.estimated_total || 0);
@@ -99,7 +99,7 @@ export async function GET(
       document_readiness: documentReadiness,
       preview_url: previewUrl,
       pdf_url: pdfUrl,
-      share_link_url: shareLinkUrl,
+      share_link_url: null,
       payment_link_url: null,
       artifact_version: String(id).slice(0, 8).toUpperCase(),
       next_action: nextAction,

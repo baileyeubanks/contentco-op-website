@@ -135,7 +135,7 @@ export async function POST(req: Request) {
   }
 
   // Allocate document number via sequence RPC
-  const businessUnit = asString(body.business_unit, "ACS").toUpperCase();
+  const businessUnit = asString(body.business_unit, "CC").toUpperCase();
   const contactId = asNullableString(body.contact_id);
   const businessId = asNullableString(body.business_id);
   const quoteStatus = asString(body.status, "pending");

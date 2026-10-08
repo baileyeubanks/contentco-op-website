@@ -202,7 +202,7 @@ export async function POST(req: Request, { params }: Props) {
     quote_id: quote.id,
     contact_id: asNullableString(quote.contact_id),
     business_id: asNullableString(quote.business_id),
-    business_unit: requestScope || asString(quote.business_unit, "ACS").toUpperCase(),
+    business_unit: requestScope || asString(quote.business_unit, "CC").toUpperCase(),
     invoice_number: invoiceNumber,
     amount_cents: Math.round(total * 100),
     amount: total,

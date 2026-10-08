@@ -1,4 +1,5 @@
 "use client";
+import { copyOperatorClientLink, requestOperatorClientLink } from "@/lib/operator-client-link";
 
 import React, { useState, useEffect, useEffectEvent, useMemo, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -146,6 +147,7 @@ function QuotesPageInner() {
 
   /* Data */
   const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
+  const [shareError, setShareError] = useState("");
   const [loading, setLoading] = useState(true);
   const [pdpId, setPdpId] = useState<string | null>(null);
 
@@ -236,7 +238,7 @@ function QuotesPageInner() {
         router.push(`/os/quotes/${row.id}`);
         break;
       case "copy_link":
-        navigator.clipboard?.writeText(`${window.location.origin}/share/quote/${row.id}`);
+        void copyOperatorClientLink("quote", row.id).then(() => setShareError("")).catch(() => setShareError("Share link unavailable. Please try again."));
         break;
       case "convert":
         void fetch(`/api/quotes/${row.id}/convert`, { method: "POST" })
@@ -297,6 +299,7 @@ function QuotesPageInner() {
         const expired = row.valid_until && new Date(row.valid_until) < new Date();
         return (
           <span className={`text-sm ${expired ? "text-[var(--at-red)]" : "text-[var(--at-text-secondary)]"}`}>
+      {shareError && <p role="alert">{shareError}</p>}
             {fmtDate(row.valid_until)}
           </span>
         );

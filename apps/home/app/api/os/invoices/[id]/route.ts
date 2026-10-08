@@ -33,7 +33,7 @@ export async function GET(
           preview_url: `/api/os/invoices/${result.invoice.id}/preview`,
           pdf_url: `/api/os/invoices/${result.invoice.id}/pdf`,
           payment_link_url: result.invoice.stripe_payment_link || null,
-          share_link_url: result.invoice.stripe_payment_link || `/share/invoice/${result.invoice.id}`,
+          share_link_url: null,
           artifact_version: result.invoice.id.slice(0, 8).toUpperCase(),
         }
       : null,
