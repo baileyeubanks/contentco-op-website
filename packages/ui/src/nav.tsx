@@ -57,10 +57,10 @@ export function Nav({ surface, urls }: NavProps) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="cc-nav-logo"
-            src="/logos/lockup-3408.png?v=2"
+            src="/brand/assets/cco/logos/aperture/aperture-mark.svg"
             alt="Content Co-op"
-            width="164"
-            height="44"
+            width="46"
+            height="40"
             decoding="async"
             fetchPriority="high"
           />

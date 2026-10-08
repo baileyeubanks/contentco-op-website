@@ -49,7 +49,7 @@ const BRAND = {
     email: "service@contentco-op.com",
     website: "contentco-op.com",
     accent: "#1a3a5c",
-    logoUrl: "/brand/assets/cco/exports/contentco-op-logo.png",
+    logoUrl: "/brand/assets/cco/logos/aperture/aperture-mark-512.png",
     logoHeight: "52px",
   },
 };
@@ -309,7 +309,7 @@ table.items tbody tr:last-child{border-bottom:1px solid #ddd}
 <div class="wrap">
 
 <div class="hdr">
-  <div class="logo"><img src="${h(b.logoUrl)}" alt="${h(doc.businessUnit === "CC" ? "Content Co-Op" : "Astro Cleanings")}"/></div>
+  <div class="logo"><img src="${h(b.logoUrl)}" alt="${h(doc.businessUnit === "CC" ? "Content Co-op" : "Astro Cleanings")}"/></div>
   <div class="dtype">
     <div class="dtype-label">${h(kindLabel)}</div>
     <div class="dtype-num">#${h(doc.documentNumber)}</div>
@@ -355,7 +355,7 @@ ${payLines ? `<div class="payment"><div class="sec-heading">Payment</div>${payLi
 
 <div class="ftr">
   <div class="ftr-thanks">Thank you for your business.</div>
-  <div class="ftr-contact">${h(doc.businessUnit === "CC" ? "Content Co-Op" : "Astro Cleanings")} | ${h(b.website)} | ${h(b.phone)} | ${h(b.email)}</div>
+  <div class="ftr-contact">${h(doc.businessUnit === "CC" ? "Content Co-op" : "Astro Cleanings")} | ${h(b.website)} | ${h(b.phone)} | ${h(b.email)}</div>
 </div>
 
 </div>

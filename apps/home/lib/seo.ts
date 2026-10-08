@@ -7,9 +7,8 @@ export const SITE_NAME = "Content Co-op";
 export const SITE_DESCRIPTION =
   "Minimal disruption, maximum signal. Houston-based industrial video production for energy, manufacturing, construction, safety, and field operations teams.";
 export const SITE_TITLE = "Industrial Video Production for Energy and Manufacturing";
-export const SOCIAL_IMAGE_PATH = "/cc/photos/social-industrial-video-production-v2.jpg";
-export const SOCIAL_IMAGE_ALT =
-  "Content Co-op field crew filming with a cinema camera during an industrial production shoot.";
+export const SOCIAL_IMAGE_PATH = "/cc/social/og-aperture-1200x630.png";
+export const SOCIAL_IMAGE_ALT = "Content Co-op";
 
 export function absoluteUrl(path: string) {
   return new URL(path, `${SITE_URL}/`).toString();
@@ -56,7 +55,7 @@ export const organizationJsonLd = {
   name: SITE_NAME,
   url: SITE_URL,
   email: "service@contentco-op.com",
-  logo: absoluteUrl("/logos/lockup-3408.png"),
+  logo: absoluteUrl("/brand/assets/cco/logos/aperture/aperture-mark-512.png"),
   image: absoluteUrl(SOCIAL_IMAGE_PATH),
   description: SITE_DESCRIPTION,
   areaServed: "United States",
