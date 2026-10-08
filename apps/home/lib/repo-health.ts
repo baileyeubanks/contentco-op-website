@@ -440,3 +440,44 @@ export async function getRepoHealthSnapshot(scope: RepoHealthScope = "full"): Pr
     checks,
   };
 }
+
+export type PublicRepoHealthCheck = {
+  id: string;
+  status: RepoHealthCheckStatus;
+  ok: boolean;
+  /** Boolean flags only. Strings, lists, paths and env names stay server-side. */
+  meta?: Record<string, boolean>;
+};
+
+export type PublicRepoHealthSnapshot = Pick<RepoHealthSnapshot, "service" | "scope" | "status" | "generatedAt" | "summary"> & {
+  ok: boolean;
+  checks: PublicRepoHealthCheck[];
+};
+
+/**
+ * What unauthenticated callers of /api/health may see: overall status, counts,
+ * and per-check id/status with boolean flags. Detail text, labels and string
+ * meta (env names, credential file paths, dependency errors) are dropped.
+ * The full snapshot is served to operators at /api/os/health.
+ */
+export function toPublicRepoHealth(snapshot: RepoHealthSnapshot): PublicRepoHealthSnapshot {
+  return {
+    service: snapshot.service,
+    scope: snapshot.scope,
+    status: snapshot.status,
+    ok: snapshot.status === "healthy",
+    generatedAt: snapshot.generatedAt,
+    summary: snapshot.summary,
+    checks: snapshot.checks.map((check) => {
+      const flags = Object.fromEntries(
+        Object.entries((check.meta ?? {}) as Record<string, unknown>).filter(([, value]) => typeof value === "boolean"),
+      ) as Record<string, boolean>;
+      return {
+        id: check.id,
+        status: check.status,
+        ok: check.status === "ok",
+        ...(Object.keys(flags).length ? { meta: flags } : {}),
+      };
+    }),
+  };
+}
