@@ -40,6 +40,7 @@ describe("/book email-to-book copy", () => {
     expect(html).not.toMatch(/No time has been reserved/i);
     expect(html).not.toMatch(/bailey@/i);
     expect(html).not.toContain("\u2014");
+    expect(html).not.toContain("\u2013");
     expect(html).not.toMatch(/instant|calendar|within \d|24 hours/i);
   });
 
@@ -59,6 +60,9 @@ describe("/book email-to-book copy", () => {
       expect(raw, `${rel} contains bailey@`).not.toMatch(/bailey@/i);
       expect(raw, `${rel} contains an em dash`).not.toContain("\u2014");
       expect(raw, `${rel} contains an en dash`).not.toContain("\u2013");
+      expect(raw, `${rel} contains an escaped dash entity or unicode escape`).not.toMatch(
+        /&(m|n)dash;|&#(8212|8211|x201[34]);|\\u201[34]/i,
+      );
       expect(stripComments(raw), `${rel} mentions calendar or unavailable`).not.toMatch(/calendar|unavailable/i);
     }
   });
