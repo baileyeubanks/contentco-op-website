@@ -835,8 +835,8 @@ h1, h2, h3, h4 {
   z-index: 2;
   pointer-events: none;
   background: currentColor;
-  -webkit-mask: url("/logos/lockup-3408.png") center / contain no-repeat;
-  mask: url("/logos/lockup-3408.png") center / contain no-repeat;
+  -webkit-mask: url("/brand/assets/cco/logos/aperture/aperture-mark-currentcolor.svg") center / contain no-repeat;
+  mask: url("/brand/assets/cco/logos/aperture/aperture-mark-currentcolor.svg") center / contain no-repeat;
 }
 
 .cc-nav-brand:hover::before,
@@ -846,11 +846,26 @@ h1, h2, h3, h4 {
 
 .cc-nav-logo {
   display: block;
-  height: 44px;
+  height: 40px;
   width: auto;
   opacity: 0;
   mix-blend-mode: normal;
   filter: none;
+}
+
+/* Aperture colour follows the surface; keep the existing masked-image opacity. */
+.cc-nav .cc-nav-brand {
+  color: #1e4d8c;
+}
+
+.cc-nav[data-surface="login"] .cc-nav-brand {
+  color: #f3ebdf;
+  filter: none;
+}
+
+.cc-nav-brand:hover::before,
+.cc-nav-brand:focus-visible::before {
+  background: currentColor;
 }
 
 .cc-nav-links {
@@ -2455,6 +2470,16 @@ h1, h2, h3, h4 {
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
+}
+
+.cc-footer-brand {
+  display: inline-flex;
+}
+
+.cc-footer-logo {
+  display: block;
+  height: 32px;
+  width: auto;
 }
 
 .cc-footer-links {

@@ -6,6 +6,17 @@ export function PublicFooter() {
   return (
     <footer className="cc-footer">
       <div className="cc-footer-inner">
+        <Link href={CCO_URLS.home} className="cc-footer-brand" aria-label="Content Co-op">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="cc-footer-logo"
+            src="/brand/assets/cco/logos/aperture/aperture-mark.svg"
+            alt="Content Co-op"
+            width="37"
+            height="32"
+            decoding="async"
+          />
+        </Link>
         <nav className="cc-footer-links" aria-label="Footer links">
           <Link href={CCO_URLS.home}>Home</Link>
           <Link href={CCO_URLS.portfolio}>Portfolio</Link>
