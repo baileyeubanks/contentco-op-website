@@ -71,7 +71,7 @@ const HOME_SUITE_PRODUCTS: Array<{
     tagline: "Align the story.",
     description:
       "Co-Script turns a brief into production intelligence: client language, research, interview targets, shot lists, constraints, and script drafts in one place. AI helps surface angles and gaps, while the human team keeps the message accurate and on brand.",
-    accent: "#4c8ef5",
+    accent: "#5b9cff",
     icon: (
       <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
         <path d="M10 4.5h14l6 6V35.5H10z" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
