@@ -234,9 +234,11 @@ the public range come from one place.
   `client.contentco-op.com` (already modelled in Co-VideoPro). Identity joins
   on `contacts.cco_public_email_key`, so a brief submitted anonymously becomes
   the client's first project when they claim the account.
-- **Closed in this PR:** `/client/portal` and `GET /api/client/portal` resolve a
-  contact only from `contacts.portal_token` (minimum 16 characters). A bare
-  `?email=` is ignored, and the email form routes to `/book` for a fresh link.
+- **Closed in this PR:** `/client/portal` resolves a contact only from
+  `contacts.portal_token` (minimum 16 characters). A bare `?email=` is ignored,
+  and the email form routes to `/book` for a fresh link.
+- **Removed (G2, 2026-10-08):** `GET /api/client/portal` is deleted again,
+  matching live since Sep 9 (190cb8b, CCO-ROUTE-GATE-001).
 
 ---
 
@@ -263,7 +265,7 @@ them.
 |---|---|---|
 | `system-sync` (**public**) | `blaze/openclaw/openclaw.json` commits Telegram bot tokens and a gateway token | make private now, confirm revocation, then delete after salvaging audit docs |
 | `root` | commits the CCO-DB service-role JWT (`netlify.toml`, `scripts/import_statements.py`) | rotate the key in Supabase, then archive |
-| `contentco-op-website` | `GET /api/client/portal?email=` unauthenticated | fail closed |
+| `contentco-op-website` | `GET /api/client/portal?email=` unauthenticated | route deleted (190cb8b on live; G2 PR on main) |
 | CCO-DB | RLS disabled on `projects`, `assets`, `folders` | enable with policies before client accounts |
 
 ### 8.2 Keep
