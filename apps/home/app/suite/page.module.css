@@ -195,7 +195,7 @@
   right: 15%;
   height: 2px;
   border-radius: 0 0 2px 2px;
-  background: var(--card-accent, #4c8ef5);
+  background: var(--card-accent, #5b9cff);
   opacity: 0.6;
   transition: opacity 320ms ease;
 }
@@ -205,7 +205,7 @@
 }
 
 .cardIcon {
-  color: var(--card-accent, #4c8ef5);
+  color: var(--card-accent, #5b9cff);
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--card-accent) 20%, transparent));
 }
 
@@ -220,7 +220,7 @@
 
 .cardPrefix {
   font-weight: 800;
-  color: var(--card-accent, #4c8ef5);
+  color: var(--card-accent, #5b9cff);
 }
 
 .cardTagline {
