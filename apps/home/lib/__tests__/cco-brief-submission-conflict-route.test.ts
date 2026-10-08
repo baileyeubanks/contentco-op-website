@@ -101,4 +101,64 @@ describe("CCO public brief replay conflict", () => {
       persisted: false,
     });
   });
+  test("Opus PR #4 FIX: raw error text and config codes reach the server log, not the visitor", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const rawEventError = 'insert or update on table "cco_events" violates foreign key constraint "cco_events_brief_fk"';
+    const results = [
+      { ok: false, persisted: false, retryable: true, error: "cco_db_service_key_missing" },
+      { ok: false, persisted: false, retryable: true, error: "contact_upsert_failed:42501", contactId: "contact-internal-7" },
+      { ok: false, persisted: true, partial: true, retryable: true, error: "event_write_failed",
+        briefId: "saved-brief", contactId: "contact-internal-7", submissionId: body.submissionId,
+        event: { ok: false, replayed: false, error: rawEventError } },
+    ];
+    for (const result of results) {
+      mocks.persistCcoBrief.mockResolvedValueOnce(result);
+      const response = await POST(new Request("https://contentco-op.com/api/cco/briefs", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      }));
+      const text = await response.text();
+      expect(response.status).toBe(503);
+      for (const leaked of ["cco_db_service_key_missing", "service_key", "42501", "contact_upsert_failed",
+        "event_write_failed", "violates", "cco_events", "contact-internal-7"]) {
+        expect(text).not.toContain(leaked);
+      }
+      const json = JSON.parse(text);
+      expect(json).toMatchObject({
+        error: "cco_persistence_unavailable",
+        code: "brief_submission_incomplete",
+        retryable: true,
+        submission_id: body.submissionId,
+      });
+      expect(json.message).toMatch(/please retry/i);
+      if (json.event) expect(json.event).toEqual({ ok: false, replayed: false });
+    }
+
+    const logged = JSON.stringify(errorSpy.mock.calls);
+    expect(logged).toContain("cco_db_service_key_missing");
+    expect(logged).toContain("contact_upsert_failed:42501");
+    expect(logged).toContain("violates foreign key constraint");
+
+    mocks.persistCcoBrief.mockRejectedValueOnce(new Error("fetch failed: getaddrinfo ENOTFOUND db.internal"));
+    const thrown = await POST(new Request("https://contentco-op.com/api/cco/briefs", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }));
+    const thrownText = await thrown.text();
+    expect(thrown.status).toBe(503);
+    expect(thrownText).not.toMatch(/ENOTFOUND|db\.internal|fetch failed/);
+    expect(JSON.parse(thrownText)).toMatchObject({ retryable: true, persisted: false, submission_id: body.submissionId });
+    expect(JSON.stringify(errorSpy.mock.calls)).toContain("ENOTFOUND");
+    errorSpy.mockRestore();
+  });
+
+  test("the browser-mapped codes still pass through", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.persistCcoBrief.mockResolvedValueOnce({
+      ok: false, persisted: true, partial: true, retryable: true, error: "notification_delivery_in_progress", briefId: "saved-brief",
+    });
+    const response = await POST(new Request("https://contentco-op.com/api/cco/briefs", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }));
+    expect(await response.json()).toMatchObject({ code: "notification_delivery_in_progress", retryable: true, persisted: true });
+    vi.mocked(console.error).mockRestore();
+  });
 });
