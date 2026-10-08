@@ -223,6 +223,9 @@ function responseErrorMessage(payload: unknown, fallback: string) {
   if (body.code === "notification_delivery_in_progress") {
     return "Your brief is saved and email delivery is still being confirmed. Please wait a moment, then retry safely.";
   }
+  if (body.code === "brief_recently_received") {
+    return "We already received a brief for this email address a few minutes ago. Check your inbox for the confirmation, or reply to it to add details.";
+  }
   if (body.code === "brief_submission_conflict") {
     return "This saved retry cannot be matched to your brief. Your draft is still here; please submit it again.";
   }

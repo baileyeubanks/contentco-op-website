@@ -94,6 +94,13 @@ const BRANCHES: Branch[] = [
   { name: "failure: non-retryable with saved brief", status: 409, result: { ok: false, persisted: true,
     retryable: false, error: RAW_ERRORS[3], ...saved, event: { ok: false, error: RAW_ERRORS[3] } } },
   { name: "thrown persistence error", status: 503, thrown: new Error(RAW_ERRORS[1]) },
+  // SF5: email-window dedupe. Even a leaky result must not echo the earlier
+  // brief's contact id or anything else server-side.
+  { name: "SF5 dedupe: brief recently received for this email", status: 409, result: { ok: false,
+    persisted: false, retryable: false, error: "brief_recently_received", contactId: CONTACT_ID,
+    notification: leakyNotification, event: { ok: false, error: RAW_ERRORS[0] } } },
+  { name: "SF5 dedupe: recent-brief lookup failed", status: 503, result: { ok: false, persisted: false,
+    retryable: true, error: "brief_recent_lookup_failed", contactId: CONTACT_ID } },
 ];
 
 function assertVisitorSafe(text: string) {
@@ -151,6 +158,18 @@ describe("POST /api/cco/briefs: every response branch is visitor-safe", () => {
     }));
     expect(invalid.status).toBe(400);
     assertVisitorSafe(await invalid.text());
+
+    // SF5: a missing or malformed submission id is the same generic 400.
+    for (const submissionId of [undefined, "", "not-a-uuid"]) {
+      const noId = await POST(new Request("https://contentco-op.com/api/cco/briefs", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...body, submissionId }),
+      }));
+      expect(noId.status).toBe(400);
+      const text = await noId.text();
+      assertVisitorSafe(text);
+      expect(JSON.parse(text)).toEqual({ error: "invalid_intake", errors: { submissionId: ["submission_id_required"] } });
+    }
     expect(mocks.persistCcoBrief).not.toHaveBeenCalled();
   });
 });

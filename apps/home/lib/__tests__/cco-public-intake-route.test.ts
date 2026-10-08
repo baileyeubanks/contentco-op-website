@@ -96,7 +96,8 @@ describe("public CCO intake persistence boundary", () => {
     const response = await briefPOST(
       request(
         "/api/cco/briefs",
-        { sourcePath: "/brief", contact, project, bookingPreference: "20" },
+        // SF5: a submission id is required, so the binding check is reached only with one.
+        { sourcePath: "/brief", contact, project, bookingPreference: "20", submissionId: "6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f" },
         "198.51.100.12",
       ),
     );

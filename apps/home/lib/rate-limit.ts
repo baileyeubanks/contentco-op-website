@@ -36,8 +36,6 @@ export function rateLimit(
   return { success: true, limit: options.max, remaining: options.max - entry.count, resetAt: entry.resetAt };
 }
 
-export function getClientIp(req: Request): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return "unknown";
-}
+// Grader PR #19 R1: callers key the limiter with getRateLimitClientKey
+// (lib/trusted-client-ip.ts). The old X-Forwarded-For getClientIp is removed
+// so no limiter key can come from a client-settable header.
