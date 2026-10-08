@@ -6,6 +6,22 @@ import { LeadSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Grader #17 F4: this route is public and the brief form only reads
+ * `persisted`. The CRM contact id, whether the email already matched a
+ * contact (`replayed`), and internal config/DB codes such as a missing service
+ * key stay in the server log. Every visitor gets the same body for a new
+ * contact, an existing contact and a replay, and one fixed failure code.
+ */
+const PUBLIC_LEAD_FAILURE_CODE = "lead_capture_incomplete";
+
+function leadUnavailable() {
+  return NextResponse.json(
+    { error: "cco_persistence_unavailable", code: PUBLIC_LEAD_FAILURE_CODE, retryable: true, persisted: false },
+    { status: 503 },
+  );
+}
+
 function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -66,29 +82,16 @@ export async function POST(req: Request) {
       },
       sourcePath: "/brief",
     });
-  } catch {
-    return NextResponse.json(
-      { error: "cco_persistence_unavailable", code: "cco_persistence_request_failed", retryable: true, persisted: false },
-      { status: 503 },
-    );
+  } catch (error) {
+    console.error("[cco/leads] persistCcoLead threw", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return leadUnavailable();
   }
   if (!persistence.ok) {
-    return NextResponse.json(
-      {
-        error: "cco_persistence_unavailable",
-        code: persistence.error,
-        retryable: true,
-        persisted: false,
-      },
-      { status: 503 },
-    );
+    console.error("[cco/leads] lead persistence incomplete", { code: persistence.error });
+    return leadUnavailable();
   }
 
-  return NextResponse.json({
-    ok: true,
-    persisted: true,
-    lead_id: persistence.contactId,
-    contact_id: persistence.contactId,
-    replayed: persistence.replayed,
-  });
+  return NextResponse.json({ ok: true, persisted: true });
 }

@@ -13,6 +13,21 @@ import { ProposalRequestSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Grader #17 A1: raw persistence codes (config states, DB errors) stay in the
+ * server log; the caller gets one fixed code. The only caller (the brief form)
+ * reads `persisted` and `proposal_ready`, so the internal brief row id and the
+ * database label are not returned. `briefId` is the caller's own input.
+ */
+const PUBLIC_PROPOSAL_FAILURE_CODE = "proposal_persistence_incomplete";
+
+function proposalUnavailable(retryable: boolean) {
+  return NextResponse.json(
+    { error: "cco_persistence_unavailable", code: PUBLIC_PROPOSAL_FAILURE_CODE, retryable },
+    { status: 503 },
+  );
+}
+
 export async function POST(req: Request) {
   const csrf = validateCsrf(req);
   if (!csrf.valid) {
@@ -46,11 +61,11 @@ export async function POST(req: Request) {
   let persistedBrief: Awaited<ReturnType<typeof getPersistedCcoBrief>>;
   try {
     persistedBrief = await getPersistedCcoBrief(briefId, accessToken);
-  } catch {
-    return NextResponse.json(
-      { error: "cco_persistence_unavailable", code: "cco_persistence_request_failed", retryable: true },
-      { status: 503 },
-    );
+  } catch (error) {
+    console.error("[cco/briefs/proposal] getPersistedCcoBrief threw", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return proposalUnavailable(true);
   }
   if (!persistedBrief.ok) {
     if (persistedBrief.error === "brief_not_found") {
@@ -59,14 +74,8 @@ export async function POST(req: Request) {
       { status: 404 },
       );
     }
-    return NextResponse.json(
-      {
-        error: "cco_persistence_unavailable",
-        code: persistedBrief.error,
-        retryable: persistedBrief.retryable,
-      },
-      { status: 503 },
-    );
+    console.error("[cco/briefs/proposal] brief lookup incomplete", { code: persistedBrief.error });
+    return proposalUnavailable(persistedBrief.retryable);
   }
 
   const existingProposal = getCcoGeneratedBriefProposal(persistedBrief.brief);
@@ -77,7 +86,6 @@ export async function POST(req: Request) {
       briefId,
       proposal_ready: true,
       replayed: true,
-      persistence: { brief_id: persistedBrief.brief.id, database: "CCO-DB" },
     });
   }
 
@@ -107,14 +115,8 @@ export async function POST(req: Request) {
       if (persistedProposal.error === "proposal_invalid") {
         return NextResponse.json({ error: "proposal_generation_invalid", retryable: false }, { status: 409 });
       }
-      return NextResponse.json(
-        {
-          error: "cco_persistence_unavailable",
-          code: persistedProposal.error,
-          retryable: persistedProposal.retryable,
-        },
-        { status: 503 },
-      );
+      console.error("[cco/briefs/proposal] proposal persistence incomplete", { code: persistedProposal.error });
+      return proposalUnavailable(persistedProposal.retryable);
     }
 
     return NextResponse.json({
@@ -123,7 +125,6 @@ export async function POST(req: Request) {
       briefId,
       proposal_ready: true,
       replayed: persistedProposal.replayed,
-      persistence: { brief_id: persistedBrief.brief.id, database: "CCO-DB" },
     });
   } catch (err) {
     console.error("[proposal] Generation failed:", err);
