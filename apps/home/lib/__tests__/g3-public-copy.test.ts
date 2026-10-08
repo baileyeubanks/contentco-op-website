@@ -44,4 +44,12 @@ describe("G3: public copy", () => {
     expect(read("lib/gemini.ts")).not.toMatch(/Director\/Producer/);
     expect(read("lib/quote-payload-builder.ts")).toMatch(/seller_title: "Founder, Content Co-op"/);
   });
+
+  test("the brandcentral badge next to Bailey's name says Founder, not Owner", () => {
+    for (const rel of ["public/brandcentral/index.html", "public/brandcentral/cc.html", "brandcentral/index.html"]) {
+      const src = read(rel);
+      expect(src, rel).toMatch(/<strong>Bailey Eubanks<\/strong>\s*<span class="owner-badge"[^>]*>Founder<\/span>/);
+      expect(src, rel).not.toMatch(/class="owner-badge"[^>]*>\s*Owner\s*</);
+    }
+  });
 });
