@@ -76,7 +76,8 @@ describe("SF5: rate-limit key and Cloudflare trust", () => {
 
     expect(UNTRUSTED_CLIENT_KEY).toBe("unknown");
     expect(key({ "cf-ray": RAY, "cf-connecting-ip": "203.0.113.7" })).toBe("cf:203.0.113.7");
-    expect(key({ "cf-ray": RAY, "cf-connecting-ip": "2001:DB8::1" })).toBe("cf:2001:db8::1");
+    // R2: IPv6 is keyed on its canonical /64 (cco-rate-limit-key-r1-r2.test.ts covers the forms).
+    expect(key({ "cf-ray": RAY, "cf-connecting-ip": "2001:DB8::1" })).toBe("cf:2001:db8::/64");
     // Through Cloudflare, X-Forwarded-For is ignored even when it is present.
     expect(key({ "cf-ray": RAY, "cf-connecting-ip": "203.0.113.7", "x-forwarded-for": "198.51.100.9" }))
       .toBe("cf:203.0.113.7");

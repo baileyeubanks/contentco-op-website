@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 /**
- * Grader PR #19 R1 (2026-10-08).
+ * Grader PR #19 R1 + R2 (2026-10-08).
  *
  * R1: no public CCO limiter keys on X-Forwarded-For. /api/cco/leads and
  * /api/cco/briefs/proposal use getRateLimitClientKey like /api/cco/briefs, and
  * lib/rate-limit.ts no longer exports getClientIp.
+ *
+ * R2: the trusted Cloudflare address is canonicalised: IPv6 on its /64,
+ * equivalent spellings collapse, IPv4-mapped IPv6 equals the IPv4 address.
  *
  * The real limiter and the real key run here. Persistence, the origin check
  * and the proposal generator are mocked; nothing leaves the process.
@@ -187,5 +190,80 @@ describe("R1: the leads and proposal limiters never key on X-Forwarded-For", () 
     // The brief form's lead capture does not use up the visitor's brief or proposal quota.
     expect((await briefs.POST(request("briefs", visitor))).status).toBe(200);
     expect((await proposal.POST(request("proposal", visitor))).status).toBe(200);
+  });
+});
+
+describe("R2: canonical client keys (IPv6 /64, mapped IPv4)", () => {
+  test("canonicalClientAddress and getRateLimitClientKey", async () => {
+    vi.resetModules();
+    const { canonicalClientAddress, getRateLimitClientKey, IPV6_BUCKET_PREFIX_BITS } = await import(
+      "@/lib/trusted-client-ip"
+    );
+    expect(IPV6_BUCKET_PREFIX_BITS).toBe(64);
+
+    const cases: Array<[string, string]> = [
+      ["203.0.113.7", "203.0.113.7"],
+      ["::ffff:198.51.100.7", "198.51.100.7"],
+      ["::FFFF:198.51.100.7", "198.51.100.7"],
+      ["::ffff:c633:6407", "198.51.100.7"],
+      ["0:0:0:0:0:ffff:198.51.100.7", "198.51.100.7"],
+      ["::1", "::/64"],
+      ["0:0:0:0:0:0:0:1", "::/64"],
+      ["2001:db8:1:2::1", "2001:db8:1:2::/64"],
+      ["2001:db8:1:2:0:0:0:1", "2001:db8:1:2::/64"],
+      ["2001:0DB8:0001:0002:ffff:ffff:ffff:ffff", "2001:db8:1:2::/64"],
+      ["2001:db8:1:2:abcd::99", "2001:db8:1:2::/64"],
+      ["2001:db8:1:3::1", "2001:db8:1:3::/64"],
+      ["2001:db8::1", "2001:db8::/64"],
+      ["2001:0:0:1::5", "2001:0:0:1::/64"],
+      ["fe80::1%eth0", "fe80::/64"],
+      ["64:ff9b::198.51.100.7", "64:ff9b::/64"],
+      ["1:2:3:4:5:6:7:8", "1:2:3:4::/64"],
+    ];
+    for (const [input, key] of cases) expect([input, canonicalClientAddress(input)]).toEqual([input, key]);
+    for (const bad of ["", "not-an-ip", "203.0.113.7, 10.0.0.1", "1::2::3", "[::1]"]) {
+      expect(canonicalClientAddress(bad)).toBeNull();
+    }
+
+    const key = (ip: string) =>
+      getRateLimitClientKey(new Request("https://contentco-op.com/x", { headers: { "cf-ray": RAY, "cf-connecting-ip": ip } }));
+    expect(key("::1")).toBe(key("0:0:0:0:0:0:0:1"));
+    expect(key("::ffff:1.2.3.4")).toBe(key("1.2.3.4"));
+    expect(key("1.2.3.4")).toBe("cf:1.2.3.4");
+    expect(key("2001:db8:1:2::1")).toBe(key("2001:db8:1:2:0:0:0:1"));
+    expect(key("2001:db8:1:2::1")).toBe(key("2001:db8:1:2:ffff:ffff:ffff:fffe"));
+    expect(key("2001:db8:1:2::1")).toBe("cf:2001:db8:1:2::/64");
+    expect(key("2001:db8:1:2::1")).not.toBe(key("2001:db8:1:3::1"));
+  });
+
+  test.each(["briefs", "leads", "proposal"] as const)(
+    "%s: rotating through one IPv6 /64 via Cloudflare shares one bucket; the next /64 does not",
+    async (name) => {
+      const { limit } = ROUTES[name];
+      const route = await loadRoute(name);
+      const spellings = (i: number) =>
+        [`2001:db8:1:2::${(i + 1).toString(16)}`, `2001:0DB8:0001:0002:0:0:${i}:1`, `2001:db8:1:2:${i + 1}::`][i % 3];
+      const rotated = await statuses(route, name, (i) => ({ "cf-ray": RAY, "cf-connecting-ip": spellings(i) }));
+      expect(rotated).toEqual(expected(limit));
+      const neighbour = await route.POST(request(name, { "cf-ray": RAY, "cf-connecting-ip": "2001:db8:1:3::1" }));
+      expect(neighbour.status).toBe(200);
+    },
+  );
+
+  test("briefs: IPv4-mapped IPv6 and plain IPv4 are one client", async () => {
+    const route = await loadRoute("briefs");
+    const { limit } = ROUTES.briefs;
+    const forms = ["::ffff:203.0.113.50", "203.0.113.50", "::FFFF:cb00:7132"];
+    const out = await statuses(route, "briefs", (i) => ({ "cf-ray": RAY, "cf-connecting-ip": forms[i % 3] }));
+    expect(out).toEqual(expected(limit));
+  });
+
+  test("briefs: ::1 and 0:0:0:0:0:0:0:1 are one client", async () => {
+    const route = await loadRoute("briefs");
+    const { limit } = ROUTES.briefs;
+    const out = await statuses(route, "briefs", (i) => ({
+      "cf-ray": RAY, "cf-connecting-ip": i % 2 ? "0:0:0:0:0:0:0:1" : "::1",
+    }));
+    expect(out).toEqual(expected(limit));
   });
 });
