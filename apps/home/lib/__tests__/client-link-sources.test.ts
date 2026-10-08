@@ -38,3 +38,11 @@ it("client and share public text uses Content Co-op and service@ only, with no l
   const source=readFileSync(file,"utf8");expect(source,file).not.toMatch(/Astro Cleaning|astrocleanings|tel:|<Image/);
  }
 });
+
+it("public resource reads never default a missing business unit",()=>{
+ for(const dir of ["app/client","app/share","app/api/client","app/api/share"]) for(const file of files(dir)) {
+  if(file==="app/client/portal/page.tsx"||file==="app/api/client/invoice/[id]/pay/route.ts") continue;
+  expect(readFileSync(file,"utf8"),file).not.toMatch(/business_unit\s*(?:\|\||\?\?)\s*["']CC["']/);
+ }
+ expect(readFileSync("lib/reminder-engine.ts","utf8")).not.toMatch(/business_unit\s*(?:\|\||\?\?)\s*["']CC["']/);
+});
