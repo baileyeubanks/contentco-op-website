@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { PublicPageLayout } from "@/app/components/public-page-layout";
 import { PublicPageIntro } from "@/app/components/public-page-intro";
 import { BookingClient } from "./booking-client";
@@ -17,9 +16,7 @@ export default function BookPage() {
           className={s.header}
         />
 
-        <Suspense fallback={<div className={s.loadingPanel}>Loading contact options...</div>}>
-          <BookingClient />
-        </Suspense>
+        <BookingClient />
       </section>
 
       </main>

@@ -1,5 +1,3 @@
-"use client";
-
 import s from "./page.module.css";
 
 /**
@@ -18,15 +16,11 @@ export function BookingClient() {
   return (
     <section className={s.bookingPanel} aria-labelledby="book-by-email-title">
       <div className={s.bookingHeader}>
-        <div>
-          <p className={s.kicker}>Discovery Call</p>
-          <h2 id="book-by-email-title">Book a discovery call by email</h2>
-        </div>
+        <h2 id="book-by-email-title">Book a discovery call by email</h2>
       </div>
       <div className={s.emailBody}>
         <p className={s.emailLead}>
-          Send us a note about your project and a few times that work for you. Our team will
-          reply to set up the call.
+          Send us a note about your project and our team will reply to set up the call.
         </p>
         <ul className={s.emailList}>
           <li>Your name and company</li>
