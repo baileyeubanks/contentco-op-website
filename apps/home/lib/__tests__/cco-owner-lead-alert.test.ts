@@ -3,6 +3,8 @@ import {
   CCO_OWNER_ALERT_EMAIL,
   CCO_OWNER_CATCHUP_ID,
   CCO_OWNER_LEAD_ALERT_TEMPLATE,
+  ownerAlertClaimId,
+  ownerAlertDedupeId,
   assertOwnerOnlyRecipients,
   buildCcoOwnerCatchUpAlert,
   buildCcoOwnerLeadAlert,
@@ -70,6 +72,9 @@ class FakeQuery {
     const rows = this.db.rows(this.table);
     if (this.operation === "insert") {
       const row = { id: `${this.table}-${rows.length + 1}`, ...(this.payload || {}) };
+      if (row.id && rows.some((existing) => existing.id === row.id)) {
+        return { data: null, error: { message: "notification_log_duplicate" } };
+      }
       rows.push(row);
       return { data: row, error: null };
     }
@@ -229,6 +234,12 @@ describe("notifyCcoOwnerOfStoredLead", () => {
 
     const rows = db.rows("notification_log");
     expect(rows).toHaveLength(2);
+    expect(rows.find((row) => row.channel === "email")?.id).toBe(
+      ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"),
+    );
+    expect(rows.find((row) => row.channel === "sms")?.id).toBe(
+      ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "sms"),
+    );
     expect(rows.every((row) => row.recipient === CCO_OWNER_ALERT_EMAIL || row.recipient === CCO_OWNER_ALERT_PHONE_E164)).toBe(true);
     expect(rows.every((row) => row.audience === "internal")).toBe(true);
     expect(rows.every((row) => row.template_key === CCO_OWNER_LEAD_ALERT_TEMPLATE)).toBe(true);
@@ -616,6 +627,54 @@ describe("durable claim before provider send", () => {
     expect(sendSms).toHaveBeenCalledTimes(1);
     expect(second.email.status).toBe("skipped");
     expect(second.sms.reason).toBe("notification_delivery_in_progress");
+    expect(second.blockedSubmission).toBe(false);
+  });
+
+  test("first-insert claim ids are deterministic per template, lead, and channel", () => {
+    const emailId = ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, ownerAlertDedupeId(lead), "email");
+    const smsId = ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, ownerAlertDedupeId(lead), "sms");
+    expect(emailId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(smsId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(emailId).not.toBe(smsId);
+    expect(emailId).toBe(ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"));
+  });
+
+  test("does not send when a second worker inserts the same first-claim id", async () => {
+    const claimed = {
+      email: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"),
+      sms: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "sms"),
+    };
+    const inserts: Array<{ channel: unknown; id: unknown }> = [];
+    const db = scriptedLog((call) => {
+      const channel = call.filters.find((filter) => filter.column === "channel")?.value
+        || call.payload?.channel;
+      if (call.operation === "select") return { data: null, error: null };
+      if (call.operation === "insert") {
+        inserts.push({ channel, id: call.payload?.id });
+        const already = inserts.filter((row) => row.channel === channel).length > 1;
+        if (already) return { data: null, error: { message: "notification_log_duplicate" } };
+        return { data: { id: call.payload?.id || claimed.email }, error: null };
+      }
+      if (call.operation === "update") {
+        const id = call.filters.find((filter) => filter.column === "id")?.value;
+        return { data: { id }, error: null };
+      }
+      return { data: null, error: { message: "notification_log_unavailable" } };
+    });
+    const { sendEmail, sendSms } = transports();
+    const deps = { db: db as unknown as CcoPublicIntakeDatabase, sendEmail, sendSms };
+    const first = await notifyCcoOwnerOfStoredLead(lead, deps);
+    resetCcoOwnerLeadAlertDedup();
+    const second = await notifyCcoOwnerOfStoredLead(lead, deps);
+    expect(inserts.map((row) => row.id).sort()).toEqual(
+      [claimed.email, claimed.email, claimed.sms, claimed.sms].sort(),
+    );
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendSms).toHaveBeenCalledTimes(1);
+    expect(first.email.delivered).toBe(true);
+    expect(first.sms.delivered).toBe(true);
+    expect(second.email).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
+    expect(second.sms.reason).toBe("notification_claim_failed");
     expect(second.blockedSubmission).toBe(false);
   });
 });

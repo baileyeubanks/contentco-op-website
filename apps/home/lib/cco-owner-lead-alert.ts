@@ -5,6 +5,7 @@
  * the lead. Never fail the public submission. One alert bundle per contact id.
  */
 
+import { createHash } from "node:crypto";
 import { getCcoOsDatabase, type CcoPublicIntakeDatabase } from "@/lib/cco-public-intake";
 import { sendTransactionalEmail } from "@/lib/email-sender";
 import {
@@ -21,6 +22,8 @@ export const CCO_OWNER_CATCHUP_ID = "catchup:unanswered-20261008";
 export const CCO_OS_PUBLIC_ORIGIN = "https://admin.contentco-op.com";
 export const CCO_OWNER_ALERT_AGENT = "cco-public-intake";
 export const CCO_OWNER_ALERT_ENTITY_TYPE = "creative_brief";
+/** Stable UUID namespace so two workers compute the same notification_log.id. */
+export const CCO_OWNER_ALERT_CLAIM_NAMESPACE = "8f3d2c1a-6b09-4e17-9a44-0c2e7b5d1f08";
 const CCO_BUSINESS_UNIT = "CC";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
 const OWNER_ALERT_SEND_TIMEOUT_MS = 8_000;
@@ -112,6 +115,31 @@ export function ownerAlertDedupeId(input: { leadId: string; briefId?: string }) 
 
 function channelKey(templateKey: string, dedupeId: string, channel: "email" | "sms") {
   return `${templateKey}:${dedupeId}:${channel}`;
+}
+
+function uuidBytes(value: string) {
+  const hex = value.replace(/-/g, "");
+  if (!/^[0-9a-fA-F]{32}$/.test(hex)) {
+    throw new TypeError("uuid_required");
+  }
+  return Buffer.from(hex, "hex");
+}
+
+/** RFC 4122 UUID v5. Used as notification_log.id so the first insert is exclusive. */
+export function ownerAlertClaimId(
+  templateKey: string,
+  dedupeId: string,
+  channel: "email" | "sms",
+) {
+  const name = channelKey(templateKey, asId(dedupeId), channel);
+  const hash = createHash("sha1")
+    .update(uuidBytes(CCO_OWNER_ALERT_CLAIM_NAMESPACE))
+    .update(name)
+    .digest();
+  hash[6] = (hash[6] & 0x0f) | 0x50;
+  hash[8] = (hash[8] & 0x3f) | 0x80;
+  const hex = hash.subarray(0, 16).toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
 async function withSendTimeout<T extends { ok: boolean; error?: string; deliveryUnknown?: boolean }>(
@@ -459,9 +487,10 @@ async function deliverOwnerChannel(input: {
     return { ...base, delivered: false, status: "skipped", reason: "notification_claim_failed", logId: existingId };
   }
 
+  const claimId = ownerAlertClaimId(input.templateKey, input.dedupeId, input.channel);
   const write = existingId
     ? input.db.from("notification_log").update(queuedPayload).eq("id", existingId).eq("status", "failed")
-    : input.db.from("notification_log").insert(queuedPayload);
+    : input.db.from("notification_log").insert({ ...queuedPayload, id: claimId });
   let claimedId = "";
   try {
     const { data, error } = await write.select("id").single();
