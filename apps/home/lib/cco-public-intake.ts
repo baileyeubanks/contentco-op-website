@@ -128,6 +128,7 @@ type NotificationReceipt = {
   ok: true;
   status: "sent" | "failed" | "unknown";
   logId: string;
+  providerReceiptPresent: boolean;
 } | {
   ok: false;
   error: string;
@@ -138,7 +139,9 @@ type DeliveryStatus = "sent" | "failed" | "unknown";
 type CcoBriefNotification = {
   /** Aggregate over every operator recipient: sent if anyone got it. */
   admin: { status: DeliveryStatus; logId: string };
-  admin_recipients: Array<{ recipient: string; status: DeliveryStatus; logId: string }>;
+  /** The code-pinned Bailey leg; operator aggregate success is not owner proof. */
+  owner: { status: DeliveryStatus; logId: string; providerReceiptPresent: boolean };
+  admin_recipients: Array<{ recipient: string; status: DeliveryStatus; logId: string; providerReceiptPresent: boolean }>;
   client: { status: DeliveryStatus; logId: string };
 };
 
@@ -592,8 +595,11 @@ async function deliverLoggedEmail(input: {
 
   const existingId = asId(existingResult.data?.id);
   const existingStatus = cleanString(existingResult.data?.status).toLowerCase();
+  const existingProviderReceiptPresent = Boolean(cleanString(asRecord(existingResult.data?.metadata).provider_message_id));
   if (existingId && existingStatus === "sent") {
-    return { ok: true, status: "sent", logId: existingId };
+    // Missing historical provider evidence is uncertain, never permission to resend.
+    return { ok: true, status: existingProviderReceiptPresent ? "sent" : "unknown", logId: existingId,
+      providerReceiptPresent: existingProviderReceiptPresent };
   }
   if (existingId && existingStatus === "sending") {
     if (!isStaleNotificationSend(existingResult.data?.metadata)) {
@@ -623,10 +629,10 @@ async function deliverLoggedEmail(input: {
     if (recoveryError || !recoveredId) {
       return { ok: false, error: databaseErrorCode("notification_recovery", recoveryError) };
     }
-    return { ok: true, status: "unknown", logId: recoveredId };
+    return { ok: true, status: "unknown", logId: recoveredId, providerReceiptPresent: existingProviderReceiptPresent };
   }
-  if (existingId && existingStatus === "unknown") {
-    return { ok: true, status: "unknown", logId: existingId };
+  if (existingId && (existingStatus === "unknown" || (existingStatus === "failed" && existingProviderReceiptPresent))) {
+    return { ok: true, status: "unknown", logId: existingId, providerReceiptPresent: existingProviderReceiptPresent };
   }
   if (existingId && existingStatus !== "failed") {
     return { ok: false, error: "notification_status_unrecognized" };
@@ -694,7 +700,7 @@ async function deliverLoggedEmail(input: {
     : delivery.ok && !providerMessageId
       ? "provider_receipt_missing"
       : boundedError(delivery.error);
-  const { error: outcomeError } = await input.db
+  const { data: outcomeLog, error: outcomeError } = await input.db
     .from("notification_log")
     .update({
       status,
@@ -715,9 +721,9 @@ async function deliverLoggedEmail(input: {
     .eq("status", "sending")
     .select("id")
     .single();
-  if (outcomeError) return { ok: false, error: databaseErrorCode("notification_log_update", outcomeError) };
+  if (outcomeError || !asId(outcomeLog?.id)) return { ok: false, error: databaseErrorCode("notification_log_update", outcomeError) };
 
-  return { ok: true, status, logId };
+  return { ok: true, status, logId, providerReceiptPresent: Boolean(providerMessageId) };
 }
 
 function aggregateDeliveryStatus(statuses: DeliveryStatus[]): DeliveryStatus {
@@ -755,9 +761,9 @@ async function deliverBriefNotifications(input: {
   if (!client.ok) return { ok: false, error: client.error };
 
   const adminRecipients = adminResults.flatMap(({ recipient, receipt }) =>
-    receipt.ok ? [{ recipient, status: receipt.status, logId: receipt.logId }] : [],
+    receipt.ok ? [{ recipient, status: receipt.status, logId: receipt.logId, providerReceiptPresent: receipt.providerReceiptPresent }] : [],
   );
-  const primary = adminRecipients[0];
+  const primary = adminRecipients.find((entry) => entry.recipient === DEFAULT_CCO_ADMIN_ALERT_EMAILS[0]);
   if (!primary) return { ok: false, error: "admin_alert_recipients_missing" };
   return {
     ok: true,
@@ -766,10 +772,23 @@ async function deliverBriefNotifications(input: {
         status: aggregateDeliveryStatus(adminRecipients.map((entry) => entry.status)),
         logId: primary.logId,
       },
+      owner: { status: primary.status, logId: primary.logId, providerReceiptPresent: primary.providerReceiptPresent },
       admin_recipients: adminRecipients,
       client: { status: client.status, logId: client.logId },
     },
   };
+}
+
+/** Called only after a canonical brief receipt exists, including replay. */
+async function deliverBriefNotificationsSafely(
+  input: Parameters<typeof deliverBriefNotifications>[0],
+): Promise<CcoBriefNotificationsReceipt> {
+  try {
+    return await deliverBriefNotifications(input);
+  } catch {
+    // Keep the saved brief truthful without exposing private database/provider errors.
+    return { ok: false, error: "notification_delivery_request_failed" };
+  }
 }
 
 /**
@@ -980,7 +999,7 @@ export async function persistCcoBrief(
       submission: persistedSubmission,
       estimate: replayEstimate,
     });
-    const notifications = await deliverBriefNotifications({
+    const notifications = await deliverBriefNotificationsSafely({
       db,
       briefId: existingBriefId,
       contactId,
@@ -1084,7 +1103,7 @@ export async function persistCcoBrief(
   if (!event.ok) {
     console.warn(`[cco-public-intake] brief_submitted event not recorded for ${briefId}: ${event.error}`);
   }
-  const notifications = await deliverBriefNotifications({
+  const notifications = await deliverBriefNotificationsSafely({
     db,
     briefId,
     contactId: contact.contactId,

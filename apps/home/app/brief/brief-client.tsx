@@ -6,21 +6,15 @@ import {
   CCO_BRIEF_DRAFT_STORAGE_KEY,
   canRetryCcoBriefDelivery,
   clearCcoBriefSubmissionStorage,
-  getCcoBriefDeliveryIssue,
-  type CcoBriefDeliveryIssue,
   getCcoBriefSubmissionId,
 } from "@/lib/cco-public-intake-client";
+import { finishCcoPublicBriefSubmission, type CcoReceivedBrief } from "@/lib/cco-public-brief-submission";
 import { buildBriefPricingInputs, calculateEstimate, formatCurrency } from "@/lib/pricing";
 import s from "./page.module.css";
 
 type SubmitState = "idle" | "saving_lead" | "submitting" | "success" | "error";
 type FieldErrors = Partial<Record<keyof BriefDraft, string>>;
-type BriefResult = {
-  briefId: string;
-  deliveryIssue: CcoBriefDeliveryIssue;
-  /** Set when the instant estimate was generated even though an email leg failed. */
-  proposalHref?: string;
-};
+type BriefResult = CcoReceivedBrief;
 
 const PROJECT_TYPES = [
   { id: "brand", label: "Brand film", desc: "Tell your company narrative with cinematic depth" },
@@ -520,58 +514,18 @@ export function BriefClientPage() {
         throw submissionError;
       }
 
-      const briefId = String(payload.id);
+      const briefId = typeof payload.id === "string" ? payload.id.trim() : "";
       const accessToken = typeof payload.access_token === "string" ? payload.access_token : "";
-      if (!accessToken) {
-        throw new Error("Your brief was saved, but proposal access could not be prepared. Retry safely to finish that step.");
-      }
-      const deliveryIssue = getCcoBriefDeliveryIssue(payload.notification);
-
-      // Generate the instant estimate. Email delivery is a separate concern:
-      // a failed confirmation email must not withhold the estimate the client
-      // came here for, and the brief already has a durable CCO-DB receipt.
-      setSubmitState("submitting");
-      const proposalHref = `/brief/proposal/${briefId}?token=${encodeURIComponent(accessToken)}`;
-      const proposalRes = await fetch("/api/cco/briefs/proposal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          briefId,
-          accessToken,
-        }),
-      });
-
-      const proposalPayload = await proposalRes.json().catch(() => null);
-      const proposalReady = proposalRes.ok && proposalPayload?.persisted === true && proposalPayload?.proposal_ready === true;
-
-      if (deliveryIssue) {
-        // Keep the retry-email path (same submission UUID, no duplicate brief)
-        // but still hand over the estimate when it was generated.
-        setResult({
-          briefId,
-          deliveryIssue,
-          proposalHref: proposalReady ? proposalHref : undefined,
-        });
+      const outcome = await finishCcoPublicBriefSubmission({ briefId, accessToken, notification: payload.notification }, fetch);
+      if (outcome.kind === "received") {
+        setResult(outcome.receipt);
         setSubmitState("success");
-        if (!canRetryCcoBriefDelivery(deliveryIssue)) clearSubmittedDraft();
+        if (!outcome.retryDelivery) clearSubmittedDraft();
         return;
       }
 
-      if (!proposalReady) {
-        // The brief has a real CCO-DB receipt. Do not claim that a proposal
-        // exists when its preview generation did not finish.
-        setResult({
-          briefId,
-          deliveryIssue: null,
-        });
-        setSubmitState("success");
-        clearSubmittedDraft();
-        return;
-      }
-
-      // Redirect to proposal page
       clearSubmittedDraft();
-      window.location.href = proposalHref;
+      window.location.href = outcome.proposalHref;
     } catch (error) {
       setSubmitState("error");
       setSubmitError(error instanceof Error ? error.message : "Brief submission failed");
@@ -615,6 +569,9 @@ export function BriefClientPage() {
           <p className={s.savedNotice} role="status">
             {savedMessage}
           </p>
+          {result.deliveryIssue && !result.proposalHref ? (
+            <p className={s.savedNotice}>The proposal preview is unavailable. Your brief remains saved for team review.</p>
+          ) : null}
           <div className={s.successGrid}>
             <div>
               <span>Brief ID</span>

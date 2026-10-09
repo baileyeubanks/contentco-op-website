@@ -47,19 +47,46 @@ describe("CCO public brief retry storage", () => {
   test("makes a failed or unknown email outcome visible instead of treating it as a clean receipt", () => {
     expect(getCcoBriefDeliveryIssue({
       admin: { status: "sent" },
-      client: { status: "failed" },
+      owner: { status: "sent", logId: "owner-log", providerReceiptPresent: true },
+      client: { status: "failed", logId: "client-log" },
     })).toBe("failed");
     expect(getCcoBriefDeliveryIssue({
       admin: { status: "unknown" },
-      client: { status: "sent" },
+      owner: { status: "unknown", logId: "owner-log", providerReceiptPresent: false },
+      client: { status: "sent", logId: "client-log" },
     })).toBe("unknown");
     expect(getCcoBriefDeliveryIssue({
       admin: { status: "unknown" },
-      client: { status: "failed" },
+      owner: { status: "unknown", logId: "owner-log", providerReceiptPresent: false },
+      client: { status: "failed", logId: "client-log" },
     })).toBe("mixed");
     expect(getCcoBriefDeliveryIssue({
       admin: { status: "sent" },
-      client: { status: "sent" },
+      owner: { status: "sent", logId: "owner-log", providerReceiptPresent: true },
+      client: { status: "sent", logId: "client-log" },
+    })).toBeNull();
+  });
+
+  test.each(["failed", "unknown"])("an aggregate sent result cannot hide Bailey's %s outcome", (status) => {
+    expect(getCcoBriefDeliveryIssue({
+      admin: { status: "sent", logId: "owner-log" },
+      owner: { status, logId: "owner-log", providerReceiptPresent: false },
+      client: { status: "sent", logId: "client-log" },
+    })).toBe(status);
+  });
+
+  test.each([undefined, null, {}, { status: "sent" }, { status: "sent", logId: "owner-log", providerReceiptPresent: false },
+    { status: "sent", logId: "owner-log", providerReceiptPresent: "true" }, { status: "sent", logId: "  ", providerReceiptPresent: true }])(
+    "a missing or malformed owner receipt %j requires manual follow-up", (owner) => {
+      expect(getCcoBriefDeliveryIssue({ owner, admin: { status: "sent" }, client: { status: "sent", logId: "client-log" } })).toBe("unknown");
+    },
+  );
+
+  test("Bailey acceptance is independent of an additive operator's failure", () => {
+    expect(getCcoBriefDeliveryIssue({
+      admin: { status: "failed" },
+      owner: { status: "sent", logId: "owner-log", providerReceiptPresent: true },
+      client: { status: "sent", logId: "client-log" },
     })).toBeNull();
   });
 

@@ -3,16 +3,25 @@ export const CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY = "cco-brief-submission-id-v1";
 
 export type CcoBriefDeliveryIssue = "failed" | "unknown" | "mixed" | null;
 
+function deliveryStatus(delivery: unknown, requireProviderProof: boolean) {
+  const record = delivery && typeof delivery === "object" && !Array.isArray(delivery)
+    ? delivery as Record<string, unknown>
+    : {};
+  if (typeof record.logId !== "string" || !record.logId.trim()) return "unknown";
+  if (record.status === "sent") {
+    return !requireProviderProof || record.providerReceiptPresent === true ? "sent" : "unknown";
+  }
+  if (record.status === "failed") {
+    return !requireProviderProof || record.providerReceiptPresent === false ? "failed" : "unknown";
+  }
+  return "unknown";
+}
+
 export function getCcoBriefDeliveryIssue(notification: unknown): CcoBriefDeliveryIssue {
   const record = notification && typeof notification === "object" && !Array.isArray(notification)
     ? notification as Record<string, unknown>
     : {};
-  const statuses = [record.admin, record.client]
-    .map((delivery) => (
-      delivery && typeof delivery === "object" && !Array.isArray(delivery)
-        ? (delivery as Record<string, unknown>).status
-        : undefined
-    ));
+  const statuses = [deliveryStatus(record.owner, true), deliveryStatus(record.client, false)];
   const hasUnknown = statuses.includes("unknown");
   const hasFailed = statuses.includes("failed");
   if (hasUnknown && hasFailed) return "mixed";
