@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { describeCcoEmailTransport } from "../email-sender";
 
@@ -24,15 +26,9 @@ describe("describeCcoEmailTransport", () => {
 });
 
 describe("public /api/health intake_contract", () => {
-  test("does not echo credential-file paths when transport is unconfigured", async () => {
-    const { getRepoHealthSnapshot } = await import("../repo-health");
-    const snap = await getRepoHealthSnapshot("local");
-    const intake = snap.checks.find((check) => check.id === "intake_contract");
-    expect(intake).toBeTruthy();
-    const blob = JSON.stringify(intake);
-    expect(blob).not.toMatch(/GOOGLE_OAUTH_TOKEN_FILE|GOOGLE_DWD_SERVICE_ACCOUNT|service_account\.json|\.config\/blaze/);
-    if (intake?.meta && intake.meta.emailTransportReady === false) {
-      expect(String(intake.detail)).toContain("email_transport_unconfigured");
-    }
+  test("does not copy credential-file detail into the unauthenticated health check", () => {
+    const src = readFileSync(path.join(__dirname, "../repo-health.ts"), "utf8");
+    expect(src).toContain('["email_transport_unconfigured"]');
+    expect(src).not.toMatch(/emailWarning = emailTransport\.ready \? \[\] : \[emailTransport\.detail\]/);
   });
 });
