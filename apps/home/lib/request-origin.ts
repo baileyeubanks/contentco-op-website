@@ -33,3 +33,13 @@ export function publicRequestOrigin(request: Request): string {
 
   return "https://contentco-op.com";
 }
+
+/**
+ * Build an absolute redirect URL from the public origin, never the request
+ * bind address. Resolving a path against request.url is how live `/os/logout`
+ * became `https://0.0.0.0:4100/os?reset=1`.
+ */
+export function publicRedirectUrl(request: Request, pathnameAndSearch: string): URL {
+  const origin = publicRequestOrigin(request);
+  return new URL(pathnameAndSearch, `${origin}/`);
+}

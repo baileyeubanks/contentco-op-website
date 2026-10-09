@@ -1,6 +1,7 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 import { legacyRootRedirects } from "./lib/legacy-root-redirects";
+import { publicCanonHostRedirects } from "./lib/public-host-redirects";
 
 const VERSIONED_MEDIA_CACHE = "public, max-age=31536000, immutable";
 const EDGE_STATIC_CACHE = "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800";
@@ -28,6 +29,7 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
 
+      ...publicCanonHostRedirects,
       ...legacyRootRedirects,
     ];
   },

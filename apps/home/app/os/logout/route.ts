@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicRedirectUrl } from "@/lib/request-origin";
 import { getSessionCookieName } from "@/lib/session-shared";
 
 function getSupabaseProjectRef() {
@@ -11,9 +12,7 @@ function getSupabaseProjectRef() {
 }
 
 export async function GET(req: Request) {
-  const redirectUrl = new URL("/os", req.url);
-  redirectUrl.searchParams.set("reset", "1");
-
+  const redirectUrl = publicRedirectUrl(req, "/os?reset=1");
   const res = NextResponse.redirect(redirectUrl);
   const rootCookie = getSessionCookieName();
   const projectRef = getSupabaseProjectRef();

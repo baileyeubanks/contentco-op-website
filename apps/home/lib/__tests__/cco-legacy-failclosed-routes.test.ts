@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { POST as bookingPOST } from "@/app/api/cco/bookings/route";
 import { GET as availabilityGET } from "@/app/api/cco/bookings/availability/route";
@@ -13,6 +15,14 @@ describe("retired CCO preview routes", () => {
     expect(await availability.json()).toMatchObject({ error: "booking_unavailable" });
     expect(booking.status).toBe(503);
     expect(await booking.json()).toMatchObject({ error: "booking_unavailable" });
+
+    const bookingClient = readFileSync(
+      path.resolve(__dirname, "../../app/book/booking-client.tsx"),
+      "utf8",
+    );
+    expect(bookingClient).toMatch(/Scheduling unavailable/);
+    expect(bookingClient).not.toMatch(/google_freebusy_ready/);
+    expect(bookingClient).not.toMatch(/\/api\/cco\/bookings/);
   });
 
   test("never renders a fixture proposal PDF for an arbitrary identifier", async () => {

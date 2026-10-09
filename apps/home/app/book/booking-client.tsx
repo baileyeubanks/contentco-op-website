@@ -3,9 +3,11 @@
 import s from "./page.module.css";
 
 /**
- * The former calendar path was retired because it could report a reservation
- * without a canonical durable booking receipt. Keep the public page explicit
- * until CCO has a CCO-DB-backed calendar and confirmation workflow.
+ * Online scheduling stays closed until a CCO-DB booking record and an
+ * idempotent calendar receipt exist. The former Google/Firebase preview path
+ * (retired in b0859f6) could report a reservation without that receipt.
+ * Do not restore slot-picking against the retired booking APIs while those
+ * routes return `booking_unavailable`.
  */
 export function BookingClient() {
   return (
@@ -17,10 +19,11 @@ export function BookingClient() {
         </div>
       </div>
       <p className={s.error}>
-        Online discovery-call scheduling is temporarily unavailable. No time has been reserved.
+        Online discovery-call scheduling is not offered here. No time has been reserved.
       </p>
       <p className={s.note}>
-        Please email <a href="mailto:service@contentco-op.com">service@contentco-op.com</a> and our team will arrange a time with you.
+        Email <a href="mailto:service@contentco-op.com">service@contentco-op.com</a> to arrange a
+        call, or start a <a href="/brief">creative brief</a> and we will follow up.
       </p>
     </section>
   );

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { publicRedirectUrl } from "@/lib/request-origin";
 import { createInviteSession, getSessionCookieName, getSessionTtlSeconds } from "@/lib/session";
 
 export async function POST(req: Request) {
@@ -16,7 +17,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid invite code" }, { status: 401 });
   }
 
-  const res = NextResponse.redirect(new URL("/", req.url));
+  const res = NextResponse.redirect(publicRedirectUrl(req, "/"));
   res.cookies.set(getSessionCookieName(), createInviteSession(email), {
     httpOnly: true,
     sameSite: "strict",
