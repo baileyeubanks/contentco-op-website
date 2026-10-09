@@ -500,8 +500,9 @@ async function deliverOwnerChannel(input: {
       ? "unknown"
       : "failed";
 
-  if (input.db && logId) {
-    await input.db
+  let recordedId = "";
+  try {
+    const outcome = await input.db
       .from("notification_log")
       .update({
         status,
@@ -519,17 +520,24 @@ async function deliverOwnerChannel(input: {
       .eq("status", "sending")
       .select("id")
       .single();
+    if (!outcome.error) recordedId = asId(outcome.data?.id);
+  } catch {
+    recordedId = "";
+  }
+  const recorded = recordedId === logId;
+  if (hasProviderReceipt && !recorded) {
+    return { ...base, delivered: false, status: "unknown", reason: "delivery_outcome_unknown", logId };
   }
 
-  if (hasProviderReceipt) deliveredChannels.add(memoryKey);
+  if (hasProviderReceipt && recorded) deliveredChannels.add(memoryKey);
 
   return {
     ...base,
-    delivered: hasProviderReceipt,
+    delivered: hasProviderReceipt && recorded,
     status,
     reason: hasProviderReceipt ? undefined : boundedError(delivery.error),
     missing: delivery.missing,
-    logId: logId || undefined,
+    logId,
   };
 }
 

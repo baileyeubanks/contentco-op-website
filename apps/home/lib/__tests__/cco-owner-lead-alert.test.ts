@@ -575,4 +575,47 @@ describe("durable claim before provider send", () => {
     expect(result.email.logId).toBeUndefined();
     expect(result.blockedSubmission).toBe(false);
   });
+
+  test("does not report sent when the outcome receipt write fails, and a retry does not send again", async () => {
+    const rows: Row[] = [];
+    const db = scriptedLog((call) => {
+      const matched = rows.filter((row) => call.filters.every((filter) => row[filter.column] === filter.value));
+      if (call.operation === "select") {
+        return { data: matched[0] ? copyLogRow(matched[0]) : null, error: null };
+      }
+      if (call.operation === "insert") {
+        const row = { id: `log-${call.payload?.channel || rows.length + 1}`, ...(call.payload || {}) };
+        rows.push(row);
+        return { data: copyLogRow(row), error: null };
+      }
+      const claimingFailed = call.filters.some((filter) => filter.column === "status" && filter.value === "failed");
+      if (claimingFailed && matched[0]) {
+        Object.assign(matched[0], call.payload || {});
+        return { data: copyLogRow(matched[0]), error: null };
+      }
+      return { data: null, error: { message: "notification_log_update_failed" } };
+    });
+    const now = new Date("2026-10-09T05:10:00.000Z");
+    const { sendEmail, sendSms } = transports();
+    const deps = {
+      db: db as unknown as CcoPublicIntakeDatabase,
+      sendEmail,
+      sendSms,
+      now,
+    };
+    const first = await notifyCcoOwnerOfStoredLead(lead, deps);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendSms).toHaveBeenCalledTimes(1);
+    expect(first.email).toMatchObject({ delivered: false, status: "unknown", reason: "delivery_outcome_unknown" });
+    expect(first.sms.status).toBe("unknown");
+    expect(rows.every((row) => row.status === "sending")).toBe(true);
+
+    resetCcoOwnerLeadAlertDedup();
+    const second = await notifyCcoOwnerOfStoredLead(lead, deps);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendSms).toHaveBeenCalledTimes(1);
+    expect(second.email.status).toBe("skipped");
+    expect(second.sms.reason).toBe("notification_delivery_in_progress");
+    expect(second.blockedSubmission).toBe(false);
+  });
 });
