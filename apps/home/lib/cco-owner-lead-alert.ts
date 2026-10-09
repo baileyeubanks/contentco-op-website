@@ -332,6 +332,37 @@ function isStaleSending(metadata: unknown, now: Date) {
   return Number.isFinite(attempted) && now.getTime() - attempted >= NOTIFICATION_SENDING_STALE_MS;
 }
 
+function undeliveredClaim(
+  base: Omit<CcoOwnerChannelReceipt, "delivered" | "status">,
+  reason: "notification_log_unavailable" | "notification_claim_failed",
+): CcoOwnerChannelReceipt {
+  return { ...base, delivered: false, status: "failed", reason };
+}
+
+/** Terminal or in-flight rows are not claimable. `failed` and a missing row are. */
+function holdIfNotClaimable(
+  base: Omit<CcoOwnerChannelReceipt, "delivered" | "status">,
+  row: { id?: unknown; status?: unknown; metadata?: unknown } | null | undefined,
+  now: Date,
+  memoryKey: string,
+): CcoOwnerChannelReceipt | null {
+  const existingId = asId(row?.id);
+  if (!existingId) return null;
+  const status = cleanLine(row?.status).toLowerCase();
+  if (status === "failed") return null;
+  if (status === "sent") {
+    deliveredChannels.add(memoryKey);
+    return { ...base, delivered: true, status: "already_delivered", logId: existingId };
+  }
+  if (status === "sending" && !isStaleSending(row?.metadata, now)) {
+    return { ...base, delivered: false, status: "skipped", reason: "notification_delivery_in_progress", logId: existingId };
+  }
+  if (status === "unknown" || status === "sending") {
+    return { ...base, delivered: false, status: "unknown", reason: "delivery_outcome_unknown", logId: existingId };
+  }
+  return { ...base, delivered: false, status: "skipped", reason: "notification_status_unrecognized", logId: existingId };
+}
+
 async function lookupChannelLog(
   db: CcoPublicIntakeDatabase,
   input: { dedupeId: string; channel: "email" | "sms"; templateKey: string },
@@ -367,25 +398,21 @@ async function deliverOwnerChannel(input: {
     return { ...base, delivered: true, status: "already_delivered" };
   }
 
-  if (input.db) {
-    const existing = await lookupChannelLog(input.db, input);
-    if (existing.error) {
-      // Still try to tell Bailey; durable receipt is best-effort after persist.
-    } else {
-      const existingId = asId(existing.data?.id);
-      const status = cleanLine(existing.data?.status).toLowerCase();
-      if (existingId && status === "sent") {
-        deliveredChannels.add(memoryKey);
-        return { ...base, delivered: true, status: "already_delivered", logId: existingId };
-      }
-      if (existingId && status === "sending" && !isStaleSending(existing.data?.metadata, input.now)) {
-        return { ...base, delivered: false, status: "skipped", reason: "notification_delivery_in_progress", logId: existingId };
-      }
-      if (existingId && (status === "unknown" || (status === "sending" && isStaleSending(existing.data?.metadata, input.now)))) {
-        return { ...base, delivered: false, status: "unknown", reason: "delivery_outcome_unknown", logId: existingId };
-      }
-    }
+  if (!input.db) {
+    return undeliveredClaim(base, "notification_log_unavailable");
   }
+
+  let observed: Awaited<ReturnType<typeof lookupChannelLog>>;
+  try {
+    observed = await lookupChannelLog(input.db, input);
+  } catch {
+    return undeliveredClaim(base, "notification_log_unavailable");
+  }
+  if (observed.error) {
+    return undeliveredClaim(base, "notification_log_unavailable");
+  }
+  const held = holdIfNotClaimable(base, observed.data, input.now, memoryKey);
+  if (held) return held;
 
   const metadata = {
     source: "contentco-op.com/brief",
@@ -414,23 +441,48 @@ async function deliverOwnerChannel(input: {
     error_message: null,
   };
 
-  let logId = "";
-  if (input.db) {
-    const existing = await lookupChannelLog(input.db, input);
-    const existingId = asId(existing.data?.id);
-    const existingStatus = cleanLine(existing.data?.status).toLowerCase();
-    const write = existingId && existingStatus === "failed"
-      ? input.db.from("notification_log").update(queuedPayload).eq("id", existingId).eq("status", "failed")
-      : existingId
-        ? null
-        : input.db.from("notification_log").insert(queuedPayload);
-    if (write) {
-      const { data, error } = await write.select("id").single();
-      if (!error) logId = asId(data?.id);
-    } else if (existingId) {
-      logId = existingId;
-    }
+  let claimView: Awaited<ReturnType<typeof lookupChannelLog>>;
+  try {
+    claimView = await lookupChannelLog(input.db, input);
+  } catch {
+    return undeliveredClaim(base, "notification_log_unavailable");
   }
+  if (claimView.error) {
+    return undeliveredClaim(base, "notification_log_unavailable");
+  }
+  const claimHeld = holdIfNotClaimable(base, claimView.data, input.now, memoryKey);
+  if (claimHeld) return claimHeld;
+
+  const existingId = asId(claimView.data?.id);
+  const existingStatus = cleanLine(claimView.data?.status).toLowerCase();
+  if (existingId && existingStatus !== "failed") {
+    return { ...base, delivered: false, status: "skipped", reason: "notification_claim_failed", logId: existingId };
+  }
+
+  const write = existingId
+    ? input.db.from("notification_log").update(queuedPayload).eq("id", existingId).eq("status", "failed")
+    : input.db.from("notification_log").insert(queuedPayload);
+  let claimedId = "";
+  try {
+    const { data, error } = await write.select("id").single();
+    if (!error) claimedId = asId(data?.id);
+  } catch {
+    claimedId = "";
+  }
+  if (!claimedId || (existingId && claimedId !== existingId)) {
+    let after: Awaited<ReturnType<typeof lookupChannelLog>>;
+    try {
+      after = await lookupChannelLog(input.db, input);
+    } catch {
+      return undeliveredClaim(base, "notification_log_unavailable");
+    }
+    if (!after.error) {
+      const heldAfter = holdIfNotClaimable(base, after.data, input.now, memoryKey);
+      if (heldAfter) return heldAfter;
+    }
+    return undeliveredClaim(base, after.error ? "notification_log_unavailable" : "notification_claim_failed");
+  }
+  const logId = claimedId;
 
   let delivery: { ok: boolean; id?: string; error?: string; deliveryUnknown?: boolean; missing?: string[] };
   try {

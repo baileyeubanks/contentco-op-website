@@ -349,3 +349,230 @@ describe("notifyCcoOwnerOfStoredLead", () => {
     expect(JSON.stringify(emails)).not.toContain("avery@example.com");
   });
 });
+
+type ScriptedCall = {
+  operation: "select" | "insert" | "update";
+  filters: Array<{ column: string; value: unknown }>;
+  payload: Row | null;
+};
+
+function scriptedLog(
+  handle: (call: ScriptedCall) => { data: Row | null; error: { message: string } | null },
+): CcoPublicIntakeDatabase {
+  return {
+    from(table: string) {
+      const call: ScriptedCall = { operation: "select", filters: [], payload: null };
+      const api = {
+        select() {
+          return api;
+        },
+        eq(column: string, value: unknown) {
+          call.filters.push({ column, value });
+          return api;
+        },
+        contains() {
+          return api;
+        },
+        insert(payload: Row) {
+          call.operation = "insert";
+          call.payload = payload;
+          return api;
+        },
+        update(payload: Row) {
+          call.operation = "update";
+          call.payload = payload;
+          return api;
+        },
+        async maybeSingle() {
+          if (table !== "notification_log") return { data: null, error: { message: "unexpected_table" } };
+          return handle({ operation: call.operation, filters: [...call.filters], payload: call.payload });
+        },
+        async single() {
+          if (table !== "notification_log") return { data: null, error: { message: "unexpected_table" } };
+          return handle({ operation: call.operation, filters: [...call.filters], payload: call.payload });
+        },
+      };
+      return api;
+    },
+  };
+}
+
+function copyLogRow(row: Row): Row {
+  const metadata = row.metadata;
+  return {
+    ...row,
+    metadata: metadata && typeof metadata === "object" ? { ...(metadata as Row) } : metadata,
+  };
+}
+
+describe("durable claim before provider send", () => {
+  test("does not send when another worker records sent after this worker saw failed", async () => {
+    const rows: Row[] = [
+      {
+        id: "log-email-1",
+        template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
+        related_entity_id: lead.leadId,
+        channel: "email",
+        audience: "internal",
+        status: "failed",
+        recipient: CCO_OWNER_ALERT_EMAIL,
+        metadata: {},
+      },
+      {
+        id: "log-sms-1",
+        template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
+        related_entity_id: lead.leadId,
+        channel: "sms",
+        audience: "internal",
+        status: "sent",
+        sent_at: "2026-10-09T04:00:00.000Z",
+        recipient: CCO_OWNER_ALERT_PHONE_E164,
+        metadata: { provider_message_id: "sms-winner" },
+      },
+    ];
+    let emailSelects = 0;
+    const db = scriptedLog((call) => {
+      const channel = call.filters.find((filter) => filter.column === "channel")?.value;
+      const matched = rows.filter((row) => call.filters.every((filter) => row[filter.column] === filter.value));
+      if (call.operation === "select") {
+        const row = matched[0];
+        if (channel === "email") {
+          emailSelects += 1;
+          if (row && emailSelects === 1 && row.status === "failed") {
+            const snapshot = copyLogRow(row);
+            row.status = "sent";
+            row.sent_at = "2026-10-09T05:00:00.000Z";
+            row.metadata = { provider_message_id: "email-winner" };
+            return { data: snapshot, error: null };
+          }
+        }
+        return { data: row ? copyLogRow(row) : null, error: null };
+      }
+      if (call.operation === "update" || call.operation === "insert") {
+        const row = matched[0];
+        if (!row) return { data: null, error: { message: "notification_log_claim_miss" } };
+        Object.assign(row, call.payload || {});
+        return { data: copyLogRow(row), error: null };
+      }
+      return { data: null, error: { message: "notification_log_unavailable" } };
+    });
+    const { sendEmail, sendSms } = transports();
+    const result = await notifyCcoOwnerOfStoredLead(lead, {
+      db: db as unknown as CcoPublicIntakeDatabase,
+      sendEmail,
+      sendSms,
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(sendSms).not.toHaveBeenCalled();
+    expect(result.email).toMatchObject({
+      delivered: true,
+      status: "already_delivered",
+      logId: "log-email-1",
+    });
+    expect(result.sms.status).toBe("already_delivered");
+    expect(rows.find((row) => row.channel === "email")).toMatchObject({
+      status: "sent",
+      metadata: { provider_message_id: "email-winner" },
+    });
+  });
+
+  test("does not send when the failed-row claim no longer matches", async () => {
+    const rows: Row[] = [
+      {
+        id: "log-email-1",
+        template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
+        related_entity_id: lead.leadId,
+        channel: "email",
+        audience: "internal",
+        status: "failed",
+        recipient: CCO_OWNER_ALERT_EMAIL,
+        metadata: {},
+      },
+      {
+        id: "log-sms-1",
+        template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
+        related_entity_id: lead.leadId,
+        channel: "sms",
+        audience: "internal",
+        status: "sent",
+        sent_at: "2026-10-09T04:00:00.000Z",
+        recipient: CCO_OWNER_ALERT_PHONE_E164,
+        metadata: { provider_message_id: "sms-winner" },
+      },
+    ];
+    let emailSelects = 0;
+    const db = scriptedLog((call) => {
+      const channel = call.filters.find((filter) => filter.column === "channel")?.value;
+      const matched = rows.filter((row) => call.filters.every((filter) => row[filter.column] === filter.value));
+      if (call.operation === "select") {
+        const row = matched[0];
+        if (channel === "email" && row?.status === "failed") {
+          emailSelects += 1;
+          const snapshot = copyLogRow(row);
+          if (emailSelects >= 2) {
+            row.status = "sent";
+            row.sent_at = "2026-10-09T05:00:00.000Z";
+            row.metadata = { provider_message_id: "email-winner" };
+          }
+          return { data: snapshot, error: null };
+        }
+        return { data: row ? copyLogRow(row) : null, error: null };
+      }
+      if (!matched[0]) return { data: null, error: { message: "notification_log_claim_miss" } };
+      Object.assign(matched[0], call.payload || {});
+      return { data: copyLogRow(matched[0]), error: null };
+    });
+    const { sendEmail, sendSms } = transports();
+    const result = await notifyCcoOwnerOfStoredLead(lead, {
+      db: db as unknown as CcoPublicIntakeDatabase,
+      sendEmail,
+      sendSms,
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(sendSms).not.toHaveBeenCalled();
+    expect(result.email.status).toBe("already_delivered");
+    expect(result.email.logId).toBe("log-email-1");
+    expect(rows.find((row) => row.channel === "email")?.status).toBe("sent");
+  });
+
+  test("does not send when notification log reads and writes fail, then still does not send on retry", async () => {
+    const db = scriptedLog(() => ({ data: null, error: { message: "notification_log_unavailable" } }));
+    const { sendEmail, sendSms } = transports();
+    const deps = { db: db as unknown as CcoPublicIntakeDatabase, sendEmail, sendSms };
+    const first = await notifyCcoOwnerOfStoredLead(lead, deps);
+    expect(first.blockedSubmission).toBe(false);
+    expect(first.email).toMatchObject({ delivered: false, status: "failed", reason: "notification_log_unavailable" });
+    expect(first.sms).toMatchObject({ delivered: false, status: "failed", reason: "notification_log_unavailable" });
+    expect(first.email.logId).toBeUndefined();
+    expect(first.sms.logId).toBeUndefined();
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(sendSms).not.toHaveBeenCalled();
+
+    resetCcoOwnerLeadAlertDedup();
+    const second = await notifyCcoOwnerOfStoredLead(lead, deps);
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(sendSms).not.toHaveBeenCalled();
+    expect(second.email.logId).toBeUndefined();
+    expect(second.sms.delivered).toBe(false);
+    expect(second.blockedSubmission).toBe(false);
+  });
+
+  test("does not send when the insert claim is rejected", async () => {
+    const db = scriptedLog((call) => {
+      if (call.operation === "select") return { data: null, error: null };
+      return { data: null, error: { message: "notification_log_duplicate" } };
+    });
+    const { sendEmail, sendSms } = transports();
+    const result = await notifyCcoOwnerOfStoredLead(lead, {
+      db: db as unknown as CcoPublicIntakeDatabase,
+      sendEmail,
+      sendSms,
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(sendSms).not.toHaveBeenCalled();
+    expect(result.email).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
+    expect(result.sms).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
+    expect(result.email.logId).toBeUndefined();
+    expect(result.blockedSubmission).toBe(false);
+  });
+});
