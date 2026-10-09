@@ -120,6 +120,7 @@ export async function sendCcoOwnerSms(input: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body,
+      signal: AbortSignal.timeout(8_000),
     });
     const payload = (await response.json().catch(() => null)) as { sid?: unknown; message?: unknown } | null;
     const providerId = typeof payload?.sid === "string" ? payload.sid.trim() : "";

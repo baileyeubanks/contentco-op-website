@@ -23,6 +23,7 @@ export const CCO_OWNER_ALERT_AGENT = "cco-public-intake";
 export const CCO_OWNER_ALERT_ENTITY_TYPE = "creative_brief";
 const CCO_BUSINESS_UNIT = "CC";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
+const OWNER_ALERT_SEND_TIMEOUT_MS = 8_000;
 
 export type CcoOwnerLeadAlertInput = {
   leadId: string;
@@ -105,8 +106,31 @@ export type CcoOwnerLeadAlertDeps = {
 const pendingByLead = new Map<string, Promise<CcoOwnerLeadAlertResult>>();
 const deliveredChannels = new Set<string>();
 
-function channelKey(templateKey: string, leadId: string, channel: "email" | "sms") {
-  return `${templateKey}:${leadId}:${channel}`;
+export function ownerAlertDedupeId(input: { leadId: string; briefId?: string }) {
+  return asId(input.briefId) || asId(input.leadId);
+}
+
+function channelKey(templateKey: string, dedupeId: string, channel: "email" | "sms") {
+  return `${templateKey}:${dedupeId}:${channel}`;
+}
+
+async function withSendTimeout<T extends { ok: boolean; error?: string; deliveryUnknown?: boolean }>(
+  send: () => Promise<T>,
+): Promise<T | { ok: false; error: string; deliveryUnknown: true }> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      send(),
+      new Promise<{ ok: false; error: string; deliveryUnknown: true }>((resolve) => {
+        timer = setTimeout(
+          () => resolve({ ok: false, error: "owner_alert_send_timeout", deliveryUnknown: true }),
+          OWNER_ALERT_SEND_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 export function resetCcoOwnerLeadAlertDedup() {
@@ -310,13 +334,13 @@ function isStaleSending(metadata: unknown, now: Date) {
 
 async function lookupChannelLog(
   db: CcoPublicIntakeDatabase,
-  input: { leadId: string; channel: "email" | "sms"; templateKey: string },
+  input: { dedupeId: string; channel: "email" | "sms"; templateKey: string },
 ) {
   return db
     .from("notification_log")
     .select("id, status, metadata")
     .eq("template_key", input.templateKey)
-    .eq("contact_id", input.leadId)
+    .eq("related_entity_id", input.dedupeId)
     .eq("channel", input.channel)
     .eq("audience", "internal")
     .maybeSingle();
@@ -325,6 +349,7 @@ async function lookupChannelLog(
 async function deliverOwnerChannel(input: {
   db: CcoPublicIntakeDatabase | null;
   leadId: string;
+  dedupeId: string;
   briefId?: string;
   channel: "email" | "sms";
   recipient: string;
@@ -337,7 +362,7 @@ async function deliverOwnerChannel(input: {
     channel: input.channel,
     recipient: input.recipient,
   };
-  const memoryKey = channelKey(input.templateKey, input.leadId, input.channel);
+  const memoryKey = channelKey(input.templateKey, input.dedupeId, input.channel);
   if (deliveredChannels.has(memoryKey)) {
     return { ...base, delivered: true, status: "already_delivered" };
   }
@@ -385,7 +410,7 @@ async function deliverOwnerChannel(input: {
     subject: input.content.subject,
     body_text: input.channel === "sms" ? input.content.sms : input.content.text,
     related_entity_type: CCO_OWNER_ALERT_ENTITY_TYPE,
-    related_entity_id: asId(input.briefId) || input.leadId,
+    related_entity_id: input.dedupeId,
     error_message: null,
   };
 
@@ -409,7 +434,7 @@ async function deliverOwnerChannel(input: {
 
   let delivery: { ok: boolean; id?: string; error?: string; deliveryUnknown?: boolean; missing?: string[] };
   try {
-    delivery = await input.send();
+    delivery = await withSendTimeout(input.send);
   } catch (error) {
     delivery = { ok: false, error: boundedError(error), deliveryUnknown: true };
   }
@@ -473,6 +498,7 @@ async function deliverOwnerBundle(
   });
 
   const now = deps?.now || new Date();
+  const dedupeId = ownerAlertDedupeId(input);
   const db = resolveDatabase(deps);
   const sendEmail = deps?.sendEmail || ((options) => sendTransactionalEmail(options));
   const sendSms = deps?.sendSms || (async (options) => {
@@ -490,6 +516,7 @@ async function deliverOwnerBundle(
   const email = await deliverOwnerChannel({
     db,
     leadId: content.leadId,
+    dedupeId,
     briefId: input.briefId,
     channel: "email",
     recipient: emailTo,
@@ -508,6 +535,7 @@ async function deliverOwnerBundle(
   const sms = await deliverOwnerChannel({
     db,
     leadId: content.leadId,
+    dedupeId,
     briefId: input.briefId,
     channel: "sms",
     recipient: smsTo,
@@ -531,13 +559,14 @@ export async function notifyCcoOwnerOfStoredLead(
   deps?: CcoOwnerLeadAlertDeps,
 ): Promise<CcoOwnerLeadAlertResult> {
   const content = buildCcoOwnerLeadAlert(input);
-  const existing = pendingByLead.get(content.leadId);
+  const dedupeId = ownerAlertDedupeId(input);
+  const existing = pendingByLead.get(dedupeId);
   if (existing) return existing;
 
   const attempt = Promise.resolve()
     .then(() => deliverOwnerBundle(input, content, deps, CCO_OWNER_LEAD_ALERT_TEMPLATE))
-    .finally(() => pendingByLead.delete(content.leadId));
-  pendingByLead.set(content.leadId, attempt);
+    .finally(() => pendingByLead.delete(dedupeId));
+  pendingByLead.set(dedupeId, attempt);
   return attempt;
 }
 

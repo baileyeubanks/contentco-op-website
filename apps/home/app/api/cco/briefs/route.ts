@@ -61,27 +61,8 @@ export async function POST(req: Request) {
         leadPhone: parsed.data.contact.phone,
       });
     } catch {
-      // Owner alert must never fail the stored brief.
+      // Owner alert must never fail the stored brief or its retry contract.
     }
-  }
-
-  if (persistence.persisted) {
-    return NextResponse.json({
-      ok: true,
-      persisted: true,
-      id: persistence.briefId,
-      access_token: persistence.accessToken,
-      brief_number: persistence.briefNumber,
-      status: persistence.status || "submitted",
-      persistence: {
-        database: "CCO-DB",
-        contact_id: persistence.contactId,
-        replayed: "replayed" in persistence ? persistence.replayed : false,
-      },
-      notification: "notification" in persistence ? persistence.notification : undefined,
-      event: "event" in persistence ? persistence.event : undefined,
-      submission_id: ("submissionId" in persistence ? persistence.submissionId : undefined) || parsed.data.submissionId,
-    });
   }
 
   if (!persistence.ok) {
@@ -102,8 +83,20 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json(
-    { error: "cco_persistence_unavailable", code: "cco_persistence_request_failed", retryable: true, persisted: false },
-    { status: 503 },
-  );
+  return NextResponse.json({
+    ok: true,
+    persisted: true,
+    id: persistence.briefId,
+    access_token: persistence.accessToken,
+    brief_number: persistence.briefNumber,
+    status: persistence.status || "submitted",
+    persistence: {
+      database: "CCO-DB",
+      contact_id: persistence.contactId,
+      replayed: persistence.replayed,
+    },
+    notification: persistence.notification,
+    event: persistence.event,
+    submission_id: persistence.submissionId || parsed.data.submissionId,
+  });
 }

@@ -121,7 +121,7 @@ describe("CCO owner lead alert routes", () => {
     expect(mocks.notify).not.toHaveBeenCalled();
   });
 
-  test("a stored brief whose intake notify failed still returns 200 and alerts Bailey", async () => {
+  test("a stored brief whose intake notify failed still alerts Bailey and keeps the 503 retry", async () => {
     mocks.persistCcoBrief.mockResolvedValue({
       ok: false,
       persisted: true,
@@ -132,11 +132,11 @@ describe("CCO owner lead alert routes", () => {
     });
 
     const response = await briefsPOST(request("/api/cco/briefs", briefBody));
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(503);
     await expect(response.json()).resolves.toMatchObject({
-      ok: true,
       persisted: true,
-      id: "brief-1",
+      brief_id: "brief-1",
+      retryable: true,
     });
     expect(mocks.notify).toHaveBeenCalledTimes(1);
     expect(mocks.notify.mock.calls[0][0]).toMatchObject({

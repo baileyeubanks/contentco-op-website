@@ -315,6 +315,27 @@ describe("notifyCcoOwnerOfStoredLead", () => {
     expect(texts).toHaveLength(1);
   });
 
+  test("a later brief for the same contact still sends the project details", async () => {
+    const db = new FakeDatabase();
+    const { emails, texts, sendEmail, sendSms } = transports();
+    await notifyCcoOwnerOfStoredLead(lead, { db: db as unknown as CcoPublicIntakeDatabase, sendEmail, sendSms });
+    const brief = await notifyCcoOwnerOfStoredLead({
+      ...lead,
+      briefId: "brief-1",
+      projectSummary: "Launch proof film with sales cutdowns",
+      budget: "$18,000",
+      timeline: "3 weeks",
+    }, { db: db as unknown as CcoPublicIntakeDatabase, sendEmail, sendSms });
+    expect(brief.email.delivered).toBe(true);
+    expect(emails).toHaveLength(2);
+    expect(texts).toHaveLength(2);
+    expect(String(emails[1]?.text)).toContain("Launch proof film with sales cutdowns");
+    expect(String(emails[1]?.text)).toContain("$18,000");
+    expect(db.rows("notification_log").map((row) => row.related_entity_id).sort()).toEqual([
+      "brief-1", "brief-1", "contact-lead-1", "contact-lead-1",
+    ]);
+  });
+
   test("catch-up is one Bailey-only bundle keyed separately from a live lead", async () => {
     const db = new FakeDatabase();
     const { emails, texts, sendEmail, sendSms } = transports();
