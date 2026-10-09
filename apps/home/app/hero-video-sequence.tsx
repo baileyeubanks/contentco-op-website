@@ -35,6 +35,8 @@ function updateWeatherFocal(video: HTMLVideoElement) {
 
 /** Keep the outgoing frame visible until the next clip actually starts. */
 export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: HeroVideoSequenceProps) {
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const visibleRef = useRef(false);
   const videos = useRef<(HTMLVideoElement | null)[]>([]);
   const [sources, setSources] = useState<readonly string[]>([]);
   const [active, setActive] = useState(0);
@@ -47,7 +49,7 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     const mountedVideos = videos.current;
     const update = () => {
       videos.current.forEach((video) => video?.pause());
@@ -62,13 +64,61 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
         setSources([]);
         return;
       }
-      const mobile = Math.min(window.innerWidth, window.screen.width) <= 640;
-      setSources([firstSrc, mobile ? nextMobileSrc : nextSrc]);
+      if (visibleRef.current && document.visibilityState !== "hidden") {
+        const mobile = Math.min(window.innerWidth, window.screen.width) <= 640;
+        setSources([firstSrc, mobile ? nextMobileSrc : nextSrc]);
+      } else {
+        setSources([]);
+      }
+    };
+    const resumeVisible = () => {
+      if (!visibleRef.current || document.visibilityState === "hidden" || motion.matches || connection?.saveData) {
+        videos.current.forEach((video) => video?.pause());
+        return;
+      }
+      const video = videos.current[pendingRef.current ?? activeRef.current];
+      if (!video) update();
+      else {
+        if (!video.getAttribute("src") && video.dataset.src) {
+          video.src = video.dataset.src;
+          video.load();
+        }
+        void video.play().catch(() => {});
+      }
     };
     update();
+    const checkVisibility = () => {
+      const bounds = frameRef.current?.getBoundingClientRect();
+      visibleRef.current = Boolean(bounds && bounds.width > 0 && bounds.height > 0 && bounds.bottom > 0 && bounds.top < window.innerHeight);
+      resumeVisible();
+    };
+    const observer = typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver(([entry]) => {
+        visibleRef.current = entry.isIntersecting;
+        resumeVisible();
+      }, { threshold: 0.01 })
+      : null;
+    if (observer && frameRef.current) observer.observe(frameRef.current);
+    else {
+      checkVisibility();
+      window.addEventListener("scroll", checkVisibility, { passive: true });
+      window.addEventListener("resize", checkVisibility);
+    }
     motion.addEventListener("change", update);
+    connection?.addEventListener("change", update);
+    document.addEventListener("visibilitychange", resumeVisible);
+    window.addEventListener("pageshow", resumeVisible);
+    document.addEventListener("pointerdown", resumeVisible, { passive: true });
     return () => {
+      observer?.disconnect();
+      visibleRef.current = false;
+      window.removeEventListener("scroll", checkVisibility);
+      window.removeEventListener("resize", checkVisibility);
       motion.removeEventListener("change", update);
+      connection?.removeEventListener("change", update);
+      document.removeEventListener("visibilitychange", resumeVisible);
+      window.removeEventListener("pageshow", resumeVisible);
+      document.removeEventListener("pointerdown", resumeVisible);
       mountedVideos.forEach((video) => video?.pause());
       if (handoffTimer.current) clearTimeout(handoffTimer.current);
     };
@@ -76,7 +126,8 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
 
   useEffect(() => {
     if (!sources.length) return;
-    const first = videos.current[0];
+    const mountedVideos = [...videos.current];
+    const first = mountedVideos[0];
     let focalFrame: number | undefined;
     const updateFocal = () => {
       if (first && activeRef.current === 0) updateWeatherFocal(first);
@@ -101,26 +152,16 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
       first.addEventListener("pause", stopFocalFrames);
       first.addEventListener("ended", stopFocalFrames);
       first.muted = true;
-      void first.play().catch(() => {});
+      if (visibleRef.current && document.visibilityState !== "hidden") void first.play().catch(() => {});
     }
     window.addEventListener("resize", updateFocal);
-    const resume = () => {
-      const video = videos.current[pendingRef.current ?? activeRef.current];
-      if (document.visibilityState === "hidden") video?.pause();
-      else if (video) void video.play().catch(() => {});
-    };
-    document.addEventListener("visibilitychange", resume);
-    window.addEventListener("pageshow", resume);
-    document.addEventListener("pointerdown", resume, { passive: true });
     return () => {
+      mountedVideos.forEach((video) => video?.pause());
       window.removeEventListener("resize", updateFocal);
       stopFocalFrames();
       first?.removeEventListener("playing", startFocalFrames);
       first?.removeEventListener("pause", stopFocalFrames);
       first?.removeEventListener("ended", stopFocalFrames);
-      document.removeEventListener("visibilitychange", resume);
-      window.removeEventListener("pageshow", resume);
-      document.removeEventListener("pointerdown", resume);
     };
   }, [sources]);
 
@@ -137,23 +178,32 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
     if (!next) return;
     pendingRef.current = nextIndex;
     next.currentTime = 0;
+    if (!visibleRef.current || document.visibilityState === "hidden") return;
+    if (!next.getAttribute("src")) {
+      next.src = sources[nextIndex];
+      next.load();
+    }
     next.muted = true;
     void next.play().catch(() => {});
   };
 
   return (
-    <div className="ambient-video-frame hero-video-sequence" data-hero-sequence="weather-vane,existing-drone" data-playback-status={started ? "playing" : "poster"}>
+    <div ref={frameRef} className="ambient-video-frame hero-video-sequence" data-hero-sequence="weather-vane,existing-drone" data-playback-status={started ? "playing" : "poster"}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="hero-sequence-poster" src={poster} alt="Weather vane at sunset" fetchPriority="high" />
+      <img className="hero-sequence-poster" src={poster} width={1920} height={1080} alt="Weather vane at sunset" fetchPriority="high" />
       {sources.map((source, index) => (
         <video
           key={source}
           ref={(video) => { videos.current[index] = video; }}
           className={`ambient-video hero-sequence-video${index === 0 ? " hero-sequence-video--wide" : ""}${active === index && started ? " is-active" : ""}${handoff === index ? " is-outgoing" : ""}${handoff !== null && active === index ? " is-incoming" : ""}`}
-          src={source}
+          data-src={source}
+          src={index === 0 ? source : undefined}
+          width={1920}
+          height={1080}
+          poster={poster}
           muted
           playsInline
-          preload={index === 0 || started ? "auto" : "none"}
+          preload={index === 0 ? "metadata" : "none"}
           disablePictureInPicture
           disableRemotePlayback
           aria-hidden="true"
@@ -163,9 +213,13 @@ export function HeroVideoSequence({ firstSrc, nextSrc, nextMobileSrc, poster }: 
             if (index === 0 && activeRef.current === 0) updateWeatherFocal(event.currentTarget);
           }}
           onCanPlay={(event) => {
-            if (index === 0 && !started) void event.currentTarget.play().catch(() => {});
+            if (index === 0 && !started && visibleRef.current && document.visibilityState !== "hidden") void event.currentTarget.play().catch(() => {});
           }}
-          onPlaying={() => {
+          onPlaying={(event) => {
+            if (!visibleRef.current || document.visibilityState === "hidden") {
+              event.currentTarget.pause();
+              return;
+            }
             if (index === 0 && videos.current[0]) updateWeatherFocal(videos.current[0]);
             const previousIndex = activeRef.current;
             const previous = videos.current[previousIndex];

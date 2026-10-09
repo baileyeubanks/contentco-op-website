@@ -7,6 +7,8 @@ import type { CSSProperties } from "react";
 
 interface GalleryImage {
   src: string;
+  width: number;
+  height: number;
   alt: string;
   label: string;
   tag: string;
@@ -216,7 +218,7 @@ function GalleryLightbox({ image, closeHref }: { image: GalleryImage; closeHref:
 
         <div className="gallery-lightbox-stage">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="gallery-lightbox-image" src={image.src} alt={image.alt} loading="eager" decoding="async" />
+          <img className="gallery-lightbox-image" width={image.width} height={image.height} src={image.src} alt={image.alt} loading="eager" decoding="async" />
           <div className="gallery-lightbox-caption">
             <span className="gallery-lightbox-tag">{image.tag} </span>
             <span className="gallery-lightbox-label">{image.label} </span>

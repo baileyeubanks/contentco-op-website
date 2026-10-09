@@ -209,6 +209,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                     src={`${logo.src}?v=6`}
                     alt={logo.alt}
                     className="client-logo"
+                    width={logo.width}
+                    height={logo.height}
                     style={{
                       "--logo-width": `${logo.width}px`,
                       "--logo-height": `${logo.height}px`,
@@ -295,8 +297,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 src="/cc/signature-bailey.png"
                 alt="Bailey Eubanks"
                 className="trust-sig-img"
-                width={130}
-                height={37}
+                width={470}
+                height={117}
               />
               <span className="trust-role">Founder &amp; Executive Producer</span>
             </div>

@@ -18,6 +18,8 @@ export type MosaicTile = {
 
 export type GalleryImage = {
   src: string;
+  width: number;
+  height: number;
   alt: string;
   label: string;
   tag: string;
@@ -139,36 +141,36 @@ export const boardroomBleedImages: readonly string[] = [
 
 // ── All unique photos ────────────────────────────────────────
 const PHOTOS: readonly GalleryImage[] = [
-  { src: "/cc/photos/gallery-control-room.jpg", alt: "BP control room operator monitoring screens", label: "Whiting Refinery", tag: "Production" },
-  { src: "/cc/photos/gallery-drone-platform.jpg", alt: "DJI Inspire drone on offshore platform", label: "Aerial Unit", tag: "BTS" },
-  { src: "/cc/photos/gallery-crew-refinery.jpg", alt: "CC crew prepping gimbal at refinery", label: "BP Whiting", tag: "BTS" },
-  { src: "/cc/photos/gallery-crew-field-shoot.jpg", alt: "CC crew shooting in tall grass", label: "Fowler Ridge", tag: "BTS" },
-  { src: "/cc/photos/gallery-machinist-cnc.jpg", alt: "Machinist operating CNC mill", label: "Precision MFG", tag: "Industrial" },
-  { src: "/cc/photos/gallery-fire-gear-rack.jpg", alt: "Fire gear rack with American flag patch", label: "First Response", tag: "Safety" },
-  { src: "/cc/photos/gallery-kodiak-crew.jpg", alt: "Kodiak field crew in hard hats", label: "Permian Basin", tag: "Upstream" },
-  { src: "/cc/photos/gallery-lineman-boom.jpg", alt: "Lineman with boom mic reflector", label: "Wind Farm", tag: "Production" },
-  { src: "/cc/photos/gallery-campus-sunflare.jpg", alt: "Corporate campus walkway at golden hour", label: "BP Houston", tag: "Corporate" },
-  { src: "/cc/photos/gallery-ceraweek-speaker.jpg", alt: "CeraWeek conference speaker", label: "CeraWeek", tag: "Events" },
-  { src: "/cc/photos/fowler-wind-turbine.jpg", alt: "Wind turbine blade assembly at Fowler Ridge", label: "Fowler Ridge", tag: "Wind" },
-  { src: "/cc/photos/whiting-refinery-sunset.jpg", alt: "Whiting Refinery skyline at golden hour", label: "Whiting Refinery", tag: "Downstream" },
-  { src: "/cc/photos/gallery-wind-turbine-crane.jpg", alt: "Wind turbine crane lift at height", label: "Crane Lift", tag: "Wind" },
-  { src: "/cc/photos/gallery-refinery-mountains.jpg", alt: "Refinery with snow-capped mountains", label: "Cherry Point", tag: "Downstream" },
-  { src: "/cc/photos/gallery-helipad-sunset.jpg", alt: "Offshore helipad at golden hour", label: "Atlantis", tag: "Offshore" },
-  { src: "/cc/photos/gallery-aerial-solar.jpg", alt: "Aerial view of solar farm", label: "Solar Array", tag: "Renewables" },
-  { src: "/cc/photos/gallery-bp-tower-drone.jpg", alt: "BP tower drone shot at dusk", label: "Houston HQ", tag: "Corporate" },
-  { src: "/cc/photos/gallery-desert-tanks.jpg", alt: "Desert storage tanks at golden hour", label: "Permian Basin", tag: "Upstream" },
-  { src: "/cc/photos/gallery-refinery-pink-sunset.jpg", alt: "Refinery skyline with pink sunset and steam", label: "Whiting", tag: "Downstream" },
-  { src: "/cc/photos/gallery-gas-station-sunset.jpg", alt: "Gas station at sunset", label: "Retail", tag: "Downstream" },
-  { src: "/cc/photos/seagull-rope-access.jpg", alt: "Rope access workers on offshore platform", label: "Project Seagull", tag: "Offshore" },
-  { src: "/cc/photos/bailey-red-camera.jpg", alt: "Bailey Eubanks with RED cinema camera", label: "On Set", tag: "BTS" },
-  { src: "/cc/photos/gallery-pipe-whip-fast.jpg", alt: "Fast pipe whip safety training", label: "Safety Training", tag: "Safety" },
-  { src: "/cc/photos/solar-panel-workers.jpg", alt: "Solar panel installation crew", label: "Solar Install", tag: "Renewables" },
-  { src: "/cc/photos/gallery-schneider-epc-houston.jpg", alt: "Schneider Electric EPC Houston panel discussion with executives on stage", label: "EPC Houston 2026", tag: "Events" },
-  { src: "/cc/photos/gallery-schneider-weftec-booth-team.jpg", alt: "Schneider Electric team at the WEFTEC 2026 booth", label: "WEFTEC 2026", tag: "Events" },
-  { src: "/cc/photos/gallery-schneider-weftec-exterior.jpg", alt: "WEFTEC 2026 convention center at sunset with Schneider Electric on the big screen", label: "WEFTEC 2026", tag: "Events" },
-  { src: "/cc/photos/gallery-schneider-weftec-booth-conversation.jpg", alt: "Schneider Electric team member sharing a laugh at the WEFTEC 2026 booth", label: "WEFTEC Booth", tag: "Events" },
-  { src: "/cc/photos/gallery-schneider-weftec-booth-selfie.jpg", alt: "Schneider Electric team taking a selfie at WEFTEC 2026", label: "WEFTEC Booth", tag: "Events" },
-  { src: "/cc/photos/gallery-schneider-weftec-booth-networking.jpg", alt: "Conversation at the Schneider Electric booth at WEFTEC 2026", label: "WEFTEC Booth", tag: "Events" },
+  { src: "/cc/photos/gallery-control-room.jpg", width: 1920, height: 1280, alt: "BP control room operator monitoring screens", label: "Whiting Refinery", tag: "Production" },
+  { src: "/cc/photos/gallery-drone-platform.jpg", width: 1920, height: 1280, alt: "DJI Inspire drone on offshore platform", label: "Aerial Unit", tag: "BTS" },
+  { src: "/cc/photos/gallery-crew-refinery.jpg", width: 1920, height: 1280, alt: "CC crew prepping gimbal at refinery", label: "BP Whiting", tag: "BTS" },
+  { src: "/cc/photos/gallery-crew-field-shoot.jpg", width: 1920, height: 1280, alt: "CC crew shooting in tall grass", label: "Fowler Ridge", tag: "BTS" },
+  { src: "/cc/photos/gallery-machinist-cnc.jpg", width: 1792, height: 1195, alt: "Machinist operating CNC mill", label: "Precision MFG", tag: "Industrial" },
+  { src: "/cc/photos/gallery-fire-gear-rack.jpg", width: 1792, height: 1195, alt: "Fire gear rack with American flag patch", label: "First Response", tag: "Safety" },
+  { src: "/cc/photos/gallery-kodiak-crew.jpg", width: 1920, height: 1281, alt: "Kodiak field crew in hard hats", label: "Permian Basin", tag: "Upstream" },
+  { src: "/cc/photos/gallery-lineman-boom.jpg", width: 1920, height: 1281, alt: "Lineman with boom mic reflector", label: "Wind Farm", tag: "Production" },
+  { src: "/cc/photos/gallery-campus-sunflare.jpg", width: 1920, height: 1505, alt: "Corporate campus walkway at golden hour", label: "BP Houston", tag: "Corporate" },
+  { src: "/cc/photos/gallery-ceraweek-speaker.jpg", width: 1920, height: 1300, alt: "CeraWeek conference speaker", label: "CeraWeek", tag: "Events" },
+  { src: "/cc/photos/fowler-wind-turbine.jpg", width: 2000, height: 1470, alt: "Wind turbine blade assembly at Fowler Ridge", label: "Fowler Ridge", tag: "Wind" },
+  { src: "/cc/photos/whiting-refinery-sunset.jpg", width: 2000, height: 1123, alt: "Whiting Refinery skyline at golden hour", label: "Whiting Refinery", tag: "Downstream" },
+  { src: "/cc/photos/gallery-wind-turbine-crane.jpg", width: 1920, height: 1080, alt: "Wind turbine crane lift at height", label: "Crane Lift", tag: "Wind" },
+  { src: "/cc/photos/gallery-refinery-mountains.jpg", width: 1920, height: 1080, alt: "Refinery with snow-capped mountains", label: "Cherry Point", tag: "Downstream" },
+  { src: "/cc/photos/gallery-helipad-sunset.jpg", width: 1920, height: 1080, alt: "Offshore helipad at golden hour", label: "Atlantis", tag: "Offshore" },
+  { src: "/cc/photos/gallery-aerial-solar.jpg", width: 1920, height: 1080, alt: "Aerial view of solar farm", label: "Solar Array", tag: "Renewables" },
+  { src: "/cc/photos/gallery-bp-tower-drone.jpg", width: 1920, height: 1080, alt: "BP tower drone shot at dusk", label: "Houston HQ", tag: "Corporate" },
+  { src: "/cc/photos/gallery-desert-tanks.jpg", width: 1920, height: 1080, alt: "Desert storage tanks at golden hour", label: "Permian Basin", tag: "Upstream" },
+  { src: "/cc/photos/gallery-refinery-pink-sunset.jpg", width: 1920, height: 1080, alt: "Refinery skyline with pink sunset and steam", label: "Whiting", tag: "Downstream" },
+  { src: "/cc/photos/gallery-gas-station-sunset.jpg", width: 1920, height: 1080, alt: "Gas station at sunset", label: "Retail", tag: "Downstream" },
+  { src: "/cc/photos/seagull-rope-access.jpg", width: 2000, height: 1334, alt: "Rope access workers on offshore platform", label: "Project Seagull", tag: "Offshore" },
+  { src: "/cc/photos/bailey-red-camera.jpg", width: 1500, height: 2000, alt: "Bailey Eubanks with RED cinema camera", label: "On Set", tag: "BTS" },
+  { src: "/cc/photos/gallery-pipe-whip-fast.jpg", width: 1920, height: 1080, alt: "Fast pipe whip safety training", label: "Safety Training", tag: "Safety" },
+  { src: "/cc/photos/solar-panel-workers.jpg", width: 2000, height: 1125, alt: "Solar panel installation crew", label: "Solar Install", tag: "Renewables" },
+  { src: "/cc/photos/gallery-schneider-epc-houston.jpg", width: 1920, height: 1445, alt: "Schneider Electric EPC Houston panel discussion with executives on stage", label: "EPC Houston 2026", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-booth-team.jpg", width: 2400, height: 1601, alt: "Schneider Electric team at the WEFTEC 2026 booth", label: "WEFTEC 2026", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-exterior.jpg", width: 2400, height: 1800, alt: "WEFTEC 2026 convention center at sunset with Schneider Electric on the big screen", label: "WEFTEC 2026", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-booth-conversation.jpg", width: 2400, height: 1601, alt: "Schneider Electric team member sharing a laugh at the WEFTEC 2026 booth", label: "WEFTEC Booth", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-booth-selfie.jpg", width: 2400, height: 1601, alt: "Schneider Electric team taking a selfie at WEFTEC 2026", label: "WEFTEC Booth", tag: "Events" },
+  { src: "/cc/photos/gallery-schneider-weftec-booth-networking.jpg", width: 2400, height: 1601, alt: "Conversation at the Schneider Electric booth at WEFTEC 2026", label: "WEFTEC Booth", tag: "Events" },
 ];
 
 // ── Crop variants for reuse — same photo, different crop ─────
@@ -234,10 +236,28 @@ function buildMosaic(): MosaicTile[] {
 
 export const mosaicTiles: readonly MosaicTile[] = buildMosaic();
 
+// Intrinsic image sizes keep the photo viewer stable before decoding.
+const HOME_WALL_DIMENSIONS = [
+  [1800, 950], [1800, 1199], [1800, 1199], [1800, 1199], [1800, 1200],
+  [1800, 1150], [1800, 1200], [1800, 1200], [1800, 945], [1800, 1200],
+  [1800, 1072], [1800, 1200], [1800, 1200], [1800, 1033], [1800, 1200],
+  [1800, 1200], [1800, 1200], [1800, 1136], [1329, 1800], [1800, 1200],
+  [1200, 1800], [1800, 1200], [1800, 1200], [1800, 1200], [1800, 1200],
+  [1800, 1200], [1800, 948], [1800, 948], [1800, 1199], [1800, 843],
+  [1800, 1093], [1800, 948], [1800, 1200], [1800, 1161], [1800, 1350],
+  [1800, 1200], [1800, 1350], [1800, 1200], [1800, 1200], [1800, 1350],
+  [1800, 1200], [1800, 1199], [1800, 1200], [1800, 1200], [1800, 1200],
+  [1800, 1200], [1800, 1350], [1800, 1167], [1800, 1200], [1800, 1200],
+  [1800, 1200], [1800, 949], [1800, 949], [1800, 949], [1800, 1350],
+  [1800, 1200], [1800, 1200], [1800, 1200], [1800, 950],
+] as const;
+
 const HOME_WALL_PHOTOS: readonly GalleryImage[] = Array.from({ length: 59 }, (_, index) => {
   const number = String(index + 1).padStart(2, "0");
   return {
     src: `/cc/photos/home-wall/cco-new-${number}.jpg`,
+    width: HOME_WALL_DIMENSIONS[index][0],
+    height: HOME_WALL_DIMENSIONS[index][1],
     alt: `Content Co-op field production photo ${number}`,
     label: `Field Archive ${number}`,
     tag: "Field",
