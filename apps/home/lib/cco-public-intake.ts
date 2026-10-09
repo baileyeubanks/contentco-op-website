@@ -595,7 +595,10 @@ async function deliverLoggedEmail(input: {
 
   const existingId = asId(existingResult.data?.id);
   const existingStatus = cleanString(existingResult.data?.status).toLowerCase();
-  const existingProviderReceiptPresent = Boolean(cleanString(asRecord(existingResult.data?.metadata).provider_message_id));
+  const existingProviderEvidence = asRecord(existingResult.data?.metadata).provider_message_id;
+  const existingProviderReceiptPresent = Boolean(cleanString(existingProviderEvidence));
+  // Malformed retained evidence is uncertain; only absent/null evidence permits a failed retry.
+  const hasExistingProviderEvidence = existingProviderEvidence != null;
   if (existingId && existingStatus === "sent") {
     // Missing historical provider evidence is uncertain, never permission to resend.
     return { ok: true, status: existingProviderReceiptPresent ? "sent" : "unknown", logId: existingId,
@@ -626,12 +629,12 @@ async function deliverLoggedEmail(input: {
       .select("id")
       .single();
     const recoveredId = asId(recovered?.id);
-    if (recoveryError || !recoveredId) {
+    if (recoveryError || recoveredId !== existingId) {
       return { ok: false, error: databaseErrorCode("notification_recovery", recoveryError) };
     }
-    return { ok: true, status: "unknown", logId: recoveredId, providerReceiptPresent: existingProviderReceiptPresent };
+    return { ok: true, status: "unknown", logId: existingId, providerReceiptPresent: existingProviderReceiptPresent };
   }
-  if (existingId && (existingStatus === "unknown" || (existingStatus === "failed" && existingProviderReceiptPresent))) {
+  if (existingId && (existingStatus === "unknown" || (existingStatus === "failed" && hasExistingProviderEvidence))) {
     return { ok: true, status: "unknown", logId: existingId, providerReceiptPresent: existingProviderReceiptPresent };
   }
   if (existingId && existingStatus !== "failed") {
@@ -669,7 +672,9 @@ async function deliverLoggedEmail(input: {
     : input.db.from("notification_log").insert(queuedPayload);
   const { data: queuedLog, error: queuedError } = await logWrite.select("id").single();
   const logId = asId(queuedLog?.id);
-  if (queuedError || !logId) return { ok: false, error: databaseErrorCode("notification_log_write", queuedError) };
+  if (queuedError || !logId || (existingId && logId !== existingId)) {
+    return { ok: false, error: databaseErrorCode("notification_log_write", queuedError) };
+  }
 
   let delivery: { ok: boolean; id?: string; error?: string; deliveryUnknown?: boolean };
   try {
@@ -721,7 +726,9 @@ async function deliverLoggedEmail(input: {
     .eq("status", "sending")
     .select("id")
     .single();
-  if (outcomeError || !asId(outcomeLog?.id)) return { ok: false, error: databaseErrorCode("notification_log_update", outcomeError) };
+  if (outcomeError || asId(outcomeLog?.id) !== logId) {
+    return { ok: false, error: databaseErrorCode("notification_log_update", outcomeError) };
+  }
 
   return { ok: true, status, logId, providerReceiptPresent: Boolean(providerMessageId) };
 }

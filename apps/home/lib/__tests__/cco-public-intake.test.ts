@@ -81,6 +81,9 @@ class FakeQuery {
       const row = matched[0];
       if (!row) return { data: null, error: { message: `${this.table}_update_missing` } };
       Object.assign(row, this.payload || {});
+      if (this.table === "notification_log" && this.payload?.status === this.db.wrongNotificationReceiptStatus) {
+        return { data: { ...row, id: "wrong-notification-row" }, error: null };
+      }
       return { data: row, error: null };
     }
 
@@ -106,6 +109,7 @@ class FakeDatabase implements CcoPublicIntakeDatabase {
   insertErrorFor: string | null = null;
   rejectedOperation: { table: string; operation: "select" | "insert" | "update" } | null = null;
   missingOutcomeId = false;
+  wrongNotificationReceiptStatus: "sending" | "sent" | "unknown" | null = null;
 
   from(table: string) {
     return new FakeQuery(this, table);
@@ -784,6 +788,96 @@ describe("CCO public intake operator alerting", () => {
     expect(await persistCcoBrief(submission, { db, env: {}, sendEmail })).toMatchObject({
       ok: true, notification: { owner: { status: "unknown", providerReceiptPresent: true } },
     });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  test.each([42, true, false, 0, {}, [], "", "   "].map((providerId) => ({ providerId })))(
+    "a retained failed Bailey log with non-null malformed provider evidence %j is unknown without sending", async ({ providerId }) => {
+      const db = new FakeDatabase();
+      const sendEmail = vi.fn(async () => ({ ok: true, id: "synthetic-provider-id" }));
+      const first = await persistCcoBrief(submission, { db, env: {}, sendEmail });
+      if (!first.ok) throw new Error("Synthetic brief did not persist");
+      const owner = db.rows("notification_log").find((row) => row.recipient === "bailey@contentco-op.com")!;
+      owner.status = "failed";
+      owner.metadata = { ...(owner.metadata as Row), provider_message_id: providerId };
+      sendEmail.mockClear();
+
+      const replay = await persistCcoBrief(submission, { db, env: {}, sendEmail });
+      expect(replay).toMatchObject({ ok: true, persisted: true, replayed: true, briefId: first.briefId,
+        notification: { owner: { status: "unknown", logId: owner.id, providerReceiptPresent: false } } });
+      expect(sendEmail).not.toHaveBeenCalled();
+      expect(db.rows("creative_briefs")).toHaveLength(1);
+    },
+  );
+
+  test.each(["absent", "null"] as const)("a legitimate failed Bailey row with %s provider evidence can retry its same claim", async (evidence) => {
+    const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "synthetic-provider-id" }));
+    const first = await persistCcoBrief(submission, { db, env: {}, sendEmail });
+    if (!first.ok) throw new Error("Synthetic brief did not persist");
+    const owner = db.rows("notification_log").find((row) => row.recipient === "bailey@contentco-op.com")!;
+    owner.status = "failed";
+    const metadata = { ...(owner.metadata as Row) };
+    if (evidence === "absent") delete metadata.provider_message_id;
+    else metadata.provider_message_id = null;
+    owner.metadata = metadata;
+    sendEmail.mockClear();
+
+    expect(await persistCcoBrief(submission, { db, env: {}, sendEmail })).toMatchObject({
+      ok: true, replayed: true, briefId: first.briefId,
+      notification: { owner: { status: "sent", logId: owner.id, providerReceiptPresent: true } },
+    });
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: "bailey@contentco-op.com" }));
+    expect(db.rows("creative_briefs")).toHaveLength(1);
+  });
+
+  test("a different final outcome row ID retains the brief without certifying acceptance or resending", async () => {
+    const db = new FakeDatabase();
+    db.wrongNotificationReceiptStatus = "sent";
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "synthetic-provider-id" }));
+    const result = await persistCcoBrief(submission, { db, env: {}, sendEmail });
+    expect(result).toMatchObject({ ok: false, persisted: true, partial: true,
+      briefId: "creative_briefs-1", submissionId: submission.submissionId, error: "notification_log_update_failed" });
+    expect(JSON.stringify(result)).not.toContain("wrong-notification-row");
+    expect(db.rows("creative_briefs")).toHaveLength(1);
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+    db.wrongNotificationReceiptStatus = null;
+    sendEmail.mockClear();
+    expect(await persistCcoBrief(submission, { db, env: {}, sendEmail })).toMatchObject({ ok: true, replayed: true, briefId: "creative_briefs-1" });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  test("a different failed-row claim ID retains the brief and never invokes the provider", async () => {
+    const db = new FakeDatabase();
+    await persistCcoBrief(submission, { db, env: {}, sendEmail: async () => ({ ok: false, error: "synthetic_failure" }) });
+    db.wrongNotificationReceiptStatus = "sending";
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "synthetic-provider-id" }));
+    const result = await persistCcoBrief(submission, { db, env: {}, sendEmail });
+    expect(result).toMatchObject({ ok: false, persisted: true, partial: true,
+      briefId: "creative_briefs-1", submissionId: submission.submissionId, error: "notification_log_write_failed" });
+    expect(JSON.stringify(result)).not.toContain("wrong-notification-row");
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(db.rows("creative_briefs")).toHaveLength(1);
+  });
+
+  test("a different stale-recovery row ID cannot replace the known claim or trigger a resend", async () => {
+    const db = new FakeDatabase();
+    const sendEmail = vi.fn(async () => ({ ok: true, id: "synthetic-provider-id" }));
+    await persistCcoBrief(submission, { db, env: {}, sendEmail });
+    const owner = db.rows("notification_log").find((row) => row.recipient === "bailey@contentco-op.com")!;
+    owner.status = "sending";
+    owner.metadata = { ...(owner.metadata as Row), delivery_attempted_at: "2000-01-01T00:00:00.000Z" };
+    db.wrongNotificationReceiptStatus = "unknown";
+    sendEmail.mockClear();
+    const result = await persistCcoBrief(submission, { db, env: {}, sendEmail });
+    expect(result).toMatchObject({ ok: false, persisted: true, partial: true,
+      briefId: "creative_briefs-1", submissionId: submission.submissionId, error: "notification_recovery_failed" });
+    expect(JSON.stringify(result)).not.toContain("wrong-notification-row");
+    expect(sendEmail).not.toHaveBeenCalled();
+    db.wrongNotificationReceiptStatus = null;
+    expect(await persistCcoBrief(submission, { db, env: {}, sendEmail })).toMatchObject({ ok: true, replayed: true,
+      notification: { owner: { status: "unknown", logId: owner.id } } });
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
