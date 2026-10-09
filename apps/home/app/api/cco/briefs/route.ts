@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { persistCcoBrief } from "@/lib/cco-public-intake";
+import { notifyCcoOwnerOfStoredLeadSafely } from "@/lib/cco-owner-lead-alert";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { BriefIntakeSchema } from "@/lib/validation";
@@ -44,6 +45,43 @@ export async function POST(req: Request) {
       { status: 503 },
     );
   }
+  if (persistence.persisted && persistence.contactId) {
+    const project = parsed.data.project;
+    try {
+      await notifyCcoOwnerOfStoredLeadSafely({
+        leadId: persistence.contactId,
+        briefId: persistence.briefId,
+        name: parsed.data.contact.name,
+        company: parsed.data.contact.company,
+        projectSummary: project.projectName || project.projectContext || project.projectTypes.join(", "),
+        budget: project.budgetRange,
+        timeline: project.timeline,
+        sourceHost: "contentco-op.com",
+        leadEmail: parsed.data.contact.email,
+        leadPhone: parsed.data.contact.phone,
+      });
+    } catch {
+      // Owner alert must never fail the stored brief.
+    }
+  }
+
+  if (persistence.persisted) {
+    return NextResponse.json({
+      ok: true,
+      persisted: true,
+      id: persistence.briefId,
+      access_token: persistence.accessToken,
+      brief_number: persistence.briefNumber,
+      status: persistence.status || "submitted",
+      persistence: {
+        database: "CCO-DB",
+        contact_id: persistence.contactId,
+        replayed: "replayed" in persistence ? persistence.replayed : false,
+      },
+      notification: "notification" in persistence ? persistence.notification : undefined,
+    });
+  }
+
   if (!persistence.ok) {
     return NextResponse.json(
       {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { persistCcoLead } from "@/lib/cco-public-intake";
+import { notifyCcoOwnerOfStoredLeadSafely } from "@/lib/cco-owner-lead-alert";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
 import { LeadSchema } from "@/lib/validation";
@@ -82,6 +83,19 @@ export async function POST(req: Request) {
       },
       { status: 503 },
     );
+  }
+
+  try {
+    await notifyCcoOwnerOfStoredLeadSafely({
+      leadId: persistence.contactId,
+      name,
+      company,
+      sourceHost: "contentco-op.com",
+      leadEmail: email,
+      leadPhone: cleanString(contact.phone),
+    });
+  } catch {
+    // Owner alert must never fail the stored lead.
   }
 
   return NextResponse.json({
