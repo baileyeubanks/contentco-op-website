@@ -307,7 +307,8 @@ async function buildRuntimeCheck(scope: RepoHealthScope): Promise<RepoHealthChec
 
 async function buildIntakeCheck(): Promise<RepoHealthCheck> {
   const emailTransport = describeCcoEmailTransport();
-  const emailWarning = emailTransport.ready ? [] : [emailTransport.detail];
+  // Public /api/health must not echo credential-file paths from describeCcoEmailTransport().detail.
+  const emailWarning = emailTransport.ready ? [] : ["email_transport_unconfigured"];
 
   if (await isStandaloneRuntime()) {
     const handoffVersionValid = CREATIVE_BRIEF_HANDOFF_VERSION.startsWith("cco.home.creative-brief.v");

@@ -49,6 +49,21 @@ describe("CCO commercial read status", () => {
         expect(JSON.stringify([...f.fake.store])).toBe(before);
         expect(f.queries).not.toContain("contacts");
     });
+    test("omitted commercialRef.version is available without mutation", async () => {
+        const f = fixture();
+        const receipt = row(f, "commercial_handoffs").receipt as { commercialRef: FakeRow };
+        delete receipt.commercialRef.version;
+        const before = JSON.stringify([...f.fake.store]);
+        expect((await f.run()).handoff.state).toBe("available");
+        expect(JSON.stringify([...f.fake.store])).toBe(before);
+        expect(Object.hasOwn(receipt.commercialRef, "version")).toBe(false);
+    });
+    test.each([2, "1", null, undefined])("present unequal commercialRef.version %j is unavailable", async (value) => {
+        const f = fixture();
+        const receipt = row(f, "commercial_handoffs").receipt as { commercialRef: FakeRow };
+        receipt.commercialRef.version = value;
+        expect((await f.run()).handoff.state).toBe("unavailable");
+    });
     test.each([
         { ...access, businessUnit: "ACS" },
         { ...access, role: "client_member" },

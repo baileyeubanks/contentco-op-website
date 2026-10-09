@@ -154,7 +154,7 @@ function handoff(r: Row, source: Row, v: Version): CommercialHandoffStatus | nul
     const prefix = `cco:${number.trim().toLowerCase()}:v${v.version}:`;
     if (typeof r.idempotency_key !== "string" || !r.idempotency_key.startsWith(prefix) || !/^[A-Z][A-Z0-9]{0,2}$/.test(r.idempotency_key.slice(prefix.length)))
         return null;
-    if (ref.source !== "cco_os" || ref.estimate_id !== v.estimateId || ref.estimate_version_id !== v.versionId || ref.version !== v.version || ref.snapshot_sha256 !== v.snapshotSha256 || !sameTimestampInstant(ref.frozen_at, v.frozenAt) || ref.estimate_number !== number || ref.idempotency_key !== r.idempotency_key || !record(ref.totals))
+    if (ref.source !== "cco_os" || ref.estimate_id !== v.estimateId || ref.estimate_version_id !== v.versionId || (Object.prototype.hasOwnProperty.call(ref, "version") && ref.version !== v.version) || ref.snapshot_sha256 !== v.snapshotSha256 || !sameTimestampInstant(ref.frozen_at, v.frozenAt) || ref.estimate_number !== number || ref.idempotency_key !== r.idempotency_key || !record(ref.totals))
         return null;
     try {
         if (hashEstimateVersionSnapshot(ref.totals) !== hashEstimateVersionSnapshot(snapshot.totals))
