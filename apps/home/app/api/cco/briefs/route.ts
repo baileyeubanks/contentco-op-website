@@ -79,6 +79,8 @@ export async function POST(req: Request) {
         replayed: "replayed" in persistence ? persistence.replayed : false,
       },
       notification: "notification" in persistence ? persistence.notification : undefined,
+      event: "event" in persistence ? persistence.event : undefined,
+      submission_id: ("submissionId" in persistence ? persistence.submissionId : undefined) || parsed.data.submissionId,
     });
   }
 
@@ -100,20 +102,8 @@ export async function POST(req: Request) {
     );
   }
 
-  return NextResponse.json({
-    ok: true,
-    persisted: true,
-    id: persistence.briefId,
-    access_token: persistence.accessToken,
-    brief_number: persistence.briefNumber,
-    status: persistence.status || "submitted",
-    persistence: {
-      database: "CCO-DB",
-      contact_id: persistence.contactId,
-      replayed: persistence.replayed,
-    },
-    notification: persistence.notification,
-    event: persistence.event,
-    submission_id: persistence.submissionId || parsed.data.submissionId,
-  });
+  return NextResponse.json(
+    { error: "cco_persistence_unavailable", code: "cco_persistence_request_failed", retryable: true, persisted: false },
+    { status: 503 },
+  );
 }
