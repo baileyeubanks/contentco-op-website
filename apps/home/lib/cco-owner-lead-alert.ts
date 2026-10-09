@@ -505,10 +505,6 @@ async function deliverOwnerChannel(input: {
     } catch {
       return undeliveredClaim(base, "notification_log_unavailable");
     }
-    if (!after.error) {
-      const heldAfter = holdIfNotClaimable(base, after.data, input.now, memoryKey);
-      if (heldAfter) return heldAfter;
-    }
     return undeliveredClaim(base, after.error ? "notification_log_unavailable" : "notification_claim_failed");
   }
   const logId = claimedId;

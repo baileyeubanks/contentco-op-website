@@ -541,8 +541,8 @@ describe("durable claim before provider send", () => {
     });
     expect(sendEmail).not.toHaveBeenCalled();
     expect(sendSms).not.toHaveBeenCalled();
-    expect(result.email.status).toBe("already_delivered");
-    expect(result.email.logId).toBe("log-email-1");
+    expect(result.email).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
+    expect(result.sms.status).toBe("already_delivered");
     expect(rows.find((row) => row.channel === "email")?.status).toBe("sent");
   });
 
@@ -584,6 +584,101 @@ describe("durable claim before provider send", () => {
     expect(result.email).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
     expect(result.sms).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
     expect(result.email.logId).toBeUndefined();
+    expect(result.blockedSubmission).toBe(false);
+  });
+
+  test("a rejected first insert that later sees sent stays undelivered and does not send", async () => {
+    const selects = { email: 0, sms: 0 };
+    const db = scriptedLog((call) => {
+      const channel = (call.filters.find((filter) => filter.column === "channel")?.value
+        || call.payload?.channel) === "sms"
+        ? "sms"
+        : "email";
+      if (call.operation === "select") {
+        selects[channel] += 1;
+        if (selects[channel] >= 3) {
+          return {
+            data: {
+              id: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, channel),
+              status: "sent",
+              sent_at: "2026-10-09T06:00:00.000Z",
+              metadata: { provider_message_id: `${channel}-winner` },
+            },
+            error: null,
+          };
+        }
+        return { data: null, error: null };
+      }
+      return { data: null, error: { message: "notification_log_duplicate" } };
+    });
+    const { sendEmail, sendSms } = transports();
+    const result = await notifyCcoOwnerOfStoredLead(lead, {
+      db: db as unknown as CcoPublicIntakeDatabase,
+      sendEmail,
+      sendSms,
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(sendSms).not.toHaveBeenCalled();
+    expect(result.email).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
+    expect(result.sms).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
+    expect(result.blockedSubmission).toBe(false);
+  });
+
+  test("a lost failed-row update that later sees sent stays undelivered and does not send", async () => {
+    const rows: Row[] = [
+      {
+        id: "log-email-failed",
+        template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
+        related_entity_id: lead.leadId,
+        channel: "email",
+        audience: "internal",
+        status: "failed",
+        recipient: CCO_OWNER_ALERT_EMAIL,
+        metadata: {},
+      },
+      {
+        id: "log-sms-failed",
+        template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
+        related_entity_id: lead.leadId,
+        channel: "sms",
+        audience: "internal",
+        status: "failed",
+        recipient: CCO_OWNER_ALERT_PHONE_E164,
+        metadata: {},
+      },
+    ];
+    const selects = { email: 0, sms: 0 };
+    const db = scriptedLog((call) => {
+      const channel = call.filters.find((filter) => filter.column === "channel")?.value === "sms" ? "sms" : "email";
+      const matched = rows.filter((row) => call.filters.every((filter) => row[filter.column] === filter.value));
+      if (call.operation === "select") {
+        selects[channel] += 1;
+        const row = matched[0];
+        if (selects[channel] >= 3 && row) {
+          return {
+            data: copyLogRow({
+              ...row,
+              status: "sent",
+              sent_at: "2026-10-09T06:01:00.000Z",
+              metadata: { provider_message_id: `${channel}-winner` },
+            }),
+            error: null,
+          };
+        }
+        return { data: row ? copyLogRow(row) : null, error: null };
+      }
+      return { data: null, error: { message: "notification_log_claim_miss" } };
+    });
+    const { sendEmail, sendSms } = transports();
+    const result = await notifyCcoOwnerOfStoredLead(lead, {
+      db: db as unknown as CcoPublicIntakeDatabase,
+      sendEmail,
+      sendSms,
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(sendSms).not.toHaveBeenCalled();
+    expect(result.email).toMatchObject({ delivered: false, status: "failed", reason: "notification_claim_failed" });
+    expect(result.sms.reason).toBe("notification_claim_failed");
     expect(result.blockedSubmission).toBe(false);
   });
 
