@@ -79,9 +79,15 @@ export function Nav({ surface, urls }: NavProps) {
           <Link href={u.bookingAlias} className={`cc-nav-link ${surface === "booking" ? "active" : ""}`}>
             book a call
           </Link>
-          <a href={u.cvpLogin} className="cc-nav-link cc-nav-client-login">
-            client login
-          </a>
+          {adminSurface ? (
+            <Link href="/os/login" className="cc-nav-link cc-nav-client-login">
+              cco os login
+            </Link>
+          ) : (
+            <a href={u.cvpLogin} className="cc-nav-link cc-nav-client-login">
+              client login
+            </a>
+          )}
         </nav>
 
         <div className="cc-nav-actions">

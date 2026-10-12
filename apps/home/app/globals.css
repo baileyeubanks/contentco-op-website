@@ -3651,14 +3651,14 @@ h1, h2, h3, h4 {
   .cc-nav-actions { display: none; }
 }
 
-.cc-nav-link.cc-nav-client-login {
+.cc-nav .cc-nav-links .cc-nav-link.cc-nav-client-login {
   padding: 0.38rem 0.8rem;
   border: 1px solid rgba(30, 77, 140, 0.32);
   border-radius: 999px;
   color: #1e4d8c;
 }
 
-.cc-nav-link.cc-nav-client-login:hover {
+.cc-nav .cc-nav-links .cc-nav-link.cc-nav-client-login:hover {
   border-color: #1e4d8c;
   background: rgba(30, 77, 140, 0.06);
 }
