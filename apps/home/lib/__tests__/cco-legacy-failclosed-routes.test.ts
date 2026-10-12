@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
+import { CCO_URLS } from "@contentco-op/ui";
 import { POST as bookingPOST } from "@/app/api/cco/bookings/route";
 import { GET as availabilityGET } from "@/app/api/cco/bookings/availability/route";
 import { GET as firebaseStatusGET } from "@/app/api/cco/firebase/status/route";
@@ -20,7 +21,11 @@ describe("retired CCO preview routes", () => {
       path.resolve(__dirname, "../../app/book/booking-client.tsx"),
       "utf8",
     );
-    expect(bookingClient).toMatch(/Scheduling unavailable/);
+    // Booking is handed to Google Calendar's embedded appointment page, which owns the reservation.
+    expect(bookingClient).toMatch(/<iframe[\s\S]*src=\{CCO_DISCOVERY_CALL_EMBED_URL\}/);
+    expect(bookingClient).toMatch(/CCO_URLS\.booking/);
+    expect(CCO_URLS.booking).toMatch(/^https:\/\/calendar\.google\.com\/calendar\/appointments\/schedules\/[^/?]+\?gv=true$/);
+    expect(bookingClient).not.toMatch(/\b(reserved|confirmed|you're booked)\b/i);
     expect(bookingClient).not.toMatch(/google_freebusy_ready/);
     expect(bookingClient).not.toMatch(/\/api\/cco\/bookings/);
   });

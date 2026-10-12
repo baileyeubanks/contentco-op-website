@@ -66,6 +66,24 @@ export function Nav({ surface, urls }: NavProps) {
           />
         </Link>
 
+        <nav className="cc-nav-links" aria-label="Site navigation">
+          <Link href={u.home} className={`cc-nav-link ${surface === "home" ? "active" : ""}`}>
+            home
+          </Link>
+          <Link href={u.portfolio} className={`cc-nav-link ${surface === "portfolio" ? "active" : ""}`}>
+            portfolio
+          </Link>
+          <Link href={u.brief} className={`cc-nav-link ${briefActive ? "active" : ""}`}>
+            creative brief
+          </Link>
+          <Link href={u.bookingAlias} className={`cc-nav-link ${surface === "booking" ? "active" : ""}`}>
+            book a call
+          </Link>
+          <a href={u.cvpLogin} className="cc-nav-link cc-nav-client-login">
+            client login
+          </a>
+        </nav>
+
         <div className="cc-nav-actions">
           <button
             ref={triggerRef}
@@ -132,9 +150,13 @@ export function Nav({ surface, urls }: NavProps) {
             <span className="cc-nav-rail-index">05</span>
             <span>Suite</span>
           </Link>
+          <a href={u.cvpLogin} className="cc-nav-rail-link" onClick={close}>
+            <span className="cc-nav-rail-index">06</span>
+            <span>Client Login</span>
+          </a>
           {adminSurface ? (
             <Link href="/os/login" className="cc-nav-rail-link cc-nav-rail-login" onClick={close}>
-              <span className="cc-nav-rail-index">06</span>
+              <span className="cc-nav-rail-index">07</span>
               <span>CCO OS Login</span>
             </Link>
           ) : null}

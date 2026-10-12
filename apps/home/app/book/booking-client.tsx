@@ -1,30 +1,24 @@
-"use client";
-
+import { CCO_URLS } from "@contentco-op/ui";
 import s from "./page.module.css";
 
 /**
- * Online scheduling stays closed until a CCO-DB booking record and an
- * idempotent calendar receipt exist. The former Google/Firebase preview path
- * (retired in b0859f6) could report a reservation without that receipt.
- * Do not restore slot-picking against the retired booking APIs while those
- * routes return `booking_unavailable`.
+ * Discovery calls are booked inside Bailey's Google Calendar appointment page,
+ * embedded here, so Google owns the reservation and its confirmation email.
+ * Do not restore slot-picking against the retired CCO booking API routes
+ * (retired in b0859f6): they could report a reservation without a calendar
+ * receipt.
  */
+export const CCO_DISCOVERY_CALL_EMBED_URL = CCO_URLS.booking;
+
 export function BookingClient() {
   return (
-    <section className={s.bookingPanel} aria-live="polite">
-      <div className={s.bookingHeader}>
-        <div>
-          <p className={s.kicker}>Discovery Call</p>
-          <h2>Scheduling unavailable</h2>
-        </div>
-      </div>
-      <p className={s.error}>
-        Online discovery-call scheduling is not offered here. No time has been reserved.
-      </p>
-      <p className={s.note}>
-        Email <a href="mailto:service@contentco-op.com">service@contentco-op.com</a> to arrange a
-        call, or start a <a href="/brief">creative brief</a> and we will follow up.
-      </p>
-    </section>
+    <div className={s.calendarCard}>
+      <iframe
+        className={s.calendarFrame}
+        src={CCO_DISCOVERY_CALL_EMBED_URL}
+        title="Pick a time for a 30-minute discovery call with Bailey"
+        loading="lazy"
+      />
+    </div>
   );
 }

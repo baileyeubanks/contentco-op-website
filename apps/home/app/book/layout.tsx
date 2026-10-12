@@ -5,20 +5,20 @@ import { SITE_NAME, absoluteUrl, buildBreadcrumbJsonLd } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Discovery Call",
   description:
-    "Contact Content Co-op to arrange a discovery call about your project.",
+    "Book a discovery call with Content Co-op, fill out a creative brief, or call, text, or email Bailey directly.",
   alternates: {
     canonical: "https://contentco-op.com/book",
   },
   openGraph: {
     title: "Discovery Call",
     description:
-      "Contact Content Co-op to arrange a discovery call about your project.",
+      "Book a discovery call with Content Co-op, fill out a creative brief, or call, text, or email Bailey directly.",
     url: "https://contentco-op.com/book",
   },
   twitter: {
     title: "Discovery Call",
     description:
-      "Contact Content Co-op to arrange a discovery call about your project.",
+      "Book a discovery call with Content Co-op, fill out a creative brief, or call, text, or email Bailey directly.",
   },
 };
 
@@ -37,7 +37,7 @@ export default function BookLayout({ children }: { children: React.ReactNode }) 
             name: "Discovery Call",
             url: absoluteUrl("/book"),
             description:
-              "Contact Content Co-op to arrange a discovery call about your project.",
+              "Book a discovery call with Content Co-op, fill out a creative brief, or call, text, or email Bailey directly.",
             isPartOf: {
               "@type": "WebSite",
               name: SITE_NAME,

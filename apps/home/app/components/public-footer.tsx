@@ -12,6 +12,7 @@ export function PublicFooter() {
           <Link href={CREATIVE_BRIEF_PATH}>Creative Brief</Link>
           <Link href="/book">Book</Link>
           <Link href="/suite">Suite</Link>
+          <a href={CCO_URLS.cvpLogin}>Client Login</a>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
         </nav>

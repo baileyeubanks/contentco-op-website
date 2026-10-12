@@ -21,6 +21,7 @@ export type CcoUrls = {
   bookingAlias: string;
   brief: string;
   client: string;
+  cvpLogin: string;
   cocut: string;
   coscript: string;
   codeliver: string;
@@ -36,6 +37,8 @@ export const CCO_URLS: CcoUrls = {
   bookingAlias: "/book",
   brief: "/brief",
   client: "/login",
+  // Client reviews and deliveries live in Co-VideoPro.
+  cvpLogin: "https://co-videopro.com/login",
   // Product hosts are not currently DNS-live; keep public CTAs on the suite surface.
   cocut: "/co-cut",
   coscript: "/co-script",

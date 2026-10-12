@@ -3645,3 +3645,20 @@ h1, h2, h3, h4 {
 .public-page[data-theme="cream"] [aria-disabled="true"] {
   cursor: not-allowed !important;
 }
+
+/* Desktop: inline links replace the Menu trigger; phones keep the rail. */
+@media (min-width: 861px) {
+  .cc-nav-actions { display: none; }
+}
+
+.cc-nav-link.cc-nav-client-login {
+  padding: 0.38rem 0.8rem;
+  border: 1px solid rgba(30, 77, 140, 0.32);
+  border-radius: 999px;
+  color: #1e4d8c;
+}
+
+.cc-nav-link.cc-nav-client-login:hover {
+  border-color: #1e4d8c;
+  background: rgba(30, 77, 140, 0.06);
+}
