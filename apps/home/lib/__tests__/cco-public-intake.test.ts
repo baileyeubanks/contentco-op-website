@@ -1063,7 +1063,10 @@ describe("step-1 quote basics travel with the lead", () => {
   test("the final brief submit keeps the basics captured on step 1", async () => {
     const db = new FakeDatabase();
     await persistCcoLead({ contact, basics: { projectTypes: ["executive"], timeline: "ASAP" } }, { db });
+    // CCO-DB derives this lookup key on insert; the fake database does not, so seed it.
+    db.rows("contacts")[0].cco_public_email_key = String(contact.email).toLowerCase();
     await persistCcoBrief(submission, { db, sendEmail: async () => ({ ok: true, id: "provider-message-1" }) });
+    expect(db.rows("contacts")).toHaveLength(1);
     const intake = (db.rows("contacts")[0].metadata as Row).cco_public_intake as Row;
     expect(intake.basics).toMatchObject({ project_types: ["executive"], timeline: "ASAP" });
   });
