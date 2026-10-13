@@ -121,7 +121,7 @@ const DEFAULT_DRAFT: BriefDraft = {
   styleLevel: "Polished Commercial",
   revisionExpectation: "2 rounds",
   timeline: "2-4 weeks",
-  budgetRange: "$10,000-$20,000",
+  budgetRange: "",
   successDefinition: "",
   bookingPreference: "20",
 };
@@ -243,6 +243,8 @@ export function BriefClientPage() {
   const submissionIdRef = useRef<string | null>(null);
 
   const [draft, setDraft] = useState<BriefDraft>(DEFAULT_DRAFT);
+  /* Timeline has a default for the estimate; only send it as a quote basic once chosen. */
+  const [chosen, setChosen] = useState<{ timeline?: boolean }>({});
 
   /* ── Auto-save / restore ── */
   useEffect(() => {
@@ -334,7 +336,6 @@ export function BriefClientPage() {
     const missing = [
       !draft.successDefinition.trim() ? "definition of success" : "",
       draft.targetRuntime === "Not sure" ? "target runtime" : "",
-      draft.budgetRange === "Figuring it out" ? "budget comfort" : "",
     ].filter(Boolean);
     const shootDays = draft.shootDayCount === "4+" ? 4 : Number(draft.shootDayCount || 1);
     const productionComplexity =
@@ -392,6 +393,11 @@ export function BriefClientPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        basics: {
+          projectTypes: draft.projectTypes,
+          summary: draft.projectContext,
+          timeline: chosen.timeline ? draft.timeline : undefined,
+        },
         contact: {
           name: draft.name,
           email: draft.email,
@@ -482,7 +488,6 @@ export function BriefClientPage() {
             placements: draft.placements,
             deliverables: draft.deliverables,
             timeline: draft.timeline,
-            budgetRange: draft.budgetRange,
             projectContext: draft.projectContext,
             successDefinition: draft.successDefinition,
             industry: draft.industry,
@@ -757,6 +762,56 @@ export function BriefClientPage() {
                   </select>
                 </label>
               </div>
+              <div className={s.basics}>
+                <h3 className={s.basicsTitle}>
+                  The basics <small className={s.optional}>optional &mdash; enough for a ballpark quote</small>
+                </h3>
+                <div className={s.optionGroup}>
+                  <span>What do you need?</span>
+                  <div className={s.grid}>
+                    {PROJECT_TYPES.map((type) => (
+                      <button
+                        className={`${s.chip} ${draft.projectTypes.includes(type.id) ? s.chipActive : ""}`}
+                        key={type.id}
+                        type="button"
+                        onClick={() => update("projectTypes", toggleValue(draft.projectTypes, type.id))}
+                        aria-pressed={draft.projectTypes.includes(type.id)}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className={s.row}>
+                  <label className={s.field} htmlFor="brief-basics-summary">
+                    <span>In a sentence</span>
+                    <input
+                      id="brief-basics-summary"
+                      value={draft.projectContext}
+                      onChange={(e) => update("projectContext", e.target.value)}
+                      placeholder="e.g. 2-min safety video for our plant"
+                    />
+                  </label>
+                  <label className={s.field} htmlFor="brief-basics-timeline">
+                    <span>When do you need it?</span>
+                    <select
+                      id="brief-basics-timeline"
+                      value={chosen.timeline ? draft.timeline : ""}
+                      onChange={(e) => {
+                        if (!e.target.value) return setChosen((c) => ({ ...c, timeline: false }));
+                        update("timeline", e.target.value);
+                        setChosen((c) => ({ ...c, timeline: true }));
+                      }}
+                    >
+                      <option value="">Not sure yet</option>
+                      <option>ASAP</option>
+                      <option>2-4 weeks</option>
+                      <option>1-2 months</option>
+                      <option>Flexible</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
               <div className={s.nav}>
                 <button
                   className={s.submitBtn}
@@ -980,21 +1035,11 @@ export function BriefClientPage() {
               <div className={s.row}>
                 <label className={s.field}>
                   <span>Timeline</span>
-                  <select value={draft.timeline} onChange={(e) => update("timeline", e.target.value)}>
+                  <select value={draft.timeline} onChange={(e) => { update("timeline", e.target.value); setChosen((c) => ({ ...c, timeline: true })); }}>
                     <option>ASAP</option>
                     <option>2-4 weeks</option>
                     <option>1-2 months</option>
                     <option>Flexible</option>
-                  </select>
-                </label>
-                <label className={s.field}>
-                  <span>Budget comfort</span>
-                  <select value={draft.budgetRange} onChange={(e) => update("budgetRange", e.target.value)}>
-                    <option>Figuring it out</option>
-                    <option>Under $5,000</option>
-                    <option>$5,000-$10,000</option>
-                    <option>$10,000-$20,000</option>
-                    <option>$20,000+ / best approach</option>
                   </select>
                 </label>
               </div>

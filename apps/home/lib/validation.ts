@@ -57,7 +57,15 @@ export const BriefIntakeSchema = z.object({
   submissionId: z.string().uuid().optional(),
 });
 
+/** Optional quote basics captured on step 1, so a lead who stops there is still quotable. */
+export const LeadBasicsSchema = z.object({
+  projectTypes: z.array(z.string().max(60)).max(12).optional(),
+  summary: z.string().max(1000).optional(),
+  timeline: z.string().max(60).optional(),
+});
+
 export const LeadSchema = z.object({
+  basics: LeadBasicsSchema.optional(),
   contact: z.object({
     name: z.string().min(2),
     email: z.string().email(),

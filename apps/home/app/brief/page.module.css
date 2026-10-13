@@ -658,3 +658,19 @@
   font-weight: 700;
   text-decoration: none;
 }
+
+.basics {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.4rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid rgba(11, 25, 40, 0.1);
+}
+
+.basicsTitle {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: #0b1928;
+}

@@ -6,6 +6,7 @@ import {
   persistCcoGeneratedBriefProposal,
   persistCcoBrief,
   persistCcoLead,
+  cleanCcoLeadBasics,
   resolveCcoAdminAlertRecipients,
   type CcoPublicIntakeDatabase,
 } from "../cco-public-intake";
@@ -1040,5 +1041,38 @@ describe("CCO public intake operator alerting", () => {
     expect(db.rows("events")).toHaveLength(1);
     expect(db.rows("notification_log")).toHaveLength(2);
     expect(sendEmail).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("step-1 quote basics travel with the lead", () => {
+  test("a lead who stops after step 1 still leaves quotable basics on the contact", async () => {
+    const db = new FakeDatabase();
+    const lead = await persistCcoLead(
+      { contact, basics: { projectTypes: ["training", "brand"], summary: "  Safety video for our plant  ", timeline: "1-2 months" } },
+      { db },
+    );
+    expect(lead).toMatchObject({ ok: true, persisted: true });
+    const intake = (db.rows("contacts")[0].metadata as Row).cco_public_intake as Row;
+    expect(intake.basics).toEqual({
+      project_types: ["training", "brand"],
+      summary: "Safety video for our plant",
+      timeline: "1-2 months",
+    });
+  });
+
+  test("the final brief submit keeps the basics captured on step 1", async () => {
+    const db = new FakeDatabase();
+    await persistCcoLead({ contact, basics: { projectTypes: ["executive"], timeline: "ASAP" } }, { db });
+    await persistCcoBrief(submission, { db, sendEmail: async () => ({ ok: true, id: "provider-message-1" }) });
+    const intake = (db.rows("contacts")[0].metadata as Row).cco_public_intake as Row;
+    expect(intake.basics).toMatchObject({ project_types: ["executive"], timeline: "ASAP" });
+  });
+
+  test("nothing answered stores no basics, and long answers are bounded", () => {
+    expect(cleanCcoLeadBasics({ projectTypes: [], summary: "  ", timeline: "" })).toBeNull();
+    expect(cleanCcoLeadBasics(undefined)).toBeNull();
+    const long = cleanCcoLeadBasics({ summary: "x".repeat(5000), projectTypes: Array(40).fill("brand") });
+    expect(long?.summary).toHaveLength(1000);
+    expect(long?.project_types).toHaveLength(12);
   });
 });

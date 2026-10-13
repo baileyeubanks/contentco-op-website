@@ -27,3 +27,13 @@ describe("public brief contact: only name, email and company are required", () =
     expect(normalizeBriefWebsite("")).toBe("");
   });
 });
+
+describe("lead snapshot basics", () => {
+  test("accepts optional quote basics and rejects oversized ones", async () => {
+    const { LeadSchema } = await import("@/lib/validation");
+    const contact = { name: "Jane Smith", email: "jane@acme.com", company: "Acme" };
+    expect(LeadSchema.safeParse({ contact }).success).toBe(true);
+    expect(LeadSchema.safeParse({ contact, basics: { projectTypes: ["brand"], summary: "Plant video", timeline: "ASAP" } }).success).toBe(true);
+    expect(LeadSchema.safeParse({ contact, basics: { summary: "x".repeat(1001) } }).success).toBe(false);
+  });
+});

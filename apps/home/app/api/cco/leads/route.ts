@@ -66,6 +66,7 @@ export async function POST(req: Request) {
         company,
       },
       sourcePath: "/brief",
+      basics: parsed.data.basics,
     });
   } catch {
     return NextResponse.json(

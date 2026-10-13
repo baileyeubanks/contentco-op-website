@@ -346,10 +346,32 @@ function resolveDatabase(deps?: Dependencies):
   return binding.ok ? { ok: true, db: binding.db } : binding;
 }
 
+export type CcoLeadBasics = {
+  projectTypes?: string[];
+  summary?: string;
+  timeline?: string;
+};
+
+/** Bounded, trimmed copy of the optional step-1 quote basics; null when nothing was answered. */
+export function cleanCcoLeadBasics(input: CcoLeadBasics | null | undefined) {
+  if (!input || typeof input !== "object") return null;
+  const projectTypes = Array.isArray(input.projectTypes)
+    ? input.projectTypes.map((value) => cleanString(value).slice(0, 60)).filter(Boolean).slice(0, 12)
+    : [];
+  const basics = {
+    project_types: projectTypes,
+    summary: cleanString(input.summary).slice(0, 1000) || null,
+    timeline: cleanString(input.timeline).slice(0, 60) || null,
+  };
+  const answered = basics.project_types.length > 0 || basics.summary || basics.timeline;
+  return answered ? basics : null;
+}
+
 async function ensureCcoContact(
   db: CcoPublicIntakeDatabase,
   input: CcoPublicContact,
   sourcePath: string,
+  basicsInput?: CcoLeadBasics | null,
 ): Promise<ContactReceipt> {
   const email = cleanEmail(input.email);
   const { data: existing, error: lookupError } = await db
@@ -389,6 +411,8 @@ async function ensureCcoContact(
         website: cleanString(input.website) || null,
         address: cleanString(input.address) || null,
       },
+      // Keep earlier basics when a later snapshot carries none (e.g. the final brief submit).
+      basics: cleanCcoLeadBasics(basicsInput) ?? existingIntakeMetadata.basics ?? null,
     },
   };
 
@@ -880,7 +904,7 @@ async function emitBriefSubmittedEvent(input: {
 }
 
 export async function persistCcoLead(
-  input: { contact: CcoPublicContact; sourcePath?: string },
+  input: { contact: CcoPublicContact; sourcePath?: string; basics?: CcoLeadBasics | null },
   deps?: Dependencies,
 ): Promise<CcoLeadPersistenceResult> {
   const resolved = resolveDatabase(deps);
@@ -888,7 +912,7 @@ export async function persistCcoLead(
     return { ok: false, persisted: false, error: resolved.error, retryable: true };
   }
 
-  const contact = await ensureCcoContact(resolved.db, input.contact, input.sourcePath || "/brief");
+  const contact = await ensureCcoContact(resolved.db, input.contact, input.sourcePath || "/brief", input.basics);
   if (!contact.ok) return { ok: false, persisted: false, error: contact.error, retryable: true };
   return { ok: true, persisted: true, contactId: contact.contactId, replayed: contact.replayed };
 }
