@@ -637,3 +637,24 @@
     width: 100%;
   }
 }
+
+.optional {
+  margin-left: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: #8a96a3;
+}
+
+.talkInstead {
+  margin: 0.4rem 0 0;
+  font-size: 0.86rem;
+  color: #526476;
+}
+
+.talkInstead a {
+  color: #1e4d8c;
+  font-weight: 700;
+  text-decoration: none;
+}

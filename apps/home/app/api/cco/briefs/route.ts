@@ -3,7 +3,7 @@ import { persistCcoBrief } from "@/lib/cco-public-intake";
 import { notifyCcoOwnerOfStoredLeadSafely } from "@/lib/cco-owner-lead-alert";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/csrf";
-import { BriefIntakeSchema } from "@/lib/validation";
+import { BriefIntakeSchema, normalizeBriefWebsite } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +35,8 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+
+  parsed.data.contact.website = normalizeBriefWebsite(parsed.data.contact.website);
 
   let persistence: Awaited<ReturnType<typeof persistCcoBrief>>;
   try {

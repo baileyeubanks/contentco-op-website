@@ -1,13 +1,24 @@
 import { z } from "zod";
 
+/** Accept "acme.com" as well as "https://acme.com"; empty stays empty. */
+export function normalizeBriefWebsite(value: string | undefined | null) {
+  const trimmed = String(value ?? "").trim();
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+/** Only name, email and company are required; a phone, when given, needs 10 digits. */
 export const BriefContactSchema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.string().email("Valid email is required"),
-  phone: z.string().min(10, "Phone is required"),
+  phone: z
+    .string()
+    .optional()
+    .refine((value) => !value?.trim() || value.replace(/\D/g, "").length >= 10, "Phone needs 10 digits"),
   company: z.string().min(2, "Company is required"),
   role: z.string().optional(),
-  website: z.string().url().optional().or(z.literal("")),
-  address: z.string().min(2, "Address is required"),
+  website: z.string().optional(),
+  address: z.string().optional(),
 });
 
 export const BriefProjectSchema = z.object({

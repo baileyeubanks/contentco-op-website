@@ -4,6 +4,7 @@ import { createContext, runInContext } from "node:vm";
 import ts from "typescript";
 import { describe, expect, test, vi } from "vitest";
 import { canRetryCcoBriefDelivery, getCcoBriefDeliveryIssue } from "../cco-public-intake-client";
+import { normalizeBriefWebsite } from "@/lib/validation";
 
 // Execute the actual form handler, rather than duplicating its post-save logic.
 // Restoring its old global catch must fail the preview-rejection regression.
@@ -58,7 +59,7 @@ async function exercise(input: {
     saveLeadSnapshot: async () => undefined,
     inferGoal: () => "Synthetic goal", getSubmissionId: () => state.retryKey,
     clearSubmittedDraft: () => { state.retryKey = null; },
-    getCcoBriefDeliveryIssue, canRetryCcoBriefDelivery,
+    getCcoBriefDeliveryIssue, canRetryCcoBriefDelivery, normalizeBriefWebsite,
     responseErrorMessage: () => "Synthetic pre-save failure",
     fetch: fetchRequest, window: { location }, encodeURIComponent,
   });

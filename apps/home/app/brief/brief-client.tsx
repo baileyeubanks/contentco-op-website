@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeBriefWebsite } from "@/lib/validation";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
@@ -136,9 +137,8 @@ function missingLeadFields(draft: BriefDraft) {
   const missing: string[] = [];
   if (draft.name.trim().length <= 1) missing.push("name");
   if (!isValidEmail(draft.email)) missing.push("email");
-  if (normalizePhone(draft.phone).length < 10) missing.push("phone");
+  if (draft.phone.trim() && normalizePhone(draft.phone).length < 10) missing.push("a 10-digit phone (or leave it blank)");
   if (draft.company.trim().length <= 1) missing.push("company");
-  if (draft.address.trim().length <= 1) missing.push("location");
   return missing;
 }
 
@@ -265,11 +265,11 @@ export function BriefClientPage() {
       case "email":
         return !isValidEmail(value as string) ? "Please enter a valid email address." : undefined;
       case "phone":
-        return normalizePhone(value as string).length < 10 ? "Please enter a valid 10-digit phone number." : undefined;
+        return (value as string).trim() && normalizePhone(value as string).length < 10
+          ? "Please enter a 10-digit phone number, or leave it blank."
+          : undefined;
       case "company":
         return (value as string).trim().length < 2 ? "Please enter your company name." : undefined;
-      case "address":
-        return (value as string).trim().length < 2 ? "Please enter your location." : undefined;
       case "projectTypes":
         return (value as string[]).length === 0 ? "Please select at least one project type." : undefined;
       case "projectContext":
@@ -315,9 +315,8 @@ export function BriefClientPage() {
     return (
       draft.name.trim().length > 1 &&
       isValidEmail(draft.email) &&
-      normalizePhone(draft.phone).length >= 10 &&
-      draft.company.trim().length > 1 &&
-      draft.address.trim().length > 1
+      (!draft.phone.trim() || normalizePhone(draft.phone).length >= 10) &&
+      draft.company.trim().length > 1
     );
   }, [draft]);
 
@@ -399,7 +398,7 @@ export function BriefClientPage() {
           phone: draft.phone,
           company: draft.company,
           role: draft.role,
-          website: draft.website,
+          website: normalizeBriefWebsite(draft.website),
           address: draft.address,
         },
       }),
@@ -421,7 +420,7 @@ export function BriefClientPage() {
           setSubmitError(
             missing.length
               ? `Add ${formatMissingList(missing)}.`
-              : "Add name, email, phone, company, and location.",
+              : "Add your name, email, and company.",
           );
           return;
         }
@@ -472,7 +471,7 @@ export function BriefClientPage() {
             phone: draft.phone,
             company: draft.company,
             role: draft.role,
-            website: draft.website,
+            website: normalizeBriefWebsite(draft.website),
             address: draft.address,
           },
           project: {
@@ -586,13 +585,16 @@ export function BriefClientPage() {
               <strong>Within 24 hours</strong>
             </div>
             <div>
-              <span>Scheduling</span>
-              <strong>Confirmed by the team</strong>
+              <span>Discovery call</span>
+              <strong>Pick a time below</strong>
             </div>
           </div>
           <div className={s.actions}>
+            <Link className={s.submitBtn} href="/book">
+              Book your discovery call
+            </Link>
             {result.proposalHref ? (
-              <Link className={s.submitBtn} href={result.proposalHref}>
+              <Link className={s.ghost} href={result.proposalHref}>
                 View your estimate
               </Link>
             ) : null}
@@ -602,7 +604,7 @@ export function BriefClientPage() {
               </button>
             ) : null}
           </div>
-          <p className={s.savedNotice}>We will contact you to arrange a discovery call after reviewing the scope.</p>
+          <p className={s.savedNotice}>Grab 30 minutes with Bailey now, or we&rsquo;ll reach out within 24 hours.</p>
           <div className={s.nav} style={{ justifyContent: "center" }}>
             <Link className={s.ghost} href="/">
               Back to home
@@ -621,9 +623,14 @@ export function BriefClientPage() {
           Tell us your <em>Story.</em>
         </h1>
         <p className={s.subtitle}>
-          Contact fields are required so we can follow up. Project details can stay thin — if you
-          don&rsquo;t know an answer later, leave it blank.
+          Name, email, and company are all we need to follow up. Project details can stay thin — if
+          you don&rsquo;t know an answer, leave the default.
         </p>
+        {step >= 1 ? (
+          <p className={s.talkInstead}>
+            Rather talk it through? <Link href="/book">Book a 30-minute call with Bailey &rarr;</Link>
+          </p>
+        ) : null}
 
         {/* Gradient progress bar */}
         <div className={s.progressWrap}>
@@ -672,7 +679,7 @@ export function BriefClientPage() {
               </div>
               <div className={s.row}>
                 <label className={s.field} htmlFor="brief-phone">
-                  <span>Phone</span>
+                  <span>Phone <small className={s.optional}>optional</small></span>
                   <input
                     id="brief-phone"
                     name="phone"
@@ -682,8 +689,6 @@ export function BriefClientPage() {
                     autoComplete="tel"
                     type="tel"
                     placeholder="(713) 555-0199"
-                    required
-                    aria-required="true"
                     aria-invalid={!!fieldErrors.phone}
                   />
                   {touched.phone && fieldErrors.phone ? <span className={s.fieldError}>{fieldErrors.phone}</span> : null}
@@ -707,20 +712,15 @@ export function BriefClientPage() {
               </div>
               <div className={s.row}>
                 <label className={s.field} htmlFor="brief-address">
-                  <span>Address / location</span>
+                  <span>Location <small className={s.optional}>optional</small></span>
                   <input
                     id="brief-address"
                     name="address"
                     value={draft.address}
                     onChange={(e) => update("address", e.target.value)}
-                    onBlur={() => touch("address")}
-                    autoComplete="street-address"
+                    autoComplete="address-level2"
                     placeholder="Houston, TX"
-                    required
-                    aria-required="true"
-                    aria-invalid={!!fieldErrors.address}
                   />
-                  {touched.address && fieldErrors.address ? <span className={s.fieldError}>{fieldErrors.address}</span> : null}
                 </label>
                 <label className={s.field} htmlFor="brief-role">
                   <span>Role</span>
