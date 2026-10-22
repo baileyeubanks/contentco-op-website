@@ -38,8 +38,32 @@ function run(briefId = BRIEF_ID, env: Record<string, string | undefined> = { CVP
 
 beforeEach(() => {
   publicFake = createFakeSupabase();
-  cvpFake = createFakeSupabase();
+  // Mirror the live natural keys so ensure()'s 23505 → re-find branch is real.
+  cvpFake = createFakeSupabase(undefined, {
+    uniques: { organizations: ["owner_id", "name"], contacts: ["owner_id", "email"] },
+  });
 });
+
+/** Wrap a fake client so the FIRST insert into `table` fails with a transient DB error. */
+function failFirstInsert(fake: FakeSupabase, table: string) {
+  let failed = false;
+  return {
+    from(name: string) {
+      const real = fake.client.from(name);
+      if (name !== table || failed) return real;
+      return {
+        ...real,
+        select: real.select.bind(real),
+        eq: real.eq.bind(real),
+        insert() {
+          failed = true;
+          const result = { data: null, error: { message: "terminating connection", code: "57P01" } };
+          return { select: () => ({ single: async () => result, maybeSingle: async () => result }) };
+        },
+      };
+    },
+  };
+}
 
 describe("cvp brief intake — website half of brief → Co-VideoPro", () => {
   test("creates org, contact, and a money-free inquiry from the brief; no project, no estimate link", async () => {
@@ -100,6 +124,47 @@ describe("cvp brief intake — website half of brief → Co-VideoPro", () => {
     expect(publicFake.store.get("events")).toHaveLength(1);
   });
 
+  test("a retry after an events-stage failure finishes: the CCO OS start event is written on replay (review P2-1)", async () => {
+    seedBrief();
+    const flaky = failFirstInsert(publicFake, "events");
+    const first = await startBriefInCoVideoPro({ briefId: BRIEF_ID },
+      { sb: flaky as never, cvpSb: cvpFake.client as never, env: { CVP_OWNER_USER_ID: CVP_OWNER } });
+    expect(first).toMatchObject({ error: "terminating connection", retryable: true, partial: true, stage: "event" });
+    expect(cvpFake.store.get("inquiries")).toHaveLength(1);
+    expect(publicFake.store.get("events") || []).toHaveLength(0);
+
+    const retry = await startBriefInCoVideoPro({ briefId: BRIEF_ID },
+      { sb: flaky as never, cvpSb: cvpFake.client as never, env: { CVP_OWNER_USER_ID: CVP_OWNER } });
+    expect(retry.error).toBeNull();
+    expect(retry.receipt?.replayed).toBe(true);
+    expect(cvpFake.store.get("inquiries")).toHaveLength(1);
+    const events = publicFake.store.get("events") || [];
+    expect(events).toHaveLength(1);
+    expect((events[0].payload as FakeRow).inquiry_id).toBe(retry.receipt?.cvpInquiryId);
+
+    // A third call writes nothing further.
+    await startBriefInCoVideoPro({ briefId: BRIEF_ID },
+      { sb: publicFake.client as never, cvpSb: cvpFake.client as never, env: { CVP_OWNER_USER_ID: CVP_OWNER } });
+    expect(publicFake.store.get("events")).toHaveLength(1);
+  });
+
+  test("a replayed inquiry without a payload hash is a link conflict, never an undefined receipt (review P3-1)", async () => {
+    seedBrief();
+    cvpFake.store.set("inquiries", [{
+      id: briefInquiryId(BRIEF_ID), owner_id: CVP_OWNER, source: CVP_BRIEF_INQUIRY_SOURCE,
+      commercial_ref: { brief_id: BRIEF_ID }, status: "new",
+    }]);
+    const result = await run();
+    expect(result).toMatchObject({ error: "brief_inquiry_link_conflict", retryable: false });
+    expect(publicFake.store.get("events") || []).toHaveLength(0);
+  });
+
+  test("over-long company or contact name is blocked, matching the money path (review P3-5)", async () => {
+    seedBrief({ company: "x".repeat(241) });
+    expect(await run()).toMatchObject({ error: "brief_contact_invalid", retryable: false });
+    expect(cvpFake.store.get("organizations") || []).toHaveLength(0);
+  });
+
   test("two briefs from the same client share org and contact but get distinct inquiries", async () => {
     seedBrief();
     seedBrief({ brief_number: "CC-BRF-2026-0043", objective: "Recruiting film" }, OTHER_BRIEF_ID);
@@ -132,7 +197,7 @@ describe("cvp brief intake — website half of brief → Co-VideoPro", () => {
     seedBrief();
     cvpFake.store.set("inquiries", [{
       id: briefInquiryId(BRIEF_ID), owner_id: OTHER_OWNER, source: CVP_BRIEF_INQUIRY_SOURCE,
-      commercial_ref: { brief_id: BRIEF_ID }, status: "new",
+      commercial_ref: { brief_id: BRIEF_ID, payload_hash: `sha256:${"0".repeat(64)}` }, status: "new",
     }]);
     const result = await run();
     expect(result).toMatchObject({ error: "brief_inquiry_link_conflict", retryable: false, partial: false });

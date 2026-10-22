@@ -129,11 +129,15 @@ export async function startBriefInCoVideoPro(
     if (brief!.company_account_id !== CCO_COMPANY_ACCOUNT_ID) {
       blocked("brief_scope_mismatch", "Only Content Co-op briefs can start in Co-VideoPro.");
     }
-    const contactName = text(brief!.contact_name, 240);
-    const email = text(brief!.contact_email, 320).toLowerCase();
-    const orgName = text(brief!.company, 240) || contactName;
+    const contactName = String(brief!.contact_name ?? "").trim();
+    const email = String(brief!.contact_email ?? "").trim().toLowerCase();
+    const orgName = String(brief!.company ?? "").trim() || contactName;
     if (!contactName || email.length < 3 || !email.includes("@") || !orgName) {
       blocked("brief_contact_missing", "The brief needs a contact name and email before production can start.");
+    }
+    // Same limits as the money path (cvp-handoff.ts) so both derive the same org/contact rows.
+    if (contactName.length > 240 || orgName.length > 240 || email.length > 320) {
+      blocked("brief_contact_invalid", "Shorten the contact name or company on the brief before production can start.");
     }
 
     const ownerId = String(env.CVP_OWNER_USER_ID || "").trim().toLowerCase();
@@ -151,13 +155,26 @@ export async function startBriefInCoVideoPro(
     const briefRef = { ...canonical, source: CVP_BRIEF_INQUIRY_SOURCE, payload_hash: hash };
 
     const cvp = deps?.cvpSb ?? getCvpSupabase();
+    const eventId = ccoRecordId("cvp-brief-start-event", briefId);
+    // The CCO OS record of the start. Idempotent by id; written on first run AND
+    // on replay, so a retry after an events-stage failure actually finishes.
+    const recordStart = async (inquiry: Row, organizationId: string, contactId: string) => {
+      const event = await ensure(sb!, "events", { id: eventId }, {
+        id: eventId, type: CVP_BRIEF_START_EVENT_TYPE, business_unit: "CC", channel: "cco_os", direction: "internal",
+        payload: { brief_id: briefId, inquiry_id: inquiry.id, organization_id: organizationId, contact_id: contactId, payload_hash: hash },
+        metadata: { source: CVP_BRIEF_INQUIRY_SOURCE, inquiry_id: inquiry.id } });
+      if (event.business_unit !== "CC" || record(event.payload).inquiry_id !== inquiry.id) {
+        blocked("brief_start_event_conflict", "Reconcile the stored brief-start event before retrying.");
+      }
+    };
 
     // Replay: the row for this brief already exists. Verify, never rewrite.
     stage = "replay_check";
     const prior = await find(cvp, "inquiries", { id: inquiryId });
     if (prior) {
       const ref = record(prior.commercial_ref);
-      if (prior.owner_id !== ownerId || prior.source !== CVP_BRIEF_INQUIRY_SOURCE || ref.brief_id !== briefId) {
+      if (prior.owner_id !== ownerId || prior.source !== CVP_BRIEF_INQUIRY_SOURCE || ref.brief_id !== briefId ||
+        typeof ref.payload_hash !== "string" || !ref.payload_hash.startsWith("sha256:")) {
         blocked("brief_inquiry_link_conflict", "A production inquiry already holds this brief's id with different ownership. Reconcile it; nothing was changed.");
       }
       if (prior.commercial_total_cents != null || prior.cco_estimate_id || prior.cco_estimate_version_id) {
@@ -165,11 +182,15 @@ export async function startBriefInCoVideoPro(
         // the frozen estimate's business; this path must not touch it.
         blocked("brief_inquiry_commercially_bound", "This inquiry is now bound to an approved estimate. Use the estimate handoff; nothing was changed.");
       }
+      const organizationId = String(prior.organization_id || "");
+      const contactId = String(prior.contact_id || "");
+      progress.cvpInquiryId = String(prior.id);
+      stage = "event";
+      await recordStart(prior, organizationId, contactId);
       const receipt: BriefIntakeReceipt = { status: "created", replayed: true, briefId, source: CVP_BRIEF_INQUIRY_SOURCE,
-        payloadHash: ref.payload_hash === hash ? hash : (ref.payload_hash as `sha256:${string}`),
-        cvpInquiryId: String(prior.id), organizationId: String(prior.organization_id || ""), contactId: String(prior.contact_id || "") };
+        payloadHash: ref.payload_hash as `sha256:${string}`, cvpInquiryId: String(prior.id), organizationId, contactId };
       return { receipt, error: null, retryable: false, partial: false, stage: "complete",
-        progress: { cvpInquiryId: String(prior.id), organizationId: receipt.organizationId, contactId: receipt.contactId } };
+        progress: { cvpInquiryId: String(prior.id), organizationId, contactId } };
     }
 
     // Resolve both CRM links before writing. Email alone cannot authorize moving
@@ -207,14 +228,7 @@ export async function startBriefInCoVideoPro(
     }
 
     stage = "event";
-    const event = await ensure(sb, "events", { id: ccoRecordId("cvp-brief-start-event", briefId) }, {
-      id: ccoRecordId("cvp-brief-start-event", briefId), type: CVP_BRIEF_START_EVENT_TYPE, business_unit: "CC",
-      channel: "cco_os", direction: "internal",
-      payload: { brief_id: briefId, inquiry_id: inquiry.id, organization_id: org.id, contact_id: cvpContact.id, payload_hash: hash },
-      metadata: { source: CVP_BRIEF_INQUIRY_SOURCE, inquiry_id: inquiry.id } });
-    if (event.business_unit !== "CC" || record(event.payload).inquiry_id !== inquiry.id) {
-      blocked("brief_start_event_conflict", "Reconcile the stored brief-start event before retrying.");
-    }
+    await recordStart(inquiry, String(org.id), String(cvpContact.id));
 
     const receipt: BriefIntakeReceipt = { status: "created", replayed, briefId, source: CVP_BRIEF_INQUIRY_SOURCE, payloadHash: hash,
       cvpInquiryId: String(inquiry.id), organizationId: String(org.id), contactId: String(cvpContact.id) };
