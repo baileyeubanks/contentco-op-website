@@ -2,6 +2,10 @@ import { probeOpenClawHealth } from "@/lib/openclaw";
 
 export type RootHealthScope = "full" | "local";
 
+type RootHealthOptions = {
+  probeBlazeAndOpenClaw?: boolean;
+};
+
 export type HealthSection = {
   status: "ok" | "degraded" | "down" | "not_configured" | "missing";
   latency_ms?: number | null;
@@ -167,7 +171,10 @@ function deriveStatus(
   return "healthy";
 }
 
-export async function getRootHealthSnapshot(scope: RootHealthScope = "full"): Promise<RootHealthSnapshot> {
+export async function getRootHealthSnapshot(
+  scope: RootHealthScope = "full",
+  options: RootHealthOptions = {},
+): Promise<RootHealthSnapshot> {
   const required = resolveRequiredEnv();
   const localStart = Date.now();
   const local = {
@@ -180,12 +187,19 @@ export async function getRootHealthSnapshot(scope: RootHealthScope = "full"): Pr
 
   const deerBaseUrl = process.env.DEER_HEALTH_URL || required.present.DEER_API_BASE_URL || "";
   const supabaseProbeKey = process.env.SUPABASE_SERVICE_KEY || required.present.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  // Public website health consumes only Supabase/Deer. Existing operator callers
+  // keep the full runtime probes unless they explicitly opt out.
+  const probeRuntimeIntegrations = options.probeBlazeAndOpenClaw !== false;
 
   const [supabase, blaze, deer, openclawProbe] = await Promise.all([
     checkSupabase(required.present.NEXT_PUBLIC_SUPABASE_URL || "", supabaseProbeKey),
-    checkExternalUrl(required.present.BLAZE_API_URL || "", "BLAZE_API_URL|BLAZE_API_BASE_URL"),
+    probeRuntimeIntegrations
+      ? checkExternalUrl(required.present.BLAZE_API_URL || "", "BLAZE_API_URL|BLAZE_API_BASE_URL")
+      : Promise.resolve({ status: "not_configured" as const }),
     checkExternalUrl(deerBaseUrl, "DEER_API_BASE_URL|DEER_HEALTH_URL"),
-    probeOpenClawHealth(),
+    probeRuntimeIntegrations
+      ? probeOpenClawHealth()
+      : Promise.resolve({ status: "not_configured" as const, latencyMs: null, statusCode: undefined, error: undefined }),
   ]);
 
   const openclaw: HealthSection = {

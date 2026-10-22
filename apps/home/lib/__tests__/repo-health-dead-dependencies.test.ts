@@ -82,7 +82,7 @@ describe("public /api/health dependency checks", () => {
 
     expect(snapshot.summary.fail).toBe(0);
     expect(snapshot.status).not.toBe("critical");
-    expect(rootHealthMock).toHaveBeenCalledWith("full");
+    expect(rootHealthMock).toHaveBeenCalledWith("full", { probeBlazeAndOpenClaw: false });
   });
 
   test("a real dependency failure still surfaces as critical", async () => {

@@ -373,7 +373,7 @@ async function buildIntakeCheck(): Promise<RepoHealthCheck> {
 async function buildDependencyChecks(scope: RepoHealthScope): Promise<RepoHealthCheck[]> {
   if (scope === "local") return [];
 
-  const rootHealth = await getRootHealthSnapshot("full");
+  const rootHealth = await getRootHealthSnapshot("full", { probeBlazeAndOpenClaw: false });
   return [
     {
       id: "supabase_dependency",
@@ -388,8 +388,8 @@ async function buildDependencyChecks(scope: RepoHealthScope): Promise<RepoHealth
     // Blaze (ACS/M4 host runtime) and OpenClaw (retired program-wide) are not
     // dependencies of the CCO public site. Probing them made `scope=full`
     // report `critical` on a healthy deployment, which hid real failures.
-    // They are intentionally absent here; os-health.ts still exposes them for
-    // the authenticated OS intelligence view.
+    // They are neither requested nor emitted here; os-health.ts retains its
+    // default probes for the authenticated OS intelligence view.
     {
       id: "deer_dependency",
       label: "Deer dependency",
