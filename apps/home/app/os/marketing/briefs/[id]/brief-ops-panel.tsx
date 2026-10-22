@@ -14,7 +14,30 @@ export function BriefOpsPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [converted, setConverted] = useState<{ id: string; title: string } | null>(null);
+  const [startedInCvp, setStartedInCvp] = useState<{ inquiryId: string; replayed: boolean } | null>(null);
   const alreadyConverted = briefStatus === "converted";
+
+  // Creative-side start only: identity + intent go to Co-VideoPro as an inquiry.
+  // No totals, no project, no client email — the estimate handoff owns money.
+  async function handleStartInCoVideoPro() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/os/briefs/${briefId}/start-in-covideopro`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.receipt?.cvpInquiryId) {
+        if (data?.partial && data?.retryable) {
+          throw new Error("Part of the Co-VideoPro setup is saved. Try again to finish; your existing work will be kept.");
+        }
+        throw new Error(String(data?.action || data?.error || "brief_start_in_covideopro_failed"));
+      }
+      setStartedInCvp({ inquiryId: String(data.receipt.cvpInquiryId), replayed: Boolean(data.receipt.replayed) });
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "brief_start_in_covideopro_failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleConvertToProject() {
     setBusy(true);
@@ -101,7 +124,20 @@ export function BriefOpsPanel({
         >
           {converted ? "project ready" : busy ? "working..." : alreadyConverted ? "check project setup" : "open approved production project"}
         </button>
+        <button
+          type="button"
+          onClick={handleStartInCoVideoPro}
+          disabled={busy || Boolean(startedInCvp)}
+          className="os-atlas-button os-atlas-button-secondary"
+        >
+          {startedInCvp ? "in Co-VideoPro" : busy ? "working..." : "start in Co-VideoPro"}
+        </button>
       </div>
+      {startedInCvp ? (
+        <div style={{ fontSize: "0.78rem", color: "#6ee7b7" }}>
+          {startedInCvp.replayed ? "Already in Co-VideoPro" : "Opened in Co-VideoPro"} as inquiry {startedInCvp.inquiryId.slice(0, 8)}. No totals were sent.
+        </div>
+      ) : null}
       {converted ? (
         <div style={{ fontSize: "0.78rem", color: "#6ee7b7" }}>
           Project &ldquo;{converted.title}&rdquo; is ready ({converted.id.slice(0, 8)}). Existing work has been kept.
