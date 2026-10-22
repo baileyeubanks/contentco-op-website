@@ -16,7 +16,6 @@ const REQUIRED_RUNTIME_ENV = [
 ] as const;
 
 const OPTIONAL_RUNTIME_ENV = [
-  "BLAZE_API_URL|BLAZE_API_BASE_URL",
   "DEER_API_BASE_URL",
   "DEER_HEALTH_URL",
   "ALLOW_PRIVATE_RUNTIME_TARGETS",
@@ -386,16 +385,11 @@ async function buildDependencyChecks(scope: RepoHealthScope): Promise<RepoHealth
         latencyMs: rootHealth.supabase.latency_ms ?? null,
       },
     },
-    {
-      id: "blaze_dependency",
-      label: "Blaze dependency",
-      status: normalizeStatus(rootHealth.blaze.status),
-      detail: rootHealth.blaze.error || `Status ${rootHealth.blaze.status}${rootHealth.blaze.statusCode ? ` (${rootHealth.blaze.statusCode})` : ""}`,
-      updatedAt: rootHealth.timestamp,
-      meta: {
-        latencyMs: rootHealth.blaze.latency_ms ?? null,
-      },
-    },
+    // Blaze (ACS/M4 host runtime) and OpenClaw (retired program-wide) are not
+    // dependencies of the CCO public site. Probing them made `scope=full`
+    // report `critical` on a healthy deployment, which hid real failures.
+    // They are intentionally absent here; os-health.ts still exposes them for
+    // the authenticated OS intelligence view.
     {
       id: "deer_dependency",
       label: "Deer dependency",
@@ -406,16 +400,6 @@ async function buildDependencyChecks(scope: RepoHealthScope): Promise<RepoHealth
       updatedAt: rootHealth.timestamp,
       meta: {
         latencyMs: rootHealth.deer.latency_ms ?? null,
-      },
-    },
-    {
-      id: "openclaw_dependency",
-      label: "OpenClaw dependency",
-      status: normalizeStatus(rootHealth.openclaw.status),
-      detail: rootHealth.openclaw.error || `Status ${rootHealth.openclaw.status}${rootHealth.openclaw.statusCode ? ` (${rootHealth.openclaw.statusCode})` : ""}`,
-      updatedAt: rootHealth.timestamp,
-      meta: {
-        latencyMs: rootHealth.openclaw.latency_ms ?? null,
       },
     },
   ];
