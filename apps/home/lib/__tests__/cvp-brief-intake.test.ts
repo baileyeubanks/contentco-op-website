@@ -159,6 +159,32 @@ describe("cvp brief intake — website half of brief → Co-VideoPro", () => {
     expect(publicFake.store.get("events") || []).toHaveLength(0);
   });
 
+  test("repair records the saved inquiry payload when the brief changes before retry", async () => {
+    seedBrief();
+    const first = await startBriefInCoVideoPro({ briefId: BRIEF_ID }, {
+      sb: failFirstInsert(publicFake, "events") as never,
+      cvpSb: cvpFake.client as never,
+      env: { CVP_OWNER_USER_ID: CVP_OWNER },
+    });
+    expect(first).toMatchObject({ retryable: true, partial: true, stage: "event" });
+    const savedInquiry = structuredClone(cvpFake.store.get("inquiries")![0]);
+    const savedHash = (savedInquiry.commercial_ref as FakeRow).payload_hash;
+    publicFake.store.get("creative_briefs")![0].objective = "A changed objective after inquiry creation";
+
+    const retry = await run();
+    expect(retry).toMatchObject({ error: null, stage: "complete", receipt: { replayed: true, payloadHash: savedHash } });
+    const events = publicFake.store.get("events")!;
+    expect(events).toHaveLength(1);
+    expect(events[0].payload).toMatchObject({ inquiry_id: savedInquiry.id, payload_hash: savedHash });
+    expect(cvpFake.store.get("inquiries")).toEqual([savedInquiry]);
+
+    const savedEvent = structuredClone(events[0]);
+    expect((await run()).error).toBeNull();
+    expect(publicFake.store.get("events")).toEqual([savedEvent]);
+    expect(cvpFake.store.get("organizations")).toHaveLength(1);
+    expect(cvpFake.store.get("contacts")).toHaveLength(1);
+  });
+
   test("over-long company or contact name is blocked, matching the money path (review P3-5)", async () => {
     seedBrief({ company: "x".repeat(241) });
     expect(await run()).toMatchObject({ error: "brief_contact_invalid", retryable: false });

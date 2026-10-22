@@ -161,7 +161,9 @@ export async function startBriefInCoVideoPro(
     const recordStart = async (inquiry: Row, organizationId: string, contactId: string) => {
       const event = await ensure(sb!, "events", { id: eventId }, {
         id: eventId, type: CVP_BRIEF_START_EVENT_TYPE, business_unit: "CC", channel: "cco_os", direction: "internal",
-        payload: { brief_id: briefId, inquiry_id: inquiry.id, organization_id: organizationId, contact_id: contactId, payload_hash: hash },
+        // Replays describe the saved inquiry, even if the brief has since changed.
+        payload: { brief_id: briefId, inquiry_id: inquiry.id, organization_id: organizationId, contact_id: contactId,
+          payload_hash: record(inquiry.commercial_ref).payload_hash },
         metadata: { source: CVP_BRIEF_INQUIRY_SOURCE, inquiry_id: inquiry.id } });
       if (event.business_unit !== "CC" || record(event.payload).inquiry_id !== inquiry.id) {
         blocked("brief_start_event_conflict", "Reconcile the stored brief-start event before retrying.");
