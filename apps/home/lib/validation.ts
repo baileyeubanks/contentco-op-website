@@ -57,10 +57,18 @@ export const BriefIntakeSchema = z.object({
   submissionId: z.string().uuid().optional(),
 });
 
+const LEAD_SUMMARY_MAX_LENGTH = 1000;
+
+/** The lead is a short snapshot; the durable brief retains the full context. */
+export function leadSummarySnapshot(projectContext: string) {
+  // Avoid leaving half of a surrogate pair at the storage boundary.
+  return projectContext.slice(0, LEAD_SUMMARY_MAX_LENGTH).replace(/[\uD800-\uDBFF]$/, "");
+}
+
 /** Optional quote basics captured on step 1, so a lead who stops there is still quotable. */
 export const LeadBasicsSchema = z.object({
   projectTypes: z.array(z.string().max(60)).max(12).optional(),
-  summary: z.string().max(1000).optional(),
+  summary: z.string().max(LEAD_SUMMARY_MAX_LENGTH).optional(),
   timeline: z.string().max(60).optional(),
 });
 

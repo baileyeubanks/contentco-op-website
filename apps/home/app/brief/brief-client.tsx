@@ -1,6 +1,6 @@
 "use client";
 
-import { normalizeBriefWebsite } from "@/lib/validation";
+import { leadSummarySnapshot, normalizeBriefWebsite } from "@/lib/validation";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
@@ -395,7 +395,7 @@ export function BriefClientPage() {
       body: JSON.stringify({
         basics: {
           projectTypes: draft.projectTypes,
-          summary: draft.projectContext,
+          summary: leadSummarySnapshot(draft.projectContext),
           timeline: chosen.timeline ? draft.timeline : undefined,
         },
         contact: {
@@ -465,7 +465,8 @@ export function BriefClientPage() {
     setSubmitError("");
 
     try {
-      await saveLeadSnapshot();
+      // This endpoint persists both contact and full brief. Re-saving the
+      // optional lead snapshot here must not gate submission or its retries.
       const response = await fetch("/api/cco/briefs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
