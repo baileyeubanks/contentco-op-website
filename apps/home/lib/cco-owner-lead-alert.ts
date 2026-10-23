@@ -28,6 +28,7 @@ export const CCO_OWNER_ALERT_CLAIM_NAMESPACE = "8f3d2c1a-6b09-4e17-9a44-0c2e7b5d
 const CCO_BUSINESS_UNIT = "CC";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
 const OWNER_ALERT_SEND_TIMEOUT_MS = 8_000;
+export const CCO_OWNER_ALERT_MAX_ATTEMPTS = 5;
 
 export type CcoOwnerLeadAlertInput = {
   leadId: string;
@@ -68,7 +69,7 @@ export type CcoOwnerChannelReceipt = {
   channel: "email" | "sms";
   recipient: string;
   delivered: boolean;
-  status: "sent" | "failed" | "unknown" | "queued" | "already_delivered" | "skipped";
+  status: "sent" | "failed" | "unknown" | "queued" | "already_delivered" | "skipped" | "gave_up";
   reason?: string;
   missing?: string[];
   logId?: string;
@@ -388,6 +389,9 @@ function holdIfNotClaimable(
   if (!existingId) return null;
   const status = cleanLine(row?.status).toLowerCase();
   const metadata = asRecord(row?.metadata);
+  if (metadata.retry_exhausted === true && status !== "sent") {
+    return { ...base, delivered: false, status: "gave_up", reason: "gave_up", logId: existingId };
+  }
   const nextRetry = Date.parse(cleanLine(metadata.next_retry_at));
   const retryable = status === "failed" || (metadata.transport === "cco_text_outbox" &&
     (status === "queued" || status === "unknown" || (status === "sending" && isStaleSending(metadata, now))));
@@ -479,6 +483,17 @@ async function deliverOwnerChannel(input: {
   }
 
   const previous = asRecord(claimView.data?.metadata);
+  if (Number(previous.attempt_count) >= CCO_OWNER_ALERT_MAX_ATTEMPTS) {
+    // Also stop legacy rows already over the cap. The guarded primary-row update
+    // is the durable terminal receipt; subsequent runs neither send nor log again.
+    const terminal = await input.db.from("notification_log").update({
+      error_message: "gave_up",
+      message_preview: "Owner alert retries stopped. Review delivery configuration and receipt.",
+      metadata: { ...previous, retry_exhausted: true, delivery_status: "gave_up", next_retry_at: null, gave_up_at: input.now.toISOString() },
+    }).eq("id", existingId).eq("status", existingStatus).contains("metadata", previous).select("id").single();
+    if (terminal.error || asId(terminal.data?.id) !== existingId) return undeliveredClaim(base, "notification_log_unavailable");
+    return { ...base, delivered: false, status: "gave_up", reason: "gave_up", logId: existingId };
+  }
   const attemptCount = Math.max(0, Number(previous.attempt_count) || 0) + 1;
   const metadata = {
     source: "contentco-op.com/brief",
@@ -566,13 +581,16 @@ async function deliverOwnerChannel(input: {
       ? "unknown"
       : "failed";
 
+  const exhausted = !hasProviderReceipt && attemptCount >= CCO_OWNER_ALERT_MAX_ATTEMPTS;
   const outcomePayload = {
     status,
+    ...(exhausted ? { message_preview: "Owner alert retries stopped after 5 attempts. Review delivery configuration and receipt." } : {}),
     sent_at: hasProviderReceipt ? delivery.sentAt || input.now.toISOString() : null,
-    error_message: hasProviderReceipt ? null : boundedError(delivery.error),
+    error_message: exhausted ? "gave_up" : hasProviderReceipt ? null : boundedError(delivery.error),
     metadata: {
       ...metadata, provider_message_id: providerMessageId || null,
-      delivery_status: status, delivery_error: hasProviderReceipt ? null : boundedError(delivery.error),
+      delivery_status: exhausted ? "gave_up" : status, delivery_error: hasProviderReceipt ? null : boundedError(delivery.error),
+      ...(exhausted ? { retry_exhausted: true, next_retry_at: null, gave_up_at: input.now.toISOString() } : {}),
       missing: delivery.missing || undefined,
     },
   };
@@ -597,8 +615,8 @@ async function deliverOwnerChannel(input: {
   return {
     ...base,
     delivered: hasProviderReceipt && recorded,
-    status,
-    reason: hasProviderReceipt ? undefined : boundedError(delivery.error),
+    status: exhausted ? "gave_up" : status,
+    reason: exhausted ? "gave_up" : hasProviderReceipt ? undefined : boundedError(delivery.error),
     missing: delivery.missing,
     logId,
   };

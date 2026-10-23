@@ -27,7 +27,9 @@ class Query {
     return this;
   }
   or(expression: string) {
-    if (expression.startsWith("status.eq.failed,")) {
+    if (expression === "metadata->>retry_exhausted.is.null,metadata->>retry_exhausted.neq.true") {
+      this.filters.push(r => r.metadata?.retry_exhausted !== true);
+    } else if (expression.startsWith("status.eq.failed,")) {
       this.filters.push(r => r.status === "failed" || (r.metadata?.transport === "cco_text_outbox" && ["queued","sending","unknown"].includes(r.status)));
     } else {
       const due = expression.split(".lte.")[1];
@@ -236,4 +238,42 @@ test("the actual send deadline records unknown and the next cron reconciles inst
   await retryCcoOwnerLeadAlerts({ ...options, now: new Date(now.getTime() + 300_000) });
   expect(fixture.rpc).toHaveBeenCalledTimes(1);
   expect(fixture.db.rows.find(r => r.channel === "imessage" && r.template_key === alerts.CCO_OWNER_LEAD_ALERT_TEMPLATE)?.status).toBe("sent");
+});
+
+test("permanent failure stops at five attempts across 120 daily runs and logs gave_up once per channel", async () => {
+  const db = new Database();
+  const sendEmail = vi.fn(async () => ({ ok: false, error: "undeliverable: no channel" }));
+  const sendSms = vi.fn(async () => ({ ok: false, error: "outbox_failed" }));
+  const options = { ...deps(db), sendEmail, sendSms };
+  await alerts.notifyCcoOwnerOfStoredLead(lead, options);
+  for (let day = 1; day <= 120; day++) {
+    alerts.resetCcoOwnerLeadAlertDedup();
+    await retryCcoOwnerLeadAlerts({ ...options, now: new Date(now.getTime() + day * 86_400_000) });
+  }
+  expect(sendEmail).toHaveBeenCalledTimes(5);
+  expect(sendSms).toHaveBeenCalledTimes(5);
+  const attempts = db.rows.filter(r => r.template_key === attemptTemplate);
+  expect(attempts).toHaveLength(10);
+  expect(attempts.filter(r => r.metadata.delivery_status === "gave_up")).toHaveLength(2);
+  const primaries = db.rows.filter(r => r.template_key === alerts.CCO_OWNER_LEAD_ALERT_TEMPLATE);
+  expect(primaries.every(r => r.status === "failed" && r.error_message === "gave_up" && r.metadata.retry_exhausted === true)).toBe(true);
+  const last = await retryCcoOwnerLeadAlerts({ ...options, now: new Date(now.getTime() + 121 * 86_400_000) });
+  expect(last.evaluated).toBe(0);
+  const repeated = await alerts.notifyCcoOwnerOfStoredLead(lead, { ...options, now: new Date(now.getTime() + 122 * 86_400_000) });
+  expect(repeated.email.status).toBe("gave_up");
+  expect(db.rows).toHaveLength(12);
+});
+
+test("an already exhausted stored claim is terminalized without another transport attempt", async () => {
+  const db = new Database();
+  const sendEmail = vi.fn(async () => ({ ok: false, error: "undeliverable: no channel" }));
+  const sendSms = vi.fn(async () => ({ ok: true, id: "sent-text" }));
+  const options = { ...deps(db), sendEmail, sendSms };
+  await alerts.notifyCcoOwnerOfStoredLead(lead, options);
+  const primary = db.rows.find(r => r.channel === "email" && r.template_key === alerts.CCO_OWNER_LEAD_ALERT_TEMPLATE)!;
+  primary.metadata.attempt_count = 121;
+  await retryCcoOwnerLeadAlerts({ ...options, now: new Date(now.getTime() + 86_400_000) });
+  expect(sendEmail).toHaveBeenCalledTimes(1);
+  expect(primary.metadata.retry_exhausted).toBe(true);
+  expect(primary.error_message).toBe("gave_up");
 });
