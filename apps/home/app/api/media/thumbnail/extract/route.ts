@@ -1,10 +1,18 @@
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
+import { isEmailAuthorizedForRootHost } from "@/lib/os-auth";
 import { NextResponse } from "next/server";
-import { requireInviteSession } from "@/lib/auth";
 
 export async function POST(req: Request) {
-  const session = await requireInviteSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await enforceRoutePolicy(createRoutePolicy({
+    id: "cco.media.extract",
+    accessLevel: "internal",
+    sessionPolicies: ["supabase_user", "operator_invite"],
+    requiredPermissions: ["asset_manage"],
+    tenantBoundary: "internal_workspace",
+  }));
+  if (!access.ok) return access.response;
+  if (!isEmailAuthorizedForRootHost(access.actor.email || "", "admin.contentco-op.com")) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
   const payload = await req.json().catch(() => ({}));
