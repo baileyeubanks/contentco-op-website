@@ -1,19 +1,27 @@
+import { createRoutePolicy, enforceRoutePolicy } from "@/lib/platform-access";
+import { isEmailAuthorizedForRootHost } from "@/lib/os-auth";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { NextResponse } from "next/server";
-import { requireInviteSession } from "@/lib/auth";
 
 const MANIFEST = resolve(process.cwd(), "public/media/thumbnail-manifest.json");
 
 export async function POST(req: Request) {
-  const session = await requireInviteSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await enforceRoutePolicy(createRoutePolicy({
+    id: "cco.media.approve",
+    accessLevel: "internal",
+    sessionPolicies: ["supabase_user", "operator_invite"],
+    requiredPermissions: ["asset_manage"],
+    tenantBoundary: "internal_workspace",
+  }));
+  if (!access.ok) return access.response;
+  if (!isEmailAuthorizedForRootHost(access.actor.email || "", "admin.contentco-op.com")) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
   const payload = await req.json().catch(() => ({}));
-  const required = ["asset_id", "frame_timecode", "role_tag", "image_path", "approved_by"];
+  const required = ["asset_id", "frame_timecode", "role_tag", "image_path"];
   const missing = required.filter((key) => !payload[key]);
   if (missing.length) {
     return NextResponse.json({ error: "Missing approval fields", missing }, { status: 400 });
@@ -29,7 +37,7 @@ export async function POST(req: Request) {
     frame_timecode: payload.frame_timecode,
     role_tag: payload.role_tag,
     image_path: payload.image_path,
-    approved_by: payload.approved_by,
+    approved_by: access.actor.email,
     approved_at: new Date().toISOString()
   });
 

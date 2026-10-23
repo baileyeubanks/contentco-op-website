@@ -1,3 +1,4 @@
+import { posix } from "node:path";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdvancedRootOperatorForHost, isEmailAuthorizedForRootHost } from "@/lib/os-auth";
@@ -13,6 +14,23 @@ const PUBLIC_ROOT_PATHS = new Set(["/os", "/os/login", "/os/logout"]);
  * Redirects unauthenticated users away from protected /root areas to /root.
  */
 export async function proxy(request: NextRequest) {
+  // The legacy manifest lives under public/. Do not leave a static-file bypass
+  // around the operator-only API; ordinary public media assets are unaffected.
+  let pathname = request.nextUrl.pathname;
+  try { pathname = posix.normalize(decodeURIComponent(pathname).replace(/\\/g, "/")).toLowerCase().replace(/\/+$/, ""); }
+  catch { return new NextResponse(null, { status: 400 }); }
+  if (pathname === "/media/thumbnail-manifest.json") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/api/media/thumbnail/approved";
+    return NextResponse.rewrite(url);
+  }
+  // Match globally to cover encoded static filenames, but do no auth work for
+  // ordinary public pages/assets/APIs. Preserve the existing protected surfaces.
+  const originalPath = request.nextUrl.pathname;
+  if (!(originalPath === "/login" || originalPath === "/os" || originalPath.startsWith("/os/") || originalPath === "/dashboard" || originalPath.startsWith("/dashboard/"))) {
+    return NextResponse.next();
+  }
+
   if (request.nextUrl.pathname === "/dashboard" || request.nextUrl.pathname.startsWith("/dashboard/")) {
     const url = request.nextUrl.clone();
     url.pathname =
@@ -115,5 +133,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/os", "/os/:path*"],
+  matcher: ["/:path*"],
 };
