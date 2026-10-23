@@ -21,15 +21,16 @@ const PUBLIC_ROOT_PATHS = new Set(["/os", "/os/login", "/os/logout"]);
 export async function proxy(request: NextRequest) {
   const reviewPath = request.nextUrl.pathname;
   if ((request.method === "GET" || request.method === "HEAD")
-    && isPublicMarketingHost(request.nextUrl.hostname)
+    && isPublicMarketingHost(request.headers.get("host") ?? "")
     && (reviewPath.startsWith("/review/") || CVP_SHORT_REVIEW_PATH.test(reviewPath))) {
     // Assign path/query separately: bearer paths and redirect-like query values
     // can never choose the destination origin. No token lookup or logging here.
     const destination = new URL(CLIENT_CVP_ORIGIN);
     destination.pathname = reviewPath;
-    destination.search = request.nextUrl.search;
+    destination.search = new URL(request.url).search;
     const response = NextResponse.redirect(destination, 308);
     response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("Cache-Control", "no-store");
     return response;
   }
 

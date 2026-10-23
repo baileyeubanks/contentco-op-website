@@ -8,6 +8,8 @@ const EDGE_STATIC_CACHE = "public, max-age=86400, s-maxage=31536000, stale-while
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Preserve raw query order for review handoffs (also supported by Next 16.1.6).
+  skipMiddlewareUrlNormalize: true,
   poweredByHeader: false,
   images: { unoptimized: false, qualities: [75, 82, 85] },
   turbopack: {
