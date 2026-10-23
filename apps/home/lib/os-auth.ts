@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { resolveOsBrand, type OsBrandKey } from "@/lib/os-brand";
@@ -253,12 +254,15 @@ export function isAdvancedRootOperatorForHost(email: string, hostname?: string |
 export function verifyRootOperatorCredentials(email: string, password: string) {
   const normalizedEmail = normalizeEmail(email);
   const credentialEntries = getConfiguredRootOperatorCredentials();
-  if (credentialEntries.size) {
-    return credentialEntries.get(normalizedEmail) === password;
-  }
-  const sharedPassword = getRootOperatorPassword();
-  if (!sharedPassword) return false;
-  return isAllowedRootOperatorEmail(normalizedEmail) && password === sharedPassword;
+  const expected = credentialEntries.size
+    ? credentialEntries.get(normalizedEmail)
+    : isAllowedRootOperatorEmail(normalizedEmail) ? getRootOperatorPassword() : undefined;
+  // Hash to equal-size buffers before comparison, including for unknown accounts.
+  const matches = timingSafeEqual(
+    createHash("sha256").update(password).digest(),
+    createHash("sha256").update(expected || "").digest(),
+  );
+  return Boolean(expected) && matches;
 }
 
 export function verifyRootOperatorCredentialsForHost(email: string, password: string, hostname?: string | null) {
