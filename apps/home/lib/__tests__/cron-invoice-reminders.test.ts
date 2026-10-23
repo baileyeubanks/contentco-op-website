@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
+vi.mock("@/lib/cco-owner-alert-retry", () => ({ retryCcoOwnerLeadAlerts: vi.fn(async () => ({ evaluated: 1, delivered: 0, pending: 1, errors: 0 })) }));
+import { retryCcoOwnerLeadAlerts } from "../cco-owner-alert-retry";
+import { evaluateAndSendReminders } from "../reminder-engine";
 vi.mock("@/lib/reminder-engine", () => ({
   evaluateAndSendReminders: vi.fn(async () => ({
     evaluated: 1,
@@ -14,6 +17,7 @@ import { GET } from "../../app/api/cron/invoice-reminders/route";
 const ORIGINAL_ENV = { ...process.env };
 
 beforeEach(() => {
+  vi.clearAllMocks();
   delete process.env.CRON_SECRET;
 });
 
@@ -29,6 +33,8 @@ test("fail-closed: no CRON_SECRET in production returns 401, never runs the engi
   vi.stubEnv("NODE_ENV", "production");
   const res = await GET(req());
   expect(res.status).toBe(401);
+  expect(retryCcoOwnerLeadAlerts).not.toHaveBeenCalled();
+  expect(evaluateAndSendReminders).not.toHaveBeenCalled();
 });
 
 test("dev convenience: no CRON_SECRET outside production is allowed", async () => {
@@ -51,4 +57,12 @@ test("CRON_SECRET set + correct Bearer token runs and returns 200", async () => 
   expect(res.status).toBe(200);
   const body = await res.json();
   expect(body.ok).toBe(true);
+  expect(retryCcoOwnerLeadAlerts).toHaveBeenCalledOnce();
+  expect(body.ownerAlerts.pending).toBe(1);
+});
+
+test("owner retries run even if the later invoice engine fails", async () => {
+  vi.mocked(evaluateAndSendReminders).mockRejectedValueOnce(new Error("invoice failure"));
+  await expect(GET(req())).rejects.toThrow("invoice failure");
+  expect(retryCcoOwnerLeadAlerts).toHaveBeenCalledOnce();
 });
