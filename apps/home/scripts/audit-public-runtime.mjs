@@ -29,9 +29,9 @@ function readContentVideoVersion() {
 
 const contentVideoVersion = readContentVideoVersion();
 const heroMediaPaths = [
-  `/media/hero-loop/cco-hero-supreme-1080.mp4?v=${contentVideoVersion}`,
-  `/media/hero-loop/cco-hero-supreme-720.mp4?v=${contentVideoVersion}`,
-  `/media/hero-loop/cco-hero-poster.jpg?v=${contentVideoVersion}`,
+  `/media/hero-loop/cco-hero-seamless-1080.mp4?v=${contentVideoVersion}`,
+  `/media/hero-loop/cco-hero-seamless-720.mp4?v=${contentVideoVersion}`,
+  `/media/hero-loop/weather-vane-wide-poster.jpg?v=${contentVideoVersion}`,
 ];
 const curlAttempts = 2;
 
@@ -68,13 +68,13 @@ const htmlChecks = [
   {
     label: "homepage copy",
     url: "https://contentco-op.com/",
-    required: ["See our work", "Start the Creative Brief", "gallery-wind-turbine-crane", "cco-hero-supreme"],
+    required: ["See our work", "Start the Creative Brief", "gallery-wind-turbine-crane", "weather-vane-wide-poster.jpg"],
     forbidden: ["Watch the Work", "Book a Strategy Call", "Product Suite"],
   },
   {
     label: "brief copy",
     url: "https://contentco-op.com/brief",
-    required: ["Tell us your", "Story.", "Contact fields are required", "leave it blank"],
+    required: ["Tell us your", "Story.", "Name, email, and company are all we need to follow up.", "leave the default"],
     forbidden: ["It takes about 3 minutes", "quick chat"],
   },
   {
@@ -503,7 +503,7 @@ const htmlChecks = [
   {
     label: "suite copy",
     url: "https://contentco-op.com/suite",
-    required: ["Brief to", "boardroom", "Co-Script", "Co-Cut", "Co-Deliver", "Request access"],
+    required: ["Brief to", "boardroom", "Co-Script", "Co-Cut", "Co-Deliver", "Open Co-VideoPro"],
     forbidden: ["Start a brief", "Book a Demo"],
   },
   {
