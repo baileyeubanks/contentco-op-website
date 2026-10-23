@@ -1,22 +1,23 @@
 /**
  * Owner-only new-lead alert for contentco-op.com.
  *
- * After a lead or brief is stored, tell Bailey (email + SMS). Never message
- * the lead. Never fail the public submission. One alert bundle per contact id.
+ * After a lead or brief is stored, alert Bailey through the governed text outbox
+ * and the gated email slot. Never message
+ * the lead. Never fail the public submission. One alert bundle per stored lead/brief.
  */
 
 import { createHash } from "node:crypto";
 import { getCcoOsDatabase, type CcoPublicIntakeDatabase } from "@/lib/cco-public-intake";
+import { enqueueOwnerText, type OwnerAlertDelivery } from "@/lib/blaze-text-outbox";
 import { sendTransactionalEmail } from "@/lib/email-sender";
 import {
   CCO_OWNER_ALERT_PHONE_E164,
-  describeCcoOwnerSmsTransport,
   isCcoOwnerAlertPhone,
-  sendCcoOwnerSms,
 } from "@/lib/cco-owner-sms";
 
 export const CCO_OWNER_ALERT_EMAIL = "bailey@contentco-op.com";
 export const CCO_OWNER_LEAD_ALERT_TEMPLATE = "cco_owner_lead_alert";
+export const CCO_OWNER_ALERT_ATTEMPT_TEMPLATE = "cco_owner_lead_alert_attempt";
 export const CCO_OWNER_CATCHUP_TEMPLATE = "cco_owner_lead_catchup";
 export const CCO_OWNER_CATCHUP_ID = "catchup:unanswered-20261008";
 export const CCO_OS_PUBLIC_ORIGIN = "https://admin.contentco-op.com";
@@ -27,6 +28,7 @@ export const CCO_OWNER_ALERT_CLAIM_NAMESPACE = "8f3d2c1a-6b09-4e17-9a44-0c2e7b5d
 const CCO_BUSINESS_UNIT = "CC";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
 const OWNER_ALERT_SEND_TIMEOUT_MS = 8_000;
+export const CCO_OWNER_ALERT_MAX_ATTEMPTS = 5;
 
 export type CcoOwnerLeadAlertInput = {
   leadId: string;
@@ -67,7 +69,7 @@ export type CcoOwnerChannelReceipt = {
   channel: "email" | "sms";
   recipient: string;
   delivered: boolean;
-  status: "sent" | "failed" | "unknown" | "already_delivered" | "skipped";
+  status: "sent" | "failed" | "unknown" | "queued" | "already_delivered" | "skipped" | "gave_up";
   reason?: string;
   missing?: string[];
   logId?: string;
@@ -96,7 +98,7 @@ export type CcoOwnerEmailSender = (input: {
 export type CcoOwnerSmsSender = (input: {
   body: string;
   to?: string;
-}) => Promise<{ ok: boolean; id?: string; error?: string; deliveryUnknown?: boolean; missing?: string[] }>;
+}) => Promise<OwnerAlertDelivery>;
 
 export type CcoOwnerLeadAlertDeps = {
   db?: CcoPublicIntakeDatabase;
@@ -161,6 +163,10 @@ async function withSendTimeout<T extends { ok: boolean; error?: string; delivery
   }
 }
 
+export function ownerAlertBackoffMs(attemptCount: number): number {
+  return Math.min(24 * 60 * 60_000, 5 * 60_000 * 2 ** Math.min(9, Math.max(0, attemptCount - 1)));
+}
+
 export function resetCcoOwnerLeadAlertDedup() {
   pendingByLead.clear();
   deliveredChannels.clear();
@@ -215,7 +221,11 @@ function asId(value: unknown) {
 }
 
 function boundedError(value: unknown) {
-  return cleanLine(typeof value === "string" ? value : value instanceof Error ? value.message : "unknown", 240) || "unknown";
+  // Persist only our reason vocabulary, never provider bodies, credentials or recipient data.
+  const reason = typeof value === "string" ? value : "delivery_outcome_unknown";
+  if (/unconfigured|invalid_grant|credential|no channel/i.test(reason)) return "undeliverable: no channel";
+  const allowed = ["owner_alert_send_timeout", "outbox_unavailable", "outbox_pending", "outbox_failed", "outbox_suppressed", "outbox_outcome_unknown", "delivery_outcome_unknown"];
+  return allowed.includes(reason) ? reason : "delivery_failed";
 }
 
 export function buildCcoOwnerLeadAlert(
@@ -341,7 +351,8 @@ export function assertOwnerOnlyRecipients(input: {
 
 export function countsAsIntakeOwnerDelivery(row: Record<string, unknown>): boolean {
   return (
-    cleanLine(row.audience).toLowerCase() === "internal"
+    row.template_key !== CCO_OWNER_ALERT_ATTEMPT_TEMPLATE
+    && cleanLine(row.audience).toLowerCase() === "internal"
     && cleanLine(row.agent_identity) === CCO_OWNER_ALERT_AGENT
     && cleanLine(row.related_entity_type) === CCO_OWNER_ALERT_ENTITY_TYPE
     && cleanLine(row.status).toLowerCase() === "sent"
@@ -367,7 +378,7 @@ function undeliveredClaim(
   return { ...base, delivered: false, status: "failed", reason };
 }
 
-/** Terminal or in-flight rows are not claimable. `failed` and a missing row are. */
+/** Failed claims obey backoff; only the idempotent text rail can reclaim uncertain attempts. */
 function holdIfNotClaimable(
   base: Omit<CcoOwnerChannelReceipt, "delivered" | "status">,
   row: { id?: unknown; status?: unknown; metadata?: unknown } | null | undefined,
@@ -377,7 +388,19 @@ function holdIfNotClaimable(
   const existingId = asId(row?.id);
   if (!existingId) return null;
   const status = cleanLine(row?.status).toLowerCase();
-  if (status === "failed") return null;
+  const metadata = asRecord(row?.metadata);
+  if (metadata.retry_exhausted === true && status !== "sent") {
+    return { ...base, delivered: false, status: "gave_up", reason: "gave_up", logId: existingId };
+  }
+  const nextRetry = Date.parse(cleanLine(metadata.next_retry_at));
+  const retryable = status === "failed" || (metadata.transport === "cco_text_outbox" &&
+    (status === "queued" || status === "unknown" || (status === "sending" && isStaleSending(metadata, now))));
+  if (retryable) {
+    if (Number.isFinite(nextRetry) && nextRetry > now.getTime()) {
+      return { ...base, delivered: false, status: "skipped", reason: "retry_backoff", logId: existingId };
+    }
+    return null;
+  }
   if (status === "sent") {
     deliveredChannels.add(memoryKey);
     return { ...base, delivered: true, status: "already_delivered", logId: existingId };
@@ -398,10 +421,8 @@ async function lookupChannelLog(
   return db
     .from("notification_log")
     .select("id, status, metadata")
-    .eq("template_key", input.templateKey)
-    .eq("related_entity_id", input.dedupeId)
-    .eq("channel", input.channel)
-    .eq("audience", "internal")
+    .eq("id", ownerAlertClaimId(input.templateKey, input.dedupeId, input.channel))
+    .eq("channel", input.channel === "sms" ? "imessage" : "email")
     .maybeSingle();
 }
 
@@ -414,7 +435,8 @@ async function deliverOwnerChannel(input: {
   recipient: string;
   templateKey: string;
   content: CcoOwnerLeadAlertContent;
-  send: () => Promise<{ ok: boolean; id?: string; error?: string; deliveryUnknown?: boolean; missing?: string[] }>;
+  send: () => Promise<OwnerAlertDelivery>;
+  governedText?: boolean;
   now: Date;
 }): Promise<CcoOwnerChannelReceipt> {
   const base: Omit<CcoOwnerChannelReceipt, "delivered" | "status"> = {
@@ -442,33 +464,6 @@ async function deliverOwnerChannel(input: {
   const held = holdIfNotClaimable(base, observed.data, input.now, memoryKey);
   if (held) return held;
 
-  const metadata = {
-    source: "contentco-op.com/brief",
-    alert_kind: input.templateKey,
-    contact_id: input.leadId,
-    delivery_attempted_at: input.now.toISOString(),
-  };
-  const queuedPayload: Record<string, unknown> = {
-    recipient: input.recipient,
-    channel: input.channel,
-    status: "sending",
-    message_preview: input.content.messagePreview,
-    contact_id: input.leadId,
-    metadata,
-    agent_identity: CCO_OWNER_ALERT_AGENT,
-    template_key: input.templateKey,
-    risk_level: "operational",
-    approval_required: false,
-    approval_state: "not_required",
-    audience: "internal",
-    business_unit: CCO_BUSINESS_UNIT,
-    subject: input.content.subject,
-    body_text: input.channel === "sms" ? input.content.sms : input.content.text,
-    related_entity_type: CCO_OWNER_ALERT_ENTITY_TYPE,
-    related_entity_id: input.dedupeId,
-    error_message: null,
-  };
-
   let claimView: Awaited<ReturnType<typeof lookupChannelLog>>;
   try {
     claimView = await lookupChannelLog(input.db, input);
@@ -483,13 +478,58 @@ async function deliverOwnerChannel(input: {
 
   const existingId = asId(claimView.data?.id);
   const existingStatus = cleanLine(claimView.data?.status).toLowerCase();
-  if (existingId && existingStatus !== "failed") {
+  if (existingId && existingStatus !== "failed" && !input.governedText) {
     return { ...base, delivered: false, status: "skipped", reason: "notification_claim_failed", logId: existingId };
   }
 
+  const previous = asRecord(claimView.data?.metadata);
+  if (Number(previous.attempt_count) >= CCO_OWNER_ALERT_MAX_ATTEMPTS) {
+    // Also stop legacy rows already over the cap. The guarded primary-row update
+    // is the durable terminal receipt; subsequent runs neither send nor log again.
+    const terminal = await input.db.from("notification_log").update({
+      error_message: "gave_up",
+      message_preview: "Owner alert retries stopped. Review delivery configuration and receipt.",
+      metadata: { ...previous, retry_exhausted: true, delivery_status: "gave_up", next_retry_at: null, gave_up_at: input.now.toISOString() },
+    }).eq("id", existingId).eq("status", existingStatus).contains("metadata", previous).select("id").single();
+    if (terminal.error || asId(terminal.data?.id) !== existingId) return undeliveredClaim(base, "notification_log_unavailable");
+    return { ...base, delivered: false, status: "gave_up", reason: "gave_up", logId: existingId };
+  }
+  const attemptCount = Math.max(0, Number(previous.attempt_count) || 0) + 1;
+  const metadata = {
+    source: "contentco-op.com/brief",
+    dedupe_id: input.dedupeId,
+    brief_id: input.briefId || null,
+    transport: input.governedText ? "cco_text_outbox" : input.channel,
+    attempt_count: attemptCount,
+    next_retry_at: new Date(input.now.getTime() + ownerAlertBackoffMs(attemptCount)).toISOString(),
+    alert_kind: input.templateKey,
+    contact_id: input.leadId,
+    delivery_attempted_at: input.now.toISOString(),
+  };
+  const queuedPayload: Record<string, unknown> = {
+    recipient: input.recipient,
+    channel: input.channel === "sms" ? "imessage" : "email",
+    status: "sending",
+    message_preview: input.content.messagePreview,
+    contact_id: input.templateKey === CCO_OWNER_CATCHUP_TEMPLATE ? null : input.leadId,
+    metadata,
+    agent_identity: CCO_OWNER_ALERT_AGENT,
+    template_key: input.templateKey,
+    risk_level: "operational",
+    approval_required: false,
+    approval_state: "not_required",
+    audience: "internal",
+    business_unit: CCO_BUSINESS_UNIT,
+    subject: input.content.subject,
+    body_text: "Owner lead alert: open the stored lead in CCO OS.",
+    related_entity_type: CCO_OWNER_ALERT_ENTITY_TYPE,
+    related_entity_id: input.briefId || null,
+    error_message: null,
+  };
+
   const claimId = ownerAlertClaimId(input.templateKey, input.dedupeId, input.channel);
   const write = existingId
-    ? input.db.from("notification_log").update(queuedPayload).eq("id", existingId).eq("status", "failed")
+    ? input.db.from("notification_log").update(queuedPayload).eq("id", existingId).eq("status", existingStatus).contains("metadata", previous)
     : input.db.from("notification_log").insert({ ...queuedPayload, id: claimId });
   let claimedId = "";
   try {
@@ -509,7 +549,23 @@ async function deliverOwnerChannel(input: {
   }
   const logId = claimedId;
 
-  let delivery: { ok: boolean; id?: string; error?: string; deliveryUnknown?: boolean; missing?: string[] };
+  // A new row per attempt survives retries; it must be durable before any transport call.
+  const attemptId = ownerAlertClaimId(CCO_OWNER_ALERT_ATTEMPT_TEMPLATE, `${claimId}:${attemptCount}`, input.channel);
+  try {
+    const attempt = await input.db.from("notification_log").insert({
+      ...queuedPayload, id: attemptId, template_key: CCO_OWNER_ALERT_ATTEMPT_TEMPLATE,
+      message_preview: "Owner lead alert attempt", subject: "Owner lead alert attempt",
+      metadata: { ...metadata, alert_id: logId },
+    }).select("id").single();
+    if (attempt.error || asId(attempt.data?.id) !== attemptId) throw new Error("attempt_log_failed");
+  } catch {
+    // No transport was called, so retrying this failed claim is safe.
+    await input.db.from("notification_log").update({ status: "failed", error_message: "attempt_log_unavailable" })
+      .eq("id", logId).eq("status", "sending").contains("metadata", metadata).select("id").single();
+    return undeliveredClaim(base, "notification_log_unavailable");
+  }
+
+  let delivery: OwnerAlertDelivery;
   try {
     delivery = await withSendTimeout(input.send);
   } catch (error) {
@@ -517,35 +573,35 @@ async function deliverOwnerChannel(input: {
   }
 
   const providerMessageId = cleanLine(delivery.id);
-  const hasProviderReceipt = delivery.ok && Boolean(providerMessageId) && delivery.deliveryUnknown !== true;
-  const providerResultConflicts = delivery.ok !== Boolean(providerMessageId);
+  const hasProviderReceipt = delivery.ok && Boolean(providerMessageId) && delivery.deliveryUnknown !== true && delivery.queued !== true;
+  const providerResultConflicts = !delivery.queued && !delivery.deliveryUnknown && delivery.ok !== Boolean(providerMessageId);
   const status = hasProviderReceipt
     ? "sent"
-    : delivery.deliveryUnknown || providerResultConflicts
+    : delivery.queued ? "queued" : delivery.deliveryUnknown || providerResultConflicts
       ? "unknown"
       : "failed";
 
+  const exhausted = !hasProviderReceipt && attemptCount >= CCO_OWNER_ALERT_MAX_ATTEMPTS;
+  const outcomePayload = {
+    status,
+    ...(exhausted ? { message_preview: "Owner alert retries stopped after 5 attempts. Review delivery configuration and receipt." } : {}),
+    sent_at: hasProviderReceipt ? delivery.sentAt || input.now.toISOString() : null,
+    error_message: exhausted ? "gave_up" : hasProviderReceipt ? null : boundedError(delivery.error),
+    metadata: {
+      ...metadata, provider_message_id: providerMessageId || null,
+      delivery_status: exhausted ? "gave_up" : status, delivery_error: hasProviderReceipt ? null : boundedError(delivery.error),
+      ...(exhausted ? { retry_exhausted: true, next_retry_at: null, gave_up_at: input.now.toISOString() } : {}),
+      missing: delivery.missing || undefined,
+    },
+  };
   let recordedId = "";
   try {
-    const outcome = await input.db
-      .from("notification_log")
-      .update({
-        status,
-        sent_at: hasProviderReceipt ? input.now.toISOString() : null,
-        error_message: hasProviderReceipt ? null : boundedError(delivery.error),
-        metadata: {
-          ...metadata,
-          provider_message_id: providerMessageId || null,
-          delivery_status: status,
-          delivery_error: hasProviderReceipt ? null : boundedError(delivery.error),
-          missing: delivery.missing || undefined,
-        },
-      })
-      .eq("id", logId)
-      .eq("status", "sending")
-      .select("id")
-      .single();
-    if (!outcome.error) recordedId = asId(outcome.data?.id);
+    const attempt = await input.db.from("notification_log").update({
+      ...outcomePayload, metadata: { ...outcomePayload.metadata, alert_id: logId },
+    }).eq("id", attemptId).eq("status", "sending").select("id").single();
+    const outcome = await input.db.from("notification_log").update(outcomePayload)
+      .eq("id", logId).eq("status", "sending").contains("metadata", metadata).select("id").single();
+    if (!attempt.error && asId(attempt.data?.id) === attemptId && !outcome.error) recordedId = asId(outcome.data?.id);
   } catch {
     recordedId = "";
   }
@@ -559,8 +615,8 @@ async function deliverOwnerChannel(input: {
   return {
     ...base,
     delivered: hasProviderReceipt && recorded,
-    status,
-    reason: hasProviderReceipt ? undefined : boundedError(delivery.error),
+    status: exhausted ? "gave_up" : status,
+    reason: exhausted ? "gave_up" : hasProviderReceipt ? undefined : boundedError(delivery.error),
     missing: delivery.missing,
     logId,
   };
@@ -585,17 +641,26 @@ async function deliverOwnerBundle(
   const now = deps?.now || new Date();
   const dedupeId = ownerAlertDedupeId(input);
   const db = resolveDatabase(deps);
-  const sendEmail = deps?.sendEmail || ((options) => sendTransactionalEmail(options));
-  const sendSms = deps?.sendSms || (async (options) => {
-    const config = describeCcoOwnerSmsTransport(env);
-    if (!config.configured) {
-      return {
-        ok: false,
-        error: config.reason || "sms_transport_unconfigured",
-        missing: config.missing,
-      };
-    }
-    return sendCcoOwnerSms({ ...options, env });
+  const sendEmail = deps?.sendEmail || ((options) => env.CCO_OWNER_EMAIL_ENABLED === "true"
+    ? sendTransactionalEmail(options)
+    : Promise.resolve({ ok: false, error: "undeliverable: no channel", missing: ["CCO_OWNER_EMAIL_ENABLED"] }));
+  const sendSms = deps?.sendSms || (() => db ? enqueueOwnerText({
+    db, env, leadId: input.leadId, now,
+    idempotencyKey: `cco-owner-lead:${ownerAlertClaimId(templateKey, dedupeId, "sms")}`,
+  }) : Promise.resolve({ ok: false, error: "outbox_unavailable" }));
+
+  const sms = await deliverOwnerChannel({
+    db,
+    leadId: content.leadId,
+    dedupeId,
+    briefId: input.briefId,
+    channel: "sms",
+    governedText: !deps?.sendSms,
+    recipient: smsTo,
+    templateKey,
+    content,
+    now,
+    send: () => sendSms({ body: content.sms, to: smsTo }),
   });
 
   const email = await deliverOwnerChannel({
@@ -615,19 +680,6 @@ async function deliverOwnerBundle(
       text: content.text,
       businessUnit: CCO_BUSINESS_UNIT,
     }),
-  });
-
-  const sms = await deliverOwnerChannel({
-    db,
-    leadId: content.leadId,
-    dedupeId,
-    briefId: input.briefId,
-    channel: "sms",
-    recipient: smsTo,
-    templateKey,
-    content,
-    now,
-    send: () => sendSms({ body: content.sms, to: smsTo }),
   });
 
   return {

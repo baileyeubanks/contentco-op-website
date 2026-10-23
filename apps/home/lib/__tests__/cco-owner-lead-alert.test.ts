@@ -78,7 +78,7 @@ class FakeQuery {
       rows.push(row);
       return { data: row, error: null };
     }
-    const matched = rows.filter((row) => this.filters.every((filter) => row[filter.column] === filter.value));
+    const matched = rows.filter((row) => this.filters.every((filter) => (filter.kind === "contains" ? Object.entries(filter.value).every(([k, v]) => (row[filter.column] as Row)?.[k] === v) : row[filter.column] === filter.value)));
     if (this.operation === "update") {
       const row = matched[0];
       if (!row) return { data: null, error: { message: `${this.table}_update_missing` } };
@@ -232,12 +232,12 @@ describe("notifyCcoOwnerOfStoredLead", () => {
     expect(emails).toHaveLength(1);
     expect(texts).toHaveLength(1);
 
-    const rows = db.rows("notification_log");
+    const rows = db.rows("notification_log").filter(row => row.template_key === CCO_OWNER_LEAD_ALERT_TEMPLATE);
     expect(rows).toHaveLength(2);
     expect(rows.find((row) => row.channel === "email")?.id).toBe(
       ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"),
     );
-    expect(rows.find((row) => row.channel === "sms")?.id).toBe(
+    expect(rows.find((row) => row.channel === "imessage")?.id).toBe(
       ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "sms"),
     );
     expect(rows.every((row) => row.recipient === CCO_OWNER_ALERT_EMAIL || row.recipient === CCO_OWNER_ALERT_PHONE_E164)).toBe(true);
@@ -262,7 +262,7 @@ describe("notifyCcoOwnerOfStoredLead", () => {
     // Durable email row stays sent; in-process reset must not resend email.
     db.rows("notification_log").find((row) => row.channel === "email")!.status = "sent";
 
-    const second = await notifyCcoOwnerOfStoredLead(lead, { db: db as unknown as CcoPublicIntakeDatabase, sendEmail, sendSms });
+    const second = await notifyCcoOwnerOfStoredLead(lead, { db: db as unknown as CcoPublicIntakeDatabase, sendEmail, sendSms, now: new Date(Date.now() + 300_000) });
     expect(second.email.status).toBe("already_delivered");
     expect(second.sms.delivered).toBe(true);
     expect(emails).toHaveLength(1);
@@ -286,7 +286,7 @@ describe("notifyCcoOwnerOfStoredLead", () => {
     expect(db.rows("notification_log").every((row) => row.status === "failed")).toBe(true);
   });
 
-  test("default SMS path reports the missing Twilio keys and does not call a network send", async () => {
+  test("default text path reports the missing governed outbox configuration and does not call a network send", async () => {
     const db = new FakeDatabase();
     const network = vi.fn(() => { throw new Error("network_forbidden"); });
     vi.stubGlobal("fetch", network);
@@ -301,9 +301,8 @@ describe("notifyCcoOwnerOfStoredLead", () => {
       expect(result.blockedSubmission).toBe(false);
       expect(result.sms.delivered).toBe(false);
       expect(result.sms.missing).toEqual([
-        "TWILIO_ACCOUNT_SID",
-        "TWILIO_AUTH_TOKEN",
-        "TWILIO_FROM_NUMBER|CCO_TWILIO_FROM_NUMBER|TWILIO_PHONE_NUMBER",
+        "CCO_OWNER_TEXT_ENABLED",
+        "CCO_OWNER_TEXT_USER_ID",
       ]);
     }
     expect(network).not.toHaveBeenCalled();
@@ -342,8 +341,8 @@ describe("notifyCcoOwnerOfStoredLead", () => {
     expect(texts).toHaveLength(2);
     expect(String(emails[1]?.text)).toContain("Launch proof film with sales cutdowns");
     expect(String(emails[1]?.text)).toContain("$18,000");
-    expect(db.rows("notification_log").map((row) => row.related_entity_id).sort()).toEqual([
-      "brief-1", "brief-1", "contact-lead-1", "contact-lead-1",
+    expect(db.rows("notification_log").filter(row => row.template_key === CCO_OWNER_LEAD_ALERT_TEMPLATE).map((row) => row.related_entity_id).sort()).toEqual([
+      "brief-1", "brief-1", null, null,
     ]);
   });
 
@@ -420,7 +419,7 @@ describe("durable claim before provider send", () => {
   test("does not send when another worker records sent after this worker saw failed", async () => {
     const rows: Row[] = [
       {
-        id: "log-email-1",
+        id: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"),
         template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
         related_entity_id: lead.leadId,
         channel: "email",
@@ -430,10 +429,10 @@ describe("durable claim before provider send", () => {
         metadata: {},
       },
       {
-        id: "log-sms-1",
+        id: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "sms"),
         template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
         related_entity_id: lead.leadId,
-        channel: "sms",
+        channel: "imessage",
         audience: "internal",
         status: "sent",
         sent_at: "2026-10-09T04:00:00.000Z",
@@ -478,7 +477,7 @@ describe("durable claim before provider send", () => {
     expect(result.email).toMatchObject({
       delivered: true,
       status: "already_delivered",
-      logId: "log-email-1",
+      logId: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"),
     });
     expect(result.sms.status).toBe("already_delivered");
     expect(rows.find((row) => row.channel === "email")).toMatchObject({
@@ -490,7 +489,7 @@ describe("durable claim before provider send", () => {
   test("does not send when the failed-row claim no longer matches", async () => {
     const rows: Row[] = [
       {
-        id: "log-email-1",
+        id: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"),
         template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
         related_entity_id: lead.leadId,
         channel: "email",
@@ -500,10 +499,10 @@ describe("durable claim before provider send", () => {
         metadata: {},
       },
       {
-        id: "log-sms-1",
+        id: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "sms"),
         template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
         related_entity_id: lead.leadId,
-        channel: "sms",
+        channel: "imessage",
         audience: "internal",
         status: "sent",
         sent_at: "2026-10-09T04:00:00.000Z",
@@ -591,7 +590,7 @@ describe("durable claim before provider send", () => {
     const selects = { email: 0, sms: 0 };
     const db = scriptedLog((call) => {
       const channel = (call.filters.find((filter) => filter.column === "channel")?.value
-        || call.payload?.channel) === "sms"
+        || call.payload?.channel) === "imessage"
         ? "sms"
         : "email";
       if (call.operation === "select") {
@@ -627,7 +626,7 @@ describe("durable claim before provider send", () => {
   test("a lost failed-row update that later sees sent stays undelivered and does not send", async () => {
     const rows: Row[] = [
       {
-        id: "log-email-failed",
+        id: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"),
         template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
         related_entity_id: lead.leadId,
         channel: "email",
@@ -637,10 +636,10 @@ describe("durable claim before provider send", () => {
         metadata: {},
       },
       {
-        id: "log-sms-failed",
+        id: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "sms"),
         template_key: CCO_OWNER_LEAD_ALERT_TEMPLATE,
         related_entity_id: lead.leadId,
-        channel: "sms",
+        channel: "imessage",
         audience: "internal",
         status: "failed",
         recipient: CCO_OWNER_ALERT_PHONE_E164,
@@ -649,7 +648,7 @@ describe("durable claim before provider send", () => {
     ];
     const selects = { email: 0, sms: 0 };
     const db = scriptedLog((call) => {
-      const channel = call.filters.find((filter) => filter.column === "channel")?.value === "sms" ? "sms" : "email";
+      const channel = call.filters.find((filter) => filter.column === "channel")?.value === "imessage" ? "sms" : "email";
       const matched = rows.filter((row) => call.filters.every((filter) => row[filter.column] === filter.value));
       if (call.operation === "select") {
         selects[channel] += 1;
@@ -739,14 +738,14 @@ describe("durable claim before provider send", () => {
       email: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "email"),
       sms: ownerAlertClaimId(CCO_OWNER_LEAD_ALERT_TEMPLATE, lead.leadId, "sms"),
     };
-    const inserts: Array<{ channel: unknown; id: unknown }> = [];
+    const inserts: Array<{ channel: unknown; id: unknown; template_key: unknown }> = [];
     const db = scriptedLog((call) => {
       const channel = call.filters.find((filter) => filter.column === "channel")?.value
         || call.payload?.channel;
       if (call.operation === "select") return { data: null, error: null };
       if (call.operation === "insert") {
-        inserts.push({ channel, id: call.payload?.id });
-        const already = inserts.filter((row) => row.channel === channel).length > 1;
+        inserts.push({ channel, id: call.payload?.id, template_key: call.payload?.template_key });
+        const already = inserts.filter((row) => row.id === call.payload?.id).length > 1;
         if (already) return { data: null, error: { message: "notification_log_duplicate" } };
         return { data: { id: call.payload?.id || claimed.email }, error: null };
       }
@@ -761,7 +760,7 @@ describe("durable claim before provider send", () => {
     const first = await notifyCcoOwnerOfStoredLead(lead, deps);
     resetCcoOwnerLeadAlertDedup();
     const second = await notifyCcoOwnerOfStoredLead(lead, deps);
-    expect(inserts.map((row) => row.id).sort()).toEqual(
+    expect(inserts.filter(row => row.template_key === CCO_OWNER_LEAD_ALERT_TEMPLATE).map((row) => row.id).sort()).toEqual(
       [claimed.email, claimed.email, claimed.sms, claimed.sms].sort(),
     );
     expect(sendEmail).toHaveBeenCalledTimes(1);

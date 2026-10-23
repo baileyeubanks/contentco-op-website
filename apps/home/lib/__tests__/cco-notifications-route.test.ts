@@ -76,6 +76,16 @@ describe("CCO operator notification log route", () => {
     await expect(response.json()).resolves.toMatchObject({ notifications: [{ id: "notification-1" }] });
   });
 
+  test("staff can see and filter terminal owner-alert gave_up receipts without raw metadata", async () => {
+    allowOperator();
+    configureCcoQuery([{ id: "exhausted", status: "failed", error_message: "gave_up", message_preview: "Owner alert retries stopped after 5 attempts." }]);
+    const response = await GET(new Request("https://admin.contentco-op.com/api/operations/notifications?status=gave_up"));
+    expect(mocks.eq).toHaveBeenCalledWith("error_message", "gave_up");
+    expect(mocks.eq).not.toHaveBeenCalledWith("status", "gave_up");
+    expect(await response.json()).toMatchObject({ notifications: [{ id: "exhausted", status: "gave_up", error_message: "gave_up" }] });
+    expect(String(mocks.select.mock.calls[0]?.[0])).not.toContain("metadata");
+  });
+
   test("reports an unavailable CCO-DB binding without falling back to another store", async () => {
     allowOperator();
     mocks.getCcoOsDatabase.mockReturnValue({ ok: false, error: "cco_db_binding_invalid" });

@@ -1,3 +1,4 @@
+import { retryCcoOwnerLeadAlerts } from "@/lib/cco-owner-alert-retry";
 import { NextResponse } from "next/server";
 import { evaluateAndSendReminders } from "@/lib/reminder-engine";
 
@@ -31,6 +32,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+  const ownerAlerts = await retryCcoOwnerLeadAlerts();
   const result = await evaluateAndSendReminders();
 
   console.log(`[cron/invoice-reminders] Evaluated: ${result.evaluated}, Sent: ${result.sent}, Skipped: ${result.skipped}, Errors: ${result.errors}`);
@@ -38,6 +40,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: true,
     ...result,
+    ownerAlerts,
     timestamp: new Date().toISOString(),
   });
 }

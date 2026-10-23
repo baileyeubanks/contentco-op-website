@@ -28,6 +28,7 @@ const channelMeta: Record<string, { icon: string; color: string }> = {
 const statusMeta: Record<string, { icon: string; color: string }> = {
   sent: { icon: "✓", color: "#3ec983" },
   delivered: { icon: "✓✓", color: "#3ec983" },
+  gave_up: { icon: "!", color: "#de7676" },
   failed: { icon: "✗", color: "#de7676" },
   sending: { icon: "…", color: "#e4ad5b" },
   unknown: { icon: "?", color: "#fbbf24" },
@@ -198,7 +199,7 @@ export function NotificationLog({ maxItems = 50 }: NotificationLogProps) {
                       fontWeight: 700,
                       color: st.color,
                     }}>
-                      {st.icon} {entry.status}
+                      {st.icon} {entry.status === "gave_up" ? "Retries stopped" : entry.status}
                     </span>
                     <div style={{ fontSize: "0.6rem", color: "var(--muted)", marginTop: 2 }}>
                       {timeAgo(entry.created_at)}

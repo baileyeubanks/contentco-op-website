@@ -69,7 +69,8 @@ export async function GET(req: Request) {
     .eq("business_unit", "CC");
 
   if (channel) query = query.eq("channel", channel);
-  if (status) query = query.eq("status", status);
+  if (status === "gave_up") query = query.eq("error_message", "gave_up");
+  else if (status) query = query.eq("status", status);
 
   const result = await (query.order("created_at", { ascending: false }).limit(limit) as unknown as Promise<{
     data: Record<string, unknown>[] | null;
@@ -81,5 +82,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "notification_lookup_failed", retryable: true }, { status: 503 });
   }
 
-  return NextResponse.json({ notifications: data || [] });
+  return NextResponse.json({ notifications: (data || []).map(row =>
+    row.error_message === "gave_up" ? { ...row, status: "gave_up" } : row,
+  ) });
 }
