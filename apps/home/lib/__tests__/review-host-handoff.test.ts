@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { proxy } from "@/proxy";
+import nextConfig from "../../next.config";
 
 const auth = vi.hoisted(() => ({ create: vi.fn(() => { throw new Error("Review handoff must not authenticate"); }) }));
 vi.mock("@supabase/ssr", () => ({ createServerClient: auth.create }));
@@ -14,6 +15,10 @@ const paths = [
 ];
 
 describe("marketing host review handoff through the real proxy", () => {
+  it("retains Next normalization so self-hosted admin redirects stay same-origin", () => {
+    expect(nextConfig.skipMiddlewareUrlNormalize).not.toBe(true);
+    expect(nextConfig.skipProxyUrlNormalize).not.toBe(true);
+  });
   it.each(paths)("preserves %s at the fixed client host", async path => {
     for (const host of ["contentco-op.com", "www.contentco-op.com"]) {
       for (const method of ["GET", "HEAD"]) {

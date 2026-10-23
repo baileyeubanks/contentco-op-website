@@ -20,14 +20,14 @@ for (let i = 0; i < 120; i++) {
 }
 assert.ok(ready, "isolated Next server must start");
 let checks = 0;
-for (const path of [
-  "/review/rwsynthetichandoff000?v=1&next=https%3A%2F%2Fevil.example&v=2&note=one%20two",
-  "/review-k7qp2m9xa4?a=1&b=2&a=3",
-  "/weftec-sizzle-v12-k7qp2m9xa4?a=1",
+for (const [path, expectedPath] of [
+  ["/review/rwsynthetichandoff000?v=1&next=https%3A%2F%2Fevil.example&v=2&note=one%20two", "/review/rwsynthetichandoff000?v=1&v=2&next=https%3A%2F%2Fevil.example&note=one+two"],
+  ["/review-k7qp2m9xa4?a=1&b=2&a=3", "/review-k7qp2m9xa4?a=1&a=3&b=2"],
+  ["/weftec-sizzle-v12-k7qp2m9xa4?a=1", "/weftec-sizzle-v12-k7qp2m9xa4?a=1"],
 ]) for (const host of ["contentco-op.com", "www.contentco-op.com"]) for (const method of ["GET", "HEAD"]) {
   const response = await call(path, host, method);
   assert.equal(response.status, 308);
-  assert.equal(response.headers.location, `https://client.contentco-op.com${path}`);
+  assert.equal(response.headers.location, `https://client.contentco-op.com${expectedPath}`);
   assert.equal(response.headers["cache-control"], "no-store");
   assert.equal(response.headers["referrer-policy"], "no-referrer"); checks++;
 }
@@ -40,4 +40,8 @@ for (const path of ["/reviews", "/review", "/review-not-a-key"]) {
 assert.equal((await call("/review/rwsynthetichandoff000", "contentco-op.com", "POST")).headers.location, undefined); checks++;
 assert.equal((await call("/os", "contentco-op.com")).headers.location, "https://admin.contentco-op.com/os"); checks++;
 assert.equal((await call("/login", "contentco-op.com")).headers.location, "https://client.contentco-op.com/login"); checks++;
-console.log(`Built Next HTTP handoff: ${checks} checks passed; fixed host, no-store, raw repeated-query order.`);
+// Must stay relative on the self-hosted server, never expose its bind address.
+const adminResponse = await call("/os/overview", "admin.contentco-op.com");
+assert.equal(adminResponse.status, 307);
+assert.equal(adminResponse.headers.location, "/os"); checks++;
+console.log(`Built Next HTTP handoff: ${checks} checks passed; fixed host, no-store, per-key query order and same-origin admin redirect.`);
