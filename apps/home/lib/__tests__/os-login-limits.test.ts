@@ -9,11 +9,25 @@ describe("requester-bound login budgets", () => {
     expect(loginClientBucket("2001:db8:1:3::1")).not.toBe(loginClientBucket("2001:db8:1:2::1"));
     expect(loginClientBucket("garbage")).toBe("unknown");
   });
-  it("normalizes email casing without sharing the target's budget across requesters", async () => {
+  it("normalizes email casing and retains the tighter per-requester cap", async () => {
     vi.resetModules();
     const { allowLoginAttempt } = await import("@/lib/os-login-limits");
     for (let i = 0; i < 5; i++) expect(allowLoginAttempt("203.0.113.1", " Owner@Example.COM ")).toBe(true);
     expect(allowLoginAttempt("203.0.113.1", "owner@example.com")).toBe(false);
     expect(allowLoginAttempt("203.0.113.2", "owner@example.com")).toBe(true);
   });
+  it("does not evict an active target cap under memory pressure and still admits a known device", async () => {
+    vi.resetModules();
+    vi.useFakeTimers();
+    const { allowLoginAttempt } = await import("@/lib/os-login-limits");
+    for (let i = 0; i < 30; i++) expect(allowLoginAttempt(`192.0.2.${i}`, "target@example.com")).toBe(true);
+    for (let i = 0; i < 10_010; i++) {
+      allowLoginAttempt(`2001:db8:${i.toString(16)}::1`, `spray${i}@example.com`);
+    }
+    expect(allowLoginAttempt("198.51.100.1", "target@example.com")).toBe(false);
+    expect(allowLoginAttempt("2001:db9::1", "target@example.com", true)).toBe(true);
+    await vi.advanceTimersByTimeAsync(15 * 60_000);
+    expect(allowLoginAttempt("198.51.100.1", "target@example.com")).toBe(true);
+  });
+
 });

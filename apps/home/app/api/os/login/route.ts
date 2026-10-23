@@ -1,3 +1,4 @@
+import { createKnownDevice, isKnownDevice, KNOWN_DEVICE_COOKIE, KNOWN_DEVICE_TTL_SECONDS } from "@/lib/os-login-known-device";
 import { allowLoginAttempt } from "@/lib/os-login-limits";
 import { trustedLoginClientIp } from "@/lib/login-request-peer";
 import { NextResponse } from "next/server";
@@ -32,6 +33,13 @@ function emailMatchesHostBrand(email: string, hostname?: string | null) {
 function issueRootSession(email: string) {
   const res = NextResponse.json({ ok: true, redirectTo: "/os/overview" });
   try {
+    res.cookies.set(KNOWN_DEVICE_COOKIE, createKnownDevice(email), {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/",
+      maxAge: KNOWN_DEVICE_TTL_SECONDS,
+    });
     res.cookies.set(getSessionCookieName(), createInviteSession(email), {
       httpOnly: true,
       sameSite: "strict",
@@ -61,7 +69,7 @@ async function authenticate(req: Request, options: Parameters<typeof createClien
 
   const ip = trustedLoginClientIp(req);
   // Fail closed if this runtime did not install the server-side peer bridge.
-  if (!ip || !allowLoginAttempt(ip, email)) return denied();
+  if (!ip || !allowLoginAttempt(ip, email, isKnownDevice(req, email))) return denied();
   if (!email || !password) {
     return denied();
   }
