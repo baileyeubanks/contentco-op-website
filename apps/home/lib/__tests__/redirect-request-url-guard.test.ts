@@ -41,12 +41,9 @@ describe("static guard: no request-derived redirect origins", () => {
     expect(hits).toEqual([]);
   });
 
-  test("logout and invite login use publicRedirectUrl", () => {
+  test("logout uses publicRedirectUrl (the invite-code login was removed 2026-10-23)", () => {
     const logout = readFileSync(path.join(appRoot, "app/os/logout/route.ts"), "utf8");
-    const invite = readFileSync(path.join(appRoot, "app/api/auth/login/route.ts"), "utf8");
     expect(logout).toMatch(/publicRedirectUrl\(/);
-    expect(invite).toMatch(/publicRedirectUrl\(/);
     expect(logout).not.toMatch(/new URL\(\s*"\/os".*req\.url/);
-    expect(invite).not.toMatch(/new URL\(\s*"\/".*req\.url/);
   });
 });

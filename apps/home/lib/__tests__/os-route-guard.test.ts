@@ -30,7 +30,6 @@ const API_ROOT = path.join(APP_ROOT, "app/api");
  * they intentionally do not require an operator/client platform session.
  */
 const PUBLIC_ROUTE_ALLOWLIST: Record<string, string> = {
-  "app/api/auth/login/route.ts": "Public login entry point.",
   "app/api/briefs/[id]/files/route.ts": "Brief access-token file exchange.",
   "app/api/briefs/[id]/messages/route.ts": "Brief access-token messages.",
   "app/api/briefs/[id]/route.ts": "Brief access-token detail.",
