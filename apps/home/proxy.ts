@@ -1,10 +1,15 @@
 import { posix } from "node:path";
+import { CLIENT_CVP_ORIGIN, isPublicMarketingHost } from "@/lib/public-host-redirects";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdvancedRootOperatorForHost, isEmailAuthorizedForRootHost } from "@/lib/os-auth";
 import { resolvePublicSupabaseConfig } from "@/lib/runtime-config";
 import { verifyInviteSessionEdge } from "@/lib/session-edge";
 import { getSessionCookieName } from "@/lib/session-shared";
+
+// CVP lib/review-links/short-link.ts: one branded slug/version/key segment
+// (14–80 characters), or the private review-<10-character key> form.
+const CVP_SHORT_REVIEW_PATH = /^\/(?:(?=[a-z0-9-]{14,80}$)[a-z0-9]+(?:-[a-z0-9]+)*-v[1-9][0-9]{0,5}-[a-z0-9]{10}|review-[a-z0-9]{10})$/;
 
 const ADVANCED_ROOT_PATHS = ["/os/system", "/os/lab", "/os/work-claims"];
 const PUBLIC_ROOT_PATHS = new Set(["/os", "/os/login", "/os/logout"]);
@@ -14,6 +19,21 @@ const PUBLIC_ROOT_PATHS = new Set(["/os", "/os/login", "/os/logout"]);
  * Redirects unauthenticated users away from protected /root areas to /root.
  */
 export async function proxy(request: NextRequest) {
+  const reviewPath = request.nextUrl.pathname;
+  if ((request.method === "GET" || request.method === "HEAD")
+    && isPublicMarketingHost(request.headers.get("host") ?? "")
+    && (reviewPath.startsWith("/review/") || CVP_SHORT_REVIEW_PATH.test(reviewPath))) {
+    // Assign path/query separately: bearer paths and redirect-like query values
+    // can never choose the destination origin. No token lookup or logging here.
+    const destination = new URL(CLIENT_CVP_ORIGIN);
+    destination.pathname = reviewPath;
+    destination.search = new URL(request.url).search;
+    const response = NextResponse.redirect(destination, 308);
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("Cache-Control", "no-store");
+    return response;
+  }
+
   // The legacy manifest lives under public/. Do not leave a static-file bypass
   // around the operator-only API; ordinary public media assets are unaffected.
   let pathname = request.nextUrl.pathname;

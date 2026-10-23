@@ -8,6 +8,7 @@ const EDGE_STATIC_CACHE = "public, max-age=86400, s-maxage=31536000, stale-while
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Keep Next 16.4.1 URL normalization: proxy redirects on this host stay relative.
   poweredByHeader: false,
   images: { unoptimized: false, qualities: [75, 82, 85] },
   turbopack: {
