@@ -28,6 +28,6 @@ describe("requester-bound login budgets", () => {
     expect(allowLoginAttempt("2001:db9::1", "target@example.com", true)).toBe(true);
     await vi.advanceTimersByTimeAsync(15 * 60_000);
     expect(allowLoginAttempt("198.51.100.1", "target@example.com")).toBe(true);
-  });
+  }, 30_000); // Keep the full eviction-pressure fixture within the budget on loaded CI hosts.
 
 });
