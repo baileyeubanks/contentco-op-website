@@ -14,7 +14,10 @@ import { applyInvoicePayment } from "@/lib/os-commercial-pipeline";
 export async function POST(req: Request) {
   const stripe = getStripe();
   if (!stripe) {
-    return NextResponse.json({ error: "stripe_not_configured" }, { status: 503 });
+    return NextResponse.json(
+      { error: "stripe_not_configured" },
+      { status: 503 },
+    );
   }
 
   const body = await req.text();
@@ -25,7 +28,10 @@ export async function POST(req: Request) {
 
   /* Fail closed: only a signature-verified event may proceed. */
   if (!webhookSecret) {
-    return NextResponse.json({ error: "webhook_secret_unconfigured" }, { status: 400 });
+    return NextResponse.json(
+      { error: "webhook_secret_unconfigured" },
+      { status: 400 },
+    );
   }
   if (!sig) {
     return NextResponse.json({ error: "missing_signature" }, { status: 400 });
@@ -37,73 +43,135 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_signature" }, { status: 400 });
   }
 
-  const sb = getSupabase();
-
-  /* Handle checkout.session.completed — invoice payment or deposit */
-  if (event.type === "checkout.session.completed") {
+  /* Completed Checkout can still be waiting on a delayed payment method. */
+  if (
+    event.type === "checkout.session.completed" ||
+    event.type === "checkout.session.async_payment_succeeded"
+  ) {
     const session = event.data.object as Stripe.Checkout.Session;
+    if (session.mode !== "payment" || session.payment_status !== "paid") {
+      return NextResponse.json({ received: true, deferred: true });
+    }
+    const businessUnit = String(session.metadata?.business_unit || "")
+      .trim()
+      .toUpperCase();
+    if (businessUnit && businessUnit !== "CC") {
+      return NextResponse.json({ received: true, ignored: true });
+    }
     const invoiceId = session.metadata?.invoice_id;
     const briefId = session.metadata?.brief_id;
     const paymentType = session.metadata?.type;
     const paymentIntentReference =
       typeof session.payment_intent === "string"
-        ? session.payment_intent
-        : session.payment_intent?.id || null;
+        ? session.payment_intent.trim()
+        : session.payment_intent?.id?.trim() || null;
+    const providerReferenceId = paymentIntentReference || session.id?.trim();
+    const amountCents = session.amount_total;
+    if (
+      !Number.isSafeInteger(amountCents) ||
+      !amountCents ||
+      amountCents <= 0 ||
+      !providerReferenceId
+    ) {
+      return NextResponse.json(
+        { error: "invalid_payment_details" },
+        { status: 400 },
+      );
+    }
 
-    if (paymentType === "deposit" && briefId) {
-      /* Deposit payment for a brief/proposal */
-      const { error } = await sb
-        .from("briefs")
-        .update({
-          status: "deposit_paid",
-          deposit_paid_at: new Date().toISOString(),
-          deposit_amount_cents: session.amount_total || 0,
-          stripe_session_id: session.id,
-        })
-        .eq("id", briefId);
+    try {
+      const sb = getSupabase();
+      if (paymentType === "deposit" && briefId) {
+        /* Deposit payment for a brief/proposal */
+        const { data: updatedBrief, error } = await sb
+          .from("briefs")
+          .update({
+            status: "deposit_paid",
+            deposit_paid_at: new Date().toISOString(),
+            deposit_amount_cents: amountCents,
+            stripe_session_id: session.id,
+          })
+          .eq("id", briefId)
+          .select("id")
+          .maybeSingle();
 
-      if (error) {
-        console.error(`[stripe-webhook] Failed to record deposit for brief ${briefId}:`, error);
-      } else {
-        console.log(`[stripe-webhook] Deposit recorded for brief ${briefId}: $${((session.amount_total || 0) / 100).toFixed(2)}`);
+        if (error || updatedBrief?.id !== briefId) {
+          console.error(
+            `[stripe-webhook] Failed to record deposit for brief ${briefId}:`,
+            error,
+          );
+          return NextResponse.json(
+            { error: "deposit_application_failed" },
+            { status: 500 },
+          );
+        } else {
+          console.log(
+            `[stripe-webhook] Deposit recorded for brief ${briefId}: $${((session.amount_total || 0) / 100).toFixed(2)}`,
+          );
+        }
+
+        return NextResponse.json({ received: true });
       }
 
-      return NextResponse.json({ received: true });
-    }
+      if (!invoiceId) {
+        console.warn(
+          "[stripe-webhook] checkout.session.completed without invoice_id metadata",
+        );
+        return NextResponse.json({ received: true });
+      }
 
-    if (!invoiceId) {
-      console.warn("[stripe-webhook] checkout.session.completed without invoice_id metadata");
-      return NextResponse.json({ received: true });
-    }
+      const { data: invoice, error: invoiceError } = await sb
+        .from("invoices")
+        .select("id, estimate_id, business_unit")
+        .eq("id", invoiceId)
+        .maybeSingle();
 
-    const { data: invoice } = await sb
-      .from("invoices")
-      .select("id, estimate_id")
-      .eq("id", invoiceId)
-      .maybeSingle();
+      if (invoiceError || invoice?.id !== invoiceId) {
+        console.warn(`[stripe-webhook] Invoice ${invoiceId} not found`);
+        return NextResponse.json(
+          { error: "invoice_lookup_failed" },
+          { status: 500 },
+        );
+      }
+      const invoiceBusinessUnit = String(invoice.business_unit || "")
+        .trim()
+        .toUpperCase();
+      if (invoiceBusinessUnit && invoiceBusinessUnit !== "CC") {
+        return NextResponse.json({ received: true, ignored: true });
+      }
 
-    if (!invoice?.id) {
-      console.warn(`[stripe-webhook] Invoice ${invoiceId} not found`);
-      return NextResponse.json({ received: true });
-    }
+      const paymentResult = await applyInvoicePayment({
+        invoiceId,
+        amountCents,
+        method: "stripe",
+        provider: "stripe",
+        providerReferenceId,
+        status: "completed",
+        estimateId: invoice.estimate_id || null,
+        payload: {
+          stripe_session_id: session.id,
+        },
+      });
 
-    const paymentResult = await applyInvoicePayment({
-      invoiceId,
-      amountCents: session.amount_total || 0,
-      method: "stripe",
-      provider: "stripe",
-      providerReferenceId: paymentIntentReference || session.id,
-      status: "completed",
-      estimateId: invoice.estimate_id || null,
-      payload: {
-        stripe_session_id: session.id,
-      },
-    });
-
-    if (paymentResult.error) {
-      console.error(`[stripe-webhook] Failed to apply payment for invoice ${invoiceId}: ${paymentResult.error}`);
-    } else {
-      console.log(`[stripe-webhook] Payment recorded for invoice ${invoiceId}: $${((session.amount_total || 0) / 100).toFixed(2)} (${paymentResult.invoice?.payment_status || "processed"})`);
+      if (paymentResult.error || paymentResult.invoice?.id !== invoiceId) {
+        console.error(
+          `[stripe-webhook] Failed to apply payment for invoice ${invoiceId}: ${paymentResult.error}`,
+        );
+        return NextResponse.json(
+          { error: "payment_application_failed" },
+          { status: 500 },
+        );
+      } else {
+        console.log(
+          `[stripe-webhook] Payment recorded for invoice ${invoiceId}: $${((session.amount_total || 0) / 100).toFixed(2)} (${paymentResult.invoice?.payment_status || "processed"})`,
+        );
+      }
+    } catch (error) {
+      console.error("[stripe-webhook] Payment application failed:", error);
+      return NextResponse.json(
+        { error: "payment_application_failed" },
+        { status: 500 },
+      );
     }
   }
 
@@ -112,7 +180,9 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const invoiceId = session.metadata?.invoice_id;
     if (invoiceId) {
-      console.log(`[stripe-webhook] Checkout session expired for invoice ${invoiceId}`);
+      console.log(
+        `[stripe-webhook] Checkout session expired for invoice ${invoiceId}`,
+      );
     }
   }
 
