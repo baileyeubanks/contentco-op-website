@@ -17,11 +17,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           <Image
-            src="/brand/assets/acs/logos/png/logo-texas.png"
-            alt="Astro Cleaning Services"
+            src="/brand/assets/cco/logos/optimized/spiral-hq-400.png"
+            alt="Content Co-op"
             width={40}
             height={40}
-            className="rounded-md"
+            className="rounded-md object-contain"
           />
           <div>
             <p className="text-sm font-semibold text-gray-900 leading-tight">

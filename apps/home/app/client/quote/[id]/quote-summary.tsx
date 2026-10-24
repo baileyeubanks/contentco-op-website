@@ -45,11 +45,12 @@ export function QuoteSummary({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <Image
-              src="/brand/assets/acs/logos/png/logo-texas.png"
-              alt="Astro Cleaning Services"
+              src="/brand/assets/cco/logos/aperture/aperture-mark-cream.svg"
+              alt="Content Co-op"
               width={48}
               height={48}
-              className="rounded-lg bg-white/10 p-1"
+              unoptimized
+              className="object-contain"
             />
             <div>
               <h1 className="text-lg font-bold text-white tracking-wide">
