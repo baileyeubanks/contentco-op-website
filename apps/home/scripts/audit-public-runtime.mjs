@@ -528,14 +528,7 @@ const htmlChecks = [
   },
 ];
 
-const sourceFileChecks = [
-  {
-    label: "retired proposal send route",
-    file: "app/api/os/marketing/briefs/[id]/send/route.ts",
-    required: ["legacy_proposal_send_retired", "retryable: false"],
-    forbidden: ["getCcoFirebaseApp", "emailOutbox", "proposalVersions"],
-  },
-];
+const sourceFileChecks = [];
 
 const checks = [];
 

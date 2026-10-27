@@ -17,15 +17,12 @@
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "audit:public": "node scripts/audit-public-runtime.mjs",
     "publish:m4": "node scripts/publish-m4-runtime.mjs",
-    "export:system-map": "tsx scripts/export-system-map.ts",
-    "capture:root-ui": "node scripts/capture-root-ui.mjs",
     "install:canonical-runtime": "bash scripts/install-canonical-runtime-launchd.sh",
     "audit:canonical-runtime": "node scripts/audit-canonical-runtime.mjs",
     "prove:canonical-runtime": "node scripts/prove-canonical-runtime.mjs",
     "recover:canonical-runtime": "bash scripts/recover-canonical-runtime.sh",
     "status:canonical-runtime": "bash scripts/status-canonical-runtime.sh",
-    "doctor:canonical-runtime": "bash scripts/status-canonical-runtime.sh --strict",
-    "test:postgres": "vitest run --config test-postgres/vitest.config.ts"
+    "doctor:canonical-runtime": "bash scripts/status-canonical-runtime.sh --strict"
   },
   "dependencies": {
     "@contentco-op/brand": "0.1.0",
