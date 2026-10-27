@@ -38,10 +38,8 @@ for (const path of ["/reviews", "/review", "/review-not-a-key"]) {
   assert.equal((await call(path, "contentco-op.com")).headers.location, undefined); checks++;
 }
 assert.equal((await call("/review/rwsynthetichandoff000", "contentco-op.com", "POST")).headers.location, undefined); checks++;
-assert.equal((await call("/os", "contentco-op.com")).headers.location, "https://admin.contentco-op.com/os"); checks++;
 assert.equal((await call("/login", "contentco-op.com")).headers.location, "https://client.contentco-op.com/login"); checks++;
-// Must stay relative on the self-hosted server, never expose its bind address.
 const adminResponse = await call("/os/overview", "admin.contentco-op.com");
 assert.equal(adminResponse.status, 307);
-assert.equal(adminResponse.headers.location, "/os"); checks++;
-console.log(`Built Next HTTP handoff: ${checks} checks passed; fixed host, no-store, per-key query order and same-origin admin redirect.`);
+assert.equal(adminResponse.headers.location, "https://co-videopro.com/"); checks++;
+console.log(`Built Next HTTP handoff: ${checks} checks passed; fixed host, no-store, per-key query order and retired admin host redirect to Co-VideoPro.`);

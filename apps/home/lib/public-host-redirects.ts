@@ -1,14 +1,15 @@
 /**
  * Canon host map (`CCO_PRODUCT_CANON.md`):
  * - contentco-op.com = public Cream Editorial. No operator shell.
- * - admin.contentco-op.com = CCO OS (`/os/*`).
+ * - admin.contentco-op.com = retired; every request redirects to Co-VideoPro.
  * - client.contentco-op.com = Co-VideoPro client role.
  *
- * Public `/os` and `/login` on the marketing host are not intended.
- * These Next.js redirects send them to the canonical hosts.
+ * Public `/login` on the marketing host is not intended; this Next.js redirect
+ * sends it to the client host.
  */
 
-export const ADMIN_OS_ORIGIN = "https://admin.contentco-op.com";
+export const ADMIN_HOST = "admin.contentco-op.com";
+export const CVP_ORIGIN = "https://co-videopro.com";
 export const CLIENT_CVP_ORIGIN = "https://client.contentco-op.com";
 export const PUBLIC_SITE_HOSTS = ["contentco-op.com", "www.contentco-op.com"] as const;
 
@@ -36,8 +37,6 @@ function hostRedirect(
 export const publicCanonHostRedirects: PublicCanonHostRedirect[] = PUBLIC_SITE_HOSTS.flatMap((host) => [
   // 303 so a POSTed public /login body is not forwarded to the client host.
   hostRedirect(host, "/login", `${CLIENT_CVP_ORIGIN}/login`, 303),
-  hostRedirect(host, "/os", `${ADMIN_OS_ORIGIN}/os`, 307),
-  hostRedirect(host, "/os/:path*", `${ADMIN_OS_ORIGIN}/os/:path*`, 307),
 ]);
 
 export function normalizeHostname(value: string): string {
@@ -53,8 +52,10 @@ export function publicCanonRedirectTarget(hostname: string, pathname: string): s
   if (pathname === "/login" || pathname.startsWith("/login/")) {
     return `${CLIENT_CVP_ORIGIN}/login`;
   }
-  if (pathname === "/os" || pathname.startsWith("/os/")) {
-    return `${ADMIN_OS_ORIGIN}${pathname}`;
-  }
   return null;
+}
+
+/** Retired operator host: every path goes to Co-VideoPro (temporary redirect, no path carried). */
+export function adminHostRedirectTarget(hostHeader: string | null | undefined): string | null {
+  return normalizeHostname(hostHeader ?? "") === ADMIN_HOST ? CVP_ORIGIN : null;
 }

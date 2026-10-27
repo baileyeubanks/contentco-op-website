@@ -432,12 +432,11 @@ describe("standalone release portability gate", () => {
 });
 
 describe("public runtime audit source contracts", () => {
-  test("audits the retired proposal-send route instead of obsolete contact copy", () => {
+  test("no longer audits the deleted operator proposal-send route", () => {
     const source = readFileSync(auditScriptPath, "utf8");
 
-    expect(source).toContain('label: "retired proposal send route"');
-    expect(source).toContain('required: ["legacy_proposal_send_retired", "retryable: false"]');
-    expect(source).toContain('forbidden: ["getCcoFirebaseApp", "emailOutbox", "proposalVersions"]');
+    expect(source).not.toContain("retired proposal send route");
+    expect(source).not.toContain("app/api/os/");
     expect(source).not.toContain('label: "proposal email contact copy"');
   });
 

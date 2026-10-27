@@ -42,7 +42,7 @@ describe("marketing host review handoff through the real proxy", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
-  it.each(["admin.contentco-op.com", "client.contentco-op.com", "contentco-op.com.evil.example", "localhost:4100", "evil.example", ""])("does not redirect reviews on %s", async host => {
+  it.each(["client.contentco-op.com", "contentco-op.com.evil.example", "localhost:4100", "evil.example", ""])("does not redirect reviews on %s", async host => {
     const response = await proxy(new NextRequest("http://127.0.0.1:4100/review/fixture", { headers: { host, "x-forwarded-host": "contentco-op.com" } }));
     expect(response.headers.get("location")).toBeNull();
   });
