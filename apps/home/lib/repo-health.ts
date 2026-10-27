@@ -26,7 +26,6 @@ const PUBLIC_ROUTE_FILES = [
   "app/portfolio/page.tsx",
   "app/book/page.tsx",
   "app/brief/page.tsx",
-  "app/login/page.tsx",
 ] as const;
 
 const INTAKE_ROUTE_FILES = [

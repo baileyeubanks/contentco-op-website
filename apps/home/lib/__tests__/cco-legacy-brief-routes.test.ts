@@ -1,14 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  createRoutePolicy: vi.fn((input) => input),
-  enforceRoutePolicy: vi.fn(),
   supabaseFrom: vi.fn(),
-}));
-
-vi.mock("@/lib/platform-access", () => ({
-  createRoutePolicy: mocks.createRoutePolicy,
-  enforceRoutePolicy: mocks.enforceRoutePolicy,
 }));
 
 vi.mock("@/lib/supabase", () => ({

@@ -42,9 +42,8 @@ export async function proxy(request: NextRequest) {
   try { pathname = posix.normalize(decodeURIComponent(pathname).replace(/\\/g, "/")).toLowerCase().replace(/\/+$/, ""); }
   catch { return new NextResponse(null, { status: 400 }); }
   if (pathname === "/media/thumbnail-manifest.json") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/api/media/thumbnail/approved";
-    return NextResponse.rewrite(url);
+    // Operator thumbnail API was removed; the legacy manifest must stay private.
+    return new NextResponse(null, { status: 404 });
   }
   return NextResponse.next();
 }

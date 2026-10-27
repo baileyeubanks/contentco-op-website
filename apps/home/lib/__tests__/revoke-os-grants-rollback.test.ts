@@ -26,6 +26,15 @@ describe("grant revoke migration 20261027023000 and its rollback", () => {
     expect(forward).not.toMatch(/service_role|PUBLIC\b.*REVOKE/);
   });
 
+  test("rollback restores exactly the 14 tables that held grants; dropping any one fails", () => {
+    expect([...restored].sort()).toEqual([
+      "commercial_handoffs", "commercial_workflows", "daily_handoffs", "document_artifacts",
+      "estimate_decisions", "estimate_line_items", "estimate_versions", "estimates",
+      "payment_attempts", "root_billing_events", "root_invoices", "root_quotes",
+      "root_skill_registry", "work_claims",
+    ]);
+  });
+
   test("rollback restores a non-empty subset of exactly the revoked tables, no extras", () => {
     expect(restored.length).toBeGreaterThan(0);
     for (const table of restored) expect(revoked, table).toContain(table);
