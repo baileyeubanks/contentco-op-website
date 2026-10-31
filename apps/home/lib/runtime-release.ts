@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 
 export type RuntimeReleaseProof = {
@@ -11,7 +10,9 @@ export type RuntimeReleaseProof = {
 };
 
 function readReleaseJson(): Partial<RuntimeReleaseProof> {
-  const releasePath = path.join(os.homedir(), ".contentco-op", "home-runtime", "current", "release.json");
+  // The working directory is the physical release this process started in. Reading through
+  // the `current` pointer would report the pointer's release, not the one actually running.
+  const releasePath = path.resolve(process.cwd(), "..", "..", "release.json");
   try {
     const raw = JSON.parse(fs.readFileSync(releasePath, "utf8"));
     return {
