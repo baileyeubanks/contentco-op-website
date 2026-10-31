@@ -474,53 +474,91 @@ describe("public runtime audit source contracts", () => {
 });
 
 describe("publisher restart rollback", () => {
-  function runCutover(input: { firstKickstart: number; rollbackHealthy: boolean }) {
+  const healthy = '{"status":"healthy","summary":{},"checks":[]}';
+
+  function runCutover(input: {
+    kickstarts: number[];
+    runningBuild: string;
+    priorBuildId?: string;
+  }) {
     const source = readFileSync(publishScriptPath, "utf8");
-    const start = source.indexOf('previous=""');
-    const end = source.indexOf("`);", start);
-    const shell = source
-      .slice(start, end)
-      .replace(/\$\{sha\}/g, "fixture")
-      .replace(/\$\{runtimeHome\}/g, "/unused")
-      .replace(/\$\{releaseDir\}/g, "/unused")
-      .replace(/\\\\n/g, "\\n");
     const root = mkdtempSync(path.join(os.tmpdir(), "cco-cutover-"));
     temporaryPaths.push(root);
+    const start = source.indexOf('previous=""');
+    const shell = [
+      source.slice(source.indexOf("validate_health_file() {"), source.indexOf("for env_file in .env.local")),
+      source.slice(start, source.indexOf("`);", start)),
+    ].join("\n")
+      .replace(/\$\{sha\}/g, "new-build")
+      .replace(/\$\{runtimeHome\}/g, "/unused")
+      .replace(/\$\{releaseDir\}/g, "/unused")
+      .replace(/\\\\n/g, "\\n")
+      .replace(/\/tmp\//g, `${root}/`);
     const bin = path.join(root, "bin");
     const runtime = path.join(root, "runtime");
     mkdirSync(bin);
     mkdirSync(path.join(runtime, "old"), { recursive: true });
     mkdirSync(path.join(runtime, "new"));
+    if (input.priorBuildId) writeFileSync(path.join(runtime, "old", "BUILD_ID"), `${input.priorBuildId}\n`);
     symlinkSync(path.join(runtime, "old"), path.join(runtime, "current"));
     const count = path.join(root, "kickstarts");
     writeFileSync(path.join(bin, "launchctl"), [
       "#!/bin/bash",
       `n=$(( $(cat ${count} 2>/dev/null || echo 0) + 1 )); echo $n > ${count}`,
-      `[ "$n" = 1 ] && exit ${input.firstKickstart}`,
-      "exit 0",
+      `codes=(${input.kickstarts.join(" ")})`,
+      'exit "${codes[$((n-1))]:-0}"',
     ].join("\n"), { mode: 0o755 });
-    writeFileSync(path.join(bin, "curl"), `#!/bin/bash\nexit ${input.rollbackHealthy ? 0 : 7}\n`, { mode: 0o755 });
+    writeFileSync(path.join(bin, "curl"), [
+      "#!/bin/bash",
+      'for a in "$@"; do u=$a; done',
+      `case "$u" in *runtime-proof*) echo '{"status":"ok","build_id":"${input.runningBuild}"}';; *) echo '${healthy}';; esac`,
+    ].join("\n"), { mode: 0o755 });
     const result = spawnSync("bash", ["-c", [
       "set -euo pipefail",
-      `runtime=${runtime}; release=${path.join(runtime, "new")}; sha=fixture`,
-      "validate_health_file() { true; }; validate_runtime_proof_file() { false; }; sleep() { :; }",
+      `runtime=${runtime}; release=${path.join(runtime, "new")}; sha=new-build`,
+      "sleep() { :; }",
       shell,
     ].join("\n")], { encoding: "utf8", env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
-    return { result, current: realpathSync(path.join(runtime, "current")), old: realpathSync(path.join(runtime, "old")) };
+    return {
+      result,
+      restoredCurrent: realpathSync(path.join(runtime, "current")) === realpathSync(path.join(runtime, "old")),
+      kickstarts: Number(readFileSync(count, "utf8")),
+    };
   }
 
-  test("a failed restart reaches the rollback and restores the previous release", () => {
-    const { result, current, old } = runCutover({ firstKickstart: 5, rollbackHealthy: true });
-    expect(result.status).toBe(1);
-    expect(current).toBe(old);
-    expect(result.stderr).toContain("runtime restart failed with exit 5");
-    expect(result.stderr).toContain("local health passed");
+  test("a failed restart rolls back and proves the prior build is running", () => {
+    const run = runCutover({ kickstarts: [5, 0], runningBuild: "prior-build", priorBuildId: "prior-build" });
+    expect(run.result.status).toBe(1);
+    expect(run.restoredCurrent).toBe(true);
+    expect(run.kickstarts).toBe(2);
+    expect(run.result.stderr).toContain("runtime restart failed with exit 5");
+    expect(run.result.stderr).toContain("running build prior-build verified");
   });
 
-  test("an unhealthy rollback is reported instead of claimed", () => {
-    const { result, current, old } = runCutover({ firstKickstart: 5, rollbackHealthy: false });
-    expect(result.status).toBe(1);
-    expect(current).toBe(old);
-    expect(result.stderr).toContain("ROLLBACK NOT HEALTHY");
+  test("a new build that fails its identity check rolls back and proves the prior build", () => {
+    const run = runCutover({ kickstarts: [0, 0], runningBuild: "prior-build", priorBuildId: "prior-build" });
+    expect(run.result.status).toBe(1);
+    expect(run.restoredCurrent).toBe(true);
+    expect(run.result.stderr).toContain("running build prior-build verified");
+  }, 30_000);
+
+  test("a failed rollback restart is never reported as success", () => {
+    const run = runCutover({ kickstarts: [5, 6], runningBuild: "prior-build", priorBuildId: "prior-build" });
+    expect(run.result.status).toBe(1);
+    expect(run.result.stderr).toContain("ROLLBACK NOT VERIFIED");
+    expect(run.result.stderr).toContain("restart exit 6");
+    expect(run.result.stderr).not.toContain("verified\n");
+  });
+
+  test("a healthy server running the wrong build is not a rollback", () => {
+    const run = runCutover({ kickstarts: [5, 0], runningBuild: "new-build", priorBuildId: "prior-build" });
+    expect(run.result.status).toBe(1);
+    expect(run.result.stderr).toContain("ROLLBACK NOT VERIFIED");
+  });
+
+  test("a prior release with no build identity cannot be proven", () => {
+    const run = runCutover({ kickstarts: [5, 0], runningBuild: "prior-build" });
+    expect(run.result.status).toBe(1);
+    expect(run.result.stderr).toContain("ROLLBACK NOT VERIFIED");
   });
 });

@@ -127,7 +127,7 @@ if body.get("status") != "healthy" or int(summary.get("fail") or 0) or int(summa
 PY
 }
 validate_runtime_proof_file() {
-  python3 - "$1" "$sha" <<'PY'
+  python3 - "$1" "$2" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -215,7 +215,7 @@ for i in $(seq 1 60); do
   if curl -fsS --max-time 10 "http://127.0.0.1:$preflight_port/api/health?scope=local" >/tmp/cco-home-preflight-health.json \
     && validate_health_file /tmp/cco-home-preflight-health.json \
     && curl -fsS --max-time 10 "http://127.0.0.1:$preflight_port/api/runtime-proof" >/tmp/cco-home-preflight-proof.json \
-    && validate_runtime_proof_file /tmp/cco-home-preflight-proof.json; then
+    && validate_runtime_proof_file /tmp/cco-home-preflight-proof.json "$sha"; then
     preflight_ok=1
     break
   fi
@@ -247,7 +247,7 @@ if [ "$kickstart_rc" = "0" ]; then
     if curl -fsS --max-time 10 "http://127.0.0.1:4100/api/health?scope=local" >/tmp/cco-home-health.json \
       && validate_health_file /tmp/cco-home-health.json \
       && curl -fsS --max-time 10 "http://127.0.0.1:4100/api/runtime-proof" >/tmp/cco-home-proof.json \
-      && validate_runtime_proof_file /tmp/cco-home-proof.json; then
+      && validate_runtime_proof_file /tmp/cco-home-proof.json "$sha"; then
       health_ok=1
       break
     fi
@@ -306,20 +306,30 @@ fi
 if [ -n "$previous" ] && [ -e "$previous" ]; then
   rm -f "$runtime/current"
   ln -s "$previous" "$runtime/current"
-  launchctl kickstart -k "gui/$(id -u)/ai.contentcoop.home-runtime" || true
+  # Rollback counts only when the restart worked and the running build is the prior release's.
+  previous_build=""
+  if [ -f "$previous/BUILD_ID" ]; then
+    previous_build="$(tr -d '[:space:]' <"$previous/BUILD_ID")"
+  fi
+  rollback_kickstart_rc=0
+  launchctl kickstart -k "gui/$(id -u)/ai.contentcoop.home-runtime" || rollback_kickstart_rc=$?
   rollback_ok=0
-  for i in $(seq 1 30); do
-    if curl -fsS --max-time 10 "http://127.0.0.1:4100/api/health?scope=local" >/tmp/cco-home-rollback-health.json \
-      && validate_health_file /tmp/cco-home-rollback-health.json; then
-      rollback_ok=1
-      break
-    fi
-    sleep 2
-  done
+  if [ "$rollback_kickstart_rc" = "0" ] && [ -n "$previous_build" ]; then
+    for i in $(seq 1 30); do
+      if curl -fsS --max-time 10 "http://127.0.0.1:4100/api/health?scope=local" >/tmp/cco-home-rollback-health.json \
+        && validate_health_file /tmp/cco-home-rollback-health.json \
+        && curl -fsS --max-time 10 "http://127.0.0.1:4100/api/runtime-proof" >/tmp/cco-home-rollback-proof.json \
+        && validate_runtime_proof_file /tmp/cco-home-rollback-proof.json "$previous_build"; then
+        rollback_ok=1
+        break
+      fi
+      sleep 2
+    done
+  fi
   if [ "$rollback_ok" = "1" ]; then
-    printf 'rolled back to %s; local health passed\\n' "$previous" >&2
+    printf 'rolled back to %s; running build %s verified\\n' "$previous" "$previous_build" >&2
   else
-    printf 'ROLLBACK NOT HEALTHY: current points at %s but local health failed\\n' "$previous" >&2
+    printf 'ROLLBACK NOT VERIFIED: current points at %s; restart exit %s; expected build %s\\n' "$previous" "$rollback_kickstart_rc" "$previous_build" >&2
   fi
 fi
 exit 1
