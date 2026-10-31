@@ -473,7 +473,7 @@ describe("public runtime audit source contracts", () => {
   });
 });
 
-describe("publisher cutover proof", { timeout: 60_000 }, () => {
+describe("publisher cutover proof", () => {
   type Kickstart = { exit?: number; restarts?: boolean; cwd?: "old" | "new" };
   type Cutover = {
     kickstarts: Kickstart[];
@@ -498,6 +498,8 @@ describe("publisher cutover proof", { timeout: 60_000 }, () => {
       .replace(/\$\{releaseDir\}/g, path.join(root, "runtime", "new"))
       .replace(/\\\\n/g, "\\n")
       .replace(/\/tmp\//g, `${root}/`)
+      // Bounded polling: real retries and timing are not what these tests prove.
+      .replace(/\$\(seq 1 \d+\)/g, "1 2")
       .replace(/\/Users\/_mxappservice\/Projects\/platform\/run\/deploy-receipts/g, path.join(root, "receipts"));
     const bin = path.join(root, "bin");
     mkdirSync(bin);
