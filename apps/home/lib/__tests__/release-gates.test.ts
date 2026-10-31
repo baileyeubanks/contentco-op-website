@@ -472,3 +472,55 @@ describe("public runtime audit source contracts", () => {
     expect(runPublishedRefValidator(mixedRefs, expectedSha).status).not.toBe(0);
   });
 });
+
+describe("publisher restart rollback", () => {
+  function runCutover(input: { firstKickstart: number; rollbackHealthy: boolean }) {
+    const source = readFileSync(publishScriptPath, "utf8");
+    const start = source.indexOf('previous=""');
+    const end = source.indexOf("`);", start);
+    const shell = source
+      .slice(start, end)
+      .replace(/\$\{sha\}/g, "fixture")
+      .replace(/\$\{runtimeHome\}/g, "/unused")
+      .replace(/\$\{releaseDir\}/g, "/unused")
+      .replace(/\\\\n/g, "\\n");
+    const root = mkdtempSync(path.join(os.tmpdir(), "cco-cutover-"));
+    temporaryPaths.push(root);
+    const bin = path.join(root, "bin");
+    const runtime = path.join(root, "runtime");
+    mkdirSync(bin);
+    mkdirSync(path.join(runtime, "old"), { recursive: true });
+    mkdirSync(path.join(runtime, "new"));
+    symlinkSync(path.join(runtime, "old"), path.join(runtime, "current"));
+    const count = path.join(root, "kickstarts");
+    writeFileSync(path.join(bin, "launchctl"), [
+      "#!/bin/bash",
+      `n=$(( $(cat ${count} 2>/dev/null || echo 0) + 1 )); echo $n > ${count}`,
+      `[ "$n" = 1 ] && exit ${input.firstKickstart}`,
+      "exit 0",
+    ].join("\n"), { mode: 0o755 });
+    writeFileSync(path.join(bin, "curl"), `#!/bin/bash\nexit ${input.rollbackHealthy ? 0 : 7}\n`, { mode: 0o755 });
+    const result = spawnSync("bash", ["-c", [
+      "set -euo pipefail",
+      `runtime=${runtime}; release=${path.join(runtime, "new")}; sha=fixture`,
+      "validate_health_file() { true; }; validate_runtime_proof_file() { false; }; sleep() { :; }",
+      shell,
+    ].join("\n")], { encoding: "utf8", env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
+    return { result, current: realpathSync(path.join(runtime, "current")), old: realpathSync(path.join(runtime, "old")) };
+  }
+
+  test("a failed restart reaches the rollback and restores the previous release", () => {
+    const { result, current, old } = runCutover({ firstKickstart: 5, rollbackHealthy: true });
+    expect(result.status).toBe(1);
+    expect(current).toBe(old);
+    expect(result.stderr).toContain("runtime restart failed with exit 5");
+    expect(result.stderr).toContain("local health passed");
+  });
+
+  test("an unhealthy rollback is reported instead of claimed", () => {
+    const { result, current, old } = runCutover({ firstKickstart: 5, rollbackHealthy: false });
+    expect(result.status).toBe(1);
+    expect(current).toBe(old);
+    expect(result.stderr).toContain("ROLLBACK NOT HEALTHY");
+  });
+});

@@ -238,18 +238,24 @@ elif [ -d "$runtime/current" ]; then
   mv "$runtime/current" "$previous"
 fi
 ln -s "$release" "$runtime/current"
-launchctl kickstart -k "gui/$(id -u)/ai.contentcoop.home-runtime"
+# A failed restart must reach the rollback below, not stop this script under set -e.
+kickstart_rc=0
+launchctl kickstart -k "gui/$(id -u)/ai.contentcoop.home-runtime" || kickstart_rc=$?
 health_ok=0
-for i in $(seq 1 60); do
-  if curl -fsS --max-time 10 "http://127.0.0.1:4100/api/health?scope=local" >/tmp/cco-home-health.json \
-    && validate_health_file /tmp/cco-home-health.json \
-    && curl -fsS --max-time 10 "http://127.0.0.1:4100/api/runtime-proof" >/tmp/cco-home-proof.json \
-    && validate_runtime_proof_file /tmp/cco-home-proof.json; then
-    health_ok=1
-    break
-  fi
-  sleep 2
-done
+if [ "$kickstart_rc" = "0" ]; then
+  for i in $(seq 1 60); do
+    if curl -fsS --max-time 10 "http://127.0.0.1:4100/api/health?scope=local" >/tmp/cco-home-health.json \
+      && validate_health_file /tmp/cco-home-health.json \
+      && curl -fsS --max-time 10 "http://127.0.0.1:4100/api/runtime-proof" >/tmp/cco-home-proof.json \
+      && validate_runtime_proof_file /tmp/cco-home-proof.json; then
+      health_ok=1
+      break
+    fi
+    sleep 2
+  done
+else
+  printf 'runtime restart failed with exit %s\\n' "$kickstart_rc" >&2
+fi
 if [ "$health_ok" = "1" ]; then
     python3 - <<PY
 import json, shutil, time
@@ -301,7 +307,20 @@ if [ -n "$previous" ] && [ -e "$previous" ]; then
   rm -f "$runtime/current"
   ln -s "$previous" "$runtime/current"
   launchctl kickstart -k "gui/$(id -u)/ai.contentcoop.home-runtime" || true
-  printf 'rolled back to %s\\n' "$previous" >&2
+  rollback_ok=0
+  for i in $(seq 1 30); do
+    if curl -fsS --max-time 10 "http://127.0.0.1:4100/api/health?scope=local" >/tmp/cco-home-rollback-health.json \
+      && validate_health_file /tmp/cco-home-rollback-health.json; then
+      rollback_ok=1
+      break
+    fi
+    sleep 2
+  done
+  if [ "$rollback_ok" = "1" ]; then
+    printf 'rolled back to %s; local health passed\\n' "$previous" >&2
+  else
+    printf 'ROLLBACK NOT HEALTHY: current points at %s but local health failed\\n' "$previous" >&2
+  fi
 fi
 exit 1
 `);
