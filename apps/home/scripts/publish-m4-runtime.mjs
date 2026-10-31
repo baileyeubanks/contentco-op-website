@@ -141,6 +141,19 @@ if body.get("status") != "ok" or str(body.get("build_id") or "") != sys.argv[2]:
     sys.exit(1)
 PY
 }
+# Proof from the OS, not the app: older releases report their build through the current pointer.
+# Unavailable or ambiguous evidence fails.
+runtime_pid() {
+  launchctl print "gui/$(id -u)/ai.contentcoop.home-runtime" 2>/dev/null \
+    | awk '/^[[:space:]]*pid = /{print $3; exit}' || true
+}
+runtime_process_is_release() {
+  expected_app_dir="$(cd "$1/apps/home" && pwd -P)" || return 1
+  running_pid="$(runtime_pid)"
+  [ -n "$running_pid" ] && [ "$running_pid" != "$2" ] || return 1
+  [ "$(lsof -nP -iTCP:4100 -sTCP:LISTEN -t 2>/dev/null || true)" = "$running_pid" ] || return 1
+  [ "$(lsof -a -p "$running_pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p' || true)" = "$expected_app_dir" ]
+}
 for env_file in .env.local .env.generated .env; do
   if [ -f "$runtime/current/apps/home/$env_file" ]; then
     cp "$runtime/current/apps/home/$env_file" "$release/apps/home/$env_file"
@@ -229,6 +242,7 @@ if [ "$preflight_ok" != "1" ]; then
   tail -120 "$runtime/logs/preflight-$sha.log" >&2 || true
   exit 1
 fi
+prior_pid="$(runtime_pid)"
 previous=""
 if [ -L "$runtime/current" ]; then
   previous="$(readlink "$runtime/current")"
@@ -247,7 +261,8 @@ if [ "$kickstart_rc" = "0" ]; then
     if curl -fsS --max-time 10 "http://127.0.0.1:4100/api/health?scope=local" >/tmp/cco-home-health.json \
       && validate_health_file /tmp/cco-home-health.json \
       && curl -fsS --max-time 10 "http://127.0.0.1:4100/api/runtime-proof" >/tmp/cco-home-proof.json \
-      && validate_runtime_proof_file /tmp/cco-home-proof.json "$sha"; then
+      && validate_runtime_proof_file /tmp/cco-home-proof.json "$sha" \
+      && runtime_process_is_release "$release" "$prior_pid"; then
       health_ok=1
       break
     fi
@@ -311,6 +326,7 @@ if [ -n "$previous" ] && [ -e "$previous" ]; then
   if [ -f "$previous/BUILD_ID" ]; then
     previous_build="$(tr -d '[:space:]' <"$previous/BUILD_ID")"
   fi
+  rollback_prior_pid="$(runtime_pid)"
   rollback_kickstart_rc=0
   launchctl kickstart -k "gui/$(id -u)/ai.contentcoop.home-runtime" || rollback_kickstart_rc=$?
   rollback_ok=0
@@ -319,7 +335,8 @@ if [ -n "$previous" ] && [ -e "$previous" ]; then
       if curl -fsS --max-time 10 "http://127.0.0.1:4100/api/health?scope=local" >/tmp/cco-home-rollback-health.json \
         && validate_health_file /tmp/cco-home-rollback-health.json \
         && curl -fsS --max-time 10 "http://127.0.0.1:4100/api/runtime-proof" >/tmp/cco-home-rollback-proof.json \
-        && validate_runtime_proof_file /tmp/cco-home-rollback-proof.json "$previous_build"; then
+        && validate_runtime_proof_file /tmp/cco-home-rollback-proof.json "$previous_build" \
+        && runtime_process_is_release "$previous" "$rollback_prior_pid"; then
         rollback_ok=1
         break
       fi
