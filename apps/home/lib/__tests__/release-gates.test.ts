@@ -472,3 +472,148 @@ describe("public runtime audit source contracts", () => {
     expect(runPublishedRefValidator(mixedRefs, expectedSha).status).not.toBe(0);
   });
 });
+
+describe("publisher cutover proof", () => {
+  type Kickstart = { exit?: number; restarts?: boolean; cwd?: "old" | "new" };
+  type Cutover = {
+    kickstarts: Kickstart[];
+    appReports?: "pointer" | "process";
+    noPriorBuild?: boolean;
+    noPid?: boolean;
+    orphanListener?: boolean;
+    lsofFails?: boolean;
+  };
+
+  function runCutover(input: Cutover) {
+    const source = readFileSync(publishScriptPath, "utf8");
+    const root = mkdtempSync(path.join(os.tmpdir(), "cco-cutover-"));
+    temporaryPaths.push(root);
+    const start = source.indexOf('prior_pid="$(runtime_pid)"');
+    const shell = [
+      source.slice(source.indexOf("validate_health_file() {"), source.indexOf("for env_file in .env.local")),
+      source.slice(start, source.indexOf("`);", start)),
+    ].join("\n")
+      .replace(/\$\{sha\}/g, "new-build")
+      .replace(/\$\{runtimeHome\}/g, root)
+      .replace(/\$\{releaseDir\}/g, path.join(root, "runtime", "new"))
+      .replace(/\\\\n/g, "\\n")
+      .replace(/\/tmp\//g, `${root}/`)
+      // Bounded polling: real retries and timing are not what these tests prove.
+      .replace(/\$\(seq 1 \d+\)/g, "1 2")
+      .replace(/\/Users\/_mxappservice\/Projects\/platform\/run\/deploy-receipts/g, path.join(root, "receipts"));
+    const bin = path.join(root, "bin");
+    mkdirSync(bin);
+    mkdirSync(path.join(root, "runtime"));
+    const runtime = realpathSync(path.join(root, "runtime"));
+    for (const [name, build] of [["old", "prior-build"], ["new", "new-build"]] as const) {
+      mkdirSync(path.join(runtime, name, "apps", "home"), { recursive: true });
+      if (name === "new" || !input.noPriorBuild) writeFileSync(path.join(runtime, name, "BUILD_ID"), `${build}\n`);
+    }
+    symlinkSync(path.join(runtime, "old"), path.join(runtime, "current"));
+    const state = (name: string) => path.join(root, name);
+    writeFileSync(state("pid"), "100");
+    writeFileSync(state("cwd"), path.join(runtime, "old", "apps", "home"));
+    input.kickstarts.forEach((step, index) => {
+      writeFileSync(state(`step-${index + 1}`), `${step.exit ?? 0} ${step.restarts === false ? 0 : 1} ${step.cwd ?? "pointer"}`);
+    });
+    writeFileSync(path.join(bin, "launchctl"), [
+      "#!/bin/bash",
+      'if [ "$1" = print ]; then',
+      input.noPid ? "  exit 0" : `  echo "	pid = $(cat ${state("pid")})"; exit 0`,
+      "fi",
+      `n=$(( $(cat ${state("count")} 2>/dev/null || echo 0) + 1 )); echo $n > ${state("count")}`,
+      `read code restarts where < ${state("step-")}$n`,
+      'if [ "$code" = 0 ] && [ "$restarts" = 1 ]; then',
+      `  echo $(( $(cat ${state("pid")}) + 1 )) > ${state("pid")}`,
+      `  case "$where" in pointer) d=$(cd ${runtime}/current/apps/home && pwd -P);; *) d=${runtime}/$where/apps/home;; esac`,
+      `  echo "$d" > ${state("cwd")}`,
+      "fi",
+      'exit "$code"',
+    ].join("\n"), { mode: 0o755 });
+    writeFileSync(path.join(bin, "lsof"), [
+      "#!/bin/bash",
+      input.lsofFails ? "exit 1" : "",
+      'case "$*" in',
+      `  *iTCP*) ${input.orphanListener ? "echo 999" : `cat ${state("pid")}`};;`,
+      `  *) echo "p$(cat ${state("pid")})"; echo fcwd; echo "n$(cat ${state("cwd")})";;`,
+      "esac",
+    ].join("\n"), { mode: 0o755 });
+    const reportedDir = input.appReports === "process" ? `$(dirname $(dirname $(cat ${state("cwd")})))` : `${runtime}/current`;
+    writeFileSync(path.join(bin, "curl"), [
+      "#!/bin/bash",
+      'for a in "$@"; do u=$a; done',
+      `case "$u" in *runtime-proof*) echo "{\\"status\\":\\"ok\\",\\"build_id\\":\\"$(tr -d '[:space:]' < ${reportedDir}/BUILD_ID)\\"}";;`,
+      `*) echo '{"status":"healthy","summary":{},"checks":[]}';; esac`,
+    ].join("\n"), { mode: 0o755 });
+    const result = spawnSync("bash", ["-c", [
+      "set -euo pipefail",
+      `runtime=${runtime}; release=${path.join(runtime, "new")}; sha=new-build`,
+      "sleep() { :; }",
+      shell,
+    ].join("\n")], { encoding: "utf8", env: { ...process.env, PATH: `${bin}:${process.env.PATH}` } });
+    return {
+      status: result.status,
+      stderr: result.stderr,
+      current: realpathSync(path.join(runtime, "current")),
+      old: path.join(runtime, "old"),
+      next: path.join(runtime, "new"),
+    };
+  }
+
+  test("a restarted process in the new release passes", () => {
+    const run = runCutover({ kickstarts: [{}], appReports: "process" });
+    expect(run.status).toBe(0);
+    expect(run.current).toBe(run.next);
+  });
+
+  test("a failed restart rolls back and proves the prior process", () => {
+    const run = runCutover({ kickstarts: [{ exit: 5 }, {}] });
+    expect(run.status).toBe(1);
+    expect(run.current).toBe(run.old);
+    expect(run.stderr).toContain("runtime restart failed with exit 5");
+    expect(run.stderr).toContain("running build prior-build verified");
+  });
+
+  test("forward: a stale old process reporting the new pointer is not accepted", () => {
+    const run = runCutover({ kickstarts: [{ restarts: false }, {}], appReports: "pointer" });
+    expect(run.status).toBe(1);
+    expect(run.current).toBe(run.old);
+    expect(run.stderr).toContain("running build prior-build verified");
+  });
+
+  test("rollback: a stale new process reporting the old pointer is not accepted", () => {
+    const run = runCutover({ kickstarts: [{ exit: 5 }, { restarts: false }], appReports: "pointer" });
+    expect(run.status).toBe(1);
+    expect(run.current).toBe(run.old);
+    expect(run.stderr).toContain("ROLLBACK NOT VERIFIED");
+  });
+
+  test("rollback: a restarted process in the wrong release is not accepted", () => {
+    const run = runCutover({ kickstarts: [{ exit: 5 }, { cwd: "new" }], appReports: "pointer" });
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain("ROLLBACK NOT VERIFIED");
+  });
+
+  test("a failed rollback restart is never reported as success", () => {
+    const run = runCutover({ kickstarts: [{ exit: 5 }, { exit: 6 }] });
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain("ROLLBACK NOT VERIFIED");
+    expect(run.stderr).toContain("restart exit 6");
+  });
+
+  test("a healthy server reporting the wrong build is not a rollback", () => {
+    const run = runCutover({ kickstarts: [{ exit: 5 }, {}], appReports: "process", noPriorBuild: true });
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain("ROLLBACK NOT VERIFIED");
+  });
+
+  test.each([
+    ["no launchd pid", { noPid: true }],
+    ["another process holds the port", { orphanListener: true }],
+    ["lsof unavailable", { lsofFails: true }],
+  ] as const)("fails closed with %s", (_name, evidence) => {
+    const run = runCutover({ kickstarts: [{}, {}], appReports: "process", ...evidence });
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain("ROLLBACK NOT VERIFIED");
+  });
+});
