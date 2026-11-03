@@ -2,6 +2,7 @@ import { PublicPageLayout } from "@/app/components/public-page-layout";
 import { AnimatedPortfolio } from "@/app/components/animated-portfolio";
 import { SeoJsonLd } from "@/app/components/seo-json-ld";
 import PortfolioClient from "@/app/portfolio/portfolio-client";
+import { isComingSoonStudy } from "@/lib/content/coming-soon";
 import { portfolioPublicStudies } from "@/lib/content/portfolio";
 import { buildBreadcrumbJsonLd, buildPortfolioCollectionJsonLd } from "@/lib/seo";
 
@@ -17,7 +18,7 @@ export default async function PortfolioPage({ searchParams }: Props) {
       <SeoJsonLd
         data={[
           buildBreadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Portfolio", path: "/portfolio" }]),
-          ...buildPortfolioCollectionJsonLd(portfolioPublicStudies),
+          ...buildPortfolioCollectionJsonLd(portfolioPublicStudies.filter((study) => !isComingSoonStudy(study.id))),
         ]}
       />
       <AnimatedPortfolio>

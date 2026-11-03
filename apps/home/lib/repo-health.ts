@@ -5,6 +5,7 @@ import { CREATIVE_BRIEF_HANDOFF_VERSION } from "@/lib/creative-brief";
 import { describeCcoEmailTransport } from "@/lib/email-sender";
 import { portfolioManifest, portfolioStudies } from "@/lib/content/portfolio";
 import { getRootHealthSnapshot } from "@/lib/os-health";
+import { isComingSoonStudy } from "@/lib/content/coming-soon";
 
 export type RepoHealthScope = "full" | "local";
 
@@ -149,6 +150,8 @@ async function buildPortfolioChecks(scope: RepoHealthScope): Promise<RepoHealthC
   for (const study of portfolioStudies) {
     if (seenIds.has(study.id)) duplicateIds.add(study.id);
     seenIds.add(study.id);
+    // Held studies are a deliberate shell until their film is re-released.
+    if (isComingSoonStudy(study.id)) continue;
 
     if (!study.gallery.length) {
       manifestIssues.push(`${study.id}: gallery missing`);
