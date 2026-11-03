@@ -1,0 +1,45 @@
+{
+  "_note": "Held until the re-cut film is ready (Bailey 2026-11-03). Not imported by the app. To release: copy this entry back into portfolio-manifest.json, add the new film/preview files, and remove the id from lib/content/coming-soon.ts.",
+  "entry": {
+    "id": "el-paso-water",
+    "title": "El Paso Water",
+    "client": "Schneider Electric",
+    "sector": "Water infrastructure",
+    "year": "2026",
+    "format": "Customer story film",
+    "scope": "5:33 interview-led customer story filmed in El Paso, Texas, combining water utility operations, Schneider Electric manufacturing, aerial coverage, and technical motion graphics.",
+    "headline": "A Thousand Decisions: the people, technology, and partnership keeping El Paso’s water moving.",
+    "summary": "For Schneider Electric, Content Co-op turned El Paso Water’s modernization story into a film about reliable service in a desert city. Utility voices connect the daily demands of drinking water, wastewater, and stormwater with open automation, clearer operational data, and a partnership built for the next generation.",
+    "mandate": "Make a complex water infrastructure story understandable through the people responsible for it. El Paso Water serves a desert community where scarce water, sudden rainfall, aging systems, and equipment from multiple manufacturers all shape everyday decisions. The film needed to explain why modernization matters to operators and residents while giving Schneider Electric’s technology a credible place in the customer’s own story.",
+    "execution": "The film moves from El Paso’s landscape and community into the work behind reliable service. Interviews with utility leaders, technology specialists, and an operator create the narrative spine; aerials, treatment facilities, control equipment, and Schneider Electric’s local manufacturing connect their words to physical operations. Maps and technical motion graphics help explain fragmented systems, data delays, IT/OT collaboration, and EcoStruxure Automation Expert (EAE). The edit returns to trust, human judgment, and the future workforce so the technology stays connected to the people it serves.",
+    "outcome": "A 5:33 customer film that gives Schneider Electric and El Paso Water a shared narrative for explaining infrastructure modernization. The finished piece brings community stakes, operational complexity, local manufacturing, and long-term partnership into one coherent story, with the customer’s voice carrying the case for change.",
+    "proofPoints": [
+      "El Paso Water leaders and operator interviews",
+      "Drinking water, wastewater, and stormwater context",
+      "Treatment facilities and control-system footage",
+      "Schneider Electric manufacturing in El Paso",
+      "Aerial location coverage and technical motion graphics",
+      "Open automation and IT/OT collaboration",
+      "Future workforce and community continuity"
+    ],
+    "deliverables": [
+      "5:33 customer story film",
+      "1080p web playback master",
+      "Custom portfolio poster and motion preview"
+    ],
+    "thumbnail": "/cc/portfolio-cdn/thumb_el_paso_water_v15.jpg",
+    "preview": "/cc/portfolio-cdn/preview_el_paso_water_v15.mp4",
+    "video": "/cc/portfolio-cdn/el_paso_water_schneider_v15_web.mp4",
+    "review": {
+      "status": "approved",
+      "reviewedBy": "Bailey — final-folder source; Codex — portfolio verification",
+      "reviewedAt": "2026-11-03"
+    },
+    "gallery": [
+      {
+        "src": "/cc/portfolio-cdn/thumb_el_paso_water_v15.jpg",
+        "alt": "El Paso Water operators overlooking treatment facilities with the Franklin Mountains beyond"
+      }
+    ]
+  }
+}

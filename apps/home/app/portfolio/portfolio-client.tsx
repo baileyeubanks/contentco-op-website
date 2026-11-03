@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { PortfolioCaseStudy } from "@contentco-op/types";
 import { portfolioPublicStudies } from "@/lib/content/portfolio";
+import { isComingSoonStudy } from "@/lib/content/coming-soon";
 import { formatPortfolioStudyDisplayTitle, formatPortfolioStudyName } from "@/lib/seo";
 import s from "./portfolio.module.css";
 
@@ -33,6 +34,7 @@ interface PortfolioItem {
   meta: string;
   proofPoints: string[];
   useCase: PortfolioUseCase;
+  comingSoon: boolean;
 }
 
 const CATEGORY_ORDER: PortfolioCategory[] = ["Energy", "Industrial", "Event", "Recruitment", "B2B"];
@@ -113,6 +115,7 @@ function toPortfolioItem(study: PortfolioCaseStudy): PortfolioItem | null {
     meta: study.format,
     proofPoints: study.proofPoints,
     useCase: classifyUseCase(study),
+    comingSoon: isComingSoonStudy(study.id),
   };
 }
 
@@ -120,7 +123,7 @@ const ITEMS = portfolioPublicStudies.map(toPortfolioItem).filter((item): item is
 const USE_CASES = ["All", ...USE_CASE_ORDER.filter((useCase) => ITEMS.some((item) => item.useCase === useCase))];
 
 function getPortfolioItem(id: string | null | undefined) {
-  return id ? ITEMS.find((item) => item.id === id) ?? null : null;
+  return id ? ITEMS.find((item) => item.id === id && !item.comingSoon) ?? null : null;
 }
 
 export default function PortfolioClient({ initialPortfolioId }: { initialPortfolioId?: string | null }) {
@@ -212,7 +215,7 @@ export default function PortfolioClient({ initialPortfolioId }: { initialPortfol
         ))}
       </div>
 
-      {lightbox ? <Lightbox item={lightbox} items={filtered} onClose={closeLightbox} onSelect={openLightbox} /> : null}
+      {lightbox ? <Lightbox item={lightbox} items={filtered.filter((entry) => !entry.comingSoon)} onClose={closeLightbox} onSelect={openLightbox} /> : null}
     </div>
   );
 }
@@ -229,6 +232,33 @@ function PortfolioCard({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hovered, setHovered] = useState(false);
   const detailHref = `/portfolio/${item.id}`;
+
+  if (item.comingSoon) {
+    return (
+      <article className={`${s.card} ${s.cardComingSoon}`} style={{ animationDelay: `${index * 50}ms` }}>
+        <div className={s.cardBtn}>
+          <div className={s.thumb}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={item.thumb} alt={item.studyName} loading={index < 3 ? "eager" : "lazy"} decoding="async" className={s.thumbImg} />
+            <div className={s.comingSoonVeil}>
+              <span className={s.comingSoonBanner}>Coming soon</span>
+            </div>
+          </div>
+          <div className={s.cardBody}>
+            <div className={s.cardMeta}>
+              <span className={s.cardCategory}>{item.category}</span>
+              <span className={s.cardYear}>{item.year}</span>
+            </div>
+            <h3 className={s.cardTitle}>{item.displayTitle}</h3>
+            <p className={s.cardClient}>{item.client}</p>
+          </div>
+        </div>
+        <div className={s.cardFooter}>
+          <span className={s.comingSoonNote}>Premiering soon</span>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article

@@ -393,3 +393,36 @@
     gap: 0.35rem;
   }
 }
+
+/* Held release */
+.comingSoonFrame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.comingSoonPoster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(14px) saturate(0.8) brightness(0.6);
+  transform: scale(1.08);
+}
+
+.comingSoonBanner {
+  position: relative;
+  padding: 0.7rem 1.5rem;
+  border-radius: 999px;
+  background: #f5f0e8;
+  color: #0c1322;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}

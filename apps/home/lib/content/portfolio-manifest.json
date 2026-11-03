@@ -16,40 +16,21 @@
       "sector": "Water infrastructure",
       "year": "2026",
       "format": "Customer story film",
-      "scope": "5:33 interview-led customer story filmed in El Paso, Texas, combining water utility operations, Schneider Electric manufacturing, aerial coverage, and technical motion graphics.",
-      "headline": "A Thousand Decisions: the people, technology, and partnership keeping El Paso’s water moving.",
-      "summary": "For Schneider Electric, Content Co-op turned El Paso Water’s modernization story into a film about reliable service in a desert city. Utility voices connect the daily demands of drinking water, wastewater, and stormwater with open automation, clearer operational data, and a partnership built for the next generation.",
-      "mandate": "Make a complex water infrastructure story understandable through the people responsible for it. El Paso Water serves a desert community where scarce water, sudden rainfall, aging systems, and equipment from multiple manufacturers all shape everyday decisions. The film needed to explain why modernization matters to operators and residents while giving Schneider Electric’s technology a credible place in the customer’s own story.",
-      "execution": "The film moves from El Paso’s landscape and community into the work behind reliable service. Interviews with utility leaders, technology specialists, and an operator create the narrative spine; aerials, treatment facilities, control equipment, and Schneider Electric’s local manufacturing connect their words to physical operations. Maps and technical motion graphics help explain fragmented systems, data delays, IT/OT collaboration, and EcoStruxure Automation Expert (EAE). The edit returns to trust, human judgment, and the future workforce so the technology stays connected to the people it serves.",
-      "outcome": "A 5:33 customer film that gives Schneider Electric and El Paso Water a shared narrative for explaining infrastructure modernization. The finished piece brings community stakes, operational complexity, local manufacturing, and long-term partnership into one coherent story, with the customer’s voice carrying the case for change.",
-      "proofPoints": [
-        "El Paso Water leaders and operator interviews",
-        "Drinking water, wastewater, and stormwater context",
-        "Treatment facilities and control-system footage",
-        "Schneider Electric manufacturing in El Paso",
-        "Aerial location coverage and technical motion graphics",
-        "Open automation and IT/OT collaboration",
-        "Future workforce and community continuity"
-      ],
-      "deliverables": [
-        "5:33 customer story film",
-        "1080p web playback master",
-        "Custom portfolio poster and motion preview"
-      ],
+      "scope": "",
+      "headline": "",
+      "summary": "",
+      "mandate": "",
+      "execution": "",
+      "outcome": "",
+      "proofPoints": [],
+      "deliverables": [],
       "thumbnail": "/cc/portfolio-cdn/thumb_el_paso_water_v15.jpg",
-      "preview": "/cc/portfolio-cdn/preview_el_paso_water_v15.mp4",
-      "video": "/cc/portfolio-cdn/el_paso_water_schneider_v15_web.mp4",
       "review": {
         "status": "approved",
         "reviewedBy": "Bailey — final-folder source; Codex — portfolio verification",
         "reviewedAt": "2026-11-03"
       },
-      "gallery": [
-        {
-          "src": "/cc/portfolio-cdn/thumb_el_paso_water_v15.jpg",
-          "alt": "El Paso Water operators overlooking treatment facilities with the Franklin Mountains beyond"
-        }
-      ]
+      "gallery": []
     },
     {
       "id": "carwash-lead-drummond",
@@ -102,10 +83,10 @@
       "format": "Conference recap film",
       "scope": "1:30 headline-sponsor recap for Schneider Electric's presence at the INA Energy Projects Conference & Expo Houston 2026, built from executive interviews, floor coverage, and sponsorship context.",
       "headline": "Conference coverage that shows up for the room and holds up after it clears.",
-      "summary": "Schneider Electric's EPC Houston recap captures its role as headline sponsor of the INA Energy Projects Conference & Expo \u2014 blending executive interview coverage with conference floor footage and sponsorship signage into a tight 90-second communications asset.",
+      "summary": "Schneider Electric's EPC Houston recap captures its role as headline sponsor of the INA Energy Projects Conference & Expo — blending executive interview coverage with conference floor footage and sponsorship signage into a tight 90-second communications asset.",
       "mandate": "Capture Schneider Electric's EPC presence as headline sponsor and turn a fast-moving Houston energy conference into a focused video asset for post-event use.",
-      "execution": "The edit opens on EPC conference signage establishing Schneider's headline sponsor role, moves through executive interview coverage on the conference floor, and closes with venue context \u2014 structured for internal communications, executive follow-up, and sponsor recaps.",
-      "outcome": "A 1:30 conference recap delivering Schneider Electric a reusable asset from its EPC Houston presence \u2014 ready for stakeholder distribution, social, and internal communications.",
+      "execution": "The edit opens on EPC conference signage establishing Schneider's headline sponsor role, moves through executive interview coverage on the conference floor, and closes with venue context — structured for internal communications, executive follow-up, and sponsor recaps.",
+      "outcome": "A 1:30 conference recap delivering Schneider Electric a reusable asset from its EPC Houston presence — ready for stakeholder distribution, social, and internal communications.",
       "proofPoints": [
         "INA EPC Houston 2026 headline sponsor coverage",
         "Executive interview selects",
@@ -130,7 +111,7 @@
       "gallery": [
         {
           "src": "/cc/portfolio-cdn/thumb_schneider_epc_houston_2026.jpg",
-          "alt": "Schneider Electric EPC Houston 2026 \u2014 executive interview on conference floor"
+          "alt": "Schneider Electric EPC Houston 2026 — executive interview on conference floor"
         }
       ],
       "remoteMediaUrl": null
@@ -1470,7 +1451,7 @@
     },
     {
       "id": "bp-fixed-wing-aerial",
-      "title": "BP Fixed Wing Aerial \u2014 Peterhead",
+      "title": "BP Fixed Wing Aerial — Peterhead",
       "client": "BP",
       "sector": "Operations",
       "year": "2022",
@@ -1813,7 +1794,7 @@
       "format": "Festival intro",
       "scope": "Film festival opening sequence",
       "headline": "Festival energy with real production discipline.",
-      "summary": "Opening sequence for Baylor's Black Glasses Film Festival \u2014 setting the tone with cinematic craft.",
+      "summary": "Opening sequence for Baylor's Black Glasses Film Festival — setting the tone with cinematic craft.",
       "mandate": "Create a festival intro that matches the creative ambition of the student filmmakers it celebrates.",
       "execution": "Cinematic pacing, visual texture, and a tone that respects the art form.",
       "outcome": "A festival opener that earns the room before the first film plays.",
@@ -2057,7 +2038,7 @@
       "format": "Television spot",
       "scope": "TV and online awareness campaign",
       "headline": "Nonprofit messaging with broadcast-quality production.",
-      "summary": "Television and online spot for the Tyler Type One Diabetes Foundation \u2014 awareness messaging built for broadcast standards.",
+      "summary": "Television and online spot for the Tyler Type One Diabetes Foundation — awareness messaging built for broadcast standards.",
       "mandate": "Produce a broadcast-ready spot that earns attention and drives awareness without a Fortune 500 budget.",
       "execution": "Broadcast framing, tight scripting, and emotional pacing that respects the audience.",
       "outcome": "A television spot that competes with national-level production quality.",
@@ -2130,7 +2111,7 @@
       "format": "Music video",
       "scope": "Full music video production",
       "headline": "A music video that holds its own against any budget level.",
-      "summary": "Full music video production for School Boy Humor \u2014 concept, cinematography, and post-production.",
+      "summary": "Full music video production for School Boy Humor — concept, cinematography, and post-production.",
       "mandate": "Deliver a music video with commercial production quality on an independent budget.",
       "execution": "Concept development, multi-location shooting, and a polished post workflow.",
       "outcome": "A music video that competes visually with major label releases.",
@@ -2205,10 +2186,10 @@
       "year": "2025",
       "format": "Event concept and stage design",
       "scope": "Full-event creative package: stage concept design, motion graphics system, event theming, and visual identity for a gala awards ceremony.",
-      "headline": "A gala built around concept \u2014 not just a stage, a world.",
+      "headline": "A gala built around concept — not just a stage, a world.",
       "summary": "The Power of Us gala is a concept-first awards ceremony: a signature portal stage design, flanking holographic screen system, and motion graphics package that give the evening a visual identity from arrival to final award.",
       "mandate": "Design a cohesive event experience where the stage concept, motion graphics, and room theming feel like one unified idea rather than assembled vendor parts.",
-      "execution": "Content Co-op developed the stage geometry, lighting concept, and motion graphics system \u2014 centering the design on a portal motif that frames speakers and award moments with depth and drama.",
+      "execution": "Content Co-op developed the stage geometry, lighting concept, and motion graphics system — centering the design on a portal motif that frames speakers and award moments with depth and drama.",
       "outcome": "A complete event concept package ready for production: stage render, motion graphics brief, and a visual theme system that scales from pre-show content to trophies.",
       "proofPoints": [
         "Stage concept design",
@@ -2232,7 +2213,7 @@
       "gallery": [
         {
           "src": "/cc/photos/gallery-power-of-us.jpg",
-          "alt": "The Power of Us gala stage concept \u2014 glowing orange portal ring center stage with holographic screens"
+          "alt": "The Power of Us gala stage concept — glowing orange portal ring center stage with holographic screens"
         }
       ],
       "remoteMediaUrl": null

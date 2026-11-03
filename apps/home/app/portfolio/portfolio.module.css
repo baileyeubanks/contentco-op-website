@@ -419,6 +419,47 @@
   opacity: 0.75;
 }
 
+/* Held release: card stays in the grid, nothing plays or opens. */
+.cardComingSoon .cardBtn {
+  cursor: default;
+}
+
+.cardComingSoon:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.comingSoonVeil {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 19, 34, 0.55);
+  backdrop-filter: blur(6px) saturate(0.85);
+}
+
+.comingSoonBanner {
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: #f5f0e8;
+  color: #0c1322;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.comingSoonNote {
+  color: rgba(12, 19, 34, 0.5);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* ─── Lightbox ─── */
 .lightbox {
   position: fixed;

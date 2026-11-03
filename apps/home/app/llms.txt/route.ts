@@ -1,4 +1,5 @@
 import { portfolioPublicStudies } from "@/lib/content/portfolio";
+import { isComingSoonStudy } from "@/lib/content/coming-soon";
 import { absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-static";
@@ -11,7 +12,7 @@ function llmsText() {
     ["Product Suite", absoluteUrl("/suite")],
   ];
 
-  const caseStudies = portfolioPublicStudies.slice(0, 12).map((study) => [
+  const caseStudies = portfolioPublicStudies.filter((study) => !isComingSoonStudy(study.id)).slice(0, 12).map((study) => [
     `${study.client} — ${study.title}`,
     absoluteUrl(`/portfolio/${study.id}`),
   ]);

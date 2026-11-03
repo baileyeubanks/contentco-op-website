@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { portfolioPublicStudies } from "@/lib/content/portfolio";
+import { isComingSoonStudy } from "@/lib/content/coming-soon";
 import { SITE_URL, portfolioCaseStudyPath } from "@/lib/seo";
 
 const STATIC_ROUTES = [
@@ -19,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route.priority,
   }));
 
-  const portfolioEntries: MetadataRoute.Sitemap = portfolioPublicStudies.map((study) => ({
+  const portfolioEntries: MetadataRoute.Sitemap = portfolioPublicStudies.filter((study) => !isComingSoonStudy(study.id)).map((study) => ({
     url: `${SITE_URL}${portfolioCaseStudyPath(study.id)}`,
     lastModified: study.review?.reviewedAt
       ? new Date(study.review.reviewedAt)

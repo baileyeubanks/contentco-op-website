@@ -1,6 +1,7 @@
 import { posix } from "node:path";
 import { CLIENT_CVP_ORIGIN, adminHostRedirectTarget, isPublicMarketingHost } from "@/lib/public-host-redirects";
 import { NextResponse, type NextRequest } from "next/server";
+import { isComingSoonMediaPath } from "@/lib/content/coming-soon-media";
 
 // CVP lib/review-links/short-link.ts: one branded slug/version/key segment
 // (14–80 characters), or the private review-<10-character key> form.
@@ -44,6 +45,10 @@ export async function proxy(request: NextRequest) {
   if (pathname === "/media/thumbnail-manifest.json") {
     // Operator thumbnail API was removed; the legacy manifest must stay private.
     return new NextResponse(null, { status: 404 });
+  }
+  if (isComingSoonMediaPath(pathname)) {
+    // Held film (see lib/content/coming-soon.ts): not fetchable by URL until release.
+    return new NextResponse(null, { status: 404, headers: { "Cache-Control": "no-store" } });
   }
   return NextResponse.next();
 }

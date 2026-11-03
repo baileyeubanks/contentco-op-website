@@ -5,6 +5,7 @@ import { PublicPageLayout } from "@/app/components/public-page-layout";
 import { SeoJsonLd } from "@/app/components/seo-json-ld";
 import { CREATIVE_BRIEF_PATH } from "@/lib/public-booking";
 import { getPortfolioStudyById, isPublicPortfolioStudy, portfolioPublicStudies } from "@/lib/content/portfolio";
+import { isComingSoonStudy } from "@/lib/content/coming-soon";
 import {
   SITE_NAME,
   absoluteUrl,
@@ -148,6 +149,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const studyName = formatPortfolioStudyName(study);
+  if (isComingSoonStudy(study.id)) {
+    return {
+      title: { absolute: `${studyName} | Coming soon | ${SITE_NAME}` },
+      robots: { index: false, follow: false },
+    };
+  }
   const title = `${studyName} Case Study | ${SITE_NAME}`;
   const description = study.summary;
   const canonical = portfolioCaseStudyUrl(study.id);
@@ -182,6 +189,10 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
     notFound();
   }
 
+  if (isComingSoonStudy(study.id)) {
+    return <ComingSoonCaseStudy client={study.client} title={formatPortfolioStudyDisplayTitle(study)} poster={study.thumbnail} />;
+  }
+
   const videoUrl = study.video || study.remoteMediaUrl || study.preview;
   const posterUrl = study.thumbnail || study.gallery[0]?.src;
   const displayTitle = formatPortfolioStudyDisplayTitle(study);
@@ -197,7 +208,7 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
     { label: "Placement", value: inferPlacement(study) },
   ];
   const relatedStudies = portfolioPublicStudies
-    .filter((entry) => entry.id !== study.id && entry.review?.status === "approved")
+    .filter((entry) => entry.id !== study.id && entry.review?.status === "approved" && !isComingSoonStudy(entry.id))
     .sort((left, right) => {
       const leftScore =
         Number(left.sector === study.sector) * 3 +
@@ -342,6 +353,49 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
             </div>
           </div>
         </section>
+
+        <section className={s.bottomSection}>
+          <div className={s.ctas}>
+            <Link href="/portfolio" className={s.primaryBtn}>
+              Back to portfolio
+            </Link>
+            <Link href={CREATIVE_BRIEF_PATH} className={s.ghostBtn}>
+              Start the Creative Brief
+            </Link>
+          </div>
+        </section>
+      </main>
+    </PublicPageLayout>
+  );
+}
+
+// Held release: title and still only. No film, story copy or structured data.
+function ComingSoonCaseStudy({ client, title, poster }: { client: string; title: string; poster?: string }) {
+  return (
+    <PublicPageLayout surface="portfolio" theme="cream">
+      <main className={s.page}>
+        <section className={s.header}>
+          <p className={s.kicker}>Coming soon</p>
+          <h1 className={s.title}>
+            {client}{" "}
+            <br />
+            <em>{title}</em>
+          </h1>
+          <div className={s.titleDivider} />
+          <p className={s.headline}>This film premieres soon. Check back shortly.</p>
+        </section>
+
+        {poster ? (
+          <section className={s.videoSection}>
+            <div className={s.videoFrame}>
+              <div className={s.comingSoonFrame}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={poster} alt="" className={s.comingSoonPoster} />
+                <span className={s.comingSoonBanner}>Coming soon</span>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section className={s.bottomSection}>
           <div className={s.ctas}>

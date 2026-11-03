@@ -1,6 +1,7 @@
 import type { PortfolioCaseStudy, PortfolioManifest } from "@contentco-op/types";
 import portfolioManifestJson from "./portfolio-manifest.json";
 import { portfolioExtendedStudies } from "./portfolio-extended";
+import { isComingSoonStudy } from "./coming-soon";
 
 const manifest = portfolioManifestJson as PortfolioManifest;
 const manifestEntryIds = new Set(manifest.entries.map((entry) => entry.id));
@@ -67,8 +68,30 @@ export function isPublicPortfolioStudy(study: PortfolioCaseStudy) {
   return Boolean(study.thumbnail || study.gallery[0]?.src);
 }
 
+// Held studies stay listed (card + "Coming soon") but carry no film, preview or story copy.
+function holdBackStudy(study: PortfolioCaseStudy): PortfolioCaseStudy {
+  if (!isComingSoonStudy(study.id)) return study;
+  return {
+    ...study,
+    scope: "",
+    headline: "",
+    summary: "",
+    mandate: "",
+    execution: "",
+    outcome: "",
+    proofPoints: [],
+    deliverables: [],
+    preview: undefined,
+    video: undefined,
+    remoteMediaUrl: null,
+    gallery: [],
+    episodes: undefined,
+  };
+}
+
 export const portfolioPublicStudies = manifest.entries
   .filter(isPublicPortfolioStudy)
+  .map(holdBackStudy)
   .slice()
   .sort(
     (a, b) =>
