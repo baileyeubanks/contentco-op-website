@@ -22,6 +22,7 @@ type Props = {
 };
 
 const RUNTIME_BY_ID: Record<string, string> = {
+  "el-paso-water": "05:33",
   "citgo-lcr": "9 × ~2:40",
   "bp-orlando-holiday": "03:05",
   ceraweek: "02:12",
@@ -53,6 +54,7 @@ const RUNTIME_BY_ID: Record<string, string> = {
 };
 
 const LOCATION_BY_ID: Record<string, string> = {
+  "el-paso-water": "El Paso, TX",
   "bp-orlando-holiday": "Orlando, FL",
   ceraweek: "Houston, TX",
   "wendys-final-four": "Houston, TX",
@@ -78,11 +80,13 @@ const LOCATION_BY_ID: Record<string, string> = {
 };
 
 const AUDIENCE_BY_ID: Record<string, string> = {
+  "el-paso-water": "Water utility leaders, municipal decision-makers, technology and operations teams",
   "ato-fraternity": "Potential members, chapter leaders, national fraternity audiences",
   "kappa-rap": "Potential new members, Baylor Kappas, national KKG audiences",
 };
 
 const PLACEMENT_BY_ID: Record<string, string> = {
+  "el-paso-water": "Customer storytelling, website, stakeholder presentations, sales enablement",
   "ato-fraternity": "Chapter recruitment, national fraternity communications, web",
   "kappa-rap": "Rush-room playback, YouTube, social resurgence, convention archive",
 };
