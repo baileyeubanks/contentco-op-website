@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { SeriesEpisode } from "@contentco-op/types";
 import s from "./case-study.module.css";
+import { BrandedPlayer } from "./branded-player";
 
 export function EpisodePlayer({
   episodes,
@@ -16,15 +17,7 @@ export function EpisodePlayer({
 
   return (
     <div>
-      <div className={s.videoFrame}>
-        <video
-          key={ep.video}
-          controls
-          preload="metadata"
-          poster={ep.thumbnail ?? poster}
-          src={ep.video}
-        />
-      </div>
+      <BrandedPlayer key={ep.video} src={ep.video} poster={ep.thumbnail ?? poster} title={ep.title} />
       <div className={s.episodeStrip} role="group" aria-label="Episode selector">
         {episodes.map((e, i) => (
           <button
