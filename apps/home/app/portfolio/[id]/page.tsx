@@ -73,11 +73,7 @@ const LOCATION_BY_ID: Record<string, string> = {
   "houston-tech-rodeo": "100 Bringhurst, Houston",
   "north-little-rock": "North Little Rock, AR",
   "tyler-t1d-foundation": "Tyler, TX",
-  "school-boy-humor": "Music video performance set",
-  "ica-aerial-refinery": "U.S. energy footprint",
   "ica-ceo-interview": "Ponte Vedra Beach, FL",
-  gno: "Franchise studio campaign",
-  "conexon-workshop": "Co-ops Connect event environment",
   "kappa-rap": "Baylor University, Waco",
 };
 
@@ -109,37 +105,14 @@ function inferRuntime(study: NonNullable<ReturnType<typeof getPortfolioStudyById
 // out of "Related case studies" until Bailey supplies the film's actual title.
 const RELATED_EXCLUDED_IDS = new Set(["carwash-lead-drummond"]);
 
-function inferAudience(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
-  if (AUDIENCE_BY_ID[study.id]) return AUDIENCE_BY_ID[study.id];
-  const searchable = `${study.sector} ${study.format} ${study.scope}`.toLowerCase();
-  if (searchable.includes("safety")) return "Field teams, HSE leaders, operations reviewers";
-  if (searchable.includes("recruit")) return "Candidates, hiring teams, internal brand leaders";
-  if (searchable.includes("conference") || searchable.includes("executive")) {
-    return "Executives, communications teams, event stakeholders";
-  }
-  if (searchable.includes("broadband") || searchable.includes("co-op")) {
-    return "Co-op broadband teams, marketers, member-services leaders";
-  }
-  if (searchable.includes("paint-and-sip") || searchable.includes("franchise")) {
-    return "Private-party guests, studio owners, franchise marketers";
-  }
-  if (searchable.includes("event") || searchable.includes("rodeo") || searchable.includes("stadium")) {
-    return "Employees, partners, attendees, internal communications";
-  }
-  return "Leadership, sales, operations, and stakeholder audiences";
+// Audience and placement are shown only when curated per film above. There is
+// no keyword-based fallback: an unknown value is omitted, never guessed.
+function inferAudience(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>): string | null {
+  return AUDIENCE_BY_ID[study.id] ?? null;
 }
 
-function inferPlacement(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
-  if (PLACEMENT_BY_ID[study.id]) return PLACEMENT_BY_ID[study.id];
-  const searchable = `${study.format} ${study.scope} ${study.deliverables.join(" ")}`.toLowerCase();
-  if (searchable.includes("training") || searchable.includes("safety")) return "Training rollout, internal review, field communication";
-  if (searchable.includes("jumbotron") || searchable.includes("stadium")) return "Stadium screen, live-event playback";
-  if (searchable.includes("sponsor") || searchable.includes("community communications")) return "Venue, web, social, community communications";
-  if (searchable.includes("workshop") || searchable.includes("session lineup")) return "Event marketing, workshop launch, attendee communications";
-  if (searchable.includes("private-party") || searchable.includes("studio marketing")) return "Website, social ads, studio booking pages";
-  if (searchable.includes("conference") || searchable.includes("event")) return "Event recap, website, social, internal comms";
-  if (searchable.includes("recruit")) return "Recruiting, website, social, internal brand";
-  return "Website, stakeholder meetings, sales enablement, internal communications";
+function inferPlacement(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>): string | null {
+  return PLACEMENT_BY_ID[study.id] ?? null;
 }
 
 export async function generateStaticParams() {

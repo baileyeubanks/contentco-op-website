@@ -15,7 +15,27 @@ import { isComingSoonStudy } from "@/lib/content/coming-soon";
 beforeAll(() => vi.stubGlobal("React", React));
 afterAll(() => vi.unstubAllGlobals());
 
-const PLACEHOLDERS = ["Project cut", "Live event environment", "Houston-led production", "Industrial field site", "Gulf Coast operations"];
+const PLACEHOLDERS = ["Project cut", "Live event environment", "Houston-led production", "Industrial field site", "Gulf Coast operations",
+  "Leadership, sales, operations, and stakeholder audiences",
+  "Website, stakeholder meetings, sales enablement, internal communications",
+  "Field teams, HSE leaders, operations reviewers",
+  "Candidates, hiring teams, internal brand leaders",
+  "Executives, communications teams, event stakeholders",
+  "Co-op broadband teams, marketers, member-services leaders",
+  "Private-party guests, studio owners, franchise marketers",
+  "Employees, partners, attendees, internal communications",
+  "Training rollout, internal review, field communication",
+  "Stadium screen, live-event playback",
+  "Venue, web, social, community communications",
+  "Event marketing, workshop launch, attendee communications",
+  "Website, social ads, studio booking pages",
+  "Event recap, website, social, internal comms",
+  "Recruiting, website, social, internal brand",
+  "Music video performance set",
+  "Franchise studio campaign",
+  "U.S. energy footprint",
+  "Co-ops Connect event environment",
+];
 
 describe("case study pages never print placeholder copy", () => {
   const studies = portfolioPublicStudies.filter((study) => !isComingSoonStudy(study.id));
