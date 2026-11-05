@@ -119,6 +119,8 @@ function toPortfolioItem(study: PortfolioCaseStudy): PortfolioItem | null {
   };
 }
 
+const PAGE_SIZE = 6;
+
 const ITEMS = portfolioPublicStudies.map(toPortfolioItem).filter((item): item is PortfolioItem => item !== null);
 const USE_CASES = ["All", ...USE_CASE_ORDER.filter((useCase) => ITEMS.some((item) => item.useCase === useCase))];
 
@@ -130,6 +132,7 @@ export default function PortfolioClient({ initialPortfolioId }: { initialPortfol
   const pathname = usePathname();
   const router = useRouter();
   const [useCaseFilter, setUseCaseFilter] = useState("All");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [lightbox, setLightbox] = useState<PortfolioItem | null>(() => getPortfolioItem(initialPortfolioId));
 
   const syncLightboxFromLocation = useCallback(() => {
@@ -182,6 +185,15 @@ export default function PortfolioClient({ initialPortfolioId }: { initialPortfol
     return useCaseMatch;
   });
 
+  // "All" groups the work by use case; a single use case is one group.
+  const groups = (useCaseFilter === "All" ? USE_CASE_ORDER : [useCaseFilter as PortfolioUseCase])
+    .map((useCase) => ({ useCase, items: filtered.filter((item) => item.useCase === useCase) }))
+    .filter((group) => group.items.length > 0);
+  const ordered = groups.flatMap((group) => group.items);
+  const rank = new Map(ordered.map((item, i) => [item.id, i]));
+  const isVisible = (item: PortfolioItem) => (rank.get(item.id) ?? 0) < visibleCount || item.id === lightbox?.id;
+  const remaining = Math.max(0, ordered.length - visibleCount);
+
   return (
     <div className={s.page}>
       <header className={s.header}>
@@ -195,7 +207,10 @@ export default function PortfolioClient({ initialPortfolioId }: { initialPortfol
           {USE_CASES.map((useCase) => (
             <button
               key={useCase}
-              onClick={() => setUseCaseFilter(useCase)}
+              onClick={() => {
+                setUseCaseFilter(useCase);
+                setVisibleCount(PAGE_SIZE);
+              }}
               className={useCaseFilter === useCase ? s.filterBtnActive : s.filterBtn}
             >
               {useCase}
@@ -204,16 +219,49 @@ export default function PortfolioClient({ initialPortfolioId }: { initialPortfol
         </div>
       </section>
 
-      <div className={s.grid}>
-        {filtered.map((item, i) => (
-          <PortfolioCard
-            key={item.id}
-            item={item}
-            onSelect={openLightbox}
-            index={i}
-          />
-        ))}
-      </div>
+      {groups.map((group) => {
+        const groupVisible = group.items.some(isVisible);
+        return (
+          <section
+            key={group.useCase}
+            className={s.group}
+            aria-label={group.useCase}
+            hidden={!groupVisible}
+          >
+            {useCaseFilter === "All" ? (
+              <h2 className={s.groupTitle}>
+                {group.useCase} <span className={s.groupCount}>{group.items.length}</span>
+              </h2>
+            ) : null}
+            <div className={s.grid}>
+              {group.items.map((item) => (
+                <div key={item.id} className={s.cardSlot} hidden={!isVisible(item)}>
+                  <PortfolioCard
+                    item={item}
+                    onSelect={openLightbox}
+                    index={(rank.get(item.id) ?? 0) % PAGE_SIZE}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+
+      {remaining > 0 ? (
+        <div className={s.showMoreRow}>
+          <p className={s.showMoreCount}>
+            Showing {Math.min(visibleCount, ordered.length)} of {ordered.length}
+          </p>
+          <button
+            type="button"
+            className={s.showMoreBtn}
+            onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+          >
+            Show more
+          </button>
+        </div>
+      ) : null}
 
       {lightbox ? <Lightbox item={lightbox} items={filtered.filter((entry) => !entry.comingSoon)} onClose={closeLightbox} onSelect={openLightbox} /> : null}
     </div>

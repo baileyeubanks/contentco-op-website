@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 import { PublicPageLayout } from "./components/public-page-layout";
 import { AnimatedHome } from "./components/animated-home";
 import { SeoJsonLd } from "./components/seo-json-ld";
@@ -13,6 +13,7 @@ import {
   heroVideoMobile,
 } from "./home-content";
 import { RotatingGallery } from "./rotating-gallery";
+import { SUITE_CARDS, SUITE_COMING, SUITE_INTRO } from "./suite-cards";
 import {
   SOCIAL_IMAGE_ALT,
   SOCIAL_IMAGE_PATH,
@@ -54,72 +55,6 @@ export const metadata: Metadata = {
     ],
   },
 };
-
-const CO_VIDEOPRO_ENTRY_HREF = "https://co-videopro.com/projects";
-
-const HOME_SUITE_PRODUCTS: Array<{
-  prefix: string;
-  name: string;
-  tagline: string;
-  description: string;
-  accent: string;
-  icon: ReactNode;
-}> = [
-  {
-    prefix: "Co-",
-    name: "Script",
-    tagline: "Align the story.",
-    description:
-      "Co-Script turns a brief into production intelligence: client language, research, interview targets, shot lists, constraints, and script drafts in one place. AI helps surface angles and gaps, while the human team keeps the message accurate and on brand.",
-    accent: "#4c8ef5",
-    icon: (
-      <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <path d="M10 4.5h14l6 6V35.5H10z" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
-        <path d="M24 4.5v7h6" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
-        <path d="M15 16h12M15 21h9M15 26h12M15 31h7" stroke="currentColor" strokeWidth={1.3} strokeLinecap="round" opacity={0.62} />
-        <path d="M7 10.5h6M10 7.5v6" stroke="currentColor" strokeWidth={1.35} strokeLinecap="round" />
-        <path d="M29 24.5l1.2 2.6 2.8 1.1-2.8 1.1-1.2 2.7-1.2-2.7-2.8-1.1 2.8-1.1z" fill="currentColor" opacity={0.9} />
-      </svg>
-    ),
-  },
-  {
-    prefix: "Co-",
-    name: "Cut",
-    tagline: "Shape the film.",
-    description:
-      "Co-Cut keeps post-production legible: media ingest, transcript-driven selects, edit versions, captions, exports, and frame-specific feedback. AI supports transcripts and selects so the editor can spend more time shaping the film, not chasing notes.",
-    accent: "#a78bf5",
-    icon: (
-      <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <rect x="2" y="14" width="36" height="12" rx="2" stroke="currentColor" strokeWidth={1.4} />
-        <line x1="10" y1="14" x2="10" y2="26" stroke="currentColor" strokeWidth={0.8} opacity={0.3} />
-        <line x1="18" y1="14" x2="18" y2="26" stroke="currentColor" strokeWidth={0.8} opacity={0.3} />
-        <line x1="26" y1="14" x2="26" y2="26" stroke="currentColor" strokeWidth={0.8} opacity={0.3} />
-        <line x1="34" y1="14" x2="34" y2="26" stroke="currentColor" strokeWidth={0.8} opacity={0.3} />
-        <line x1="22" y1="9" x2="22" y2="31" stroke="currentColor" strokeWidth={1.8} />
-        <polygon points="19,9 25,9 22,12" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    prefix: "Co-",
-    name: "Deliver",
-    tagline: "Control the handoff.",
-    description:
-      "Co-Deliver is the client-ready review and delivery layer: approval gates, comments, share links, downloads, final versions, and archive trails. AI helps summarize decisions and flag loose ends so the final handoff stays clean.",
-    accent: "#2dd4bf",
-    icon: (
-      <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <rect x="7" y="12" width="26" height="18" rx="3" stroke="currentColor" strokeWidth={1.5} />
-        <path d="M12 12l8 7 8-7" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
-        <path d="M20 19v10" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" opacity={0.5} />
-        <path d="M14 25h7.5" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" opacity={0.5} />
-        <circle cx="29" cy="28.5" r="6" fill="#f3ede2" stroke="currentColor" strokeWidth={1.4} />
-        <path d="M26.6 28.5l1.6 1.6 3.2-3.3" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-  },
-] as const;
 
 const CLIENT_LOGOS = [
   { src: "/cc/logos/bp.svg", alt: "BP", width: 72, height: 38, mobileWidth: 56, mobileHeight: 32 },
@@ -197,34 +132,32 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </div>
         </section>
 
-        {/* ─── Client Logo Ticker ─── */}
+        {/* ─── Client logos: a static, centred, wrapping row. A scrolling ticker
+            always cuts a logo off at one edge or the other. ─── */}
         <section className="client-logos" aria-label="Trusted by" data-logo-preview={logoPreview}>
-          <div className="client-logos-ticker">
-            {[0, 1].map((copy) => (
-              <div key={copy} className="client-logos-track" aria-hidden={copy === 1}>
-                {CLIENT_LOGOS.map((logo) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={`${logo.alt}-${copy}`}
-                    src={`${logo.src}?v=6`}
-                    alt={logo.alt}
-                    className="client-logo"
-                    width={logo.width}
-                    height={logo.height}
-                    style={{
-                      "--logo-width": `${logo.width}px`,
-                      "--logo-height": `${logo.height}px`,
-                      "--logo-mobile-width": `${logo.mobileWidth}px`,
-                      "--logo-mobile-height": `${logo.mobileHeight}px`,
-                    } as CSSProperties}
-                    loading={copy === 0 ? "eager" : "lazy"}
-                    decoding="async"
-                    fetchPriority="low"
-                  />
-                ))}
-              </div>
+          <ul className="client-logos-list">
+            {CLIENT_LOGOS.map((logo) => (
+              <li key={logo.alt} className="client-logos-item">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`${logo.src}?v=6`}
+                  alt={logo.alt}
+                  className="client-logo"
+                  width={logo.width}
+                  height={logo.height}
+                  style={{
+                    "--logo-width": `${logo.width}px`,
+                    "--logo-height": `${logo.height}px`,
+                    "--logo-mobile-width": `${logo.mobileWidth}px`,
+                    "--logo-mobile-height": `${logo.mobileHeight}px`,
+                  } as CSSProperties}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="low"
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
         {/* ─── S2: Work Gallery ─── */}
@@ -244,32 +177,32 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <div className="cream-section">
           <section className="products" aria-labelledby="co-apps-title">
             <div className="products-content">
-              <p className="products-kicker">The Co-Apps Suite</p>
+              <p className="products-kicker">Co-VideoPro</p>
               <h2 id="co-apps-title" className="products-headline">Brief to <em>boardroom.</em></h2>
               <div className="products-divider" aria-hidden="true" />
-              <p className="products-intro">
-                These are not side quests. Every project moves through the same three rooms:
-                plan the story, shape the film, and deliver the work without losing the thread.
-              </p>
+              <p className="products-intro">{SUITE_INTRO}</p>
               <div className="products-grid">
-                {HOME_SUITE_PRODUCTS.map((product) => (
+                {SUITE_CARDS.map((product) => (
                   <a
-                    key={product.name}
+                    key={product.id}
                     className="product-card"
-                    href={CO_VIDEOPRO_ENTRY_HREF}
-                    aria-label={`Open ${product.prefix}${product.name} in Co-VideoPro`}
+                    href={product.href}
+                    aria-label={product.ariaLabel}
                     style={{ "--card-accent": product.accent } as CSSProperties}
                   >
                     <div className="product-card-accent" aria-hidden="true" />
                     <div className="product-icon">{product.icon}</div>
-                    <h3 className="product-wordmark">
-                      <span className="product-co">{product.prefix}</span>{product.name}
-                    </h3>
+                    <h3 className="product-wordmark">{product.name}</h3>
                     <p className="product-copy">{product.tagline}</p>
                     <p className="product-desc">{product.description}</p>
-                    <span className="product-status">Open Co-VideoPro</span>
+                    <span className="product-status">{product.cta}</span>
                   </a>
                 ))}
+              </div>
+              <div className="products-coming">
+                <span className="products-coming-label">{SUITE_COMING.label}</span>
+                <p className="products-coming-title">{SUITE_COMING.title}</p>
+                <p className="products-coming-text">{SUITE_COMING.description}</p>
               </div>
             </div>
           </section>

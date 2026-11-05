@@ -618,6 +618,12 @@
     grid-template-columns: 1fr;
   }
 
+  /* Chips flow in rows on phones instead of one per line. */
+  .chip {
+    min-width: 0;
+    padding: 0.55rem 0.9rem;
+  }
+
   .nav,
   .actions {
     align-items: stretch;
@@ -639,12 +645,15 @@
 }
 
 .optional {
-  margin-left: 0.35rem;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  color: #8a96a3;
+  display: block;
+  margin-top: 0.25rem;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-wrap: balance;
+  color: #526476;
 }
 
 .talkInstead {

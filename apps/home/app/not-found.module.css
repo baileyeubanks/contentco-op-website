@@ -1,0 +1,59 @@
+.main {
+  flex: 1 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 6rem 1.5rem 4rem;
+  text-align: center;
+  color: #0c1322;
+}
+
+.inner {
+  max-width: 30rem;
+}
+
+.code {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #245894;
+}
+
+.title {
+  margin: 0 0 1rem;
+  font-family: var(--font-display), Fraunces, Georgia, serif;
+  font-size: clamp(2.4rem, 7vw, 3.6rem);
+  font-weight: 500;
+  line-height: 1.05;
+  color: #0c1322;
+}
+
+.lede {
+  margin: 0 0 2rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #3f4d5e;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px;
+  background: #1e4d8c;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cta:hover {
+  background: #173f74;
+}
+
+.cta:focus-visible {
+  outline: 3px solid #0c1322;
+  outline-offset: 3px;
+}

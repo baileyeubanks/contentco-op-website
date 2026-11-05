@@ -626,7 +626,7 @@ export function BriefClientPage() {
       <section className={s.surface} aria-live="polite">
         <p className={s.kicker}>Creative Brief Intake</p>
         <h1 className={s.title}>
-          Tell us your <em>Story.</em>
+          Tell us your <em>story.</em>
         </h1>
         <p className={s.subtitle}>
           Name, email, and company are all we need to follow up. Project details can stay thin — if
@@ -765,7 +765,8 @@ export function BriefClientPage() {
               </div>
               <div className={s.basics}>
                 <h3 className={s.basicsTitle}>
-                  The basics <small className={s.optional}>optional &mdash; enough for a ballpark quote</small>
+                  The basics
+                  <small className={s.optional}>Optional &mdash; enough for a ballpark quote.</small>
                 </h3>
                 <div className={s.optionGroup}>
                   <span>What do you need?</span>
