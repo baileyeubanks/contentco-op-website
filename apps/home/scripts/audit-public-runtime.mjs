@@ -467,10 +467,10 @@ const htmlChecks = [
     forbidden: ["Girls Night Out Campaign Film", "Campaign velocity", "Short-form polish", "Houston-led production"],
   },
   {
-    label: "pinots palette black light night case copy",
+    label: "pinots palette disconnect to reconnect case copy",
     url: "https://contentco-op.com/portfolio/pinots-palette",
     required: [
-      "Pinot's Palette Black Light Night",
+      "Disconnect to Reconnect",
       "30-second black-light event promo",
       "neon logo animation",
       "face-paint and glow-stick prep",

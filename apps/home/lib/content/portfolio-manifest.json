@@ -1135,43 +1135,6 @@
       ]
     },
     {
-      "id": "bp-max-efficiency",
-      "title": "Winning in Wells",
-      "client": "BP",
-      "sector": "Technical",
-      "year": "2023",
-      "format": "Operational film",
-      "scope": "Efficiency initiatives across global operations",
-      "headline": "Operational efficiency made visible without losing the technical rigor.",
-      "summary": "BP's maximising efficiency initiative translated into a production that bridges technical operations and leadership messaging.",
-      "mandate": "Make complex operational efficiency gains visible and communicable to both technical teams and leadership audiences.",
-      "execution": "Structured technical explanation, operational footage, and interview-driven clarity.",
-      "outcome": "An operational film that reads at both the technical and leadership level.",
-      "proofPoints": [
-        "Technical operations",
-        "Efficiency narrative",
-        "Leadership-facing"
-      ],
-      "deliverables": [
-        "Operational efficiency film",
-        "Leadership briefing asset"
-      ],
-      "thumbnail": "/cc/portfolio-cdn/thumb_bp_max_efficiency.jpg",
-      "preview": null,
-      "video": null,
-      "review": {
-        "status": "approved",
-        "reviewedBy": "Claude",
-        "reviewedAt": "2026-03-28"
-      },
-      "gallery": [
-        {
-          "src": "/cc/portfolio-cdn/thumb_bp_max_efficiency.jpg",
-          "alt": "BP Maximising Efficiency"
-        }
-      ]
-    },
-    {
       "id": "bp-mist",
       "title": "BP Mist Safety Initiative",
       "client": "BP",
@@ -1243,44 +1206,6 @@
         {
           "src": "/cc/portfolio-cdn/thumb_bp_volunteering.jpg",
           "alt": "Volunteering at BP"
-        }
-      ]
-    },
-    {
-      "id": "bp-iwd-2023",
-      "title": "International Women's Day",
-      "client": "BP",
-      "sector": "Executive",
-      "year": "2023",
-      "format": "Campaign film",
-      "scope": "IWD leadership spotlight and campaign",
-      "headline": "Leadership stories told with enough weight to carry the day and the year after.",
-      "summary": "BP's 2023 International Women's Day campaign produced into a leadership spotlight that stands on substance and specificity.",
-      "mandate": "Produce an IWD campaign piece that honors the subject matter without sliding into generic diversity messaging.",
-      "execution": "Executive interviews, personal narratives, and production choices that let the stories land with authority.",
-      "outcome": "A campaign asset for IWD, leadership communications, and ongoing D&I programming.",
-      "proofPoints": [
-        "IWD campaign",
-        "Leadership spotlight",
-        "D&I programming"
-      ],
-      "deliverables": [
-        "IWD campaign film",
-        "Leadership interviews",
-        "Social cuts"
-      ],
-      "thumbnail": "/cc/portfolio-cdn/thumb_bp_iwd_2023.jpg",
-      "preview": null,
-      "video": null,
-      "review": {
-        "status": "approved",
-        "reviewedBy": "Claude",
-        "reviewedAt": "2026-03-28"
-      },
-      "gallery": [
-        {
-          "src": "/cc/portfolio-cdn/thumb_bp_iwd_2023.jpg",
-          "alt": "BP International Women's Day 2023"
         }
       ]
     },
@@ -1990,19 +1915,19 @@
     },
     {
       "id": "pinots-palette",
-      "title": "Pinot's Palette Black Light Night",
+      "title": "Disconnect to Reconnect",
       "client": "Pinot's Palette",
       "sector": "Experiential franchise marketing",
       "year": "2019",
       "format": "30-second black-light event promo",
-      "scope": "30-second Pinot's Palette Black Light Night promo with neon logo animation, face-paint and glow-stick prep, studio painting rows, black-light canvas reveals, upbeat party copy, and brand end card",
+      "scope": "30-second Pinot's Palette Disconnect to Reconnect promo with neon logo animation, face-paint and glow-stick prep, studio painting rows, black-light canvas reveals, upbeat party copy, and brand end card",
       "headline": "A paint-and-sip promo that makes the room feel like the reservation.",
-      "summary": "Pinot's Palette's Black Light Night spot turns a studio class into a vivid event invitation: neon brand openers, glowing face-paint moments, apron-and-easel rows, laughter at the canvas, black-light brush texture, and kinetic copy that tells guests to turn a regular night into something that boasts an upbeat atmosphere.",
+      "summary": "Pinot's Palette's Disconnect to Reconnect spot turns a studio class into a vivid event invitation: neon brand openers, glowing face-paint moments, apron-and-easel rows, laughter at the canvas, black-light brush texture, and kinetic copy that tells guests to turn a regular night into something that boasts an upbeat atmosphere.",
       "mandate": "Make a themed studio night feel easy to understand, fun to join, and franchise-ready for guests who might not picture themselves at a painting class.",
       "execution": "Content Co-op cut tight customer reactions, UV-lit painting details, glow-stick prep, neon transition graphics, and reservation-minded messaging into a 30-second social/web spot that sells the experience before it explains the logistics.",
       "outcome": "The finished 1280x720, 23.976fps event promo gives Pinot's Palette a reusable campaign asset for themed nights, local studio pages, paid social, and in-venue promotion.",
       "proofPoints": [
-        "Black Light Night event promo",
+        "Disconnect to Reconnect event promo",
         "Neon Pinot's Palette logo animation",
         "Glow-stick and face-paint prep",
         "Black-light canvas reveals",
@@ -2025,7 +1950,7 @@
       "gallery": [
         {
           "src": "/cc/portfolio-cdn/thumb_pinots_palette.jpg",
-          "alt": "Pinot's Palette Black Light Night"
+          "alt": "Pinot's Palette Disconnect to Reconnect"
         }
       ]
     },
