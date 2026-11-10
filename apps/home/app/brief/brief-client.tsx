@@ -7,9 +7,7 @@ import {
   CCO_BRIEF_DRAFT_STORAGE_KEY,
   canRetryCcoBriefDelivery,
   clearCcoBriefSubmissionStorage,
-  discardCcoBriefSubmissionId,
   getCcoBriefSubmissionId,
-  postCcoBriefWithConflictRecovery,
 } from "@/lib/cco-public-intake-client";
 import { finishCcoPublicBriefSubmission, type CcoReceivedBrief } from "@/lib/cco-public-brief-submission";
 import { buildBriefPricingInputs, calculateEstimate, formatCurrency } from "@/lib/pricing";
@@ -385,12 +383,6 @@ export function BriefClientPage() {
     return id;
   }
 
-  /** Server said the saved id does not belong to this brief: drop only the id, keep the draft. */
-  function discardSavedSubmissionId() {
-    submissionIdRef.current = null;
-    discardCcoBriefSubmissionId();
-  }
-
   function clearSubmittedDraft() {
     submissionIdRef.current = null;
     clearCcoBriefSubmissionStorage();
@@ -475,11 +467,7 @@ export function BriefClientPage() {
     try {
       // This endpoint persists both contact and full brief. Re-saving the
       // optional lead snapshot here must not gate submission or its retries.
-      const { response, payload: rawPayload } = await postCcoBriefWithConflictRecovery({
-        getId: getSubmissionId,
-        discardId: discardSavedSubmissionId,
-        post: async (submissionId) => {
-          const response = await fetch("/api/cco/briefs", {
+      const response = await fetch("/api/cco/briefs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -520,13 +508,10 @@ export function BriefClientPage() {
             postComplexity: quoteDiagnostics.postComplexity,
           },
           bookingPreference: draft.bookingPreference,
-          submissionId,
+          submissionId: getSubmissionId(),
         }),
       });
-          return { response, payload: await response.json().catch(() => null) as unknown };
-        },
-      });
-      const payload = rawPayload as Record<string, unknown> | null;
+      const payload = await response.json().catch(() => null);
       if (!response.ok || payload?.persisted !== true) {
         const submissionError = new Error(responseErrorMessage(payload, "Brief submission failed")) as Error & { retryable?: boolean };
         submissionError.retryable = payload?.retryable !== false;

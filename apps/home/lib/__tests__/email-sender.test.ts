@@ -6,7 +6,12 @@ import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 const spawnMock = vi.hoisted(() => vi.fn());
+const nodeDwdSpy = vi.hoisted(() => vi.fn());
 vi.mock("node:child_process", () => ({ spawn: spawnMock }));
+vi.mock("../gmail-dwd-send", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../gmail-dwd-send")>();
+  return { ...actual, sendGmailViaServiceAccount: (...args: Parameters<typeof actual.sendGmailViaServiceAccount>) => { nodeDwdSpy(); return actual.sendGmailViaServiceAccount(...args); } };
+});
 
 import { sendTransactionalEmail } from "../email-sender";
 
@@ -248,53 +253,81 @@ describe("transactional email delivery certainty", () => {
   });
 });
 
-describe("Astro Cleanings (ACS) call sequence is unchanged from the base order", () => {
+describe("Astro Cleanings (ACS) behaves exactly as the base release", () => {
   const acs = { ...message, businessUnit: "ACS" };
+  const oauthScript = (call: number) => String(spawnMock.mock.calls[call]?.[1]?.[1] ?? "");
 
-  function trace(keyPath: string | null) {
-    const events: string[] = [];
+  function acsEnv() {
     vi.stubEnv("RESEND_API_KEY", "");
     vi.stubEnv("GOOGLE_OAUTH_TOKEN_FILE_ACS", "/acs/token.json");
-    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", keyPath || "");
+    // A perfectly valid key must NOT make ACS use the Node path.
+    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", writeThrowawayKey());
     vi.stubEnv("GOOGLE_APPLICATION_CREDENTIALS", "");
-    vi.stubEnv("HOME", "/nonexistent-home-for-test");
-    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
-      events.push(String(url).includes("oauth2") ? "dwd-token" : "dwd-send");
-      return String(url).includes("oauth2")
-        ? new Response(JSON.stringify({ access_token: "t" }), { status: 200 })
-        : new Response(JSON.stringify({ id: "acs-dwd" }), { status: 200 });
-    }));
-    return events;
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 500 }));
+    vi.stubGlobal("fetch", fetchMock);
+    nodeDwdSpy.mockClear();
+    return fetchMock;
   }
 
-  test("OAuth first and, on success, DWD is never touched even when a key exists", async () => {
-    const events = trace(writeThrowawayKey());
-    spawnMock.mockImplementation(() => { events.push("oauth"); return pythonChild({ code: 0, stdout: JSON.stringify({ ok: true, id: "acs-oauth" }) }); });
+  test("OAuth success returns the OAuth receipt; nothing else runs", async () => {
+    const fetchMock = acsEnv();
+    spawnMock.mockReturnValueOnce(pythonChild({ code: 0, stdout: JSON.stringify({ ok: true, id: "acs-oauth" }) }));
     await expect(sendTransactionalEmail(acs)).resolves.toEqual({ ok: true, id: "acs-oauth" });
-    expect(events).toEqual(["oauth"]);
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    expect(oauthScript(0)).toContain("refresh_token");
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(nodeDwdSpy).not.toHaveBeenCalled();
   });
 
-  test("an ambiguous OAuth outcome returns immediately with no DWD attempt", async () => {
-    const events = trace(writeThrowawayKey());
-    spawnMock.mockImplementation(() => { events.push("oauth"); return pythonChild({ code: 70, stderr: "DELIVERY_UNKNOWN:TimeoutError:timed out" }); });
+  test("an ambiguous OAuth outcome is returned raw and DWD is not attempted", async () => {
+    const fetchMock = acsEnv();
+    spawnMock.mockReturnValueOnce(pythonChild({ code: 70, stderr: "DELIVERY_UNKNOWN:TimeoutError:timed out" }));
     await expect(sendTransactionalEmail(acs)).resolves.toEqual({ ok: false, error: "TimeoutError:timed out", deliveryUnknown: true });
-    expect(events).toEqual(["oauth"]);
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(nodeDwdSpy).not.toHaveBeenCalled();
   });
 
-  test("DWD runs only after a definite OAuth failure", async () => {
-    const events = trace(writeThrowawayKey());
-    spawnMock.mockImplementation(() => { events.push("oauth"); return pythonChild({ code: 1, stderr: "oauth_token_rejected" }); });
+  test("a definite OAuth failure falls to the Python DWD script, which succeeds", async () => {
+    const fetchMock = acsEnv();
+    spawnMock
+      .mockReturnValueOnce(pythonChild({ code: 1, stderr: "oauth_token_rejected" }))
+      .mockReturnValueOnce(pythonChild({ code: 0, stdout: JSON.stringify({ ok: true, id: "acs-dwd" }) }));
     await expect(sendTransactionalEmail(acs)).resolves.toEqual({ ok: true, id: "acs-dwd" });
-    expect(events).toEqual(["oauth", "dwd-token", "dwd-send"]);
+    expect(spawnMock).toHaveBeenCalledTimes(2);
+    expect(oauthScript(0)).toContain("refresh_token");
+    expect(oauthScript(1)).toContain("service_account");
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(nodeDwdSpy).not.toHaveBeenCalled();
   });
 
-  test("the diagnostic log prints only listed codes, never raw OAuth text", async () => {
-    const events = trace(writeThrowawayKey());
-    spawnMock.mockImplementation(() => { events.push("oauth"); return pythonChild({ code: 1, stderr: "private_customer_subject" }); });
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "x" }), { status: 400 })));
+  test("OAuth failure then Python DWD HTTP 422 returns the base error string and base log line", async () => {
+    const fetchMock = acsEnv();
+    spawnMock
+      .mockReturnValueOnce(pythonChild({ code: 1, stderr: "oauth_token_rejected" }))
+      .mockReturnValueOnce(pythonChild({ code: 69, stderr: "DELIVERY_FAILED:HTTPError:422" }));
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    await sendTransactionalEmail(acs);
-    expect(JSON.stringify(log.mock.calls)).not.toContain("private_customer_subject");
-    expect(JSON.stringify(log.mock.calls)).toContain("unlisted_error");
+    await expect(sendTransactionalEmail(acs)).resolves.toEqual({ ok: false, error: "HTTPError:422" });
+    expect(log).toHaveBeenCalledWith(
+      "[email-sender] RESEND_API_KEY not set and Gmail fallbacks failed. Would send:\n  To: avery@example.com\n  From: Astro Cleaning Services <noreply@astrocleanings.com>\n  Subject: Delivery classification test\n  OAuth error: oauth_token_rejected\n  DWD error: HTTPError:422",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(nodeDwdSpy).not.toHaveBeenCalled();
+  });
+
+  test("an ambiguous Python DWD outcome is returned raw", async () => {
+    acsEnv();
+    spawnMock
+      .mockReturnValueOnce(pythonChild({ code: 1, stderr: "oauth_token_rejected" }))
+      .mockReturnValueOnce(pythonChild({ code: 70, stderr: "DELIVERY_UNKNOWN:TimeoutError:timed out" }));
+    await expect(sendTransactionalEmail(acs)).resolves.toEqual({ ok: false, error: "TimeoutError:timed out", deliveryUnknown: true });
+  });
+
+  test("a unit other than CC (undefined) also takes the base path", async () => {
+    acsEnv();
+    spawnMock.mockReturnValueOnce(pythonChild({ code: 0, stdout: JSON.stringify({ ok: true, id: "x" }) }));
+    vi.stubEnv("GOOGLE_OAUTH_TOKEN_FILE_ACS", "/acs/token.json");
+    await sendTransactionalEmail({ ...message, businessUnit: undefined });
+    expect(nodeDwdSpy).not.toHaveBeenCalled();
   });
 });

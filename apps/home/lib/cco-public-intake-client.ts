@@ -66,35 +66,3 @@ export function clearCcoBriefSubmissionStorage() {
     // Persistence already succeeded; local-storage cleanup must not alter it.
   }
 }
-
-/** Remove only the saved submission id (the draft stays). */
-export function discardCcoBriefSubmissionId() {
-  try {
-    localStorage.removeItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
-  } catch {
-    // Nothing to discard if storage is unavailable.
-  }
-}
-
-/** The one answer that means "this saved id does not belong to this brief". */
-export function isCcoBriefSubmissionConflict(status: number, payload: unknown): boolean {
-  const body = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
-  return status === 409 && body.error === "brief_submission_conflict";
-}
-
-/**
- * Posts a brief. Only when the server answers with the submission-conflict
- * code is the saved id discarded and the same draft posted once more under a
- * fresh id; a second conflict (or any other outcome) is returned as is. The
- * server stays the only authority on whether an id matches a brief.
- */
-export async function postCcoBriefWithConflictRecovery(input: {
-  getId: () => string;
-  discardId: () => void;
-  post: (submissionId: string) => Promise<{ response: Pick<Response, "ok" | "status">; payload: unknown }>;
-}) {
-  const first = await input.post(input.getId());
-  if (!isCcoBriefSubmissionConflict(first.response.status, first.payload)) return first;
-  input.discardId();
-  return input.post(input.getId());
-}
