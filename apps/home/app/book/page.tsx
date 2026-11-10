@@ -50,13 +50,13 @@ export default function BookPage() {
               <div className={s.hostSignoff}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/cc/signature-bailey.png"
+                  src="/cc/email/signature-bailey-ink.png"
                   alt="Bailey Eubanks"
                   className={s.hostSignature}
                   width={470}
                   height={117}
                 />
-                <span className={s.kicker}>Founder &amp; Executive Producer</span>
+                <span className={`${s.kicker} ${s.hostRole}`}>Founder &amp; Executive Producer</span>
               </div>
 
               <div className={s.agenda}>

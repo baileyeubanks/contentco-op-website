@@ -169,7 +169,7 @@ export const serviceJsonLd = [
     serviceType: "Production workflow software",
     url: absoluteUrl("/suite"),
     description:
-      "Planning, review, and delivery software for production workflows through the Co-Apps Suite.",
+      "Co-VideoPro: video review, approval, delivery, client portal, and quote, signature and payment software.",
     areaServed: "United States",
     provider: {
       "@type": "Organization",
@@ -190,9 +190,9 @@ export function buildSoftwareSuiteJsonLd(
     {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      name: "Co-Apps Suite",
+      name: "Co-VideoPro",
       url: absoluteUrl("/suite"),
-      description: "Planning, review, and delivery software for production workflows.",
+      description: "Video review, approval, delivery, client portal, and quote, signature and payment software.",
       isPartOf: {
         "@type": "WebSite",
         name: SITE_NAME,

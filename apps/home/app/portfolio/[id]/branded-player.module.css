@@ -1,0 +1,151 @@
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #0c1322;
+  border: 1px solid rgba(76, 142, 245, 0.16);
+  box-shadow: 0 22px 70px rgba(12, 19, 34, 0.16);
+}
+
+.frame:fullscreen {
+  border-radius: 0;
+  border: 0;
+  aspect-ratio: auto;
+}
+
+.video,
+.poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #0c1322;
+}
+
+.frame:fullscreen .video {
+  object-fit: contain;
+}
+
+.playOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: linear-gradient(180deg, rgba(12, 19, 34, 0.08), rgba(12, 19, 34, 0.38));
+}
+
+.playCircle {
+  display: grid;
+  place-items: center;
+  width: clamp(64px, 9vw, 88px);
+  height: clamp(64px, 9vw, 88px);
+  padding-left: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1e4d8c;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.35);
+  transition: transform 200ms ease, background 200ms ease;
+}
+
+.playOverlay:hover .playCircle,
+.playOverlay:focus-visible .playCircle {
+  transform: scale(1.07);
+  background: #ffffff;
+}
+
+.playOverlay:focus-visible {
+  outline: 3px solid #4c8ef5;
+  outline-offset: -6px;
+}
+
+.bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.6rem 0.9rem 0.7rem;
+  background: linear-gradient(180deg, transparent, rgba(12, 19, 34, 0.82));
+  color: #ffffff;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+
+.frame:hover .bar,
+.frame:focus-within .bar,
+.barVisible .bar {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.btn:focus-visible,
+.seek:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.time {
+  flex: none;
+  min-width: 2.6rem;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.seek {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  accent-color: #4c8ef5;
+  cursor: pointer;
+}
+
+.error {
+  position: absolute;
+  inset: auto 1rem 4rem;
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(12, 19, 34, 0.9);
+  color: #ffffff;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .bar {
+    gap: 0.2rem;
+    padding-inline: 0.4rem;
+  }
+
+  .time {
+    min-width: 2.2rem;
+    font-size: 0.72rem;
+  }
+}

@@ -17,6 +17,7 @@ import {
 } from "@/lib/seo";
 import s from "./case-study.module.css";
 import { EpisodePlayer } from "./episode-player";
+import { BrandedPlayer } from "./branded-player";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -72,11 +73,7 @@ const LOCATION_BY_ID: Record<string, string> = {
   "houston-tech-rodeo": "100 Bringhurst, Houston",
   "north-little-rock": "North Little Rock, AR",
   "tyler-t1d-foundation": "Tyler, TX",
-  "school-boy-humor": "Music video performance set",
-  "ica-aerial-refinery": "U.S. energy footprint",
   "ica-ceo-interview": "Ponte Vedra Beach, FL",
-  gno: "Franchise studio campaign",
-  "conexon-workshop": "Co-ops Connect event environment",
   "kappa-rap": "Baylor University, Waco",
 };
 
@@ -92,45 +89,30 @@ const PLACEMENT_BY_ID: Record<string, string> = {
   "kappa-rap": "Rush-room playback, YouTube, social resurgence, convention archive",
 };
 
-function inferLocation(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
-  if (LOCATION_BY_ID[study.id]) return LOCATION_BY_ID[study.id];
-  if (study.client === "BP" || study.client === "CITGO Petroleum") return "Gulf Coast operations";
-  if (study.sector.toLowerCase().includes("industrial")) return "Industrial field site";
-  if (study.format.toLowerCase().includes("conference")) return "Live event environment";
-  return "Houston-led production";
+// Only a known location is shown. An unknown one is omitted, never guessed.
+function inferLocation(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>): string | null {
+  return LOCATION_BY_ID[study.id] ?? null;
 }
 
-function inferAudience(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
-  if (AUDIENCE_BY_ID[study.id]) return AUDIENCE_BY_ID[study.id];
-  const searchable = `${study.sector} ${study.format} ${study.scope}`.toLowerCase();
-  if (searchable.includes("safety")) return "Field teams, HSE leaders, operations reviewers";
-  if (searchable.includes("recruit")) return "Candidates, hiring teams, internal brand leaders";
-  if (searchable.includes("conference") || searchable.includes("executive")) {
-    return "Executives, communications teams, event stakeholders";
-  }
-  if (searchable.includes("broadband") || searchable.includes("co-op")) {
-    return "Co-op broadband teams, marketers, member-services leaders";
-  }
-  if (searchable.includes("paint-and-sip") || searchable.includes("franchise")) {
-    return "Private-party guests, studio owners, franchise marketers";
-  }
-  if (searchable.includes("event") || searchable.includes("rodeo") || searchable.includes("stadium")) {
-    return "Employees, partners, attendees, internal communications";
-  }
-  return "Leadership, sales, operations, and stakeholder audiences";
+// Runtime is the film's duration: the curated table first, then a duration the
+// scope copy opens with (for example "5:10, 1080p ..."). Otherwise omitted.
+function inferRuntime(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>): string | null {
+  if (RUNTIME_BY_ID[study.id]) return RUNTIME_BY_ID[study.id];
+  return study.scope.match(/^~?\d{1,2}:\d{2}(?=[\s,.;]|$)/)?.[0] ?? null;
 }
 
-function inferPlacement(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>) {
-  if (PLACEMENT_BY_ID[study.id]) return PLACEMENT_BY_ID[study.id];
-  const searchable = `${study.format} ${study.scope} ${study.deliverables.join(" ")}`.toLowerCase();
-  if (searchable.includes("training") || searchable.includes("safety")) return "Training rollout, internal review, field communication";
-  if (searchable.includes("jumbotron") || searchable.includes("stadium")) return "Stadium screen, live-event playback";
-  if (searchable.includes("sponsor") || searchable.includes("community communications")) return "Venue, web, social, community communications";
-  if (searchable.includes("workshop") || searchable.includes("session lineup")) return "Event marketing, workshop launch, attendee communications";
-  if (searchable.includes("private-party") || searchable.includes("studio marketing")) return "Website, social ads, studio booking pages";
-  if (searchable.includes("conference") || searchable.includes("event")) return "Event recap, website, social, internal comms";
-  if (searchable.includes("recruit")) return "Recruiting, website, social, internal brand";
-  return "Website, stakeholder meetings, sales enablement, internal communications";
+// Titles that are a program tag plus a name, not a real film title, are kept
+// out of "Related case studies" until Bailey supplies the film's actual title.
+const RELATED_EXCLUDED_IDS = new Set(["carwash-lead-drummond"]);
+
+// Audience and placement are shown only when curated per film above. There is
+// no keyword-based fallback: an unknown value is omitted, never guessed.
+function inferAudience(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>): string | null {
+  return AUDIENCE_BY_ID[study.id] ?? null;
+}
+
+function inferPlacement(study: NonNullable<ReturnType<typeof getPortfolioStudyById>>): string | null {
+  return PLACEMENT_BY_ID[study.id] ?? null;
 }
 
 export async function generateStaticParams() {
@@ -199,16 +181,16 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
   const studyName = formatPortfolioStudyName(study);
   const specRows = [
     { label: "Client", value: study.client },
-    { label: "Runtime", value: RUNTIME_BY_ID[study.id] ?? "Project cut" },
+    { label: "Runtime", value: inferRuntime(study) },
     { label: "Location", value: inferLocation(study) },
     { label: "Year", value: study.year },
     { label: "Format", value: study.format },
     { label: "Scope", value: study.scope },
     { label: "Primary audience", value: inferAudience(study) },
     { label: "Placement", value: inferPlacement(study) },
-  ];
+  ].filter((row): row is { label: string; value: string } => Boolean(row.value && row.value.trim()));
   const relatedStudies = portfolioPublicStudies
-    .filter((entry) => entry.id !== study.id && entry.review?.status === "approved" && !isComingSoonStudy(entry.id))
+    .filter((entry) => entry.id !== study.id && !RELATED_EXCLUDED_IDS.has(entry.id) && entry.review?.status === "approved" && !isComingSoonStudy(entry.id))
     .sort((left, right) => {
       const leftScore =
         Number(left.sector === study.sector) * 3 +
@@ -256,19 +238,14 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
           {study.episodes?.length ? (
             <EpisodePlayer episodes={study.episodes} poster={posterUrl} />
           ) : (
-            <div className={s.videoFrame}>
-              {videoUrl ? (
-                <video
-                  controls
-                  preload="metadata"
-                  poster={posterUrl}
-                  src={videoUrl}
-                />
-              ) : posterUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+            videoUrl ? (
+              <BrandedPlayer src={videoUrl} poster={posterUrl} title={studyName} />
+            ) : posterUrl ? (
+              <div className={s.videoFrame}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={posterUrl} alt={studyName} />
-              ) : null}
-            </div>
+              </div>
+            ) : null
           )}
         </section>
 
@@ -313,7 +290,7 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
             <section className={s.signalBlock}>
               <div>
                 <p className={s.blockLabel}>Delivered assets</p>
-                <ul className={s.inlineList}>
+                <ul className={s.assetList}>
                   {study.deliverables.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -321,7 +298,7 @@ export default async function PortfolioCaseStudyPage({ params }: Props) {
               </div>
               <div>
                 <p className={s.blockLabel}>Project signals</p>
-                <ul className={s.inlineList}>
+                <ul className={s.assetList}>
                   {study.proofPoints.map((point) => (
                     <li key={point}>{point}</li>
                   ))}

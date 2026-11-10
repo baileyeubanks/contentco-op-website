@@ -211,6 +211,34 @@
   border-bottom: 1px solid rgba(12, 19, 34, 0.12);
 }
 
+.assetList {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.58rem;
+}
+
+.assetList li {
+  position: relative;
+  padding-left: 0.9rem;
+  color: #0c1322;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.assetList li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.52em;
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 999px;
+  background: #4c8ef5;
+}
+
 .inlineList {
   list-style: none;
   margin: 0.8rem 0 0;

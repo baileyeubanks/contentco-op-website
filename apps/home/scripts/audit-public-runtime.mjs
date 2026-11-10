@@ -74,7 +74,7 @@ const htmlChecks = [
   {
     label: "brief copy",
     url: "https://contentco-op.com/brief",
-    required: ["Tell us your", "Story.", "Name, email, and company are all we need to follow up.", "leave the default"],
+    required: ["Tell us your", "story.", "Name, email, and company are all we need to follow up.", "leave the default"],
     forbidden: ["It takes about 3 minutes", "quick chat"],
   },
   {
@@ -503,8 +503,8 @@ const htmlChecks = [
   {
     label: "suite copy",
     url: "https://contentco-op.com/suite",
-    required: ["Brief to", "boardroom", "Co-Script", "Co-Cut", "Co-Deliver", "Open Co-VideoPro"],
-    forbidden: ["Start a brief", "Book a Demo"],
+    required: ["Brief to", "boardroom", "Review", "Deliver", "Request a quote", "Coming", "Open Co-VideoPro"],
+    forbidden: ["Start a brief", "Book a Demo", "transcript-driven", "AI helps", "Co-Script turns", "Co-Cut keeps"],
   },
   {
     label: "terms copy",
