@@ -1,5 +1,11 @@
 export const CCO_BRIEF_DRAFT_STORAGE_KEY = "cco-brief-draft-v1";
 export const CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY = "cco-brief-submission-id-v1";
+export const CCO_BRIEF_SUBMISSION_SCOPE_STORAGE_KEY = "cco-brief-submission-scope-v1";
+
+/** A saved retry id belongs to one contact email; normalise it for comparison. */
+export function ccoBriefSubmissionScope(email: string) {
+  return String(email || "").trim().toLowerCase();
+}
 
 export type CcoBriefDeliveryIssue = "failed" | "unknown" | "mixed" | null;
 
@@ -45,13 +51,18 @@ export function canRetryCcoBriefDelivery(issue: CcoBriefDeliveryIssue) {
 export function getCcoBriefSubmissionId(
   currentId: string | null,
   createId: () => string = () => globalThis.crypto.randomUUID(),
+  scope?: string,
 ) {
   if (currentId) return currentId;
   try {
     const saved = localStorage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
-    if (saved) return saved;
+    // A saved id is reused only for the contact email it was created for. A
+    // different email is a new brief, so it gets a new id.
+    const savedScope = localStorage.getItem(CCO_BRIEF_SUBMISSION_SCOPE_STORAGE_KEY);
+    if (saved && (scope === undefined || savedScope === scope)) return saved;
     const id = createId();
     localStorage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, id);
+    if (scope !== undefined) localStorage.setItem(CCO_BRIEF_SUBMISSION_SCOPE_STORAGE_KEY, scope);
     return id;
   } catch {
     return createId();
@@ -62,6 +73,7 @@ export function clearCcoBriefSubmissionStorage() {
   try {
     localStorage.removeItem(CCO_BRIEF_DRAFT_STORAGE_KEY);
     localStorage.removeItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
+    localStorage.removeItem(CCO_BRIEF_SUBMISSION_SCOPE_STORAGE_KEY);
   } catch {
     // Persistence already succeeded; local-storage cleanup must not alter it.
   }

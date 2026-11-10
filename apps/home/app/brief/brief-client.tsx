@@ -8,6 +8,7 @@ import {
   canRetryCcoBriefDelivery,
   clearCcoBriefSubmissionStorage,
   getCcoBriefSubmissionId,
+  ccoBriefSubmissionScope,
 } from "@/lib/cco-public-intake-client";
 import { finishCcoPublicBriefSubmission, type CcoReceivedBrief } from "@/lib/cco-public-brief-submission";
 import { buildBriefPricingInputs, calculateEstimate, formatCurrency } from "@/lib/pricing";
@@ -241,6 +242,7 @@ export function BriefClientPage() {
   const [result, setResult] = useState<BriefResult | null>(null);
   const [retrySubmissionAvailable, setRetrySubmissionAvailable] = useState(false);
   const submissionIdRef = useRef<string | null>(null);
+  const submissionScopeRef = useRef<string | null>(null);
 
   const [draft, setDraft] = useState<BriefDraft>(DEFAULT_DRAFT);
   /* Timeline has a default for the estimate; only send it as a quote basic once chosen. */
@@ -378,13 +380,18 @@ export function BriefClientPage() {
   }
 
   function getSubmissionId() {
-    const id = getCcoBriefSubmissionId(submissionIdRef.current);
+    // A saved retry id is tied to the contact email it was created for.
+    const scope = ccoBriefSubmissionScope(draft.email);
+    if (submissionScopeRef.current !== null && submissionScopeRef.current !== scope) submissionIdRef.current = null;
+    const id = getCcoBriefSubmissionId(submissionIdRef.current, undefined, scope);
     submissionIdRef.current = id;
+    submissionScopeRef.current = scope;
     return id;
   }
 
   function clearSubmittedDraft() {
     submissionIdRef.current = null;
+    submissionScopeRef.current = null;
     clearCcoBriefSubmissionStorage();
   }
 

@@ -9,7 +9,7 @@
 import { createHash } from "node:crypto";
 import { getCcoOsDatabase, type CcoPublicIntakeDatabase } from "@/lib/cco-public-intake";
 import { enqueueOwnerText, type OwnerAlertDelivery } from "@/lib/blaze-text-outbox";
-import { sendTransactionalEmail } from "@/lib/email-sender";
+import { describeCcoEmailTransport, sendTransactionalEmail } from "@/lib/email-sender";
 import {
   CCO_OWNER_ALERT_PHONE_E164,
   isCcoOwnerAlertPhone,
@@ -182,21 +182,16 @@ export function ccoOsContactUrl(leadId: string, origin = CCO_OS_PUBLIC_ORIGIN) {
 
 export function describeCcoOwnerEmailTransport(
   env: Record<string, string | undefined> = process.env,
-): { ready: boolean; provider: "resend" | "gmail_fallback"; missing: string[]; detail: string } {
-  if (String(env.RESEND_API_KEY || "").trim()) {
-    return {
-      ready: true,
-      provider: "resend",
-      missing: [],
-      detail: "RESEND_API_KEY is set; sendTransactionalEmail will use Resend.",
-    };
-  }
+  fileExists?: (filePath: string) => boolean,
+): { ready: boolean; provider: "resend" | "gmail_dwd" | "gmail_oauth" | "none"; missing: string[]; detail: string } {
+  // Same decision as sendTransactionalEmail, so health reports the transport
+  // that will actually be used.
+  const transport = describeCcoEmailTransport(env, fileExists);
   return {
-    ready: false,
-    provider: "gmail_fallback",
-    missing: ["RESEND_API_KEY"],
-    detail:
-      "RESEND_API_KEY is unset. sendTransactionalEmail may still use a Gmail OAuth/DWD token file on the runtime host if one exists; do not create one here. M4 CCO runtime has historically had neither.",
+    ready: transport.ready,
+    provider: transport.provider,
+    missing: transport.ready ? [] : ["RESEND_API_KEY or GOOGLE_DWD_SERVICE_ACCOUNT_FILE"],
+    detail: transport.detail,
   };
 }
 
@@ -223,6 +218,8 @@ function asId(value: unknown) {
 function boundedError(value: unknown) {
   // Persist only our reason vocabulary, never provider bodies, credentials or recipient data.
   const reason = typeof value === "string" ? value : "delivery_outcome_unknown";
+  const gmailCode = /^(gmail_dwd_[a-z_]+)/.exec(reason);
+  if (gmailCode) return gmailCode[1];
   if (/unconfigured|invalid_grant|credential|no channel/i.test(reason)) return "undeliverable: no channel";
   const allowed = ["owner_alert_send_timeout", "outbox_unavailable", "outbox_pending", "outbox_failed", "outbox_suppressed", "outbox_outcome_unknown", "delivery_outcome_unknown"];
   return allowed.includes(reason) ? reason : "delivery_failed";

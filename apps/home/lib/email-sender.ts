@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import { findGmailDwdKeyPath, gmailDwdKeyCandidates, sendGmailViaServiceAccount } from "./gmail-dwd-send";
 
 const PYTHON_SAFE_CWD = process.env.HOME || "/tmp";
 const DEFAULT_BLAZE_GMAIL_TOKEN_PATH = "~/.config/blaze/google/blaze_contentcoop.json";
@@ -30,120 +31,6 @@ interface SendResult {
   /** The provider handoff may have succeeded, so automatic resend is unsafe. */
   deliveryUnknown?: boolean;
 }
-
-const GMAIL_DWD_PYTHON = String.raw`
-import base64
-import json
-import os
-import sys
-import time
-import urllib.parse
-import urllib.request
-import urllib.error
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email import encoders
-from pathlib import Path
-
-payload = json.load(sys.stdin)
-service_account_path = os.path.expanduser(
-    next(
-        (
-            path
-            for path in (
-                payload.get("service_account_path"),
-                os.environ.get("GOOGLE_DWD_SERVICE_ACCOUNT_FILE"),
-                os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"),
-                "~/.config/blaze/google/service_account.json",
-                "~/.gemini/antigravity/playground/perihelion-armstrong/service_account.json",
-            )
-            if path
-        ),
-        "~/.gemini/antigravity/playground/perihelion-armstrong/service_account.json",
-    )
-)
-sender_sub = payload.get("sender_sub") or os.environ.get("GOOGLE_DWD_IMPERSONATION_SUBJECT") or "blaze@contentco-op.com"
-
-with open(service_account_path, "r", encoding="utf-8") as handle:
-    service_account = json.load(handle)
-
-message = MIMEMultipart("mixed")
-message["To"] = payload["to"]
-message["From"] = payload["from"]
-message["Subject"] = payload["subject"]
-if payload.get("reply_to"):
-    message["Reply-To"] = payload["reply_to"]
-
-alternative = MIMEMultipart("alternative")
-alternative.attach(MIMEText(payload.get("text") or "", "plain", "utf-8"))
-alternative.attach(MIMEText(payload.get("html") or "", "html", "utf-8"))
-message.attach(alternative)
-
-for attachment in payload.get("attachments") or []:
-    part = MIMEBase("application", "octet-stream")
-    part.set_payload(base64.b64decode(attachment["content"]))
-    encoders.encode_base64(part)
-    content_type = attachment.get("content_type") or "application/octet-stream"
-    part.add_header("Content-Type", content_type)
-    part.add_header("Content-Disposition", f'attachment; filename="{attachment["filename"]}"')
-    message.attach(part)
-
-raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-
-header = base64.urlsafe_b64encode(json.dumps({"alg": "RS256", "typ": "JWT"}).encode()).rstrip(b"=").decode()
-claims = base64.urlsafe_b64encode(json.dumps({
-    "iss": service_account["client_email"],
-    "scope": "https://www.googleapis.com/auth/gmail.send",
-    "aud": "https://oauth2.googleapis.com/token",
-    "sub": sender_sub,
-    "iat": int(time.time()),
-    "exp": int(time.time()) + 3600,
-}).encode()).rstrip(b"=").decode()
-
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-
-private_key = serialization.load_pem_private_key(service_account["private_key"].encode(), password=None)
-signing_input = f"{header}.{claims}".encode()
-signature = base64.urlsafe_b64encode(private_key.sign(signing_input, padding.PKCS1v15(), hashes.SHA256())).rstrip(b"=").decode()
-jwt_token = f"{header}.{claims}.{signature}"
-
-token_request = urllib.request.Request(
-    "https://oauth2.googleapis.com/token",
-    data=urllib.parse.urlencode({
-        "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        "assertion": jwt_token,
-    }).encode(),
-    headers={"Content-Type": "application/x-www-form-urlencoded"},
-)
-with urllib.request.urlopen(token_request, timeout=20) as response:
-    access_token = json.loads(response.read())["access_token"]
-
-send_request = urllib.request.Request(
-    "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-    data=json.dumps({"raw": raw}).encode(),
-    headers={
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-    },
-)
-try:
-    with urllib.request.urlopen(send_request, timeout=20) as response:
-        result = json.loads(response.read() or b"{}")
-except urllib.error.HTTPError as error:
-    prefix = "DELIVERY_UNKNOWN" if error.code == 408 or error.code >= 500 else "DELIVERY_FAILED"
-    sys.stderr.write(f"{prefix}:HTTPError:{error.code}")
-    sys.exit(70 if prefix == "DELIVERY_UNKNOWN" else 69)
-except Exception as error:
-    # Authentication and message construction completed. A transport failure
-    # here may occur after Gmail accepted the message, so callers must not
-    # automatically retry it through another provider.
-    sys.stderr.write(f"DELIVERY_UNKNOWN:{type(error).__name__}:{error}")
-    sys.exit(70)
-
-sys.stdout.write(json.dumps({"ok": True, "id": result.get("id")}))
-`;
 
 const GMAIL_OAUTH_PYTHON = String.raw`
 import base64
@@ -370,46 +257,29 @@ async function sendViaGmailOauth(options: SendEmailOptions): Promise<SendResult>
 }
 
 async function sendViaGmailDwd(options: SendEmailOptions): Promise<SendResult> {
-  const replyTo = options.replyTo || getReplyToAddress(options.businessUnit);
-  try {
-    const stdout = await runPythonJson(GMAIL_DWD_PYTHON, {
+  return sendGmailViaServiceAccount(
+    {
       to: options.to,
       from: options.from || getFromAddress(options.businessUnit),
       subject: options.subject,
       html: options.html,
       text: options.text || stripHtml(options.html),
-      reply_to: replyTo || undefined,
+      replyTo: options.replyTo || getReplyToAddress(options.businessUnit),
       attachments: (options.attachments || []).map((attachment) => ({
         filename: attachment.filename,
         content: attachment.content,
-        content_type: attachment.contentType || "application/octet-stream",
+        contentType: attachment.contentType || "application/octet-stream",
       })),
-      sender_sub: getSenderSub(options),
-      service_account_path: process.env.GOOGLE_DWD_SERVICE_ACCOUNT_FILE || undefined,
-    });
-    let parsed: { ok?: boolean; id?: string; error?: string };
-    try {
-      parsed = JSON.parse(stdout) as { ok?: boolean; id?: string; error?: string };
-    } catch {
-      return { ok: false, error: "gmail_provider_receipt_invalid", deliveryUnknown: true };
-    }
-    if (!parsed.ok) {
-      return { ok: false, error: parsed.error || "gmail_dwd_send_failed" };
-    }
-    return parsed.id
-      ? { ok: true, id: parsed.id }
-      : { ok: false, error: "gmail_provider_receipt_missing", deliveryUnknown: true };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "gmail_dwd_send_failed";
-    return message.startsWith("DELIVERY_UNKNOWN:")
-      ? { ok: false, error: message.slice("DELIVERY_UNKNOWN:".length), deliveryUnknown: true }
-      : {
-          ok: false,
-          error: message.startsWith("DELIVERY_FAILED:")
-            ? message.slice("DELIVERY_FAILED:".length)
-            : message,
-        };
-  }
+    },
+    { subject: getSenderSub(options), keyPath: findGmailDwdKeyPath() },
+  );
+}
+
+/** Staff-visible error text: a short reason, never a traceback or a path. */
+function staffSafeError(message: string | undefined, fallback: string): string {
+  const text = String(message || "").trim();
+  if (!text || /Traceback|File "|\/(Users|home|var|opt|tmp)\//.test(text)) return fallback;
+  return text.split("\n").pop()!.slice(0, 160);
 }
 
 export type EmailTransportReadiness = {
@@ -421,8 +291,9 @@ export type EmailTransportReadiness = {
 
 /**
  * Reports which outbound email transport the Content Co-Op intake will use on
- * this host, without sending anything. Used by `/api/health` so a missing
- * token file or API key is visible before a client submits a brief.
+ * this host, without sending anything. Mirrors the order in
+ * `sendTransactionalEmail`: Resend, then the Node service-account (DWD) path,
+ * then the legacy OAuth token file. Used by `/api/health`.
  */
 export function describeCcoEmailTransport(
   env: Record<string, string | undefined> = process.env,
@@ -431,6 +302,11 @@ export function describeCcoEmailTransport(
   if (env.RESEND_API_KEY?.trim()) {
     return { provider: "resend", ready: true, detail: "RESEND_API_KEY is set; Resend will deliver intake email.", checkedPaths: [] };
   }
+  const dwdCandidates = gmailDwdKeyCandidates(env);
+  const dwdHit = findGmailDwdKeyPath(env, fileExists);
+  if (dwdHit) {
+    return { provider: "gmail_dwd", ready: true, detail: `Gmail domain-wide delegation key present at ${dwdHit}.`, checkedPaths: dwdCandidates };
+  }
   const oauthCandidates = Array.from(new Set([
     env.GOOGLE_OAUTH_TOKEN_FILE_BLAZE,
     DEFAULT_BLAZE_GMAIL_TOKEN_PATH,
@@ -438,24 +314,14 @@ export function describeCcoEmailTransport(
   ].filter((value): value is string => Boolean(value && value.trim()))));
   const resolvedOauth = oauthCandidates.map((candidate) => expandHomePath(candidate, env));
   const oauthHit = resolvedOauth.find((candidate) => fileExists(candidate));
+  const checkedPaths = [...dwdCandidates, ...resolvedOauth];
   if (oauthHit) {
-    return { provider: "gmail_oauth", ready: true, detail: `Gmail OAuth token present at ${oauthHit}.`, checkedPaths: resolvedOauth };
-  }
-  const dwdCandidates = Array.from(new Set([
-    env.GOOGLE_DWD_SERVICE_ACCOUNT_FILE,
-    env.GOOGLE_APPLICATION_CREDENTIALS,
-    "~/.config/blaze/google/service_account.json",
-  ].filter((value): value is string => Boolean(value && value.trim()))));
-  const resolvedDwd = dwdCandidates.map((candidate) => expandHomePath(candidate, env));
-  const dwdHit = resolvedDwd.find((candidate) => fileExists(candidate));
-  const checkedPaths = [...resolvedOauth, ...resolvedDwd];
-  if (dwdHit) {
-    return { provider: "gmail_dwd", ready: true, detail: `Gmail domain-wide delegation credentials present at ${dwdHit}.`, checkedPaths };
+    return { provider: "gmail_oauth", ready: true, detail: `No service account key; falling back to the legacy Gmail OAuth token at ${oauthHit}.`, checkedPaths };
   }
   return {
     provider: "none",
     ready: false,
-    detail: `No email transport: RESEND_API_KEY unset and no Gmail credential file found (checked ${checkedPaths.join(", ")}). Intake emails will be logged as failed.`,
+    detail: `No email transport: RESEND_API_KEY unset and GOOGLE_DWD_SERVICE_ACCOUNT_FILE (Gmail service account key) not found (checked ${checkedPaths.join(", ")}). Intake emails will be logged as failed.`,
     checkedPaths,
   };
 }
@@ -471,22 +337,27 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
   const replyTo = options.replyTo || getReplyToAddress(options.businessUnit);
 
   if (!apiKey) {
-    const gmailOauth = await sendViaGmailOauth({ ...options, from });
-    if (gmailOauth.ok) {
-      return gmailOauth;
+    // 1. Service-account key present: the Node DWD path is the transport.
+    if (findGmailDwdKeyPath()) {
+      const dwd = await sendViaGmailDwd({ ...options, from });
+      if (dwd.ok || dwd.deliveryUnknown) return dwd;
+      // Only ACS has a separately configured OAuth token; CC's stale token is
+      // never tried once a service-account key is present.
+      if (String(options.businessUnit || "").toUpperCase() === "ACS" && getGoogleOauthTokenPaths(options).length > 0) {
+        const oauth = await sendViaGmailOauth({ ...options, from });
+        if (oauth.ok || oauth.deliveryUnknown) return oauth;
+      }
+      console.log(`[email-sender] Gmail DWD send failed for ${options.businessUnit || "ACS"}: ${dwd.error || "unknown"}`);
+      return dwd;
     }
-    if (gmailOauth.deliveryUnknown) {
-      return gmailOauth;
+    // 2. No key file: legacy OAuth token file (ACS env tokens, CC default paths).
+    const oauth = await sendViaGmailOauth({ ...options, from });
+    if (oauth.ok || oauth.deliveryUnknown) {
+      return oauth.ok ? oauth : { ...oauth, error: staffSafeError(oauth.error, "gmail_oauth_send_unknown: delivery not confirmed") };
     }
-    const gmailFallback = await sendViaGmailDwd({ ...options, from });
-    if (gmailFallback.ok) {
-      return gmailFallback;
-    }
-    if (gmailFallback.deliveryUnknown) {
-      return gmailFallback;
-    }
-    console.log(`[email-sender] RESEND_API_KEY not set and Gmail fallbacks failed. Would send:\n  To: ${options.to}\n  From: ${from}\n  Subject: ${options.subject}\n  OAuth error: ${gmailOauth.error || "unknown"}\n  DWD error: ${gmailFallback.error || "unknown"}`);
-    return gmailFallback;
+    const missingKey = "gmail_dwd_key_missing: no service account key file is configured on this host";
+    console.log(`[email-sender] No RESEND_API_KEY and no Gmail service account key. Would send to ${options.to} (${options.subject}). OAuth: ${oauth.error || "unknown"}`);
+    return { ok: false, error: oauth.error === "gmail_oauth_not_configured" ? missingKey : `${missingKey}; ${staffSafeError(oauth.error, "gmail_oauth_send_failed: token refused or unavailable")}`.slice(0, 300) };
   }
 
   try {

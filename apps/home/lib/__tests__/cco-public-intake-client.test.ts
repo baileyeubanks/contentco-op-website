@@ -44,6 +44,20 @@ describe("CCO public brief retry storage", () => {
     expect(next).toBe("next-submission-id");
   });
 
+  test("does not reuse a saved retry id for a different contact email", () => {
+    const storage = new MemoryStorage();
+    vi.stubGlobal("localStorage", storage);
+
+    const first = getCcoBriefSubmissionId(null, () => "id-a", "a@example.com");
+    const sameContact = getCcoBriefSubmissionId(null, () => "id-unused", "a@example.com");
+    const otherContact = getCcoBriefSubmissionId(null, () => "id-b", "b@example.com");
+
+    expect(first).toBe("id-a");
+    expect(sameContact).toBe("id-a");
+    expect(otherContact).toBe("id-b");
+    expect(storage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY)).toBe("id-b");
+  });
+
   test("makes a failed or unknown email outcome visible instead of treating it as a clean receipt", () => {
     expect(getCcoBriefDeliveryIssue({
       admin: { status: "sent" },
