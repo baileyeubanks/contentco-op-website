@@ -1,4 +1,9 @@
-import { describe, expect, test, vi } from "vitest";
+import { generateKeyPairSync } from "node:crypto";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { sendTransactionalEmail } from "../email-sender";
 import {
   getCcoGeneratedBriefProposal,
   getCcoOsDatabase,
@@ -1077,5 +1082,53 @@ describe("step-1 quote basics travel with the lead", () => {
     const long = cleanCcoLeadBasics({ summary: "x".repeat(5000), projectTypes: Array(40).fill("brand") });
     expect(long?.summary).toHaveLength(1000);
     expect(long?.project_types).toHaveLength(12);
+  });
+});
+
+describe("Gmail service-account transport with a mixed retry (end to end, stubbed Google)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  test("a leg recorded as unknown receives zero further provider calls on retry", async () => {
+    const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const keyFile = path.join(mkdtempSync(path.join(tmpdir(), "dwd-e2e-")), "key.json");
+    writeFileSync(keyFile, JSON.stringify({
+      type: "service_account",
+      client_email: "svc@test-project.iam.gserviceaccount.com",
+      private_key: privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+    }));
+    vi.stubEnv("RESEND_API_KEY", "");
+    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", keyFile);
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    const sentTo: string[] = [];
+    let phase: "first" | "retry" = "first";
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
+      if (String(url).includes("oauth2")) return new Response(JSON.stringify({ access_token: "t" }), { status: 200 });
+      const raw = Buffer.from((JSON.parse(String(init.body)) as { raw: string }).raw, "base64url").toString("utf8");
+      const to = /\r\nTo: ([^\r]+)/.exec(raw)![1].replace(/.*<|>.*/g, "");
+      sentTo.push(to);
+      if (to === "bailey@contentco-op.com") return new Response("{}", { status: 503 });
+      return phase === "first"
+        ? new Response(JSON.stringify({ error: { errors: [{ reason: "invalidArgument" }] } }), { status: 400 })
+        : new Response(JSON.stringify({ id: "client-gmail-id" }), { status: 200 });
+    }));
+
+    const db = new FakeDatabase();
+    const first = await persistCcoBrief(submission, { db, sendEmail: sendTransactionalEmail });
+    expect(first).toMatchObject({ ok: true, notification: { admin: { status: "unknown" }, client: { status: "failed" } } });
+    expect(sentTo.filter((to) => to === "bailey@contentco-op.com")).toHaveLength(1);
+
+    sentTo.length = 0;
+    phase = "retry";
+    const replay = await persistCcoBrief(submission, { db, sendEmail: sendTransactionalEmail });
+    expect(replay).toMatchObject({ ok: true, replayed: true, notification: { admin: { status: "unknown" }, client: { status: "sent" } } });
+    expect(sentTo).toEqual(["avery@example.com"]);
+    for (const row of db.rows("notification_log")) {
+      expect(JSON.stringify(row)).not.toMatch(/invalidArgument|Traceback|\/Users\//);
+    }
   });
 });

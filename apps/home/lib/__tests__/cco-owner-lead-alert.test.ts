@@ -772,3 +772,27 @@ describe("durable claim before provider send", () => {
     expect(second.blockedSubmission).toBe(false);
   });
 });
+
+describe("owner alert send timeout cancels the abandoned send", () => {
+  test("aborts the signal handed to the sender when the wrapper times out", async () => {
+    const { withSendTimeout } = await import("../cco-owner-lead-alert");
+    let seen: AbortSignal | undefined;
+    const result = await withSendTimeout((signal) => {
+      seen = signal;
+      return new Promise<{ ok: boolean }>(() => undefined);
+    }, 20);
+    expect(result).toEqual({ ok: false, error: "owner_alert_send_timeout", deliveryUnknown: true });
+    expect(seen?.aborted).toBe(true);
+  });
+
+  test("does not abort a send that finishes in time", async () => {
+    const { withSendTimeout } = await import("../cco-owner-lead-alert");
+    let seen: AbortSignal | undefined;
+    const result = await withSendTimeout(async (signal) => {
+      seen = signal;
+      return { ok: true };
+    }, 1000);
+    expect(result).toEqual({ ok: true });
+    expect(seen?.aborted).toBe(false);
+  });
+});

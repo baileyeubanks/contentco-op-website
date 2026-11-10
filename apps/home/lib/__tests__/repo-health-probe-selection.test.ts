@@ -4,8 +4,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const openclawProbe = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/openclaw", () => ({ probeOpenClawHealth: openclawProbe }));
-vi.mock("@/lib/email-sender", () => ({
-  describeCcoEmailTransport: () => ({ provider: "fixture", ready: true }),
+vi.mock("@/lib/email-sender", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/email-sender")>()),
+  describeCcoEmailTransport: () => ({
+    provider: "fixture", ready: true, detail: "", checkedPaths: [], keyState: "valid", providerVerified: false,
+  }),
 }));
 vi.mock("@/lib/content/portfolio", () => ({
   portfolioStudies: [],

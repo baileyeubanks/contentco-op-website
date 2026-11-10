@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { findGmailDwdKeyPath, gmailDwdKeyCandidates, sendGmailViaServiceAccount } from "./gmail-dwd-send";
+import { inspectGmailDwdKey, sendGmailViaServiceAccount, type GmailDwdKeyCheck } from "./gmail-dwd-send";
 
 const PYTHON_SAFE_CWD = process.env.HOME || "/tmp";
 const DEFAULT_BLAZE_GMAIL_TOKEN_PATH = "~/.config/blaze/google/blaze_contentcoop.json";
@@ -22,6 +22,8 @@ interface SendEmailOptions {
   businessUnit?: string;
   senderSub?: string;
   attachments?: SendEmailAttachment[];
+  /** Cancels an in-flight send (the owner-alert wrapper aborts on its own timeout). */
+  signal?: AbortSignal;
 }
 
 interface SendResult {
@@ -256,7 +258,7 @@ async function sendViaGmailOauth(options: SendEmailOptions): Promise<SendResult>
   return { ok: false, error: lastError };
 }
 
-async function sendViaGmailDwd(options: SendEmailOptions): Promise<SendResult> {
+async function sendViaGmailDwd(options: SendEmailOptions, keyPath: string | null): Promise<SendResult> {
   return sendGmailViaServiceAccount(
     {
       to: options.to,
@@ -271,15 +273,14 @@ async function sendViaGmailDwd(options: SendEmailOptions): Promise<SendResult> {
         contentType: attachment.contentType || "application/octet-stream",
       })),
     },
-    { subject: getSenderSub(options), keyPath: findGmailDwdKeyPath() },
+    { subject: getSenderSub(options), keyPath, signal: options.signal },
   );
 }
 
-/** Staff-visible error text: a short reason, never a traceback or a path. */
-function staffSafeError(message: string | undefined, fallback: string): string {
-  const text = String(message || "").trim();
-  if (!text || /Traceback|File "|\/(Users|home|var|opt|tmp)\//.test(text)) return fallback;
-  return text.split("\n").pop()!.slice(0, 160);
+/** Log-safe: the fixed code before the first colon, never provider or path text. */
+function errorCode(error: string | undefined): string {
+  const code = String(error || "unknown").split(":")[0].trim();
+  return /^[a-z0-9_]{1,48}$/i.test(code) ? code : "unknown";
 }
 
 export type EmailTransportReadiness = {
@@ -287,26 +288,28 @@ export type EmailTransportReadiness = {
   ready: boolean;
   detail: string;
   checkedPaths: string[];
+  /** Service-account key: not configured / configured but invalid / locally valid. */
+  keyState: "not_configured" | "invalid" | "valid" | "not_applicable";
+  /** Which local check failed when keyState is "invalid". Fixed vocabulary only. */
+  keyCheck?: GmailDwdKeyCheck;
+  /** Local validation never proves Google accepts the key, mailbox or scope. */
+  providerVerified: false;
 };
 
 /**
  * Reports which outbound email transport the Content Co-Op intake will use on
- * this host, without sending anything. Mirrors the order in
- * `sendTransactionalEmail`: Resend, then the Node service-account (DWD) path,
- * then the legacy OAuth token file. Used by `/api/health`.
+ * this host, without sending anything. Mirrors `sendTransactionalEmail` for
+ * CC: Resend, then the Node service-account path (only when the key passes
+ * local checks), then the legacy OAuth token file.
  */
 export function describeCcoEmailTransport(
   env: Record<string, string | undefined> = process.env,
   fileExists: (filePath: string) => boolean = (filePath) => existsSync(filePath),
 ): EmailTransportReadiness {
   if (env.RESEND_API_KEY?.trim()) {
-    return { provider: "resend", ready: true, detail: "RESEND_API_KEY is set; Resend will deliver intake email.", checkedPaths: [] };
+    return { provider: "resend", ready: true, detail: "RESEND_API_KEY is set; Resend will deliver intake email.", checkedPaths: [], keyState: "not_applicable", providerVerified: false };
   }
-  const dwdCandidates = gmailDwdKeyCandidates(env);
-  const dwdHit = findGmailDwdKeyPath(env, fileExists);
-  if (dwdHit) {
-    return { provider: "gmail_dwd", ready: true, detail: `Gmail domain-wide delegation key present at ${dwdHit}.`, checkedPaths: dwdCandidates };
-  }
+  const key = inspectGmailDwdKey(env);
   const oauthCandidates = Array.from(new Set([
     env.GOOGLE_OAUTH_TOKEN_FILE_BLAZE,
     DEFAULT_BLAZE_GMAIL_TOKEN_PATH,
@@ -314,15 +317,50 @@ export function describeCcoEmailTransport(
   ].filter((value): value is string => Boolean(value && value.trim()))));
   const resolvedOauth = oauthCandidates.map((candidate) => expandHomePath(candidate, env));
   const oauthHit = resolvedOauth.find((candidate) => fileExists(candidate));
-  const checkedPaths = [...dwdCandidates, ...resolvedOauth];
+  const checkedPaths = resolvedOauth;
+  if (key.state === "valid") {
+    return { provider: "gmail_dwd", ready: true, detail: "Gmail service-account key passed local checks (not verified with Google).", checkedPaths, keyState: "valid", providerVerified: false };
+  }
+  if (key.state === "invalid") {
+    return {
+      provider: "gmail_dwd",
+      ready: false,
+      detail: `GOOGLE_DWD_SERVICE_ACCOUNT_FILE is configured but failed the local check ${key.check}.${oauthHit ? " The legacy OAuth token file will be tried instead." : ""}`,
+      checkedPaths,
+      keyState: "invalid",
+      keyCheck: key.check,
+      providerVerified: false,
+    };
+  }
   if (oauthHit) {
-    return { provider: "gmail_oauth", ready: true, detail: `No service account key; falling back to the legacy Gmail OAuth token at ${oauthHit}.`, checkedPaths };
+    return { provider: "gmail_oauth", ready: true, detail: "No service-account key configured; the legacy Gmail OAuth token file will be used.", checkedPaths, keyState: "not_configured", providerVerified: false };
   }
   return {
     provider: "none",
     ready: false,
-    detail: `No email transport: RESEND_API_KEY unset and GOOGLE_DWD_SERVICE_ACCOUNT_FILE (Gmail service account key) not found (checked ${checkedPaths.join(", ")}). Intake emails will be logged as failed.`,
+    detail: "No email transport: RESEND_API_KEY unset and GOOGLE_DWD_SERVICE_ACCOUNT_FILE (Gmail service account key) not configured. Intake emails will be logged as failed.",
     checkedPaths,
+    keyState: "not_configured",
+    providerVerified: false,
+  };
+}
+
+/** Public-safe projection for /api/health: fixed vocabulary, no paths, no detail text. */
+export function publicEmailTransportStatus(readiness: EmailTransportReadiness) {
+  const warning = readiness.ready
+    ? null
+    : readiness.keyState === "invalid"
+      ? `email_transport_invalid:${readiness.keyCheck}`
+      : "email_transport_unconfigured";
+  return {
+    warning,
+    meta: {
+      emailTransport: readiness.provider,
+      emailTransportReady: readiness.ready,
+      emailTransportKeyState: readiness.keyState,
+      ...(readiness.keyCheck ? { emailTransportKeyCheck: readiness.keyCheck } : {}),
+      emailTransportProviderVerified: false as const,
+    },
   };
 }
 
@@ -337,32 +375,46 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
   const replyTo = options.replyTo || getReplyToAddress(options.businessUnit);
 
   if (!apiKey) {
-    // 1. Service-account key present: the Node DWD path is the transport.
-    if (findGmailDwdKeyPath()) {
-      const dwd = await sendViaGmailDwd({ ...options, from });
-      if (dwd.ok || dwd.deliveryUnknown) return dwd;
-      // Only ACS has a separately configured OAuth token; CC's stale token is
-      // never tried once a service-account key is present.
-      if (String(options.businessUnit || "").toUpperCase() === "ACS" && getGoogleOauthTokenPaths(options).length > 0) {
-        const oauth = await sendViaGmailOauth({ ...options, from });
-        if (oauth.ok || oauth.deliveryUnknown) return oauth;
-      }
-      console.log(`[email-sender] Gmail DWD send failed for ${options.businessUnit || "ACS"}: ${dwd.error || "unknown"}`);
+    const bu = String(options.businessUnit || "").toUpperCase();
+    if (bu !== "CC") {
+      // ACS and any other unit: exactly the base order (OAuth first, DWD only
+      // after a definite OAuth failure).
+      const gmailOauth = await sendViaGmailOauth({ ...options, from });
+      if (gmailOauth.ok || gmailOauth.deliveryUnknown) return gmailOauth;
+      const key = inspectGmailDwdKey();
+      const gmailFallback = await sendViaGmailDwd({ ...options, from }, key.state === "valid" ? key.path : null);
+      if (gmailFallback.ok || gmailFallback.deliveryUnknown) return gmailFallback;
+      console.log(`[email-sender] RESEND_API_KEY not set and Gmail fallbacks failed (${bu || "ACS"}): oauth=${errorCode(gmailOauth.error)} dwd=${errorCode(gmailFallback.error)}`);
+      return gmailFallback;
+    }
+
+    // CC. 1. A locally valid service-account key: the Node DWD path.
+    const key = inspectGmailDwdKey();
+    if (key.state === "valid") {
+      const dwd = await sendViaGmailDwd({ ...options, from }, key.path);
+      if (!dwd.ok && !dwd.deliveryUnknown) console.log(`[email-sender] Gmail DWD send failed (CC): ${errorCode(dwd.error)}`);
       return dwd;
     }
-    // 2. No key file: legacy OAuth token file (ACS env tokens, CC default paths).
+    // 2. No usable key: the legacy OAuth token file. An invalid key is named, not hidden.
+    const keyProblem = key.state === "invalid"
+      ? `gmail_dwd_key_invalid: service account key failed local check ${key.check}`
+      : "gmail_dwd_key_missing: no service account key file is configured on this host";
     const oauth = await sendViaGmailOauth({ ...options, from });
-    if (oauth.ok || oauth.deliveryUnknown) {
-      return oauth.ok ? oauth : { ...oauth, error: staffSafeError(oauth.error, "gmail_oauth_send_unknown: delivery not confirmed") };
+    if (oauth.ok) return oauth;
+    if (oauth.deliveryUnknown) {
+      return { ok: false, error: "gmail_oauth_send_unknown: delivery not confirmed", deliveryUnknown: true };
     }
-    const missingKey = "gmail_dwd_key_missing: no service account key file is configured on this host";
-    console.log(`[email-sender] No RESEND_API_KEY and no Gmail service account key. Would send to ${options.to} (${options.subject}). OAuth: ${oauth.error || "unknown"}`);
-    return { ok: false, error: oauth.error === "gmail_oauth_not_configured" ? missingKey : `${missingKey}; ${staffSafeError(oauth.error, "gmail_oauth_send_failed: token refused or unavailable")}`.slice(0, 300) };
+    console.log(`[email-sender] No RESEND_API_KEY and no usable Gmail service account key (CC): ${errorCode(keyProblem)}; oauth=${errorCode(oauth.error)}`);
+    return {
+      ok: false,
+      error: oauth.error === "gmail_oauth_not_configured" ? keyProblem : `${keyProblem}; gmail_oauth_send_failed: legacy token refused or unavailable`,
+    };
   }
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
+      signal: options.signal,
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",

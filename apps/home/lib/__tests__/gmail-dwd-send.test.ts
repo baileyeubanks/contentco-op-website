@@ -9,6 +9,7 @@ import {
   GMAIL_SEND_URL,
   buildGmailDwdAssertion,
   buildMimeMessage,
+  inspectGmailDwdKey,
   sendGmailViaServiceAccount,
 } from "../gmail-dwd-send";
 
@@ -61,25 +62,107 @@ describe("assertion", () => {
   });
 });
 
+/** Minimal RFC 5322/2045 reader used to round-trip what we generate. */
+function splitMessage(raw: string) {
+  const at = raw.indexOf("\r\n\r\n");
+  const headerText = raw.slice(0, at);
+  const body = raw.slice(at + 4);
+  const unfolded = headerText.replace(/\r\n[ \t]+/g, " ");
+  const headers = new Map<string, string>();
+  for (const line of unfolded.split("\r\n")) {
+    const i = line.indexOf(":");
+    headers.set(line.slice(0, i).toLowerCase(), line.slice(i + 1).trim());
+  }
+  return { headerText, headers, body };
+}
+
+function decodeWords(value: string) {
+  const joined = value.replace(/(=\?UTF-8\?B\?[^?]+\?=) +(?==\?UTF-8\?B\?)/g, "$1");
+  return joined.replace(/=\?UTF-8\?B\?([^?]+)\?=/g, (_m, b64: string) => Buffer.from(b64, "base64").toString("utf8"));
+}
+
+function boundaryOf(contentType: string) {
+  return /boundary="([^"]+)"/.exec(contentType)![1];
+}
+
+function parts(body: string, boundary: string) {
+  return body.split(`--${boundary}`).slice(1, -1).map((chunk) => chunk.replace(/^\r\n/, "").replace(/\r\n$/, ""));
+}
+
+function paramValue(header: string, name: string) {
+  const segments = [...header.matchAll(new RegExp(`${name}\\*(\\d+)\\*?=([^;]+)`, "g"))]
+    .sort((x, y) => Number(x[1]) - Number(y[1]))
+    .map((m) => m[2].trim());
+  if (segments.length) return decodeURIComponent(segments.join("").replace(/^UTF-8''/, ""));
+  const single = new RegExp(`${name}\\*=UTF-8''([^;]+)`).exec(header);
+  if (single) return decodeURIComponent(single[1]);
+  return new RegExp(`${name}="([^"]*)"`).exec(header)?.[1] ?? null;
+}
+
+const LONG_SUBJECT = "Brief received \u2014 " + "Zo\u00eb Mu\u00f1oz-\u5927\u962a \ud83d\ude80 ".repeat(14) + "Studio";
+const LONG_NAME = "J\u00fcrgen \u5927\u962a ".repeat(8).trim();
+
 describe("MIME", () => {
-  test("is multipart with text, html and a base64 attachment", () => {
-    const mime = buildMimeMessage(msg);
-    expect(mime).toContain("From: Content Co-Op <blaze@contentco-op.com>");
-    expect(mime).toContain("Reply-To: bailey@contentco-op.com");
-    expect(mime).toContain("Subject: New brief");
-    expect(mime).toContain("multipart/mixed");
-    expect(mime).toContain("multipart/alternative");
-    expect(mime).toContain('Content-Type: text/plain; charset="UTF-8"');
-    expect(mime).toContain('Content-Type: text/html; charset="UTF-8"');
-    expect(mime).toContain('Content-Disposition: attachment; filename="proposal.pdf"');
-    expect(mime).toContain(Buffer.from("%PDF-1.4 test").toString("base64"));
-    expect(mime).toContain(Buffer.from("<p>Hello</p>").toString("base64"));
+  const raw = buildMimeMessage({ ...msg, subject: LONG_SUBJECT, from: `${LONG_NAME} <blaze@contentco-op.com>`, to: `Zo\u00eb <avery@example.com>`, replyTo: `"Ops, Team" <ops@example.com>` });
+  const { headerText, headers, body } = splitMessage(raw);
+
+  test("uses CRLF only and stays inside the 998-octet line limit", () => {
+    expect(raw).not.toMatch(/(?<!\r)\n/);
+    expect(raw).not.toMatch(/\r(?!\n)/);
+    for (const line of raw.split("\r\n")) expect(Buffer.byteLength(line)).toBeLessThanOrEqual(998);
+    for (const line of headerText.split("\r\n")) expect(line.length).toBeLessThanOrEqual(100);
   });
 
-  test("encodes non-ASCII subjects and blocks header injection", () => {
-    const mime = buildMimeMessage({ ...msg, subject: "Café\r\nBcc: x@evil.example" });
-    expect(mime).not.toMatch(/\r\nBcc:/);
-    expect(mime).toMatch(/Subject: =\?UTF-8\?B\?/);
+  test("round-trips a long non-ASCII subject through bounded encoded-words", () => {
+    const words = headerText.match(/=\?UTF-8\?B\?[^?]+\?=/g)!;
+    expect(words.length).toBeGreaterThan(3);
+    for (const word of words) expect(word.length).toBeLessThanOrEqual(75);
+    expect(decodeWords(headers.get("subject")!)).toBe(LONG_SUBJECT);
+  });
+
+  test("round-trips display names and keeps addr-specs plain", () => {
+    expect(decodeWords(headers.get("from")!)).toBe(`${LONG_NAME} <blaze@contentco-op.com>`);
+    expect(decodeWords(headers.get("to")!)).toBe("Zo\u00eb <avery@example.com>");
+    expect(headers.get("reply-to")).toBe('"Ops, Team" <ops@example.com>');
+  });
+
+  test("has mixed > alternative(text, html) + attachment, with wrapped base64 bodies", () => {
+    const [alternative, attachment] = parts(body, boundaryOf(headers.get("content-type")!));
+    const altHeaders = splitMessage(alternative);
+    expect(altHeaders.headers.get("content-type")).toMatch(/^multipart\/alternative/);
+    const [plain, html] = parts(altHeaders.body, boundaryOf(altHeaders.headers.get("content-type")!));
+    const plainPart = splitMessage(plain);
+    const htmlPart = splitMessage(html);
+    expect(plainPart.headers.get("content-type")).toMatch(/^text\/plain/);
+    expect(htmlPart.headers.get("content-type")).toMatch(/^text\/html/);
+    expect(Buffer.from(plainPart.body.replace(/\r\n/g, ""), "base64").toString()).toBe("Hello");
+    expect(Buffer.from(htmlPart.body.replace(/\r\n/g, ""), "base64").toString()).toBe("<p>Hello</p>");
+    const att = splitMessage(attachment);
+    expect(att.headers.get("content-type")).toMatch(/^application\/pdf/);
+    expect(Buffer.from(att.body.replace(/\r\n/g, ""), "base64").toString()).toBe("%PDF-1.4 test");
+  });
+
+  test("wraps a large attachment at 76 columns and preserves every byte", () => {
+    const bytes = Buffer.from(Array.from({ length: 5000 }, (_v, i) => i % 251));
+    const big = buildMimeMessage({ ...msg, attachments: [{ filename: "big.bin", content: bytes.toString("base64") }] });
+    const { headers: h, body: b } = splitMessage(big);
+    const att = splitMessage(parts(b, boundaryOf(h.get("content-type")!))[1]);
+    for (const line of att.body.split("\r\n")) expect(line.length).toBeLessThanOrEqual(76);
+    expect(Buffer.from(att.body.replace(/\r\n/g, ""), "base64").equals(bytes)).toBe(true);
+  });
+
+  test("round-trips a long Unicode attachment filename through RFC 2231 continuations", () => {
+    const name = "Propuesta \u2014 \u5927\u962a caf\u00e9 ".repeat(6) + "final.pdf";
+    const out = buildMimeMessage({ ...msg, attachments: [{ filename: name, content: "QQ==" }] });
+    const { headers: h, body: b } = splitMessage(out);
+    const att = splitMessage(parts(b, boundaryOf(h.get("content-type")!))[1]);
+    for (const line of att.headerText.split("\r\n")) expect(line.length).toBeLessThanOrEqual(100);
+    expect(paramValue(att.headers.get("content-disposition")!, "filename")).toBe(name);
+  });
+
+  test("blocks header injection in every header", () => {
+    const out = buildMimeMessage({ ...msg, subject: "x\r\nBcc: a@evil.example", to: "a@example.com\r\nBcc: b@evil.example" });
+    expect(out).not.toMatch(/\r\nBcc:/);
   });
 });
 
@@ -101,7 +184,9 @@ describe("sendGmailViaServiceAccount", () => {
     expect(form.get("grant_type")).toBe("urn:ietf:params:oauth:grant-type:jwt-bearer");
     expect(JSON.parse(Buffer.from(form.get("assertion")!.split(".")[1], "base64url").toString()).sub).toBe("blaze@contentco-op.com");
     expect((calls[1].init.headers as Record<string, string>).Authorization).toBe("Bearer tok-abc");
+    expect((JSON.parse(String(calls[1].init.body)) as { raw: string }).raw).toMatch(/^[A-Za-z0-9_-]+$/);
     expect(decodeRaw(calls[1].init)).toContain("proposal.pdf");
+    expect(calls[0].init.signal).toBeInstanceOf(AbortSignal);
   });
 
   test("reports a missing key file with a code and no path", async () => {
@@ -136,13 +221,26 @@ describe("sendGmailViaServiceAccount", () => {
     withSendResponse(() => new Response(JSON.stringify({ error: { errors: [{ reason: "userRateLimitExceeded" }] } }), { status: 403 }));
     expect((await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() })).error).toMatch(/^gmail_dwd_quota/);
     withSendResponse(() => new Response(JSON.stringify({ error: { errors: [{ reason: "insufficientPermissions" }] } }), { status: 403 }));
-    expect((await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() })).error).toMatch(/^gmail_dwd_forbidden: .*insufficientpermissions/);
+    expect((await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() })).error).toMatch(/^gmail_dwd_forbidden: .*insufficient_permissions/);
   });
 
-  test("a 4xx is a definite failure with a short reason", async () => {
+  test("a known 4xx reason maps to a fixed code", async () => {
     withSendResponse(() => new Response(JSON.stringify({ error: { status: "INVALID_ARGUMENT" } }), { status: 400 }));
     const result = await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() });
     expect(result).toEqual({ ok: false, error: "gmail_dwd_send_failed: HTTP 400 invalid_argument" });
+  });
+
+  test("provider-supplied strings never reach the error text", async () => {
+    const hostile = "to=victim@example.com subject=Secret /Users/bailey/key.json";
+    withSendResponse(() => new Response(JSON.stringify({ error: { status: hostile, message: hostile, errors: [{ reason: hostile, message: hostile }] } }), { status: 400 }));
+    expect(await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() }))
+      .toEqual({ ok: false, error: "gmail_dwd_send_failed: HTTP 400 unknown_reason" });
+    withSendResponse(() => new Response(JSON.stringify({ error: { errors: [{ reason: hostile }] } }), { status: 403 }));
+    expect((await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() })).error)
+      .toBe("gmail_dwd_forbidden: Gmail refused the send (unknown_reason)");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: hostile, error_description: hostile }), { status: 400 })));
+    expect((await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() })).error)
+      .toBe("gmail_dwd_token_failed: HTTP 400 unknown_reason");
   });
 
   test("5xx or a timeout after the handoff stays deliveryUnknown", async () => {
@@ -166,5 +264,55 @@ describe("sendGmailViaServiceAccount", () => {
     const result = await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() });
     expect(result.error).toMatch(/^gmail_dwd_token_unreachable/);
     expect(result.deliveryUnknown).toBeUndefined();
+  });
+});
+
+describe("total timeout and cancellation", () => {
+  test("the transport budget fits inside the owner-alert wrapper timeout", async () => {
+    const { OWNER_ALERT_SEND_TIMEOUT_MS } = await import("../cco-owner-lead-alert");
+    const { GMAIL_DWD_TOTAL_TIMEOUT_MS } = await import("../gmail-dwd-send");
+    expect(GMAIL_DWD_TOTAL_TIMEOUT_MS).toBeLessThan(OWNER_ALERT_SEND_TIMEOUT_MS);
+  });
+
+  test("a caller abort cancels the in-flight Gmail request and leaves delivery unknown", async () => {
+    const controller = new AbortController();
+    vi.stubGlobal("fetch", vi.fn((url: string, init: RequestInit) => {
+      if (String(url).includes("oauth2")) return Promise.resolve(new Response(JSON.stringify({ access_token: "t" }), { status: 200 }));
+      return new Promise<Response>((_resolve, reject) => {
+        init.signal!.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+        queueMicrotask(() => controller.abort());
+      });
+    }));
+    const result = await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile(), signal: controller.signal });
+    expect(result).toMatchObject({ ok: false, deliveryUnknown: true });
+  });
+});
+
+describe("key inspection", () => {
+  function envFor(content: string | null, extra: Record<string, string> = {}) {
+    const dir = mkdtempSync(path.join(tmpdir(), "dwd-inspect-"));
+    const file = path.join(dir, "key.json");
+    if (content !== null) writeFileSync(file, content);
+    return { HOME: dir, GOOGLE_DWD_SERVICE_ACCOUNT_FILE: file, ...extra } as Record<string, string>;
+  }
+  const good = () => JSON.stringify({ type: "service_account", client_email: CLIENT_EMAIL, private_key: privatePem });
+
+  test("accepts a locally valid key", () => {
+    expect(inspectGmailDwdKey(envFor(good()))).toMatchObject({ state: "valid" });
+  });
+  test.each([
+    ["key_file_missing", null],
+    ["not_json", "{nope"],
+    ["not_service_account", JSON.stringify({ type: "authorized_user", client_email: "a" })],
+    ["missing_client_email", JSON.stringify({ type: "service_account", private_key: privatePem })],
+    ["missing_private_key", JSON.stringify({ type: "service_account", client_email: CLIENT_EMAIL })],
+    ["private_key_unusable", JSON.stringify({ type: "service_account", client_email: CLIENT_EMAIL, private_key: "-----BEGIN PRIVATE KEY-----\nZm9v\n-----END PRIVATE KEY-----" })],
+  ])("names the failed check %s", (check, content) => {
+    expect(inspectGmailDwdKey(envFor(content))).toEqual({ state: "invalid", check });
+  });
+  test("a directory is not a regular file; nothing configured is not_configured", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "dwd-dir-"));
+    expect(inspectGmailDwdKey({ HOME: dir, GOOGLE_DWD_SERVICE_ACCOUNT_FILE: dir })).toEqual({ state: "invalid", check: "not_a_regular_file" });
+    expect(inspectGmailDwdKey({ HOME: dir })).toEqual({ state: "not_configured" });
   });
 });

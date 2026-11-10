@@ -2,7 +2,7 @@ import { access } from "node:fs/promises";
 import path from "node:path";
 import type { RepoHealthCheck, RepoHealthCheckStatus, RepoHealthSnapshot } from "@contentco-op/types";
 import { CREATIVE_BRIEF_HANDOFF_VERSION } from "@/lib/creative-brief";
-import { describeCcoEmailTransport } from "@/lib/email-sender";
+import { describeCcoEmailTransport, publicEmailTransportStatus } from "@/lib/email-sender";
 import { portfolioManifest, portfolioStudies } from "@/lib/content/portfolio";
 import { getRootHealthSnapshot } from "@/lib/os-health";
 import { isComingSoonStudy } from "@/lib/content/coming-soon";
@@ -309,7 +309,8 @@ async function buildRuntimeCheck(scope: RepoHealthScope): Promise<RepoHealthChec
 async function buildIntakeCheck(): Promise<RepoHealthCheck> {
   const emailTransport = describeCcoEmailTransport();
   // Public /api/health must not echo credential-file paths from describeCcoEmailTransport().detail.
-  const emailWarning = emailTransport.ready ? [] : ["email_transport_unconfigured"];
+  const emailStatus = publicEmailTransportStatus(emailTransport);
+  const emailWarning = emailStatus.warning ? [emailStatus.warning] : [];
 
   if (await isStandaloneRuntime()) {
     const handoffVersionValid = CREATIVE_BRIEF_HANDOFF_VERSION.startsWith("cco.home.creative-brief.v");
@@ -331,8 +332,7 @@ async function buildIntakeCheck(): Promise<RepoHealthCheck> {
       updatedAt: now(),
       meta: {
         handoffVersion: CREATIVE_BRIEF_HANDOFF_VERSION,
-        emailTransport: emailTransport.provider,
-        emailTransportReady: emailTransport.ready,
+        ...emailStatus.meta,
       },
     };
   }
@@ -366,8 +366,7 @@ async function buildIntakeCheck(): Promise<RepoHealthCheck> {
     updatedAt: now(),
     meta: {
       handoffVersion: CREATIVE_BRIEF_HANDOFF_VERSION,
-      emailTransport: emailTransport.provider,
-      emailTransportReady: emailTransport.ready,
+      ...emailStatus.meta,
     },
   };
 }

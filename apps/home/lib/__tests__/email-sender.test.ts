@@ -10,12 +10,14 @@ vi.mock("node:child_process", () => ({ spawn: spawnMock }));
 
 import { sendTransactionalEmail } from "../email-sender";
 
-function writeThrowawayKey() {
+function writeThrowawayKey(extra: Record<string, unknown> = {}) {
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   const file = path.join(mkdtempSync(path.join(tmpdir(), "dwd-test-")), "key.json");
   writeFileSync(file, JSON.stringify({
+    type: "service_account",
     client_email: "svc@test-project.iam.gserviceaccount.com",
     private_key: privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+    ...extra,
   }));
   return file;
 }
@@ -175,7 +177,7 @@ describe("transactional email delivery certainty", () => {
   test("falls back to the legacy OAuth token file only when no service-account key exists", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
     vi.stubEnv("HOME", "/nonexistent-home-for-test");
-    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", "/nonexistent/key.json");
+    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", "");
     vi.stubEnv("GOOGLE_APPLICATION_CREDENTIALS", "");
     spawnMock.mockReturnValue(pythonChild({ code: 0, stdout: JSON.stringify({ ok: true, id: "oauth-1" }) }));
 
@@ -183,35 +185,105 @@ describe("transactional email delivery certainty", () => {
     expect(spawnMock).toHaveBeenCalledTimes(1);
   });
 
-  test("keeps an ambiguous OAuth handoff unknown on the legacy path", async () => {
+  test("an ambiguous legacy OAuth handoff stays unknown with a fixed code (CC)", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
     vi.stubEnv("HOME", "/nonexistent-home-for-test");
-    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", "/nonexistent/key.json");
+    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", "");
     vi.stubEnv("GOOGLE_APPLICATION_CREDENTIALS", "");
-    spawnMock.mockReturnValueOnce(pythonChild({ code: 70, stderr: "DELIVERY_UNKNOWN:TimeoutError:timed out" }));
+    spawnMock.mockReturnValueOnce(pythonChild({ code: 70, stderr: "DELIVERY_UNKNOWN:TimeoutError:timed out for /Users/x" }));
 
     await expect(sendTransactionalEmail(message)).resolves.toEqual({
       ok: false,
-      error: "TimeoutError:timed out",
+      error: "gmail_oauth_send_unknown: delivery not confirmed",
       deliveryUnknown: true,
     });
     expect(spawnMock).toHaveBeenCalledTimes(1);
   });
 
-  test("stores a short reason, never a Python traceback or home path, when nothing is configured", async () => {
+  test("an unusable key file is named and does not silently suppress the legacy path", async () => {
+    const badKey = writeThrowawayKey({ type: "authorized_user" });
     vi.stubEnv("RESEND_API_KEY", "");
     vi.stubEnv("HOME", "/nonexistent-home-for-test");
-    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", "/nonexistent/key.json");
+    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", badKey);
+    spawnMock.mockImplementation(() => pythonChild({ code: 1, stderr: "token refused /Users/x/secret.json" }));
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    const result = await sendTransactionalEmail(message);
+    expect(spawnMock).toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.error).toBe("gmail_dwd_key_invalid: service account key failed local check not_service_account; gmail_oauth_send_failed: legacy token refused or unavailable");
+    expect(JSON.stringify(log.mock.calls)).not.toMatch(/avery@example|Delivery classification|\/Users\//);
+  });
+
+  test("no traceback, path, recipient or subject reaches the stored error or the log", async () => {
+    vi.stubEnv("RESEND_API_KEY", "");
+    vi.stubEnv("HOME", "/nonexistent-home-for-test");
+    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", "");
     vi.stubEnv("GOOGLE_APPLICATION_CREDENTIALS", "");
     spawnMock.mockImplementation(() => pythonChild({
       code: 1,
       stderr: 'Traceback (most recent call last):\n  File "/Users/x/y.py", line 1\nFileNotFoundError: /Users/x/.config/token.json',
     }));
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
     const result = await sendTransactionalEmail(message);
-    expect(result.ok).toBe(false);
     expect(result.error).toMatch(/^gmail_dwd_key_missing/);
     expect(result.error).not.toMatch(/Traceback|\/Users\//);
+    expect(JSON.stringify(log.mock.calls)).not.toMatch(/avery@example|Delivery classification|Traceback|\/Users\//);
+  });
+
+  test("the gmail DWD failure log carries only the fixed code", async () => {
+    const keyPath = writeThrowawayKey();
+    vi.stubEnv("RESEND_API_KEY", "");
+    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", keyPath);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "to=avery@example.com" }), { status: 400 })));
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    await sendTransactionalEmail(message);
+    expect(JSON.stringify(log.mock.calls)).not.toMatch(/avery@example|Delivery classification/);
+    expect(JSON.stringify(log.mock.calls)).toContain("gmail_dwd_token_failed");
+  });
+});
+
+describe("Astro Cleanings (ACS) call sequence is unchanged from the base order", () => {
+  const acs = { ...message, businessUnit: "ACS" };
+
+  function trace(keyPath: string | null) {
+    const events: string[] = [];
+    vi.stubEnv("RESEND_API_KEY", "");
+    vi.stubEnv("GOOGLE_OAUTH_TOKEN_FILE_ACS", "/acs/token.json");
+    vi.stubEnv("GOOGLE_DWD_SERVICE_ACCOUNT_FILE", keyPath || "");
+    vi.stubEnv("GOOGLE_APPLICATION_CREDENTIALS", "");
+    vi.stubEnv("HOME", "/nonexistent-home-for-test");
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      events.push(String(url).includes("oauth2") ? "dwd-token" : "dwd-send");
+      return String(url).includes("oauth2")
+        ? new Response(JSON.stringify({ access_token: "t" }), { status: 200 })
+        : new Response(JSON.stringify({ id: "acs-dwd" }), { status: 200 });
+    }));
+    return events;
+  }
+
+  test("OAuth first and, on success, DWD is never touched even when a key exists", async () => {
+    const events = trace(writeThrowawayKey());
+    spawnMock.mockImplementation(() => { events.push("oauth"); return pythonChild({ code: 0, stdout: JSON.stringify({ ok: true, id: "acs-oauth" }) }); });
+    await expect(sendTransactionalEmail(acs)).resolves.toEqual({ ok: true, id: "acs-oauth" });
+    expect(events).toEqual(["oauth"]);
+  });
+
+  test("an ambiguous OAuth outcome returns immediately with no DWD attempt", async () => {
+    const events = trace(writeThrowawayKey());
+    spawnMock.mockImplementation(() => { events.push("oauth"); return pythonChild({ code: 70, stderr: "DELIVERY_UNKNOWN:TimeoutError:timed out" }); });
+    await expect(sendTransactionalEmail(acs)).resolves.toEqual({ ok: false, error: "TimeoutError:timed out", deliveryUnknown: true });
+    expect(events).toEqual(["oauth"]);
+  });
+
+  test("DWD runs only after a definite OAuth failure", async () => {
+    const events = trace(writeThrowawayKey());
+    spawnMock.mockImplementation(() => { events.push("oauth"); return pythonChild({ code: 1, stderr: "oauth_token_rejected" }); });
+    await expect(sendTransactionalEmail(acs)).resolves.toEqual({ ok: true, id: "acs-dwd" });
+    expect(events).toEqual(["oauth", "dwd-token", "dwd-send"]);
   });
 });

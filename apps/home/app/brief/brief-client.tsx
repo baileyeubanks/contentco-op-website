@@ -6,9 +6,10 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   CCO_BRIEF_DRAFT_STORAGE_KEY,
   canRetryCcoBriefDelivery,
-  clearCcoBriefSubmissionStorage,
-  getCcoBriefSubmissionId,
   ccoBriefSubmissionScope,
+  bindLegacyCcoBriefSubmissionId,
+  clearCcoBriefSubmission,
+  resolveCcoBriefSubmissionId,
 } from "@/lib/cco-public-intake-client";
 import { finishCcoPublicBriefSubmission, type CcoReceivedBrief } from "@/lib/cco-public-brief-submission";
 import { buildBriefPricingInputs, calculateEstimate, formatCurrency } from "@/lib/pricing";
@@ -241,8 +242,8 @@ export function BriefClientPage() {
   const [touched, setTouched] = useState<Partial<Record<keyof BriefDraft, boolean>>>({});
   const [result, setResult] = useState<BriefResult | null>(null);
   const [retrySubmissionAvailable, setRetrySubmissionAvailable] = useState(false);
-  const submissionIdRef = useRef<string | null>(null);
-  const submissionScopeRef = useRef<string | null>(null);
+  /** Unresolved retry ids by contact email, so A then B then A finds A's id again. */
+  const submissionIdsRef = useRef<Record<string, string>>({});
 
   const [draft, setDraft] = useState<BriefDraft>(DEFAULT_DRAFT);
   /* Timeline has a default for the estimate; only send it as a quote basic once chosen. */
@@ -251,6 +252,8 @@ export function BriefClientPage() {
   /* ── Auto-save / restore ── */
   useEffect(() => {
     try {
+      // Bind a pre-upgrade retry id to the draft it belongs to before autosave rewrites the draft.
+      bindLegacyCcoBriefSubmissionId();
       const saved = localStorage.getItem(CCO_BRIEF_DRAFT_STORAGE_KEY);
       if (saved) setDraft((prev) => ({ ...prev, ...normalizeDraft(JSON.parse(saved)) }));
     } catch { /* ignore */ }
@@ -380,19 +383,11 @@ export function BriefClientPage() {
   }
 
   function getSubmissionId() {
-    // A saved retry id is tied to the contact email it was created for.
-    const scope = ccoBriefSubmissionScope(draft.email);
-    if (submissionScopeRef.current !== null && submissionScopeRef.current !== scope) submissionIdRef.current = null;
-    const id = getCcoBriefSubmissionId(submissionIdRef.current, undefined, scope);
-    submissionIdRef.current = id;
-    submissionScopeRef.current = scope;
-    return id;
+    return resolveCcoBriefSubmissionId(submissionIdsRef.current, ccoBriefSubmissionScope(draft.email));
   }
 
   function clearSubmittedDraft() {
-    submissionIdRef.current = null;
-    submissionScopeRef.current = null;
-    clearCcoBriefSubmissionStorage();
+    clearCcoBriefSubmission(submissionIdsRef.current, ccoBriefSubmissionScope(draft.email));
   }
 
   async function saveLeadSnapshot() {

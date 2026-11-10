@@ -27,7 +27,7 @@ export const CCO_OWNER_ALERT_ENTITY_TYPE = "creative_brief";
 export const CCO_OWNER_ALERT_CLAIM_NAMESPACE = "8f3d2c1a-6b09-4e17-9a44-0c2e7b5d1f08";
 const CCO_BUSINESS_UNIT = "CC";
 const NOTIFICATION_SENDING_STALE_MS = 2 * 60 * 1000;
-const OWNER_ALERT_SEND_TIMEOUT_MS = 8_000;
+export const OWNER_ALERT_SEND_TIMEOUT_MS = 8_000;
 export const CCO_OWNER_ALERT_MAX_ATTEMPTS = 5;
 
 export type CcoOwnerLeadAlertInput = {
@@ -93,6 +93,8 @@ export type CcoOwnerEmailSender = (input: {
   html: string;
   text: string;
   businessUnit: string;
+  /** Aborted when the owner-alert wrapper gives up, so an abandoned send is cancelled. */
+  signal?: AbortSignal;
 }) => Promise<{ ok: boolean; id?: string; error?: string; deliveryUnknown?: boolean }>;
 
 export type CcoOwnerSmsSender = (input: {
@@ -144,17 +146,22 @@ export function ownerAlertClaimId(
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
-async function withSendTimeout<T extends { ok: boolean; error?: string; deliveryUnknown?: boolean }>(
-  send: () => Promise<T>,
+export async function withSendTimeout<T extends { ok: boolean; error?: string; deliveryUnknown?: boolean }>(
+  send: (signal: AbortSignal) => Promise<T>,
+  timeoutMs: number = OWNER_ALERT_SEND_TIMEOUT_MS,
 ): Promise<T | { ok: false; error: string; deliveryUnknown: true }> {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  const controller = new AbortController();
   try {
     return await Promise.race([
-      send(),
+      send(controller.signal),
       new Promise<{ ok: false; error: string; deliveryUnknown: true }>((resolve) => {
         timer = setTimeout(
-          () => resolve({ ok: false, error: "owner_alert_send_timeout", deliveryUnknown: true }),
-          OWNER_ALERT_SEND_TIMEOUT_MS,
+          () => {
+            controller.abort();
+            resolve({ ok: false, error: "owner_alert_send_timeout", deliveryUnknown: true });
+          },
+          timeoutMs,
         );
       }),
     ]);
@@ -183,13 +190,24 @@ export function ccoOsContactUrl(leadId: string, origin = CCO_OS_PUBLIC_ORIGIN) {
 export function describeCcoOwnerEmailTransport(
   env: Record<string, string | undefined> = process.env,
   fileExists?: (filePath: string) => boolean,
-): { ready: boolean; provider: "resend" | "gmail_dwd" | "gmail_oauth" | "none"; missing: string[]; detail: string } {
+): {
+  ready: boolean;
+  provider: "resend" | "gmail_dwd" | "gmail_oauth" | "none";
+  keyState: "not_configured" | "invalid" | "valid" | "not_applicable";
+  keyCheck?: string;
+  providerVerified: false;
+  missing: string[];
+  detail: string;
+} {
   // Same decision as sendTransactionalEmail, so health reports the transport
   // that will actually be used.
   const transport = describeCcoEmailTransport(env, fileExists);
   return {
     ready: transport.ready,
     provider: transport.provider,
+    keyState: transport.keyState,
+    ...(transport.keyCheck ? { keyCheck: transport.keyCheck } : {}),
+    providerVerified: false,
     missing: transport.ready ? [] : ["RESEND_API_KEY or GOOGLE_DWD_SERVICE_ACCOUNT_FILE"],
     detail: transport.detail,
   };
@@ -432,7 +450,7 @@ async function deliverOwnerChannel(input: {
   recipient: string;
   templateKey: string;
   content: CcoOwnerLeadAlertContent;
-  send: () => Promise<OwnerAlertDelivery>;
+  send: (signal: AbortSignal) => Promise<OwnerAlertDelivery>;
   governedText?: boolean;
   now: Date;
 }): Promise<CcoOwnerChannelReceipt> {
@@ -670,7 +688,8 @@ async function deliverOwnerBundle(
     templateKey,
     content,
     now,
-    send: () => sendEmail({
+    send: (signal) => sendEmail({
+      signal,
       to: emailTo,
       subject: content.subject,
       html: content.html,
