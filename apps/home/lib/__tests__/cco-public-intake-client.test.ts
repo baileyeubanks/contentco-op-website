@@ -5,10 +5,10 @@ import {
   canRetryCcoBriefDelivery,
   clearCcoBriefSubmissionStorage,
   getCcoBriefDeliveryIssue,
+  discardCcoBriefSubmissionId,
   getCcoBriefSubmissionId,
-  bindLegacyCcoBriefSubmissionId,
-  clearCcoBriefSubmission,
-  resolveCcoBriefSubmissionId,
+  isCcoBriefSubmissionConflict,
+  postCcoBriefWithConflictRecovery,
 } from "../cco-public-intake-client";
 
 class MemoryStorage {
@@ -45,108 +45,6 @@ describe("CCO public brief retry storage", () => {
     expect(storage.getItem(CCO_BRIEF_DRAFT_STORAGE_KEY)).toBeNull();
     expect(storage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY)).toBe("next-submission-id");
     expect(next).toBe("next-submission-id");
-  });
-
-  test("A then A reuses the unresolved id", () => {
-    vi.stubGlobal("localStorage", new MemoryStorage());
-    const memory: Record<string, string> = {};
-    const first = resolveCcoBriefSubmissionId(memory, "a@example.com", () => "id-a");
-    const again = getCcoBriefSubmissionId(null, () => "id-unused", "a@example.com");
-    expect(first).toBe("id-a");
-    expect(again).toBe("id-a");
-  });
-
-  test("A then B then A finds A's id again; B gets its own", () => {
-    const storage = new MemoryStorage();
-    vi.stubGlobal("localStorage", storage);
-    const ids = ["id-a", "id-b", "id-extra"];
-    const create = () => ids.shift()!;
-    const memory: Record<string, string> = {};
-    expect(resolveCcoBriefSubmissionId(memory, "a@example.com", create)).toBe("id-a");
-    expect(resolveCcoBriefSubmissionId(memory, "b@example.com", create)).toBe("id-b");
-    // a fresh page load (empty memory) still finds both from storage
-    expect(getCcoBriefSubmissionId(null, create, "a@example.com")).toBe("id-a");
-    expect(getCcoBriefSubmissionId(null, create, "b@example.com")).toBe("id-b");
-    expect(ids).toEqual(["id-extra"]);
-  });
-
-  test("completing one email clears only that email's id", () => {
-    vi.stubGlobal("localStorage", new MemoryStorage());
-    const memory: Record<string, string> = {};
-    resolveCcoBriefSubmissionId(memory, "a@example.com", () => "id-a");
-    resolveCcoBriefSubmissionId(memory, "b@example.com", () => "id-b");
-    clearCcoBriefSubmission(memory, "a@example.com");
-    expect(getCcoBriefSubmissionId(null, () => "id-a2", "a@example.com")).toBe("id-a2");
-    expect(getCcoBriefSubmissionId(null, () => "unused", "b@example.com")).toBe("id-b");
-  });
-
-  test("a legacy unscoped id from production is kept and bound to its saved draft's email", () => {
-    const storage = new MemoryStorage();
-    storage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, "legacy-id");
-    storage.setItem(CCO_BRIEF_DRAFT_STORAGE_KEY, JSON.stringify({ email: " Avery@Example.com " }));
-    vi.stubGlobal("localStorage", storage);
-
-    // the unchanged returning visitor keeps the original id
-    expect(getCcoBriefSubmissionId(null, () => "must-not-be-used", "avery@example.com")).toBe("legacy-id");
-    expect(storage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY)).toBeNull();
-    // a different email is a different brief and does not inherit it
-    expect(getCcoBriefSubmissionId(null, () => "new-for-b", "b@example.com")).toBe("new-for-b");
-    // and the original is still there afterwards
-    expect(getCcoBriefSubmissionId(null, () => "must-not-be-used", "avery@example.com")).toBe("legacy-id");
-  });
-
-  test("a legacy id whose draft email cannot be established is kept for the current email, never replaced", () => {
-    const storage = new MemoryStorage();
-    storage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, "legacy-id");
-    vi.stubGlobal("localStorage", storage);
-    expect(getCcoBriefSubmissionId(null, () => "must-not-be-used", "anyone@example.com")).toBe("legacy-id");
-  });
-
-  test("page-load binding uses the draft before autosave rewrites it", () => {
-    const storage = new MemoryStorage();
-    storage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, "legacy-id");
-    storage.setItem(CCO_BRIEF_DRAFT_STORAGE_KEY, JSON.stringify({ email: "a@example.com" }));
-    vi.stubGlobal("localStorage", storage);
-    expect(bindLegacyCcoBriefSubmissionId()).toEqual({ id: "legacy-id", scope: "a@example.com" });
-    // the visitor then edits the form to B and autosave overwrites the draft
-    storage.setItem(CCO_BRIEF_DRAFT_STORAGE_KEY, JSON.stringify({ email: "b@example.com" }));
-    expect(getCcoBriefSubmissionId(null, () => "new-b", "b@example.com")).toBe("new-b");
-    expect(getCcoBriefSubmissionId(null, () => "unused", "a@example.com")).toBe("legacy-id");
-  });
-
-  test("storage-write failure: the in-memory map still gives A, B, A stable ids", () => {
-    const storage = new MemoryStorage();
-    storage.setItem = () => { throw new Error("quota"); };
-    vi.stubGlobal("localStorage", storage);
-    const ids = ["id-a", "id-b"];
-    const create = () => ids.shift()!;
-    const memory: Record<string, string> = {};
-    expect(resolveCcoBriefSubmissionId(memory, "a@example.com", create)).toBe("id-a");
-    expect(resolveCcoBriefSubmissionId(memory, "b@example.com", create)).toBe("id-b");
-    expect(resolveCcoBriefSubmissionId(memory, "a@example.com", create)).toBe("id-a");
-    expect(memory).toEqual({ "a@example.com": "id-a", "b@example.com": "id-b" });
-  });
-
-  test("storage-write failure during legacy binding still returns the legacy id", () => {
-    const storage = new MemoryStorage();
-    storage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, "legacy-id");
-    storage.setItem(CCO_BRIEF_DRAFT_STORAGE_KEY, JSON.stringify({ email: "a@example.com" }));
-    const realSet = storage.setItem.bind(storage);
-    storage.setItem = (key: string, value: string) => { if (key.includes("ids")) throw new Error("quota"); realSet(key, value); };
-    vi.stubGlobal("localStorage", storage);
-    const memory: Record<string, string> = {};
-    expect(resolveCcoBriefSubmissionId(memory, "a@example.com", () => "must-not-be-used")).toBe("legacy-id");
-    expect(storage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY)).toBe("legacy-id");
-  });
-
-  test("in-memory scope change within one page: editing the email never reuses another email's id", () => {
-    vi.stubGlobal("localStorage", new MemoryStorage());
-    const ids = ["id-a", "id-b"];
-    const create = () => ids.shift()!;
-    const memory: Record<string, string> = {};
-    const first = resolveCcoBriefSubmissionId(memory, "a@example.com", create);
-    const second = resolveCcoBriefSubmissionId(memory, "B@example.com ".trim().toLowerCase(), create);
-    expect([first, second]).toEqual(["id-a", "id-b"]);
   });
 
   test("makes a failed or unknown email outcome visible instead of treating it as a clean receipt", () => {
@@ -200,5 +98,90 @@ describe("CCO public brief retry storage", () => {
     expect(canRetryCcoBriefDelivery("mixed")).toBe(true);
     expect(canRetryCcoBriefDelivery("unknown")).toBe(false);
     expect(canRetryCcoBriefDelivery(null)).toBe(false);
+  });
+});
+
+describe("saved retry id and the server's submission conflict", () => {
+  const ok = { response: { ok: true, status: 200 }, payload: { persisted: true } };
+  const conflict = { response: { ok: false, status: 409 }, payload: { error: "brief_submission_conflict", code: "x", retryable: false } };
+
+  function harness(results: Array<{ response: { ok: boolean; status: number }; payload: unknown }>) {
+    const storage = new MemoryStorage();
+    vi.stubGlobal("localStorage", storage);
+    let n = 0;
+    const post = vi.fn(async (_id: string) => results[Math.min(n++, results.length - 1)]);
+    const ids = ["fresh-1", "fresh-2", "fresh-3"];
+    let memory: string | null = null;
+    const getId = () => (memory = getCcoBriefSubmissionId(memory, () => ids.shift()!));
+    const discardId = () => { memory = null; discardCcoBriefSubmissionId(); };
+    return { storage, post, getId, discardId, run: () => postCcoBriefWithConflictRecovery({ getId, discardId, post }) };
+  }
+
+  test("identifies only the 409 conflict code, never message text, 5xx or validation errors", () => {
+    expect(isCcoBriefSubmissionConflict(409, { error: "brief_submission_conflict" })).toBe(true);
+    expect(isCcoBriefSubmissionConflict(409, { error: "other", message: "This saved retry cannot be matched" })).toBe(false);
+    expect(isCcoBriefSubmissionConflict(503, { error: "brief_submission_conflict" })).toBe(false);
+    expect(isCcoBriefSubmissionConflict(400, { error: "validation_failed" })).toBe(false);
+    expect(isCcoBriefSubmissionConflict(409, null)).toBe(false);
+  });
+
+  test("an unchanged returning visitor's unresolved id is sent as saved and never replaced client-side", async () => {
+    const h = harness([ok]);
+    h.storage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, "production-saved-id");
+    await h.run();
+    expect(h.post.mock.calls.map((call) => call[0])).toEqual(["production-saved-id"]);
+    expect(h.storage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY)).toBe("production-saved-id");
+  });
+
+  test("on the conflict code it discards the id, resubmits once under a fresh id, and keeps the draft", async () => {
+    const h = harness([conflict, ok]);
+    h.storage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, "stale-id");
+    h.storage.setItem(CCO_BRIEF_DRAFT_STORAGE_KEY, "draft");
+    const result = await h.run();
+    expect(h.post.mock.calls.map((call) => call[0])).toEqual(["stale-id", "fresh-1"]);
+    expect(result.payload).toEqual({ persisted: true });
+    expect(h.storage.getItem(CCO_BRIEF_DRAFT_STORAGE_KEY)).toBe("draft");
+  });
+
+  test("a second conflict is surfaced and there is no third attempt", async () => {
+    const h = harness([conflict, conflict, ok]);
+    const result = await h.run();
+    expect(h.post).toHaveBeenCalledTimes(2);
+    expect(result.response.status).toBe(409);
+  });
+
+  test.each([
+    ["5xx", { response: { ok: false, status: 503 }, payload: { error: "cco_persistence_unavailable", retryable: true } }],
+    ["validation", { response: { ok: false, status: 400 }, payload: { error: "validation_failed" } }],
+    ["timeout-shaped null body", { response: { ok: false, status: 504 }, payload: null }],
+  ])("does not resubmit on %s", async (_name, failure) => {
+    const h = harness([failure, ok]);
+    h.storage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, "kept-id");
+    const result = await h.run();
+    expect(h.post).toHaveBeenCalledTimes(1);
+    expect(result.response.ok).toBe(false);
+    expect(h.storage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY)).toBe("kept-id");
+  });
+
+  test("a thrown network error is not retried automatically", async () => {
+    const h = harness([ok]);
+    h.post.mockRejectedValueOnce(new Error("network"));
+    await expect(h.run()).rejects.toThrow("network");
+    expect(h.post).toHaveBeenCalledTimes(1);
+  });
+
+  test("a successful submission clears the saved id as production does", async () => {
+    const h = harness([ok]);
+    await h.run();
+    expect(h.storage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY)).not.toBeNull();
+    clearCcoBriefSubmissionStorage();
+    expect(h.storage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY)).toBeNull();
+  });
+
+  test("no state carries one email's id to another: a new email only changes the id when the server says so", async () => {
+    const h = harness([conflict, ok]);
+    h.storage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, "email-a-id");
+    await h.run(); // email B submitted with A's saved id: only the server's conflict triggers a new id
+    expect(h.post.mock.calls.map((call) => call[0])).toEqual(["email-a-id", "fresh-1"]);
   });
 });

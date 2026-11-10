@@ -1,12 +1,5 @@
 export const CCO_BRIEF_DRAFT_STORAGE_KEY = "cco-brief-draft-v1";
 export const CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY = "cco-brief-submission-id-v1";
-/** Unresolved retry ids per contact email: { [emailScope]: submissionId }. */
-export const CCO_BRIEF_SUBMISSION_IDS_STORAGE_KEY = "cco-brief-submission-ids-v2";
-
-/** A saved retry id belongs to one contact email; normalise it for comparison. */
-export function ccoBriefSubmissionScope(email: string) {
-  return String(email || "").trim().toLowerCase();
-}
 
 export type CcoBriefDeliveryIssue = "failed" | "unknown" | "mixed" | null;
 
@@ -45,135 +38,63 @@ export function canRetryCcoBriefDelivery(issue: CcoBriefDeliveryIssue) {
   return issue === "failed" || issue === "mixed";
 }
 
-type IdMap = Record<string, string>;
-
-function readIdMap(): IdMap {
-  try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(CCO_BRIEF_SUBMISSION_IDS_STORAGE_KEY) || "{}");
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-    return Object.fromEntries(Object.entries(parsed as Record<string, unknown>).filter(([, id]) => typeof id === "string" && id)) as IdMap;
-  } catch {
-    return {};
-  }
-}
-
-function writeIdMap(map: IdMap) {
-  localStorage.setItem(CCO_BRIEF_SUBMISSION_IDS_STORAGE_KEY, JSON.stringify(map));
-}
-
-function draftScope(): string | null {
-  try {
-    const draft: unknown = JSON.parse(localStorage.getItem(CCO_BRIEF_DRAFT_STORAGE_KEY) || "null");
-    const email = draft && typeof draft === "object" ? (draft as Record<string, unknown>).email : null;
-    const scope = typeof email === "string" ? ccoBriefSubmissionScope(email) : "";
-    return scope || null;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * Production stored one unscoped id (`cco-brief-submission-id-v1`). It is an
- * unresolved retry, so it is never replaced: it is bound to the email of the
- * saved draft it belongs to, or, if that cannot be established, to `fallback`.
- * Call it on page load, before autosave rewrites the draft.
- */
-export function bindLegacyCcoBriefSubmissionId(fallbackScope?: string): { id: string; scope: string } | null {
-  let legacy: string | null = null;
-  try {
-    legacy = localStorage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-  if (!legacy) return null;
-  const map = readIdMap();
-  const already = Object.entries(map).find(([, id]) => id === legacy);
-  if (already) return { id: legacy, scope: already[0] };
-  const scope = draftScope() || (fallbackScope ? ccoBriefSubmissionScope(fallbackScope) : "");
-  if (!scope || map[scope]) return null;
-  try {
-    writeIdMap({ ...map, [scope]: legacy });
-    localStorage.removeItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
-  } catch {
-    // Storage refused the write: the legacy key stays in place and the id is still returned.
-  }
-  return { id: legacy, scope };
-}
-
-/**
- * A retry keeps its UUID, per contact email, so A then B then A finds A's id
- * again and an upgrade never replaces an id production already saved. A
- * completed brief explicitly clears only its own entry.
+ * A retry keeps its UUID, while a completed brief explicitly clears it so a
+ * later, new brief cannot be mistaken for a replay of the old one.
  */
 export function getCcoBriefSubmissionId(
   currentId: string | null,
   createId: () => string = () => globalThis.crypto.randomUUID(),
-  scope?: string,
 ) {
   if (currentId) return currentId;
   try {
-    if (scope === undefined) {
-      const saved = localStorage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
-      if (saved) return saved;
-      const id = createId();
-      localStorage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, id);
-      return id;
-    }
-    const legacy = bindLegacyCcoBriefSubmissionId(scope);
-    if (legacy && legacy.scope === scope) return legacy.id;
-    const map = readIdMap();
-    if (map[scope]) return map[scope];
+    const saved = localStorage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
+    if (saved) return saved;
     const id = createId();
-    map[scope] = id;
-    try {
-      writeIdMap(map);
-    } catch {
-      // Storage refused the write: the caller's in-memory map still holds the id.
-    }
+    localStorage.setItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY, id);
     return id;
   } catch {
     return createId();
   }
 }
 
-/**
- * Resolve the id for `scope` through the page's in-memory map first, so a
- * failed or unavailable localStorage still gives A, B, A the same ids.
- */
-export function resolveCcoBriefSubmissionId(
-  memory: Record<string, string>,
-  scope: string,
-  createId?: () => string,
-) {
-  const id = getCcoBriefSubmissionId(memory[scope] ?? null, createId, scope);
-  memory[scope] = id;
-  return id;
-}
-
-/** Clear one finished (or definitively rejected) submission; other emails keep their ids. */
-export function clearCcoBriefSubmission(memory: Record<string, string>, scope: string) {
-  const id = memory[scope];
-  delete memory[scope];
-  try {
-    localStorage.removeItem(CCO_BRIEF_DRAFT_STORAGE_KEY);
-    const map = readIdMap();
-    delete map[scope];
-    writeIdMap(map);
-    if (id && localStorage.getItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY) === id) {
-      localStorage.removeItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
-    }
-  } catch {
-    // Persistence already succeeded; local-storage cleanup must not alter it.
-  }
-}
-
-/** Clear everything (no scope known). */
 export function clearCcoBriefSubmissionStorage() {
   try {
     localStorage.removeItem(CCO_BRIEF_DRAFT_STORAGE_KEY);
     localStorage.removeItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
-    localStorage.removeItem(CCO_BRIEF_SUBMISSION_IDS_STORAGE_KEY);
   } catch {
     // Persistence already succeeded; local-storage cleanup must not alter it.
   }
+}
+
+/** Remove only the saved submission id (the draft stays). */
+export function discardCcoBriefSubmissionId() {
+  try {
+    localStorage.removeItem(CCO_BRIEF_SUBMISSION_ID_STORAGE_KEY);
+  } catch {
+    // Nothing to discard if storage is unavailable.
+  }
+}
+
+/** The one answer that means "this saved id does not belong to this brief". */
+export function isCcoBriefSubmissionConflict(status: number, payload: unknown): boolean {
+  const body = payload && typeof payload === "object" ? payload as Record<string, unknown> : {};
+  return status === 409 && body.error === "brief_submission_conflict";
+}
+
+/**
+ * Posts a brief. Only when the server answers with the submission-conflict
+ * code is the saved id discarded and the same draft posted once more under a
+ * fresh id; a second conflict (or any other outcome) is returned as is. The
+ * server stays the only authority on whether an id matches a brief.
+ */
+export async function postCcoBriefWithConflictRecovery(input: {
+  getId: () => string;
+  discardId: () => void;
+  post: (submissionId: string) => Promise<{ response: Pick<Response, "ok" | "status">; payload: unknown }>;
+}) {
+  const first = await input.post(input.getId());
+  if (!isCcoBriefSubmissionConflict(first.response.status, first.payload)) return first;
+  input.discardId();
+  return input.post(input.getId());
 }

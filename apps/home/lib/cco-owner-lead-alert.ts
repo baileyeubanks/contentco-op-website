@@ -189,10 +189,9 @@ export function ccoOsContactUrl(leadId: string, origin = CCO_OS_PUBLIC_ORIGIN) {
 
 export function describeCcoOwnerEmailTransport(
   env: Record<string, string | undefined> = process.env,
-  fileExists?: (filePath: string) => boolean,
 ): {
   ready: boolean;
-  provider: "resend" | "gmail_dwd" | "gmail_oauth" | "none";
+  provider: "resend" | "gmail_dwd" | "none";
   keyState: "not_configured" | "invalid" | "valid" | "not_applicable";
   keyCheck?: string;
   providerVerified: false;
@@ -201,7 +200,7 @@ export function describeCcoOwnerEmailTransport(
 } {
   // Same decision as sendTransactionalEmail, so health reports the transport
   // that will actually be used.
-  const transport = describeCcoEmailTransport(env, fileExists);
+  const transport = describeCcoEmailTransport(env);
   return {
     ready: transport.ready,
     provider: transport.provider,

@@ -6,10 +6,10 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   CCO_BRIEF_DRAFT_STORAGE_KEY,
   canRetryCcoBriefDelivery,
-  ccoBriefSubmissionScope,
-  bindLegacyCcoBriefSubmissionId,
-  clearCcoBriefSubmission,
-  resolveCcoBriefSubmissionId,
+  clearCcoBriefSubmissionStorage,
+  discardCcoBriefSubmissionId,
+  getCcoBriefSubmissionId,
+  postCcoBriefWithConflictRecovery,
 } from "@/lib/cco-public-intake-client";
 import { finishCcoPublicBriefSubmission, type CcoReceivedBrief } from "@/lib/cco-public-brief-submission";
 import { buildBriefPricingInputs, calculateEstimate, formatCurrency } from "@/lib/pricing";
@@ -242,8 +242,7 @@ export function BriefClientPage() {
   const [touched, setTouched] = useState<Partial<Record<keyof BriefDraft, boolean>>>({});
   const [result, setResult] = useState<BriefResult | null>(null);
   const [retrySubmissionAvailable, setRetrySubmissionAvailable] = useState(false);
-  /** Unresolved retry ids by contact email, so A then B then A finds A's id again. */
-  const submissionIdsRef = useRef<Record<string, string>>({});
+  const submissionIdRef = useRef<string | null>(null);
 
   const [draft, setDraft] = useState<BriefDraft>(DEFAULT_DRAFT);
   /* Timeline has a default for the estimate; only send it as a quote basic once chosen. */
@@ -252,8 +251,6 @@ export function BriefClientPage() {
   /* ── Auto-save / restore ── */
   useEffect(() => {
     try {
-      // Bind a pre-upgrade retry id to the draft it belongs to before autosave rewrites the draft.
-      bindLegacyCcoBriefSubmissionId();
       const saved = localStorage.getItem(CCO_BRIEF_DRAFT_STORAGE_KEY);
       if (saved) setDraft((prev) => ({ ...prev, ...normalizeDraft(JSON.parse(saved)) }));
     } catch { /* ignore */ }
@@ -383,11 +380,20 @@ export function BriefClientPage() {
   }
 
   function getSubmissionId() {
-    return resolveCcoBriefSubmissionId(submissionIdsRef.current, ccoBriefSubmissionScope(draft.email));
+    const id = getCcoBriefSubmissionId(submissionIdRef.current);
+    submissionIdRef.current = id;
+    return id;
+  }
+
+  /** Server said the saved id does not belong to this brief: drop only the id, keep the draft. */
+  function discardSavedSubmissionId() {
+    submissionIdRef.current = null;
+    discardCcoBriefSubmissionId();
   }
 
   function clearSubmittedDraft() {
-    clearCcoBriefSubmission(submissionIdsRef.current, ccoBriefSubmissionScope(draft.email));
+    submissionIdRef.current = null;
+    clearCcoBriefSubmissionStorage();
   }
 
   async function saveLeadSnapshot() {
@@ -469,7 +475,11 @@ export function BriefClientPage() {
     try {
       // This endpoint persists both contact and full brief. Re-saving the
       // optional lead snapshot here must not gate submission or its retries.
-      const response = await fetch("/api/cco/briefs", {
+      const { response, payload: rawPayload } = await postCcoBriefWithConflictRecovery({
+        getId: getSubmissionId,
+        discardId: discardSavedSubmissionId,
+        post: async (submissionId) => {
+          const response = await fetch("/api/cco/briefs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -510,10 +520,13 @@ export function BriefClientPage() {
             postComplexity: quoteDiagnostics.postComplexity,
           },
           bookingPreference: draft.bookingPreference,
-          submissionId: getSubmissionId(),
+          submissionId,
         }),
       });
-      const payload = await response.json().catch(() => null);
+          return { response, payload: await response.json().catch(() => null) as unknown };
+        },
+      });
+      const payload = rawPayload as Record<string, unknown> | null;
       if (!response.ok || payload?.persisted !== true) {
         const submissionError = new Error(responseErrorMessage(payload, "Brief submission failed")) as Error & { retryable?: boolean };
         submissionError.retryable = payload?.retryable !== false;

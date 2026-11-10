@@ -316,3 +316,85 @@ describe("key inspection", () => {
     expect(inspectGmailDwdKey({ HOME: dir })).toEqual({ state: "not_configured" });
   });
 });
+
+describe("serializer enforces header limits for every header it writes (property-style)", () => {
+  // Deterministic generator so failures reproduce.
+  let seed = 20261110;
+  const rand = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const ALPHABETS = {
+    ascii: "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJ0123456789-_.,",
+    unicode: "\u00e9\u00fc\u00f1\u2014\u5927\u962a\u0416\ud83d\ude80 a",
+    mixed: "abc \u00e9\u2014\u5927 xyz\ud83d\ude80 ",
+  };
+  function gen(kind: keyof typeof ALPHABETS, length: number) {
+    const chars = Array.from(ALPHABETS[kind]);
+    return Array.from({ length }, () => chars[Math.floor(rand() * chars.length)]).join("").trim() || "x";
+  }
+
+  const kinds = ["ascii", "unicode", "mixed"] as const;
+  const lengths = [1, 30, 75, 76, 160, 400, 900];
+
+  for (const kind of kinds) {
+    for (const length of lengths) {
+      test(`${kind} subject/name/filename of ${length} characters round-trips within limits`, () => {
+        const subject = gen(kind, length);
+        const name = gen(kind, Math.min(length, 400));
+        const filename = `${gen(kind, Math.min(length, 200))}.pdf`.replace(/["\\/]/g, "_");
+        const raw = buildMimeMessage({
+          ...msg,
+          subject,
+          from: `${name.replace(/[<>]/g, "")} <blaze@contentco-op.com>`,
+          attachments: [{ filename, content: "QQ==", contentType: "application/pdf" }],
+        });
+        for (const line of raw.split("\r\n")) {
+          expect(Buffer.byteLength(line)).toBeLessThanOrEqual(998);
+          for (const word of line.match(/=\?UTF-8\?B\?[^?]+\?=/g) || []) expect(word.length).toBeLessThanOrEqual(75);
+          if (/=\?UTF-8\?B\?/.test(line) || /filename\*/.test(line)) expect(line.length).toBeLessThanOrEqual(76);
+        }
+        const { headers } = splitMessage(raw);
+        expect(decodeWords(headers.get("subject")!).replace(/ +/g, " ")).toBe(subject.replace(/ +/g, " "));
+        const decodedFrom = decodeWords(headers.get("from")!).replace(/^"|"( <)/g, "$1");
+        expect(decodedFrom.replace(/ +/g, " ")).toContain("<blaze@contentco-op.com>");
+        const { body } = splitMessage(raw);
+        const attachment = splitMessage(parts(body, boundaryOf(headers.get("content-type")!))[1]);
+        const parsedName = paramValue(attachment.headers.get("content-disposition")!, "filename");
+        expect(parsedName?.replace(/ +/g, " ")).toBe(filename.replace(/ +/g, " "));
+      });
+    }
+  }
+
+  test("a 1,000-character ASCII display name is folded or encoded, never one overlong line", () => {
+    const raw = buildMimeMessage({ ...msg, from: `${"N".repeat(1000)} <blaze@contentco-op.com>` });
+    for (const line of raw.split("\r\n")) expect(Buffer.byteLength(line)).toBeLessThanOrEqual(998);
+  });
+
+  test("a header that cannot be made conformant is a definite local failure before anything is sent", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const overlong = await sendGmailViaServiceAccount({ ...msg, to: `${"a".repeat(1100)}@example.com` }, { subject: "s", keyPath: keyFile() });
+    const badType = await sendGmailViaServiceAccount(
+      { ...msg, attachments: [{ filename: "a.pdf", content: "QQ==", contentType: "x".repeat(2000) }] },
+      { subject: "s", keyPath: keyFile() },
+    );
+    for (const result of [overlong, badType]) {
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/^gmail_dwd_message_invalid/);
+      expect(result.deliveryUnknown).toBeUndefined();
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test("the seven-second budget is applied to both the token call and the Gmail call", async () => {
+    const signals: AbortSignal[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
+      signals.push(init.signal!);
+      return String(url).includes("oauth2")
+        ? new Response(JSON.stringify({ access_token: "t" }), { status: 200 })
+        : new Response(JSON.stringify({ id: "x" }), { status: 200 });
+    }));
+    await sendGmailViaServiceAccount(msg, { subject: "s", keyPath: keyFile() });
+    expect(signals).toHaveLength(2);
+    expect(signals[0]).toBe(signals[1]);
+    expect(signals[0].aborted).toBe(false);
+  });
+});

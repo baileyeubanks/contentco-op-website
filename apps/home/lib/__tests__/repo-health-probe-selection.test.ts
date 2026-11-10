@@ -7,7 +7,7 @@ vi.mock("@/lib/openclaw", () => ({ probeOpenClawHealth: openclawProbe }));
 vi.mock("@/lib/email-sender", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/email-sender")>()),
   describeCcoEmailTransport: () => ({
-    provider: "fixture", ready: true, detail: "", checkedPaths: [], keyState: "valid", providerVerified: false,
+    provider: "fixture", ready: true, detail: "", keyState: "valid", providerVerified: false,
   }),
 }));
 vi.mock("@/lib/content/portfolio", () => ({

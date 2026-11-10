@@ -182,48 +182,67 @@ export function encodeWords(text: string): string[] {
   return words;
 }
 
-/** Fold ASCII text at spaces so no line exceeds `limit` (long tokens are left whole). */
-function foldAscii(text: string, firstLineUsed: number, limit = 76): string {
-  const lines: string[] = [];
-  let line = "";
-  let used = firstLineUsed;
-  for (const token of text.split(" ")) {
-    if (line && used + line.length + 1 + token.length > limit) {
-      lines.push(line);
-      line = token;
-      used = 0;
-    } else {
-      line = line ? `${line} ${token}` : token;
-    }
+/** Thrown when a header cannot be made conformant. Nothing has been sent. */
+export class GmailDwdMessageInvalid extends Error {
+  constructor() {
+    super("gmail_dwd_message_invalid");
   }
-  lines.push(line);
-  return lines.join("\r\n ");
+}
+
+const SOFT_LINE_LIMIT = 76;
+const HARD_LINE_LIMIT = 998;
+
+/**
+ * Serialize a structured header from whole tokens, folding before a token that
+ * would push a line past 76 characters. Encoded-words are never split here.
+ */
+function foldTokens(name: string, tokens: string[]): string {
+  const lines: string[] = [`${name}:`];
+  for (const token of tokens) {
+    const current = lines[lines.length - 1];
+    if (current.length + 1 + token.length <= SOFT_LINE_LIMIT) lines[lines.length - 1] = `${current} ${token}`;
+    else lines.push(` ${token}`);
+  }
+  return lines.join("\r\n");
 }
 
 /** Unstructured header (Subject): ASCII folds at spaces, anything else becomes encoded-words. */
 function unstructuredHeader(name: string, value: string): string {
   const clean = headerValue(value);
-  const used = name.length + 2;
   if (PRINTABLE_ASCII.test(clean)) {
-    // A single ASCII token that would overflow the hard line limit is encoded.
-    return clean.split(" ").some((token) => token.length > 900)
-      ? `${name}: ${encodeWords(clean).join("\r\n ")}`
-      : `${name}: ${foldAscii(clean, used)}`;
+    const tokens = clean.split(" ").filter(Boolean);
+    // Whitespace between adjacent encoded-words is dropped by readers, so a
+    // token too long to fold is handled by encoding the whole text, losslessly.
+    if (tokens.some((token) => token.length > SOFT_LINE_LIMIT - 2)) return foldTokens(name, encodeWords(clean));
+    return foldTokens(name, tokens.length ? tokens : [""]);
   }
-  return `${name}: ${encodeWords(clean).join("\r\n ")}`;
+  return foldTokens(name, encodeWords(clean));
 }
 
 /** Address header: only the display name is encoded; the addr-spec stays as is. */
 function addressHeader(name: string, value: string): string {
   const clean = headerValue(value);
   const match = /^(.*?)\s*<([^<>]+)>$/.exec(clean);
-  if (!match || !match[1].trim()) return `${name}: ${clean}`;
+  if (!match || !match[1].trim()) return foldTokens(name, [clean]);
   const display = match[1].trim().replace(/^"(.*)"$/, "$1");
-  const addr = match[2].trim();
-  if (!PRINTABLE_ASCII.test(display)) return `${name}: ${encodeWords(display).join("\r\n ")} <${addr}>`;
-  return /[()<>\[\]:;@\\,."]/.test(display)
-    ? `${name}: "${display.replace(/["\\]/g, "\\$&")}" <${addr}>`
-    : `${name}: ${display} <${addr}>`;
+  const addr = `<${match[2].trim()}>`;
+  if (!PRINTABLE_ASCII.test(display) || display.length > 60) return foldTokens(name, [...encodeWords(display), addr]);
+  const phrase = /[()<>\[\]:;@\\,."]/.test(display) ? `"${display.replace(/["\\]/g, "\\$&")}"` : display;
+  return foldTokens(name, [...phrase.split(" ").filter(Boolean), addr]);
+}
+
+/**
+ * Final gate over everything serialized: every line within 998 octets, every
+ * encoded-word within 75 characters, every line carrying an encoded-word or an
+ * RFC 2231 parameter within 76. Anything else is a definite local failure.
+ */
+export function assertConformantMessage(raw: string) {
+  for (const line of raw.split("\r\n")) {
+    if (Buffer.byteLength(line, "utf8") > HARD_LINE_LIMIT) throw new GmailDwdMessageInvalid();
+    const words = line.match(/=\?[^?\s]+\?[BbQq]\?[^?\s]*\?=/g) || [];
+    if (words.some((word) => word.length > 75)) throw new GmailDwdMessageInvalid();
+    if ((words.length > 0 || /filename\*/.test(line)) && line.length > SOFT_LINE_LIMIT) throw new GmailDwdMessageInvalid();
+  }
 }
 
 function wrap76(base64: string) {
@@ -262,7 +281,8 @@ function encodedParam(name: string, value: string): string[] {
 function attachmentPart(attachment: GmailDwdAttachment) {
   const name = headerValue(attachment.filename || "attachment");
   const fallback = name.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_").slice(0, 60);
-  const type = headerValue(attachment.contentType || "application/octet-stream").replace(/[^\x21-\x7e]/g, "") || "application/octet-stream";
+  const type = headerValue(attachment.contentType || "application/octet-stream");
+  if (!/^[A-Za-z0-9!#$&^_.+-]{1,60}\/[A-Za-z0-9!#$&^_.+-]{1,60}$/.test(type)) throw new GmailDwdMessageInvalid();
   const params = PRINTABLE_ASCII.test(name) && !/["\\]/.test(name) && name.length <= 60
     ? [`filename="${name}"`]
     : [`filename="${fallback}"`, ...encodedParam("filename", name)];
@@ -301,7 +321,9 @@ export function buildMimeMessage(message: GmailDwdMessage, now: Date = new Date(
     `--${mixed}--`,
     "",
   ];
-  return `${headers.join("\r\n")}\r\n\r\n${body.join("\r\n")}`;
+  const raw = `${headers.join("\r\n")}\r\n\r\n${body.join("\r\n")}`;
+  assertConformantMessage(raw);
+  return raw;
 }
 
 async function readJson(response: Response): Promise<Record<string, unknown>> {
@@ -401,8 +423,12 @@ export async function sendGmailViaServiceAccount(
   let assertion: string;
   let raw: string;
   try {
-    assertion = buildGmailDwdAssertion(key, config.subject);
     raw = Buffer.from(buildMimeMessage(message), "utf8").toString("base64url");
+  } catch {
+    return { ok: false, error: "gmail_dwd_message_invalid: a message header could not be made conformant" };
+  }
+  try {
+    assertion = buildGmailDwdAssertion(key, config.subject);
   } catch {
     return { ok: false, error: "gmail_dwd_key_invalid: service account private key could not sign" };
   }

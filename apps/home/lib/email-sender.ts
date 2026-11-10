@@ -1,10 +1,7 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
 import { inspectGmailDwdKey, sendGmailViaServiceAccount, type GmailDwdKeyCheck } from "./gmail-dwd-send";
 
 const PYTHON_SAFE_CWD = process.env.HOME || "/tmp";
-const DEFAULT_BLAZE_GMAIL_TOKEN_PATH = "~/.config/blaze/google/blaze_contentcoop.json";
-const DEFAULT_BLAZE_GMAIL_SERVICE_TOKEN_PATH = "~/.config/blaze/google/bailey_contentcoop_service.json";
 
 interface SendEmailAttachment {
   filename: string;
@@ -196,16 +193,7 @@ function getGoogleOauthTokenPaths(options: SendEmailOptions) {
     ].filter((value): value is string => Boolean(value && value.trim()));
     return Array.from(new Set(candidates));
   }
-  if (bu !== "CC") return [];
-
-  const configured = process.env.GOOGLE_OAUTH_TOKEN_FILE_BLAZE;
-  const candidates = [
-    configured,
-    DEFAULT_BLAZE_GMAIL_TOKEN_PATH,
-    DEFAULT_BLAZE_GMAIL_SERVICE_TOKEN_PATH,
-  ].filter((value): value is string => Boolean(value && value.trim()));
-
-  return Array.from(new Set(candidates));
+  return [];
 }
 
 async function sendViaGmailOauth(options: SendEmailOptions): Promise<SendResult> {
@@ -277,17 +265,23 @@ async function sendViaGmailDwd(options: SendEmailOptions, keyPath: string | null
   );
 }
 
-/** Log-safe: the fixed code before the first colon, never provider or path text. */
+/** Log-safe: only a code from this fixed list is ever printed. */
+const LOGGABLE_CODES = new Set([
+  "gmail_dwd_key_missing", "gmail_dwd_key_invalid", "gmail_dwd_message_invalid", "gmail_dwd_unauthorized",
+  "gmail_dwd_invalid_grant", "gmail_dwd_forbidden", "gmail_dwd_quota", "gmail_dwd_send_failed",
+  "gmail_dwd_send_unknown", "gmail_dwd_token_failed", "gmail_dwd_token_unreachable",
+  "gmail_provider_receipt_missing", "gmail_provider_receipt_invalid", "gmail_oauth_not_configured",
+]);
 function errorCode(error: string | undefined): string {
-  const code = String(error || "unknown").split(":")[0].trim();
-  return /^[a-z0-9_]{1,48}$/i.test(code) ? code : "unknown";
+  const code = String(error || "").split(":")[0].trim();
+  return LOGGABLE_CODES.has(code) ? code : "unlisted_error";
 }
 
 export type EmailTransportReadiness = {
-  provider: "resend" | "gmail_oauth" | "gmail_dwd" | "none";
+  /** Content Co-op: Resend, or the Node service-account send. Never the Python OAuth path. */
+  provider: "resend" | "gmail_dwd" | "none";
   ready: boolean;
   detail: string;
-  checkedPaths: string[];
   /** Service-account key: not configured / configured but invalid / locally valid. */
   keyState: "not_configured" | "invalid" | "valid" | "not_applicable";
   /** Which local check failed when keyState is "invalid". Fixed vocabulary only. */
@@ -297,49 +291,27 @@ export type EmailTransportReadiness = {
 };
 
 /**
- * Reports which outbound email transport the Content Co-Op intake will use on
- * this host, without sending anything. Mirrors `sendTransactionalEmail` for
- * CC: Resend, then the Node service-account path (only when the key passes
- * local checks), then the legacy OAuth token file.
+ * Reports which outbound email transport Content Co-op intake will use on this
+ * host, without sending anything. Mirrors `sendTransactionalEmail` for CC:
+ * Resend if RESEND_API_KEY is set, otherwise the Node service-account send.
  */
 export function describeCcoEmailTransport(
   env: Record<string, string | undefined> = process.env,
-  fileExists: (filePath: string) => boolean = (filePath) => existsSync(filePath),
 ): EmailTransportReadiness {
   if (env.RESEND_API_KEY?.trim()) {
-    return { provider: "resend", ready: true, detail: "RESEND_API_KEY is set; Resend will deliver intake email.", checkedPaths: [], keyState: "not_applicable", providerVerified: false };
+    return { provider: "resend", ready: true, detail: "RESEND_API_KEY is set; Resend will deliver intake email.", keyState: "not_applicable", providerVerified: false };
   }
   const key = inspectGmailDwdKey(env);
-  const oauthCandidates = Array.from(new Set([
-    env.GOOGLE_OAUTH_TOKEN_FILE_BLAZE,
-    DEFAULT_BLAZE_GMAIL_TOKEN_PATH,
-    DEFAULT_BLAZE_GMAIL_SERVICE_TOKEN_PATH,
-  ].filter((value): value is string => Boolean(value && value.trim()))));
-  const resolvedOauth = oauthCandidates.map((candidate) => expandHomePath(candidate, env));
-  const oauthHit = resolvedOauth.find((candidate) => fileExists(candidate));
-  const checkedPaths = resolvedOauth;
   if (key.state === "valid") {
-    return { provider: "gmail_dwd", ready: true, detail: "Gmail service-account key passed local checks (not verified with Google).", checkedPaths, keyState: "valid", providerVerified: false };
+    return { provider: "gmail_dwd", ready: true, detail: "Gmail service-account key passed local checks (not verified with Google).", keyState: "valid", providerVerified: false };
   }
   if (key.state === "invalid") {
-    return {
-      provider: "gmail_dwd",
-      ready: false,
-      detail: `GOOGLE_DWD_SERVICE_ACCOUNT_FILE is configured but failed the local check ${key.check}.${oauthHit ? " The legacy OAuth token file will be tried instead." : ""}`,
-      checkedPaths,
-      keyState: "invalid",
-      keyCheck: key.check,
-      providerVerified: false,
-    };
-  }
-  if (oauthHit) {
-    return { provider: "gmail_oauth", ready: true, detail: "No service-account key configured; the legacy Gmail OAuth token file will be used.", checkedPaths, keyState: "not_configured", providerVerified: false };
+    return { provider: "gmail_dwd", ready: false, detail: `GOOGLE_DWD_SERVICE_ACCOUNT_FILE is configured but failed the local check ${key.check}. Intake email will fail until it is fixed.`, keyState: "invalid", keyCheck: key.check, providerVerified: false };
   }
   return {
     provider: "none",
     ready: false,
     detail: "No email transport: RESEND_API_KEY unset and GOOGLE_DWD_SERVICE_ACCOUNT_FILE (Gmail service account key) not configured. Intake emails will be logged as failed.",
-    checkedPaths,
     keyState: "not_configured",
     providerVerified: false,
   };
@@ -388,27 +360,20 @@ export async function sendTransactionalEmail(options: SendEmailOptions): Promise
       return gmailFallback;
     }
 
-    // CC. 1. A locally valid service-account key: the Node DWD path.
+    // CC: the only non-Resend transport is the Node service-account send.
+    // A missing or invalid key is a definite local failure; there is no
+    // fall-through to the legacy OAuth/Python path.
     const key = inspectGmailDwdKey();
-    if (key.state === "valid") {
-      const dwd = await sendViaGmailDwd({ ...options, from }, key.path);
-      if (!dwd.ok && !dwd.deliveryUnknown) console.log(`[email-sender] Gmail DWD send failed (CC): ${errorCode(dwd.error)}`);
-      return dwd;
+    if (key.state !== "valid") {
+      const error = key.state === "invalid"
+        ? `gmail_dwd_key_invalid:${key.check}`
+        : "gmail_dwd_key_missing: no service account key file is configured on this host";
+      console.log(`[email-sender] No RESEND_API_KEY and no usable Gmail service account key (CC): ${errorCode(error)}`);
+      return { ok: false, error };
     }
-    // 2. No usable key: the legacy OAuth token file. An invalid key is named, not hidden.
-    const keyProblem = key.state === "invalid"
-      ? `gmail_dwd_key_invalid: service account key failed local check ${key.check}`
-      : "gmail_dwd_key_missing: no service account key file is configured on this host";
-    const oauth = await sendViaGmailOauth({ ...options, from });
-    if (oauth.ok) return oauth;
-    if (oauth.deliveryUnknown) {
-      return { ok: false, error: "gmail_oauth_send_unknown: delivery not confirmed", deliveryUnknown: true };
-    }
-    console.log(`[email-sender] No RESEND_API_KEY and no usable Gmail service account key (CC): ${errorCode(keyProblem)}; oauth=${errorCode(oauth.error)}`);
-    return {
-      ok: false,
-      error: oauth.error === "gmail_oauth_not_configured" ? keyProblem : `${keyProblem}; gmail_oauth_send_failed: legacy token refused or unavailable`,
-    };
+    const dwd = await sendViaGmailDwd({ ...options, from }, key.path);
+    if (!dwd.ok && !dwd.deliveryUnknown) console.log(`[email-sender] Gmail DWD send failed (CC): ${errorCode(dwd.error)}`);
+    return dwd;
   }
 
   try {

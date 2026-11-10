@@ -15,54 +15,51 @@ function host(keyContent?: string | null) {
   return { home, keyFile, env: { HOME: home, GOOGLE_DWD_SERVICE_ACCOUNT_FILE: keyFile } as Record<string, string> };
 }
 const goodKey = () => JSON.stringify({ type: "service_account", client_email: "svc@p.iam.gserviceaccount.com", private_key: pem });
-const never = () => false;
 
 describe("describeCcoEmailTransport", () => {
   test("prefers Resend when the API key is present", () => {
-    expect(describeCcoEmailTransport({ RESEND_API_KEY: "re_test" }, never)).toMatchObject({ provider: "resend", ready: true });
+    expect(describeCcoEmailTransport({ RESEND_API_KEY: "re_test" })).toMatchObject({ provider: "resend", ready: true });
   });
 
   test("a locally valid key is gmail_dwd and ready, but never provider-verified", () => {
     const h = host(goodKey());
-    expect(describeCcoEmailTransport(h.env, never)).toMatchObject({
+    expect(describeCcoEmailTransport(h.env)).toMatchObject({
       provider: "gmail_dwd", ready: true, keyState: "valid", providerVerified: false,
     });
   });
 
   test("a path that exists but is not a usable key is NOT ready and names the failed check", () => {
     const h = host("{not json");
-    const notJson = describeCcoEmailTransport(h.env, never);
+    const notJson = describeCcoEmailTransport(h.env);
     expect(notJson).toMatchObject({ provider: "gmail_dwd", ready: false, keyState: "invalid", keyCheck: "not_json" });
 
     const dir = host(null);
     mkdirSync(dir.keyFile);
-    expect(describeCcoEmailTransport(dir.env, never)).toMatchObject({ ready: false, keyCheck: "not_a_regular_file" });
+    expect(describeCcoEmailTransport(dir.env)).toMatchObject({ ready: false, keyCheck: "not_a_regular_file" });
 
     const wrong = host(JSON.stringify({ type: "authorized_user", client_email: "a" }));
-    expect(describeCcoEmailTransport(wrong.env, never)).toMatchObject({ ready: false, keyCheck: "not_service_account" });
+    expect(describeCcoEmailTransport(wrong.env)).toMatchObject({ ready: false, keyCheck: "not_service_account" });
   });
 
   test("a configured but absent key file is invalid, not 'not configured'", () => {
     const h = host(null);
-    expect(describeCcoEmailTransport(h.env, never)).toMatchObject({ ready: false, keyState: "invalid", keyCheck: "key_file_missing" });
+    expect(describeCcoEmailTransport(h.env)).toMatchObject({ ready: false, keyState: "invalid", keyCheck: "key_file_missing" });
   });
 
-  test("an invalid key says the legacy OAuth token will be tried when one exists", () => {
-    const h = host("{bad");
-    const readiness = describeCcoEmailTransport(h.env, (p) => p.endsWith("blaze_contentcoop.json"));
-    expect(readiness.ready).toBe(false);
-    expect(readiness.detail).toContain("legacy OAuth token file will be tried");
-  });
-
-  test("with no key configured, an OAuth token file is gmail_oauth", () => {
+  test("Content Co-op never reports the legacy OAuth path, even when a token file exists", () => {
     const h = host(null);
-    const readiness = describeCcoEmailTransport({ HOME: h.home }, (p) => p.endsWith("blaze_contentcoop.json"));
-    expect(readiness).toMatchObject({ provider: "gmail_oauth", ready: true, keyState: "not_configured" });
+    mkdirSync(path.join(h.home, ".config/blaze/google"), { recursive: true });
+    writeFileSync(path.join(h.home, ".config/blaze/google/blaze_contentcoop.json"), "{}");
+    const readiness = describeCcoEmailTransport({ HOME: h.home });
+    expect(readiness).toMatchObject({ provider: "none", ready: false, keyState: "not_configured" });
+    const bad = host("{bad");
+    writeFileSync(path.join(bad.home, "blaze_contentcoop.json"), "{}");
+    expect(describeCcoEmailTransport(bad.env)).toMatchObject({ provider: "gmail_dwd", ready: false, keyCheck: "not_json" });
   });
 
   test("with nothing configured, reports none/not ready and names the missing variable", () => {
     const h = host(null);
-    const readiness = describeCcoEmailTransport({ HOME: h.home }, never);
+    const readiness = describeCcoEmailTransport({ HOME: h.home });
     expect(readiness).toMatchObject({ provider: "none", ready: false, keyState: "not_configured" });
     expect(readiness.detail).toContain("RESEND_API_KEY unset");
     expect(readiness.detail).toContain("GOOGLE_DWD_SERVICE_ACCOUNT_FILE");
@@ -70,9 +67,9 @@ describe("describeCcoEmailTransport", () => {
 
   test("owner-alert transport reports the same provider and state", () => {
     const h = host(goodKey());
-    expect(describeCcoOwnerEmailTransport(h.env, never)).toMatchObject({ provider: "gmail_dwd", ready: true, keyState: "valid", providerVerified: false, missing: [] });
+    expect(describeCcoOwnerEmailTransport(h.env)).toMatchObject({ provider: "gmail_dwd", ready: true, keyState: "valid", providerVerified: false, missing: [] });
     const bad = host("{bad");
-    expect(describeCcoOwnerEmailTransport(bad.env, never)).toMatchObject({ ready: false, keyState: "invalid", keyCheck: "not_json" });
+    expect(describeCcoOwnerEmailTransport(bad.env)).toMatchObject({ ready: false, keyState: "invalid", keyCheck: "not_json" });
   });
 });
 
@@ -82,9 +79,9 @@ describe("public /api/health projection", () => {
     const invalid = host("{bad");
     const none = host(null);
     const out = [
-      publicEmailTransportStatus(describeCcoEmailTransport(valid.env, never)),
-      publicEmailTransportStatus(describeCcoEmailTransport(invalid.env, never)),
-      publicEmailTransportStatus(describeCcoEmailTransport({ HOME: none.home }, never)),
+      publicEmailTransportStatus(describeCcoEmailTransport(valid.env)),
+      publicEmailTransportStatus(describeCcoEmailTransport(invalid.env)),
+      publicEmailTransportStatus(describeCcoEmailTransport({ HOME: none.home })),
     ];
     expect(out[0]).toMatchObject({ warning: null, meta: { emailTransport: "gmail_dwd", emailTransportReady: true, emailTransportKeyState: "valid", emailTransportProviderVerified: false } });
     expect(out[1]).toMatchObject({ warning: "email_transport_invalid:not_json", meta: { emailTransportReady: false, emailTransportKeyState: "invalid", emailTransportKeyCheck: "not_json" } });
