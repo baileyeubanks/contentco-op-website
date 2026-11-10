@@ -5,6 +5,7 @@ import ts from "typescript";
 import { describe, expect, test, vi } from "vitest";
 import * as validation from "../validation";
 import { finishCcoPublicBriefSubmission } from "../cco-public-brief-submission";
+import { postCcoBriefWithConflictRecovery } from "../cco-public-intake-client";
 
 // Exercise the actual component handlers, including their request bodies.
 const path = new URL("../../app/brief/brief-client.tsx", import.meta.url);
@@ -45,7 +46,7 @@ function form(projectContext: string, briefPersists = true) {
     responseErrorMessage:(payload:{error?:string}, fallback:string) => payload?.error || fallback,
     setSubmitState:(value:string) => {state.current=value;},setSubmitError:(value:string) => {state.error=value;},
     setRetrySubmissionAvailable:vi.fn(),setResult:vi.fn(),clearSubmittedDraft:() => {state.cleared=true;},
-    finishCcoPublicBriefSubmission,window:{location:{href:""}},
+    finishCcoPublicBriefSubmission,postCcoBriefWithConflictRecovery,discardSavedSubmissionId:() => undefined,window:{location:{href:""}},
   });
   for (const code of handlers.values()) runInContext(code,context);
   return {draft,requests,state,context,save:() => runInContext("saveLeadSnapshot()",context),submit:() => runInContext("submitBrief()",context)};

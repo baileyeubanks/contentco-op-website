@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { createContext, runInContext } from "node:vm";
 import ts from "typescript";
 import { describe, expect, test, vi } from "vitest";
-import { canRetryCcoBriefDelivery, getCcoBriefDeliveryIssue } from "../cco-public-intake-client";
+import { canRetryCcoBriefDelivery, getCcoBriefDeliveryIssue, postCcoBriefWithConflictRecovery } from "../cco-public-intake-client";
 import { normalizeBriefWebsite } from "@/lib/validation";
 
 // Execute the actual form handler, rather than duplicating its post-save logic.
@@ -42,6 +42,7 @@ async function exercise(input: {
     requests.push({ url, signal: init?.signal });
     if (url === "/api/cco/briefs") return {
       ok: true,
+      status: 200,
       json: async () => ({ persisted: true, id: input.receiptId ?? "saved-canonical-brief", access_token: input.accessToken ?? "saved-access-token", notification: input.notification ?? acceptedNotification }),
     };
     if (url !== "/api/cco/briefs/proposal") throw new Error("Unexpected request");
@@ -59,6 +60,8 @@ async function exercise(input: {
     saveLeadSnapshot: async () => undefined,
     inferGoal: () => "Synthetic goal", getSubmissionId: () => state.retryKey,
     clearSubmittedDraft: () => { state.retryKey = null; },
+    discardSavedSubmissionId: () => { state.retryKey = null; },
+    postCcoBriefWithConflictRecovery,
     getCcoBriefDeliveryIssue, canRetryCcoBriefDelivery, normalizeBriefWebsite,
     responseErrorMessage: () => "Synthetic pre-save failure",
     fetch: fetchRequest, window: { location }, encodeURIComponent,
